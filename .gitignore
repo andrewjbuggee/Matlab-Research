@@ -1,0 +1,10 @@
+.*
+!/.gitignore
+Hyperspectral_Cloud_Retrievals/AVIRIS/AVHRR_Data/*
+Hyperspectral_Cloud_Retrievals/AVIRIS/AVIRIS-Classic-data/*
+Hyperspectral_Cloud_Retrievals/AVIRIS/AVIRIS-NG-data/*
+
+MODIS_Cloud_Retrieval/MODIS_data/*
+*.hdf
+*.mat
+*.nc
