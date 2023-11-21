@@ -1,1 +1,0 @@
-These codes are from Krzszystof Markowicz home page at IGf UW
