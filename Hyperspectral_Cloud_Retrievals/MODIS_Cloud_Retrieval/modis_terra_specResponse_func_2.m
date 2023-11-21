@@ -43,7 +43,7 @@ if strcmp(whatComputer, 'andrewbuggee')==true
     foldername = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
         'MODIS_Cloud_Retrieval/MODIS_data/relative_spectral_response_terra/'];
 elseif strcmp(whatComputer, 'anbu8374')==true
-    error([newline, 'Define the folder for this compute!', newline])
+    error([newline, 'Define the folder for this computer!', newline])
 end
 
 

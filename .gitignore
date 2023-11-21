@@ -3,8 +3,45 @@
 Hyperspectral_Cloud_Retrievals/AVIRIS/AVHRR_Data/*
 Hyperspectral_Cloud_Retrievals/AVIRIS/AVIRIS-Classic-data/*
 Hyperspectral_Cloud_Retrievals/AVIRIS/AVIRIS-NG-data/*
-
 MODIS_Cloud_Retrieval/MODIS_data/*
+Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/README-info-89_001.txt
+
+
+*.html
 *.hdf
 *.mat
 *.nc
+*.fig
+
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
+
+# Generated helpsearch folders
+helpsearch*/
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Matlab code generation folders
+codegen/
+
+# Simulink autosave extension
+*.autosave
+
+# Simulink cache files
+*.slxc
+
+# Octave session info
+octave-workspace
+
