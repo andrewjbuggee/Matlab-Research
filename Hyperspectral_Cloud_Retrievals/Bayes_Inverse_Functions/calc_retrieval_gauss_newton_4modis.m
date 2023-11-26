@@ -154,6 +154,7 @@ for pp = 1:num_pixels
 
 
         residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
+        rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
         jacobian_diff_guess_prior{pp}(:,ii) = Jacobian*diff_guess_prior{pp}(:,ii);
 
@@ -191,15 +192,27 @@ for pp = 1:num_pixels
         % with the current Gauss-Newton direction that will result in r_top
         % being larger than r_bot. Should I break the loop in this case?
         if max_a==0
+
+            % In this case, the new guass-newton direction is causing the
+            % radius at cloud top to be larger than that at cloud bottom.
+            % Reset the initial guess to be the TBLUT value at cloud top,
+            % and 72% that value at cloud bottom. This is based on the
+            % median results from analyzing non-precipitating clouds from
+            % the VOCALS-REx flight campaing. The median vertical profile
+            % shows the radius at cloud bottom to be 72% the value at cloud
+            % top.
+
             disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
                 'Trying a different inital guess...', newline])
             
-            new_guess = [current_guess(1), 0.5*current_guess(2), current_guess(3)];
+            new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3)];
 
             disp([newline, 'Initial guess was: r_t = ', num2str(current_guess(1)),...
                 '  r_b = ', num2str(current_guess(2)), '  Tau_c = ', num2str(current_guess(3)), newline])
             disp(['New guess is : r_t = ', num2str(new_guess(1)),...
                 '  r_b = ', num2str(new_guess(2)), '  Tau_c = ', num2str(new_guess(3)), newline])
+
+            % Do I need to compute a new set of measurement estimates?
 
         else
 
@@ -219,14 +232,23 @@ for pp = 1:num_pixels
                 constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
                     GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
             end
-
+            
+            % compute the rms_residual for the constrained state vector
+            rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a))).^2, 1));
+            % find the smallest rms residual that is less than the previus
+            % itereates rms residual
+            idx_lessThanLastIterate = rms_residual_constrained < rms_residual{pp}(ii-1);
+            % set the rms_residual_constrained to be an arbitrarily large
+            % number is it is greater than the last iterates rms_residual.
+            rms_residual_constrained(~idx_lessThanLastIterate) = 999;
             % now find the minimum residual
-            [~, min_residual_idx] = min(sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a)).^2))));
+            [~, min_residual_idx] = min(rms_residual_constrained);
 
 
             % Select the step length by choosing the a value with the minimumum
             % residual
             residual{pp}(:,ii) = measurements(:,pp) - constrained_measurement_estimate(:, min_residual_idx);
+            rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
 
@@ -242,6 +264,7 @@ for pp = 1:num_pixels
 
         % ----- new_guess using the model prior mean value -----
         %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
+        
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
@@ -270,9 +293,9 @@ for pp = 1:num_pixels
 
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
-        rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2)/size(residual{pp},1));
+        
 
-        if rms_residual{pp}(ii)<convergence_limit
+        if rms_residual{pp}(ii)<convergence_limit(pp)
 
             disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
                 'RMS = ', num2str(rms_residual{pp}(ii))])

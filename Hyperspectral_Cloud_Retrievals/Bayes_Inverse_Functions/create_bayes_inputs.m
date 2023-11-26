@@ -13,18 +13,6 @@ bayes_inputs.numPixels2Calculate = modisInputs.pixels.num_2calculate;
 bayes_inputs.GN_iterations = 5;
 
 
-
-% Define the convergence limit. Convergence is defined using the residual,
-% which is the true measurement subtracted from the estiamted measurement.
-% We take the RMS of the residual using all spectral channels. This is how
-% we define the convergence limit. If the residual is the difference
-% between the true measurement and the estimated measurement, and the true
-% measurement has an uncertainty of 10%, then our estimate measurement
-% should be within this uncertainty. For MODIS, the measuremen uncertainty
-% for the reflectance is between 3 and 7%. So lets meet in the middle and
-% say 5 %
-bayes_inputs.convergence_limit = 0;
-
 % define a percent threshold of the difference between successive
 % iterations. If the percent difference is below the percent threshold,
 % than the iterative process is stopped.
