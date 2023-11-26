@@ -50,16 +50,15 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     % -------------------------------------
 
 
-    % Define the MODIS folder name
+    % ----- Define the MODIS folder name -----
 
-    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'MODIS_Cloud_Retrieval/MODIS_data/'];
-
 
 
     % ***** Define the VOCALS-REx Folder *****
 
-    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
@@ -266,9 +265,13 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage = [0.05, 0.1, 0.3];        % percentage of the TBLUT guess
 
+% r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+
 r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
-tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
+r_bot_apriori_percentage_vector = [1];        % percentage of the TBLUT guess
+tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
 
 
 

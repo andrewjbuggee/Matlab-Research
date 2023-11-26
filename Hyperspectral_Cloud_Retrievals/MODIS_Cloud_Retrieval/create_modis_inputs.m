@@ -74,9 +74,9 @@ inputs.savedCalculations_folderName = [folderName, 'Retrieval_outputs_', char(da
 % rev_num = 1;
 % inputs.savedCalculations_folderName = [folderName, 'Retrieval_outputs_', datetime("today"),...
 %     '_rev', num2str(rev_num), '/']; % this is the folder that all the saved calculations will go
-
-% If this foldername already exists, AND there are .mat files in it, create
-% a new folder by increasing the rev number
+% 
+% % If this foldername already exists, AND there are .mat files in it, create
+% % a new folder by increasing the rev number
 % while isfolder(inputs.savedCalculations_folderName)==true
 %     
 %     rev_num = rev_num +1;

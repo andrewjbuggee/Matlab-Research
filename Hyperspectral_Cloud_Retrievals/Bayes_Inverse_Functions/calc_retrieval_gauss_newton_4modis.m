@@ -157,13 +157,85 @@ for pp = 1:num_pixels
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
         jacobian_diff_guess_prior{pp}(:,ii) = Jacobian*diff_guess_prior{pp}(:,ii);
 
-        % -----------------------------------------------------------------
-        % -----------------------------------------------------------------
-        % new_guess using the previous iteration
-        %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
 
-        % new_guess using the model prior mean value
-        new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
+        % -------------- Compute the new state vector ---------------------
+        % -----------------------------------------------------------------
+        
+        % ----- using constraint -----
+        % new guess using the modified bound-constraint algorithm (Docicu
+        % et al 2003)
+        % compute the Gauss-Newton direction for each retrevial variable
+        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(:,:,pp)^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
+
+        % fine the maximum non-negative value, a, that satisfies the
+        % following: l< current_guess + new_direction <u
+        % where the variable is bounded: l<x1<u
+        % we want to compute the maximum non-negative feasible step within
+        % our bounds
+        a = linspace(0, 20, 2000);
+        constrained_guesses = current_guess + new_direction*a;
+
+        % let's find the new guesses that satisfy the following
+        % constraints: r_bot< r_top + new_direction <inf  and
+        % 0< r_bot + new_direction <r_top
+        % the first row is r_top. This has to be greater than r_bot which
+        % is the value of the second row.
+        % find the maximum a where this is satisfied
+        [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
+                                constrained_guesses(1,:)<=30 & ...
+                                constrained_guesses(2,:)>0   & ...
+                                constrained_guesses(3,:)>0));
+
+        % if the maximum value of a is 0, then there is no solution space
+        % with the current Gauss-Newton direction that will result in r_top
+        % being larger than r_bot. Should I break the loop in this case?
+        if max_a==0
+            disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
+                'Trying a different inital guess...', newline])
+            
+            new_guess = [current_guess(1), 0.5*current_guess(2), current_guess(3)];
+
+            disp([newline, 'Initial guess was: r_t = ', num2str(current_guess(1)),...
+                '  r_b = ', num2str(current_guess(2)), '  Tau_c = ', num2str(current_guess(3)), newline])
+            disp(['New guess is : r_t = ', num2str(new_guess(1)),...
+                '  r_b = ', num2str(new_guess(2)), '  Tau_c = ', num2str(new_guess(3)), newline])
+
+        else
+
+            % Set the a vector to values between 0 and the max a found
+            a = linspace(0, max_a, 10);
+            % recompute the constrained guesses
+            constrained_guesses = current_guess + new_direction*a;
+           
+        end
+
+        % We need to compute the measurement estimate of the constrained
+        % solution. We want to determine a value for which the L2 norm of
+        % the difference between the new constrained guess and the true
+        % measurements is less than the previous guess and the measurements
+        constrained_measurement_estimate = zeros(num_bands, length(a));
+        for mm = 1:length(a)
+            constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
+                GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+        end
+        
+        % now find the minimum residual
+        [~, min_residual_idx] = min(sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a)).^2))));
+        
+
+        % Select the step length by choosing the a value with the minimumum
+        % residual
+        residual{pp}(:,ii) = measurements(:,pp) - constrained_measurement_estimate(:, min_residual_idx);
+        new_guess = constrained_guesses(:, min_residual_idx);
+
+
+        % ----- new_guess using the previous iteration -----
+        %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
+        
+
+        % ----- new_guess using the model prior mean value -----
+        %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
@@ -188,7 +260,7 @@ for pp = 1:num_pixels
 
 
         % store the latest guess
-            retrieval{pp}(:,ii+1) = new_guess;
+        retrieval{pp}(:,ii+1) = new_guess;
 
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
@@ -341,18 +413,3 @@ GN_output.posterior_cov = posterior_cov;
 
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

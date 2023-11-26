@@ -96,6 +96,15 @@ pixels2use.res1km.geometry.phi = modis.sensor.azimuth(pixels2use.res1km.linearIn
 % Save the pixels to a file, and save the geometry in the pixels2use
 % structure
 
+% Check to see if the save-folder exists. If not, create one
+
+if isfolder(inputs.savedCalculations_folderName)==false
+    
+    mkdir(inputs.savedCalculations_folderName)
+    addpath(inputs.savedCalculations_folderName)
+
+end
+
 save([folderName2Save,inputs.saveCalculations_fileName],'pixels2use','inputs')
 
 
