@@ -32,12 +32,14 @@ if strcmp(computer_name,'anbu8374')==true
 
     % ***** Define the MODIS Folder *****
     
-    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
+    modisFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
 
 
     % ***** Define the VOCALS-REx File *****
 
-    vocalsRexFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
 

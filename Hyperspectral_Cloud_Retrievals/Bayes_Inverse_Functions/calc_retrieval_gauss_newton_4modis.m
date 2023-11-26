@@ -207,27 +207,33 @@ for pp = 1:num_pixels
             a = linspace(0, max_a, 10);
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
-           
+
+
+
+            % We need to compute the measurement estimate of the constrained
+            % solution. We want to determine a value for which the L2 norm of
+            % the difference between the new constrained guess and the true
+            % measurements is less than the previous guess and the measurements
+            constrained_measurement_estimate = zeros(num_bands, length(a));
+            for mm = 1:length(a)
+                constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
+                    GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+            end
+
+            % now find the minimum residual
+            [~, min_residual_idx] = min(sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a)).^2))));
+
+
+            % Select the step length by choosing the a value with the minimumum
+            % residual
+            residual{pp}(:,ii) = measurements(:,pp) - constrained_measurement_estimate(:, min_residual_idx);
+            new_guess = constrained_guesses(:, min_residual_idx);
+
+
+
         end
 
-        % We need to compute the measurement estimate of the constrained
-        % solution. We want to determine a value for which the L2 norm of
-        % the difference between the new constrained guess and the true
-        % measurements is less than the previous guess and the measurements
-        constrained_measurement_estimate = zeros(num_bands, length(a));
-        for mm = 1:length(a)
-            constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
-                GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
-        end
-        
-        % now find the minimum residual
-        [~, min_residual_idx] = min(sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a)).^2))));
-        
 
-        % Select the step length by choosing the a value with the minimumum
-        % residual
-        residual{pp}(:,ii) = measurements(:,pp) - constrained_measurement_estimate(:, min_residual_idx);
-        new_guess = constrained_guesses(:, min_residual_idx);
 
 
         % ----- new_guess using the previous iteration -----
