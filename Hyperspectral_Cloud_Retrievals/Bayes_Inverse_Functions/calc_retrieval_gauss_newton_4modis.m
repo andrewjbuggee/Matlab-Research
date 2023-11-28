@@ -143,20 +143,36 @@ for pp = 1:num_pixels
 
         current_guess = retrieval{pp}(:,ii);
 
-        % we compute the forward model at our previous estimate of the state vector
-        % Therefore, we ask, 'what is the reflectance of a cloud with our
-        % current state vector guess?'
-        measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
 
+        if ii==1
+            
+            % Compute the measurement estimate for the first time. 
+            % we compute the forward model at our previous estimate of the state vector
+            % Therefore, we ask, 'what is the reflectance of a cloud with our
+            % current state vector guess?'
+            measurement_estimate = compute_forward_model_4modis(modis,current_guess,GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+
+            % compute residual, rms residual, the difference between the
+            % iterate and the prior, and the product of the jacobian with
+            % the difference between the current guess and the prior
+            residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
+            rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
+
+        else
+            
+            % We've already calculated the measurement estimate! 
+            measurement_estimate = new_measurement_estimate;
+            
+        end
+        
+
+        % compute the jacobian
         Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag);
 
 
-
-
-        residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
-        rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
         jacobian_diff_guess_prior{pp}(:,ii) = Jacobian*diff_guess_prior{pp}(:,ii);
+
 
 
         % -------------- Compute the new state vector ---------------------
@@ -212,12 +228,20 @@ for pp = 1:num_pixels
             disp(['New guess is : r_t = ', num2str(new_guess(1)),...
                 '  r_b = ', num2str(new_guess(2)), '  Tau_c = ', num2str(new_guess(3)), newline])
 
-            % Do I need to compute a new set of measurement estimates?
+            % Use the new guess to compute the rms residual, which is used
+            % to detmerine convergence
+            new_measurement_estimate = compute_forward_model_4modis(modis, new_guess, GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
+            rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
 
         else
-
-            % Set the a vector to values between 0 and the max a found
-            a = linspace(0, max_a, 10);
+            
+            % We want to make sure the new step is within the feasible
+            % range, not at the boundaries. So we only accept a values that
+            % are less than the max a value. 
+            percent_of_maxA = 0.95;
+            % Set the a vector to values between 0 and some fraction of the max a
+            a = linspace(0, percent_of_maxA * max_a, 10);
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
@@ -237,18 +261,32 @@ for pp = 1:num_pixels
             rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a))).^2, 1));
             % find the smallest rms residual that is less than the previus
             % itereates rms residual
-            idx_lessThanLastIterate = rms_residual_constrained < rms_residual{pp}(ii-1);
-            % set the rms_residual_constrained to be an arbitrarily large
-            % number is it is greater than the last iterates rms_residual.
-            rms_residual_constrained(~idx_lessThanLastIterate) = 999;
-            % now find the minimum residual
-            [~, min_residual_idx] = min(rms_residual_constrained);
+            [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual{pp}(ii)));
+            
+            % Check to see if all rms_residuals are greater than the
+            % previous iterate
+            if isempty(min_val_lessThanPrevious)
+
+                % If no rms_residual is less than the previous iterate,
+                % find the minimum and move foward. Tha algorithm will flag
+                % this as find the minimum rms_residual
+                [~, min_residual_idx] = min(rms_residual_constrained);
+                
+
+            else
+
+                % find the index for the smallest rms that is less than the
+                % previous iterate rms residual
+                min_residual_idx = find(min_val_lessThanPrevious == rms_residual_constrained);
+
+            end
 
 
             % Select the step length by choosing the a value with the minimumum
             % residual
-            residual{pp}(:,ii) = measurements(:,pp) - constrained_measurement_estimate(:, min_residual_idx);
-            rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
+            new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
+            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
+            rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
 
@@ -295,16 +333,16 @@ for pp = 1:num_pixels
         % GN_inputs strucute, break the for loop. We've converged
         
 
-        if rms_residual{pp}(ii)<convergence_limit(pp)
+        if rms_residual{pp}(ii+1)<convergence_limit(pp)
 
             disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
-                'RMS = ', num2str(rms_residual{pp}(ii))])
+                'RMS = ', num2str(rms_residual{pp}(ii+1))])
 
             % Clear the rest of the zeros that are place holders for later
             % iterations
             retrieval{pp}(:,ii+2:end) = [];
-            rms_residual{pp}(ii+1:end) = [];
-            residual{pp}(:,ii+1:end) = [];
+            rms_residual{pp}(ii+2:end) = [];
+            residual{pp}(:,ii+2:end) = [];
             diff_guess_prior{pp}(:,ii+1:end) = [];
             jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
 
@@ -315,16 +353,16 @@ for pp = 1:num_pixels
         % if the rms residual starts to increase, break the loop
         if ii>1 && ii<5
 
-            if rms_residual{pp}(ii)>rms_residual{pp}(ii-1)
+            if rms_residual{pp}(ii+1)>rms_residual{pp}(ii)
 
                 disp([newline, 'RMS residual started to increase. Lowest value was: ',...
-                    'RMS = ', num2str(rms_residual{pp}(ii-1)), newline])
+                    'RMS = ', num2str(rms_residual{pp}(ii)), newline])
 
                 % Clear the rest of the zeros that are place holders for later
                 % iterations
                 retrieval{pp}(:,ii+2:end) = [];
-                rms_residual{pp}(ii+1:end) = [];
-                residual{pp}(:,ii+1:end) = [];
+                rms_residual{pp}(ii+2:end) = [];
+                residual{pp}(:,ii+2:end) = [];
                 diff_guess_prior{pp}(:,ii+1:end) = [];
                 jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
 
@@ -339,16 +377,16 @@ for pp = 1:num_pixels
         % You're not going to do any better
         if ii>1 && ii<5
 
-            if abs(rms_residual{pp}(ii) - rms_residual{pp}(ii-1))/rms_residual{pp}(ii-1)<percent_change_limit
+            if abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)<percent_change_limit
 
                 disp([newline, 'RMS residual has plataued. The current value differs from the previous value by less than 1 percent', newline,...
-                    'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii))])
+                    'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
 
                 % Clear the rest of the zeros that are place holders for later
                 % iterations
                 retrieval{pp}(:,ii+2:end) = [];
-                rms_residual{pp}(ii+1:end) = [];
-                residual{pp}(:,ii+1:end) = [];
+                rms_residual{pp}(ii+2:end) = [];
+                residual{pp}(:,ii+2:end) = [];
                 diff_guess_prior{pp}(:,ii+1:end) = [];
                 jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
 
@@ -368,9 +406,10 @@ for pp = 1:num_pixels
     % once convergence has occured, we can compute the posterior covariance
     % matrix
     % First compute the latest measurement estimate
-    measurement_estimate = compute_forward_model_4modis(modis, retrieval{pp}(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
+    %measurement_estimate = compute_forward_model_4modis(modis, retrieval{pp}(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
+    
     % we need to compute the jacobian using the solution state
-    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag);
+    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), new_measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag);
 
     posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 

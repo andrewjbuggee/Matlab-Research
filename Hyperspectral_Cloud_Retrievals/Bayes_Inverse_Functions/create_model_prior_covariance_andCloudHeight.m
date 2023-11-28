@@ -136,7 +136,11 @@ else
 
 
         %bayes_inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
-        GN_inputs.model.apriori(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
+        
+        % set the apriori value of cloud bottom radius as the 
+        % percentage of the value at the top of the cloud for the median
+        % profile. For non-precipitating clouds, this is r_bot = 0.72*r_top
+        GN_inputs.model.apriori(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), 0.72*modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
 
 
         % lets create the variance and mean for each model parameter
@@ -160,12 +164,8 @@ else
         % ----------- Set the Initial guess  ----------------
         %----------------------------------------------------
 
-        % Define the initial guess as being similar to the a priori except that
-        % we define the initial guess as having the same value for the
-        % effective radius at cloud top and bottom
-
-        %bayes_inputs.model.initialGuess = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)];
-        GN_inputs.model.initialGuess(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
+        % Define teh initial guess as the a priori value
+        GN_inputs.model.initialGuess(nn,:) = GN_inputs.model.apriori(nn,:);
 
 
 

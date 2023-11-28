@@ -100,7 +100,8 @@ end
 % should be within this uncertainty. Using MODIS, we can compute the
 % RMS uncertainty vector and set this as the convergence limit.
 
-GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2, 1));        % uncertainty as a decimal
+%GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2, 1));        % uncertainty as a decimal
+GN_inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.res1km.linearIndex));  % generic convergence limit
 
 
 

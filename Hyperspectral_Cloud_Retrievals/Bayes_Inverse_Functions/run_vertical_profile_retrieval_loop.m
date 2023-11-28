@@ -31,7 +31,7 @@ if strcmp(computer_name,'anbu8374')==true
     % -----------------------------------------
 
     % ***** Define the MODIS Folder *****
-    
+
     modisFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'MODIS_Cloud_Retrieval/MODIS_data/'];
 
@@ -335,9 +335,9 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             if modisInputs.flags.useAdvection == true
 
-                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                save([modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                     "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
                 %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
@@ -346,9 +346,9 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'Loop_run_6-Nov-2023/GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")),'_rev4.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                     "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
                 %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
@@ -371,7 +371,7 @@ plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
-listing = dir([modisInputs.savedCalculations_folderName,'Loop_run_3-Nov-2023/']);
+listing = dir([modisInputs.savedCalculations_folderName]);
 
 % save all posterior covariance matrices
 retreived_cov = [];
@@ -390,48 +390,44 @@ rms_residual = zeros(length(listing), length(vocalsRex.modisIndex_minDist));
 % loop through and read covariance of retrieved variables
 for nn = 1:length(listing)
 
-    % if its a filename with a changing covariance, the filename will be
-    % longer than 57 characters (minimum length for file name)
+    % We're looking for files with a unique covariance matrix. These files
+    % have names longer than 60 characters
     if length(listing(nn).name)>=57
 
-        % check to see if it's a file with a changing covariance
-        if strcmp(listing(nn).name(end-7:end-4), 'rev3')
 
-            % yes, it is a file that was run with a changing covariance
-            % load the data
-            d = load(listing(nn).name);
+        % yes, it is a file that was run with a changing covariance
+        % load the data
+        d = load(listing(nn).name);
 
 
-            % read the retrieval covaraince
-            retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,modis_pixel_2_plot));
+        % read the retrieval covaraince
+        retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,modis_pixel_2_plot));
 
 
-            % to determine which file had the lowest overall variance
-            % between all of the retrieved variables, we need to compute
-            % the L2 for each file. If no file, leave as zero.
-            L2_mag_total_var(nn) = sqrt(retreived_cov(1,1,end).^2 + retreived_cov(2,2,end).^2 + retreived_cov(3,3,end).^2);
+        % to determine which file had the lowest overall variance
+        % between all of the retrieved variables, we need to compute
+        % the L2 for each file. If no file, leave as zero.
+        L2_mag_total_var(nn) = sqrt(retreived_cov(1,1,end).^2 + retreived_cov(2,2,end).^2 + retreived_cov(3,3,end).^2);
 
 
-            % plot the retrieved profile
-            plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
+        % plot the retrieved profile
+        plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
 
 
-            % Plot the RMS residual versus the r_top and tau_c covariance
-            %             r_top_apriori_percentage(nn) = d.r_top_apriori_percentage;
-            %             r_bot_apriori_percentage(nn) = d.r_bot_apriori_percentage;
-            %             tau_c_apriori_percentage(nn) = d.tau_c_apriori_percentage;
+        % Plot the RMS residual versus the r_top and tau_c covariance
+        %             r_top_apriori_percentage(nn) = d.r_top_apriori_percentage;
+        %             r_bot_apriori_percentage(nn) = d.r_bot_apriori_percentage;
+        %             tau_c_apriori_percentage(nn) = d.tau_c_apriori_percentage;
 
-            % Store all values in an array for each file
+        % Store all values in an array for each file
 
-            for pp = 1:length(d.GN_outputs.rms_residual)
+        for pp = 1:length(d.GN_outputs.rms_residual)
 
-                rms_residual(nn, pp) = d.GN_outputs.rms_residual{pp}(end);
-
-            end
-
-
+            rms_residual(nn, pp) = d.GN_outputs.rms_residual{pp}(end);
 
         end
+
+
 
     else
 
@@ -445,7 +441,7 @@ end
 [min_rms, min_rms_idx] = min(rms_residual, [], 'all');
 % find the file and pixel associated with the minimum rms
 [file_num, pixel_idx] = ind2sub(size(rms_residual), min_rms_idx);
-disp([newline, 'File with smallest rms residual: ', listing(file_num+2).name,newline,...
+disp([newline, 'File with smallest rms residual: ', listing(file_num).name,newline,...
     'Pixel with smallest rms residual: ', num2str(pixel_idx), newline,...
     'The minimum rms residual is: ', num2str(round(min_rms, 6))])
 
