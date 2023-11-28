@@ -271,8 +271,8 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
-r_bot_apriori_percentage_vector = [1];        % percentage of the TBLUT guess
+r_top_apriori_percentage_vector = [0.05, 0.2];        % percentage of the TBLUT guess
+r_bot_apriori_percentage_vector = [0.5, 1];        % percentage of the TBLUT guess
 tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
 
 
@@ -332,28 +332,50 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
 
             % Save the Outputs!
-
+            rev = 1;
             if modisInputs.flags.useAdvection == true
 
-                save([modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
+
+                % Check to see if this file name already exists
+                while isfile(filename)==true
+                    
+                    rev = rev+1;
+
+                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
+
+                end
+
+                save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                     "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
-                %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
-                %                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withAdvection'...
-                %                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
+
 
             else
 
-                save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+                    '_',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+                 % Check to see if this file name already exists
+                while isfile(filename)==true
+                    
+                    rev = rev+1;
+
+                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
+
+                end
+
+                save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
                     "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
 
-                %             save([modisInputs.savedCalculations_folderName,'GN_inputs_outputs_using_MODIS_pixel-uncertainty-for-rTop',...
-                %                 '-and-tauC-with-rBot-set2-100-percent-of-retrieval_withoutAdvection'...
-                %                 '_',char(datetime("today")),'.mat'],"GN_outputs","GN_inputs", "vocalsRex", "modisInputs");
+      
 
             end
 
@@ -378,7 +400,7 @@ retreived_cov = [];
 
 % which pixel would you like to plot?
 % This is an index value
-modis_pixel_2_plot = 2;
+modis_pixel_2_plot = 1;
 
 % compute the L2 norm value of the variance of each retrieved variable
 L2_mag_total_var = nan(1, length(listing));

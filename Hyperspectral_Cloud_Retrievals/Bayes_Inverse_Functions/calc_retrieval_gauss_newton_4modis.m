@@ -206,8 +206,10 @@ for pp = 1:num_pixels
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
-        % being larger than r_bot. Should I break the loop in this case?
-        if max_a==0
+        % being larger than r_bot. If this occurs on the initial iteration
+        % when the a priori value for the radius at cloud top is equal to
+        % the radius at cloud bottom, we will reset the guess.
+        if max_a==0 && current_guess(1)==current_guess(2)
 
             % In this case, the new guass-newton direction is causing the
             % radius at cloud top to be larger than that at cloud bottom.
@@ -233,6 +235,28 @@ for pp = 1:num_pixels
             new_measurement_estimate = compute_forward_model_4modis(modis, new_guess, GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
             residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
+
+
+        elseif max_a==0 && ii>1
+
+            % in this case, the only direction the algorithm finds is one
+            % that forces the profile to be non-adiabatic. Let's break the
+            % loop at this point
+
+            disp([newline, 'The only solution forces r_top<r_bot.',newline, ...
+                'Breaking the loop...', newline])
+            
+
+             % Clear the rest of the zeros that are place holders for later
+            % iterations
+            retrieval{pp}(:,ii+1:end) = [];
+            rms_residual{pp}(ii+1:end) = [];
+            residual{pp}(:,ii+1:end) = [];
+            diff_guess_prior{pp}(:,ii+1:end) = [];
+            jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+
+            break
+
 
         else
             
