@@ -2,9 +2,9 @@
 
 % *** IMPORTANT ***  MODIS defines reflectance differently
 % MODIS does not define reflectance with a cosine of the solar zenith
-% angle in the denominator liek the MODIS cloud retrieval ATBD
-% To properly compare reflectances with MODIS, do NOT include this term in
-% the denominator
+% angle in the denominator, which is how the MODIS cloud retrieval ATBD
+% defines reflectance. To properly compare reflectances with MODIS, do 
+% NOT include this term in the denominator
 
 
 
