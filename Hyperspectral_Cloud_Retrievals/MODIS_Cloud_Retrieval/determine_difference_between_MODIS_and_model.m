@@ -8,24 +8,30 @@ clear variables
 
 % Load MODIS data set
 
-modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/';
+%modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/';
+modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
 
 [modis,L1B_1km_fileName] = retrieveMODIS_data(modisFolder);
 
-% Grab n random pixels from the suitablePixels mat file
-load('/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/suitablePixels.mat', 'pixels')
+% % Grab n random pixels from the suitablePixels mat file
+% load('/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/suitablePixels.mat', 'pixels')
+% 
+% n_pixels = 300;
+%  
+% % --- We only want pixles with a droplet size less than 25 ---
+% index_25 = modis.cloud.effRadius17(pixels.res1km.index)<25 & modis.cloud.effRad_uncert_17(pixels.res1km.index)<=10;
+% % --- Let's only look at pixels within a narrow reflectance range ---
+% % modis_reflectance = modis.EV1km.reflectance(:, :, 1);
+% % index_refl = modis_reflectance(pixels.res1km.index)>=0.24 & modis_reflectance(pixels.res1km.index)<=0.26;
+% % define the sample population with the indexes just found
+% population = pixels.res1km.index(index_25);
+% % sample from the indexes above
+% idx = randsample(population, n_pixels, false);
 
-n_pixels = 300;
 
-% --- We only want pixles with a droplet size less than 25 ---
-index_25 = modis.cloud.effRadius17(pixels.res1km.index)<25 & modis.cloud.effRad_uncert_17(pixels.res1km.index)<=10;
-% --- Let's only look at pixels within a narrow reflectance range ---
-% modis_reflectance = modis.EV1km.reflectance(:, :, 1);
-% index_refl = modis_reflectance(pixels.res1km.index)>=0.24 & modis_reflectance(pixels.res1km.index)<=0.26;
-% define the sample population with the indexes just found
-population = pixels.res1km.index(index_25);
-% sample from the indexes above
-idx = randsample(population, n_pixels, false);
+% SET CUSTOM INDEX
+idx = 110292;
+n_pixels = length(idx);
 
 % determine the rows and columns
 [row, col] = ind2sub(size(modis.cloud.effRadius17), idx);
@@ -37,7 +43,7 @@ clear('pixels');
 
 % Define the MODIs spectral band you wish to run
 % ------------------------------------------------------------------------
-band_num = 7;
+band_num = 1;
 % ------------------------------------------------------------------------
 
 
@@ -179,7 +185,9 @@ compute_reflectivity_uvSpec = false;
 %% Write each INP file using various MODIS values
 
 % Define the folder path where all .INP files will be saved
-folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/solving_modeling_discrepancy_2/';
+%folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/solving_modeling_discrepancy_2/';
+folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    'LibRadTran/libRadtran-2.0.4/Matching_MODIS_Reflectance/'];
 
 inputName = cell(1, length(idx));
 outputName = cell(1, length(idx));
@@ -220,11 +228,12 @@ for nn = 1:length(idx)
 
         % if the cloud top height is below 1 km, make the lower altitude 0
         % ----- FIX THE 2% SYSTEMATIC BIAS OF MY REFLECTANCE ----
-        % My reflectances, when using MODIs retrieved cloud top height,
-        % effective radius and clou doptical depth, are consistantly 2%
+        % My reflectances, when using MODIS retrieved cloud top height,
+        % effective radius and cloud optical depth, are consistantly 2%
         % less than the MODIS measurements. 
-        cloudTopHeight = 1.75 * modis.cloud.topHeight(row(nn), col(nn));
-    
+        %cloudTopHeight = 1.75 * modis.cloud.topHeight(row(nn), col(nn));
+        cloudTopHeight = modis.cloud.topHeight(row(nn), col(nn));
+
         if cloudTopHeight>=1000
             z_topBottom(nn,:) = [cloudTopHeight, cloudTopHeight - 1000]./1000;      % km above surface
         elseif cloudTopHeight<1000
@@ -321,6 +330,7 @@ for nn = 1:length(idx)
     % Define override of total precipitable water. This will force the total
     % column of water vapor to be whatever value you define.
     % If you don't wish to change the default, define the variable with nan
+    % The default value for the US standard ATM is 14.295 mm of water
     total_h2O_column = modis.vapor.col_nir(row(nn),col(nn))*10;        % mm of precipitable water
     if isnan(total_h2O_column)==false
         formatSpec = '%s %s %f %s %5s %s \n';

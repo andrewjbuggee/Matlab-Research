@@ -478,7 +478,7 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
             % integrate over a size distribution to get an average
             [~, Qavg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
-                index_of_refraction, distribution_str);
+                index_of_refraction, distribution_str, index);
 
         elseif strcmp(distribution_str,'mono')==true
             yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);

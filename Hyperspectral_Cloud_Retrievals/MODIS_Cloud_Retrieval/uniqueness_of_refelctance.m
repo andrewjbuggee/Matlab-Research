@@ -14,6 +14,11 @@ r_bot = 4:0.5:10;        % microns
 tau_c = 5:5:35;
 
 
+% r_top = 10;       % microns
+% r_bot = 10;        % microns
+% tau_c = 12;
+
+
 
 %% Want to use real MODIS geometry inputs?
 
@@ -70,7 +75,7 @@ modis_idx = 110292;
 %% Define the parameters of the INP file
 
 
-% Define the MODIs spectral band you wish to run
+% Define the MODIS spectral band you wish to run
 % ------------------------------------------------------------------------
 band_num = 1:7;
 % ------------------------------------------------------------------------
@@ -134,9 +139,10 @@ day_of_year = str2double(L1B_fileName{1}(15:17));
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS cloud top height estimate? ---------
 use_MODIS_cloudTopHeight = true;
+cloud_depth = 500;                % meters         
 
 if use_MODIS_cloudTopHeight==true
-    z_topBottom = [modis.cloud.topHeight(modis_idx), modis.cloud.topHeight(modis_idx) - 500]./1e3; %km above surface
+    z_topBottom = [modis.cloud.topHeight(modis_idx), modis.cloud.topHeight(modis_idx) - cloud_depth]./1e3; %km above surface
 
 else
     % define the geometric location of the cloud top and cloud bottom
@@ -192,7 +198,7 @@ z = linspace(z_topBottom(1), z_topBottom(2), n_layers);        % km - altitude a
 
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-dist_var = linspace(7,7,n_layers);              % distribution variance
+dist_var = linspace(20,20,n_layers);              % distribution variance
 % ------------------------------------------------------------------------
 
 
@@ -259,10 +265,12 @@ compute_reflectivity_uvSpec = false;
 
 
 
-%% Write each INP file using various MODIS values
+%% Write each INP file and Calculate Reflectance for MODIS
 
 % Define the folder path where all .INP files will be saved
-folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+%folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 inputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
 outputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
@@ -272,6 +280,7 @@ wc_filename = cell(length(r_top), length(r_bot), length(tau_c), length(band_num)
 R_model = zeros(length(r_top), length(r_bot), length(tau_c), length(band_num));
 
 
+tic
 for rt = 1:length(r_top)
 
 
@@ -531,8 +540,9 @@ for rt = 1:length(r_top)
                 [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
 
                 if compute_reflectivity_uvSpec==false
-                    % save reflectance
-                    R_model(rt,rb, tc, ww) = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww}(:,2));
+                    % compute reflectance in the MODIS style (without
+                    % dividing by cos(sza)
+                    R_model(rt,rb, tc, ww) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
 
                 else
 
@@ -558,61 +568,51 @@ end
 % ---------- SAVE REFLECTANCE OUTPUT! ----------
 % ----------------------------------------------
 
-save(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/',...
-    'Reflectance_Uniqueness/reflectance_calcs_',char(datetime("today")),'.mat'],...
-    "r_top", "r_bot", "tau_c", "wavelength", "R_model");
+rev = 1;
 
+if strcmp(computer_name,'anbu8374')==true
 
-%% Run INP files
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
 
-%L_model = zeros(numel(spec_response{1}(:,1)), length(idx));
-R_model = zeros(length(r_top), length(r_bot), length(tau_c), length(band_num));
-
-%legend_str = cel(1, numel(re));
-
-
-tic
-for rt = 1:length(r_top)
-
-
-    for rb = 1:length(r_bot)
-
-
-        for tc = 1:length(tau_c)
-
-
-            parfor ww = 1:length(band_num)
-
-                %legend_str{rt} = ['$r_e = $', num2str(re(rt)), '$mu m$'];
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/',...
+    'Reflectance_Uniqueness/'];
 
 
 
-                % compute INP file
-                [inputSettings] = runUVSPEC(folder2save,inputName{rt,rb, tc, ww},outputName{rt,rb, tc, ww});
+elseif strcmp(computer_name,'andrewbuggee')==true
 
-                % read .OUT file
-                [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
 
-                if compute_reflectivity_uvSpec==false
-                    % save reflectance
-                    R_model(rt,rb, tc, ww) = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww}(:,2));
+    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/Reflectance_Uniqueness/'];
 
-                else
 
-                    R_model(rt,rb, tc, ww) = ds.reflectivity.value;
-                end
+elseif strcmp(computer_name,'curc')==true
 
-                % save the radiance calculation
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
 
-                %L_model(:,rr) = ds.radiance.value;          % (mW/m^2/nm/sr) -
-
-            end
-
-        end
-    end
 
 end
+
+
+filename = [folderpath,'reflectance_calcs_MODIS-data-from-',modisFolder(1:end-1),...
+    '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+while isfile(filename)
+    rev = rev+1;
+    filename = [folderpath,'reflectance_calcs_',char(datetime("today")), 'rev', num2str(rev),'.mat'];
+end
+
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model");
+
 toc
+
 
 %% Subplots of reflectance across different optical depths for a single wavelength
 
@@ -675,9 +675,43 @@ annotation('textbox',...
 
 
 
+
+%% Make lineplots of reflectance versus optical depth at a constant wavelength
+
+
+wave_len_idx = 1;
+
+
+
+figure;
+for rt = 1:length(r_top)
+    for rb = 1:length(r_bot)
+
+
+        plot(tau_c, reshape(R_model(rt,rb,:, wave_len_idx), 1, []));
+
+        hold on
+
+    end
+end
+
+        xlabel('$\tau_{c}$', 'Interpreter', 'latex')
+        ylabel('Reflectance $(1/sr)$', 'Interpreter', 'latex')
+
+    title(['Reflectance $\lambda$ = ', num2str(round(mean(wavelength(wave_len_idx, :)))), ' $nm$'], 'Interpreter', 'latex')
+
+
+
+% set the plot size
+set(gcf, 'Position', [0 0 1200 600])
+grid on; grid minor
+
+
+
+
 %% Subplots of reflectance across different wavelengths for a single optical depth
 
-tau_idx = 4;
+tau_idx = 1;
 
 % find min and max values of reflectance for this wavelength
 [minR, ~] = min(R_model(:,:,tau_idx,:), [], 'all');
@@ -729,6 +763,10 @@ annotation('textbox',...
     'FontName','Helvetica Neue',...
     'FitBoxToText','off',...
     'EdgeColor','none');
+
+
+
+
 
 
 
@@ -967,6 +1005,21 @@ set(gcf, 'Position', [0 0 1200 600])
 %R_model_round_states = zeros(length(band_num), length(r_top)*length(r_bot)*length(tau_c));
 R_model_round_states = [];
 
+% Grab the MODIS reflectances for the pixel used
+[r,c] = ind2sub(size(modis.EV1km.reflectance(:,:,1)), modis_idx);
+R_modis = zeros(1, length(band_num));
+R_uncert_modis = zeros(1, length(band_num));
+
+for bb = 1:length(band_num)
+
+    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
+    % If not you need to divide the MODIS reflectance by cos(sza)
+    R_modis(bb) = modis.EV1km.reflectance(r,c,bb)/cosd(double(modis.solar.zenith(r,c)));
+    R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
+end
+
+redundant_states = [];
+
 
 for rt = 1:length(r_top)
 
@@ -976,8 +1029,14 @@ for rt = 1:length(r_top)
 
         for tc = 1:length(tau_c)
 
-
+            % Round reflectance calculations to the nearest hundreth
+            % decimal place
             R_model_round_states = [R_model_round_states; reshape(round(R_model(rt,rb,tc,:),2), 1, [])];
+            
+            % Check to see if the reflectance computed by the model is
+            % within the listed uncertainty for MODIS
+%             redundant_states = [redundant_states, all(abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis)];
+            redundant_states = [redundant_states; abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis];
 
             
         end
@@ -996,4 +1055,62 @@ disp([newline, num2str(100*(size(R_model_round_states,1) - size(R_model_unique,1
 idx_unique_logical = ismember((1:size(R_model_round_states,1)), idx_original);
 
 
+
+%% Interpolate the reflectance calculations on a finer grid
+
+tau_c_fine = tau_c(1):tau_c(end);
+
+R_model_fine = zeros(length(r_top), length(r_bot), length(tau_c_fine), length(band_num));
+
+
+
+for rt = 1:length(r_top)
+
+
+    for rb = 1:length(r_bot)
+
+
+        for wl = 1:length(band_num)
+
+            new_reflectance = interp1(tau_c, reshape(R_model(rt, rb, :, wl), 1, []), tau_c_fine);
+            R_model_fine(rt,rb,:,wl) = reshape(new_reflectance, 1,1,[],1);
+
+
+        end
+
+    end
+
+end
+
+
+
+%% 3D Interpolate the reflectance calculations on a finer grid
+
+tau_c_fine = tau_c(1):tau_c(end);
+
+% Meshgrid is defined on x,y,z space, not row, column, depth space
+% In 3D space, z = row, x = column, y = depth
+[R_top, R_bot, Tau_c] = meshgrid(r_bot, tau_c, r_top);
+
+R_model_fine = zeros(length(r_top), length(r_bot), length(tau_c_fine), length(band_num));
+
+
+
+for rt = 1:length(r_top)
+
+
+    for rb = 1:length(r_bot)
+
+
+        for wl = 1:length(band_num)
+
+            new_reflectance = interp1(tau_c, reshape(R_model(rt, rb, :, wl), 1, []), tau_c_fine);
+            R_model_fine(rt,rb,:,wl) = reshape(new_reflectance, 1,1,[],1);
+
+
+        end
+
+    end
+
+end
 
