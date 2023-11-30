@@ -270,9 +270,12 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 % r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
 % tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
 
-r_top_apriori_percentage_vector = [0.05, 0.2];        % percentage of the TBLUT guess
-r_bot_apriori_percentage_vector = [0.5, 1];        % percentage of the TBLUT guess
-tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
+% r_top_apriori_percentage_vector = [0.05, 0.2];        % percentage of the TBLUT guess
+% r_bot_apriori_percentage_vector = [0.5, 1];        % percentage of the TBLUT guess
+% tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
+
+
+
 
 
 
@@ -280,9 +283,9 @@ tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
 
 
 % Let's try using the MODIS retrieval uncertainty
-% r_top_apriori_percentage = 1;        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
+r_top_apriori_percentage = 1;        % percentage of the TBLUT guess
+r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
+tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
 
 tic
 for rt = 1:length(r_top_apriori_percentage_vector)
@@ -299,29 +302,39 @@ for rt = 1:length(r_top_apriori_percentage_vector)
             % the percentage above multipled by the TBLUT retrieval is the
             % STD. Square it to get the variance
 
-            r_top_apriori_percentage = r_top_apriori_percentage_vector(rt);
-            r_bot_apriori_percentage = r_bot_apriori_percentage_vector(rb);
-            tau_c_apriori_percentage = tau_c_apriori_percentage_vector(tc);
-
-            for nn = 1:length(pixels2use.res1km.linearIndex)
-
-                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage)^2,...
-                    (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage)^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage)^2]);
-
-            end
+%             r_top_apriori_percentage = r_top_apriori_percentage_vector(rt);
+%             r_bot_apriori_percentage = r_bot_apriori_percentage_vector(rb);
+%             tau_c_apriori_percentage = tau_c_apriori_percentage_vector(tc);
+% 
+%             for nn = 1:length(pixels2use.res1km.linearIndex)
+% 
+%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage)^2,...
+%                     (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage)^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage)^2]);
+% 
+%             end
 
 
             % ------- USE MODIS RETRIEVAL UNCERTAINTY ------
-            % use the uncertainty of re as the uncertianty in r_top
-            % use 100% as the uncertainty of r_bot
+            % use the retrieval uncertainty of re as the uncertianty in r_top
+            % use 45% as the uncertainty of r_bot
+            % use the retrieval uncertainty of tau_c as the apriori
+            % uncertainty      
 
-            %             for nn = 1:length(pixels2use.res1km.linearIndex)
-            %
-            %                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
-            %                 (GN_inputs.model.apriori(nn,2) * 1)^2,...
-            %                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
-            %
-            %             end
+            % We need the values before for the filenaming system...
+            r_top_apriori_percentage = modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
+            r_bot_apriori_percentage = 0.45;
+            tau_c_apriori_percentage = modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(1))/100;
+
+
+            for nn = 1:length(pixels2use.res1km.linearIndex)
+
+                
+
+                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
+                (GN_inputs.model.apriori(nn,2) * 0.45)^2,...
+                (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
+
+            end
 
 
 

@@ -153,7 +153,7 @@ else
 
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
         stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
-
+        
         % variance for the effective radius (microns squared) and optical thickness respectively
         GN_inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];
 
