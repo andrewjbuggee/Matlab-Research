@@ -20,11 +20,10 @@ scriptPlotting_wht;
 
 
 % Determine which computer you're using
-computer_name = whatComputer;
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(computer_name,'anbu8374')==true
+if strcmp(whatComputer,'anbu8374')==true
 
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
@@ -43,7 +42,7 @@ if strcmp(computer_name,'anbu8374')==true
 
 
 
-elseif strcmp(computer_name,'andrewbuggee')==true
+elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
 
@@ -64,7 +63,7 @@ elseif strcmp(computer_name,'andrewbuggee')==true
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
-elseif strcmp(computer_name,'curc')==true
+elseif strcmp(whatComputer,'curc')==true
 
 
 
@@ -96,7 +95,7 @@ end
 
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisData = '2008_11_09/';
+%modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
@@ -104,7 +103,7 @@ modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisData = '2008_11_11_1850/';
+modisData = '2008_11_11_1850/';
 
 
 
@@ -118,11 +117,11 @@ modisInputs = create_modis_inputs([modisFolder, modisData], L1B_fileName);
 
 
 % ----- November 9 data -----
-vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+%vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 % ----- November 11 data -----
-%vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -387,7 +386,7 @@ end
 toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-modis_pixel_2_plot = 3;
+modis_pixel_2_plot = 2;
 plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
 
 

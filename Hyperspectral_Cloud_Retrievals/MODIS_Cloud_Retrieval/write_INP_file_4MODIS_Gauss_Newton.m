@@ -63,8 +63,6 @@ wavelength = GN_inputs.spec_response;
 % ------------------------------------------------------------------------
 
 
-
-
 % we have 4 variables that can change for each INP file
 
 %   1) pixel
@@ -73,12 +71,8 @@ wavelength = GN_inputs.spec_response;
 %   4) tau_c
 
 
-
-
-
-
 % step through each band, each effective raidus and each optical depth
-inpNames = cell(length(pixel_row), length(GN_inputs.bands2use));
+inpNames = cell(length(pixel_row), length(wavelength));
 
 for pp = 1:length(pixel_row)
 
@@ -122,19 +116,14 @@ for pp = 1:length(pixel_row)
 
 
 
-
-
     % create the begining of the file name string
-    fileBegin = ['pixel_',num2str(pixel_row(pp)),'r_',num2str(pixel_col(pp)),'c_sza_',num2str(sza),'_vza_',num2str(vza),'_band_'];
+    fileBegin = ['pixel_',num2str(pixel_row(pp)),'r_',num2str(pixel_col(pp)),'c_sza_',num2str(round(sza)),'_vza_',num2str(round(vza)),'_'];
 
-    for bb = 1:length(GN_inputs.bands2use)
-
-        band_num = GN_inputs.bands2use(bb);        % modis band number that defines the upper and lower wavelength boundaries used to compute the equation of radiative transfer
-
+    for bb = 1:length(wavelength)
 
 
         % Define the file name
-        inpNames{pp,bb} = [fileBegin,num2str(band_num),'.INP'];
+        inpNames{pp,bb} = [fileBegin,num2str(round(median(wavelength{bb}(:,1)))),'nm.INP'];
 
 
 

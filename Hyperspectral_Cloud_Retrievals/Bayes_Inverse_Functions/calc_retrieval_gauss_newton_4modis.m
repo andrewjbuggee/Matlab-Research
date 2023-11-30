@@ -19,47 +19,25 @@ percent_change_limit = GN_inputs.percent_change_limit;
 % the reflectance measurement at a specific modis band
 measurements = create_measurement_vector(modis,GN_inputs, pixels2use); % each column represents one pixel
 
-% % The data from 11-11-2008 at 18:50 measured erroneous values in the 1.6
-% % micron channel. If using this data, lets ignore this measurement
-% if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
-%
-%     % get rid of the 6th MODIS channel
-%     measurements(6,:) = [];
-%
-% else
-%
-% end
+% ----------------------------------------------------------------------
+% The data from 11-11-2008 at 18:50 measured erroneous values in the 1.6
+% micron channel. If using this data, lets ignore this measurement
+
+idx_above30 = GN_inputs.measurement.uncertainty(6,:) > 0.3;
+% This will throw an error if you try to use more than 1 pixel at a
+% time. For now, rather than change my algorithm to handle cases
+% where some measurements shouldn't be used, just run the offending
+% pixel on it's own, rather than in a loop with other pixels.
+measurements(6,idx_above30) = nan;
+% ----------------------------------------------------------------------
+
+
 
 % -----------------------------------------------------------------------
 % --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
-% -----------------------------------------------------------------------
 
 jacobian_barPlot_flag = false;
-
-
-
 % -----------------------------------------------------------------------
-% --------------- Define the spectral response function -----------------
-% -----------------------------------------------------------------------
-
-% using the input 'bands2run', this defines the spectral bands that will be
-% written into INP files.
-
-% check to see if the MODIS instrument is aboard Terra or Aqua
-if strcmp(modisInputs.L1B_filename(1:3), 'MOD')==true
-    % Then read in the spectral response functions for the terra instrument
-    GN_inputs.spec_response = modis_terra_specResponse_func(GN_inputs.bands2use, GN_inputs.RT.sourceFile_resolution);
-
-elseif strcmp(modisInputs.L1B_filename(1:3), 'MYD')==true
-    % Then read in the spectral response functions for the Aqua instrument
-    GN_inputs.spec_response = modis_aqua_specResponse_func(GN_inputs.bands2use, GN_inputs.RT.sourceFile_resolution);
-end
-
-
-% ------------------------------------------------------------------------
-
-
-
 
 
 num_iterations = GN_inputs.GN_iterations; % number of iterations to preform
@@ -69,9 +47,7 @@ num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve
 % from the Gauss-Newton input structure
 num_pixels = GN_inputs.numPixels2Calculate;
 
-% ----- define number of spectral bands to use -----
 
-num_bands = length(GN_inputs.bands2use);
 
 
 
@@ -88,10 +64,38 @@ posterior_cov = zeros(num_parameters,num_parameters,num_pixels); % my posterior 
 
 for pp = 1:num_pixels
     
+    % ----- define number of spectral bands to use -----
+    % If a measurement vector has a nan value, ignore this spectral channel
+    num_bands = sum(~isnan(measurements(:,pp)));
+
+
+    % -----------------------------------------------------------------------
+    % --------------- Define the spectral response function -----------------
+    % -----------------------------------------------------------------------
+
+    % We will define the spectral response functions for every pixel incase
+    % there are any measurements with unreasonably high uncertainty
+    idx_not_nan = ~isnan(measurements(:,pp));
+    
+    % check to see if the MODIS instrument is aboard Terra or Aqua
+    if strcmp(modisInputs.L1B_filename(1:3), 'MOD')==true
+        % Then read in the spectral response functions for the terra instrument
+        GN_inputs.spec_response = modis_terra_specResponse_func(GN_inputs.bands2use(idx_not_nan'),...
+            GN_inputs.RT.sourceFile_resolution);
+
+    elseif strcmp(modisInputs.L1B_filename(1:3), 'MYD')==true
+        % Then read in the spectral response functions for the Aqua instrument
+        GN_inputs.spec_response = modis_aqua_specResponse_func(GN_inputs.bands2use(idx_not_nan'),...
+            GN_inputs.RT.sourceFile_resolution);
+    end
+
+    % ------------------------------------------------------------------------
+
+
 
     % define a matrix of zeros for the retrival matrix
     retrieval{pp} = zeros(num_parameters,num_iterations+1); % we include the starting point, which is outside the number of iterations
-    
+
     % define the residual matrix
     residual{pp} = zeros(num_bands,num_iterations); % we include the starting point, which is outside the number of iterations
     
@@ -155,7 +159,7 @@ for pp = 1:num_pixels
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
-            residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
+            residual{pp}(:,ii) = measurements(idx_not_nan,pp) - measurement_estimate;
             rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
 
         else
@@ -182,8 +186,8 @@ for pp = 1:num_pixels
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(:,:,pp)^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
+        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
 
         % fine the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + new_direction <u
@@ -233,7 +237,7 @@ for pp = 1:num_pixels
             % Use the new guess to compute the rms residual, which is used
             % to detmerine convergence
             new_measurement_estimate = compute_forward_model_4modis(modis, new_guess, GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
-            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
+            residual{pp}(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
 
 
@@ -282,7 +286,7 @@ for pp = 1:num_pixels
             end
             
             % compute the rms_residual for the constrained state vector
-            rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a))).^2, 1));
+            rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(idx_not_nan,pp), 1, length(a))).^2, 1));
             % find the smallest rms residual that is less than the previus
             % itereates rms residual
             [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual{pp}(ii)));
@@ -309,7 +313,7 @@ for pp = 1:num_pixels
             % Select the step length by choosing the a value with the minimumum
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
+            residual{pp}(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
@@ -435,7 +439,7 @@ for pp = 1:num_pixels
     % we need to compute the jacobian using the solution state
     Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), new_measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag);
 
-    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
+    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 
 
     
