@@ -181,7 +181,7 @@ toc
 % This is a number corresponding the the index of
 % vocalsRex.modisIndex_minDist
 
-modis_pixel_2_plot = 2;
+modis_pixel_2_plot = 1;
 plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS

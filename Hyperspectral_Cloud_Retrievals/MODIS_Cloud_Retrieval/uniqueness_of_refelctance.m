@@ -9,14 +9,18 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 6:0.5:12;       % microns
-r_bot = 4:0.5:10;        % microns
+% r_top = 6:12;       % microns
+% r_bot = 4:10;        % microns
+% tau_c = 5:5:35;
+
+r_top = 6:2:12;       % microns
+r_bot = 4:2:10;        % microns
 tau_c = 5:5:35;
 
 
-% r_top = 10;       % microns
-% r_bot = 10;        % microns
-% tau_c = 12;
+% r_top = 9.15;       % microns
+% r_bot = 6.65;        % microns
+% tau_c = 15.25;
 
 
 
@@ -55,13 +59,13 @@ end
 % -------------------------------------
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisFolder = '2008_11_09/';
+%modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
 %modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisFolder = '2008_11_11_1850/';
+modisFolder = '2008_11_11_1850/';
 
 
 
@@ -69,8 +73,9 @@ modisFolder = '2008_11_09/';
 
 
 % Define an index to use
-modis_idx = 110292;
-%modis_idx = 348140;
+%modis_idx = 110292;     % for 9 nov 2008
+%modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
+modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS               
 
 %% Define the parameters of the INP file
 
@@ -139,7 +144,7 @@ day_of_year = str2double(L1B_fileName{1}(15:17));
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS cloud top height estimate? ---------
 use_MODIS_cloudTopHeight = true;
-cloud_depth = 500;                % meters         
+cloud_depth = 500;                % meters
 
 if use_MODIS_cloudTopHeight==true
     z_topBottom = [modis.cloud.topHeight(modis_idx), modis.cloud.topHeight(modis_idx) - cloud_depth]./1e3; %km above surface
@@ -216,11 +221,11 @@ end
 
 
 % define the solar zenith angle
-sza = modis.solar.zenith(modis_idx);           % degree
+sza = double(modis.solar.zenith(modis_idx));           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % this is how we map MODIS azimuth of the sun to the LibRadTran measurement
-phi0 = modis.solar.azimuth(modis_idx) + 180;         % degree
+phi0 = double(modis.solar.azimuth(modis_idx) + 180);         % degree
 
 % define the viewing zenith angle
 vza = double(modis.sensor.zenith(modis_idx)); % values are in degrees;                        % degree
@@ -294,7 +299,7 @@ for rt = 1:length(r_top)
 
 
             parfor ww = 1:length(band_num)
-                
+
 
 
                 % -----------------------------------
@@ -321,9 +326,9 @@ for rt = 1:length(r_top)
                 % ------------------------------------------------
                 % input_names need a unique identifier. Let's give them the nn value so
                 % they can be traced, and are writen over in memory
-%                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
-%                     'nm_withCloudLayer_',num2str(r_top(rt)),'rTop_',num2str(r_bot(rb)),...
-%                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
+                %                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
+                %                     'nm_withCloudLayer_',num2str(r_top(rt)),'rTop_',num2str(r_bot(rb)),...
+                %                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
 
                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
                     'reflectance', atm_file(1:end-4),'.INP'];
@@ -526,12 +531,12 @@ for rt = 1:length(r_top)
                 % ----------------------------------------------------
 
 
-                
-                
+
+
                 % ----------------------------------------------------
                 % --------------- RUN RADIATIVE TRANSFER -------------
                 % ----------------------------------------------------
-                
+
 
                 % compute INP file
                 [inputSettings] = runUVSPEC(folder2save,inputName{rt,rb, tc, ww},outputName{rt,rb, tc, ww});
@@ -577,7 +582,7 @@ if strcmp(computer_name,'anbu8374')==true
     % -----------------------------------------
 
     folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/',...
-    'Reflectance_Uniqueness/'];
+        'Reflectance_Uniqueness/'];
 
 
 
@@ -695,10 +700,10 @@ for rt = 1:length(r_top)
     end
 end
 
-        xlabel('$\tau_{c}$', 'Interpreter', 'latex')
-        ylabel('Reflectance $(1/sr)$', 'Interpreter', 'latex')
+xlabel('$\tau_{c}$', 'Interpreter', 'latex')
+ylabel('Reflectance $(1/sr)$', 'Interpreter', 'latex')
 
-    title(['Reflectance $\lambda$ = ', num2str(round(mean(wavelength(wave_len_idx, :)))), ' $nm$'], 'Interpreter', 'latex')
+title(['Reflectance $\lambda$ = ', num2str(round(mean(wavelength(wave_len_idx, :)))), ' $nm$'], 'Interpreter', 'latex')
 
 
 
@@ -988,12 +993,12 @@ set(gcf, 'Position', [0 0 1200 600])
 % within the uncertainty of the MODIS measurements? That is maybe a better
 % estimate of uniqueness, because MODIS claims a specific measurement but
 % then include confidence intervals. They can say for certain that there
-% measurement lies somewhere within that uncertainty interval. 
+% measurement lies somewhere within that uncertainty interval.
 
 % According to MODIS data, the reflectance uncertainty is betwen 1.5 and
-% 2.5% 
+% 2.5%
 
-% Let's assume the reflectance uncertainty is 1% 
+% Let's assume the reflectance uncertainty is 1%
 % Let's truncate the reflectance data to hundreds decimal point
 
 % For our 7 spectral measurements, how any different states of (r_top,
@@ -1032,13 +1037,13 @@ for rt = 1:length(r_top)
             % Round reflectance calculations to the nearest hundreth
             % decimal place
             R_model_round_states = [R_model_round_states; reshape(round(R_model(rt,rb,tc,:),2), 1, [])];
-            
+
             % Check to see if the reflectance computed by the model is
             % within the listed uncertainty for MODIS
-%             redundant_states = [redundant_states, all(abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis)];
+            %             redundant_states = [redundant_states, all(abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis)];
             redundant_states = [redundant_states; abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis];
 
-            
+
         end
     end
 end
@@ -1084,33 +1089,268 @@ end
 
 
 
-%% 3D Interpolate the reflectance calculations on a finer grid
+%% 3D Interpolate the reflectance calculations on a finer grid and compare with MODIS measurement
 
-tau_c_fine = tau_c(1):tau_c(end);
 
 % Meshgrid is defined on x,y,z space, not row, column, depth space
 % In 3D space, z = row, x = column, y = depth
-[R_top, R_bot, Tau_c] = meshgrid(r_bot, tau_c, r_top);
+[R_bot, R_top, Tau_c] = meshgrid(r_bot, r_top, tau_c);
 
-R_model_fine = zeros(length(r_top), length(r_bot), length(tau_c_fine), length(band_num));
+% Create the new fine grid to interpolate on
+% define the discrete step length of each variable
+d_r_top = 0.05;      % microns
+d_r_bot = 0.05;      % microns
+d_tau_c = 0.1;
+
+r_top_fine = r_top(1):d_r_top:r_top(end);
+r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
+tau_c_fine = tau_c(1):d_tau_c:tau_c(end);
+
+[R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
+
+R_model_fine = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine), size(R_model,4));
+
+
+% ***** IF USING REFLECTANCE CALCS USING STANDARD REFLECTANCE DEFINITION *****
+% MULTIPLY EACH VALUE BY THE AIRMASS: COS(SZA)
+warning([newline, 'Are you using reflectance_calcs_standardReflectance_with_mu0_9-nov-2008-data_15-Nov-2023.mat?',...
+    newline, 'Make sure you multiply all reflectances by cos(sza)!', newline])
+
+
+for wl = 1:size(R_model,4)
+
+    R_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, cosd(sza).*R_model(:, :, :, wl),...
+        R_bot_fine, R_top_fine, Tau_c_fine);
+
+
+end
 
 
 
-for rt = 1:length(r_top)
+% Using the new fine grid, calculate how many sets of measurements are
+% within the MODIS measurement and it's uncertainty
+
+% Grab the MODIS reflectances for the pixel used
+[r,c] = ind2sub(size(modis.EV1km.reflectance(:,:,1)), modis_idx);
+R_modis = zeros(1, length(band_num));
+R_uncert_modis = zeros(1, length(band_num));
+
+for bb = 1:length(band_num)
+
+    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
+    % If not you need to divide the MODIS reflectance by cos(sza)
+    R_modis(bb) = modis.EV1km.reflectance(r,c,bb)/cosd(double(modis.solar.zenith(r,c)));
+    R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
+end
 
 
-    for rb = 1:length(r_bot)
+redundant_states = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
 
 
-        for wl = 1:length(band_num)
+for rt = 1:size(R_model_fine,1)
 
-            new_reflectance = interp1(tau_c, reshape(R_model(rt, rb, :, wl), 1, []), tau_c_fine);
-            R_model_fine(rt,rb,:,wl) = reshape(new_reflectance, 1,1,[],1);
+
+    for rb = 1:size(R_model_fine,2)
+
+
+        for tc = 1:size(R_model_fine,3)
+
+            % Check to see if the reflectance computed by the model is
+            % within the listed uncertainty for MODIS
+            redundant_states(rt,rb,tc) = all(abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis);
+            %redundant_states = [redundant_states; abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis];
 
 
         end
-
     end
+end
+
+% print the percentage of redundant states
+disp([newline, 'There are ', num2str(sum(redundant_states, 'all')), ' sets of measurements within',...
+    ' the MODIS measurement and uncertainty.', newline])
+
+[r_redun, c_redun, d_redun] = ind2sub(size(redundant_states), find(redundant_states));
+
+% ----- Plot all the redundant states on a scatter plot -----
+
+% Lets define the color of each marker to be associated with the droplet
+% size
+% set the number of colors to be the length of the data to plot
+r_top_redundant = zeros(length(r_redun), 1);
+r_bot_redundant = zeros(length(r_redun), 1);
+tau_c_redundant = zeros(length(r_redun), 1);
+
+for nn = 1:length(r_redun)
+    r_top_redundant(nn) = R_top_fine(r_redun(nn), c_redun(nn), d_redun(nn));
+    r_bot_redundant(nn) = R_bot_fine(r_redun(nn), c_redun(nn), d_redun(nn));
+    tau_c_redundant(nn) = Tau_c_fine(r_redun(nn), c_redun(nn), d_redun(nn));
 
 end
+
+C = colormap(parula(length(tau_c_redundant)));
+% sort the droplet size values
+[tau_c_redundant_sort, idx_sort] = sort(tau_c_redundant, 'ascend');
+
+figure;
+
+for nn = 1:length(tau_c_redundant_sort)
+
+    plot(r_bot_redundant(idx_sort(nn)), r_top_redundant(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
+
+    hold on
+
+end
+
+% Plot a one-to-one line to show the boundary for homogenous profiles
+[min_radius_val, ~] = min([r_top_redundant; r_bot_redundant]);
+[max_radius_val, ~] = max([r_top_redundant; r_bot_redundant]);
+plot([min_radius_val, max_radius_val], [min_radius_val, max_radius_val], 'k-', ...
+    'linewidth', 1)
+
+xlim([min(r_bot_redundant), max(r_bot_redundant)])
+ylim([min(r_top_redundant), max(r_top_redundant)])
+
+% set the colorbar limits
+% set the limits of the colormap to be the min and max value
+cb = colorbar;
+clim([min(tau_c_redundant_sort), max(tau_c_redundant_sort)]);
+% set colorbar title
+cb.Label.String = '$\tau_c$ ($\mu m$)';
+cb.Label.Interpreter = 'latex';
+cb.Label.FontSize = 25;
+
+grid on; grid minor
+xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1000 500])
+
+% Set title as the resolution of each variable
+title(['$\triangle r_{top} = $', num2str(d_r_top), ' $\mu m$',...
+    '    $\triangle r_{bot} = $', num2str(d_r_bot), ' $\mu m$',...
+    '    $\triangle \tau_{c} = $', num2str(d_tau_c)], ...
+    'Fontsize', 25, 'Interpreter', 'latex')
+
+% ---- plot the 2D space or r-top and r-bot showing area of redundancy ---
+
+% for every r-top, what is the largest and smallest r_bot that results in a
+% measurement within the MODIS measurement and uncertainty?
+[r_top_unique, idx_original] = unique(r_top_redundant);
+
+top_boundary = zeros(length(r_top_unique), 2);
+bottom_boundary = zeros(length(r_top_unique), 2);
+tau_c_points_top = cell(length(r_top_unique),1);
+tau_c_points_top_minVal = zeros(length(r_top_unique), 1);
+tau_c_points_bottom = cell(length(r_top_unique),1);
+tau_c_points_bottom_minVal = zeros(length(r_top_unique), 1);
+
+for nn = 1:length(r_top_unique)
+
+    % find set of r_bottom values for each unique r_top
+    r_bottom_set = r_bot_redundant(r_top_redundant==r_top_unique(nn));
+
+    % If there is more than 1 value in the set, find the highest and lowest
+    % value. These make up the upper and lower boundaries, respectively
+    % The locations should be (r_bot,r_top)
+    bottom_boundary(nn,:) = [min(r_bottom_set), r_top_unique(nn)];
+    top_boundary(nn,:) = [max(r_bottom_set), r_top_unique(nn)];
+
+    % grab the optical depth for each of these points
+    tau_c_points_bottom{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==min(r_bottom_set));
+    tau_c_points_bottom_minVal(nn) = min(tau_c_points_bottom{nn});
+
+    tau_c_points_top{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==max(r_bottom_set));
+    tau_c_points_top_minVal(nn) = min(tau_c_points_top{nn});
+
+end
+
+% Create a polyshape using the vertices above
+figure;
+p = patch([bottom_boundary(:,1); flipud(top_boundary(:,1))], ...
+    [bottom_boundary(:,2); flipud(top_boundary(:,2))],...
+    [tau_c_points_bottom_minVal; tau_c_points_top_minVal], 'FaceColor','interp');
+
+
+xlim([r_bot(1), r_bot(end)])
+ylim([r_top(1), r_top(end)])
+
+% create a one-to-one line to delineate between profiles where r-top>r-bot
+% and those where this isn't true
+hold on;
+plot([r_top(1), r_bot(end)], [r_top(1), r_bot(end)], 'k-', 'linewidth', 2)
+
+p.EdgeAlpha = 0;
+
+cb = colorbar;
+% set colorbar title
+cb.Label.String = '$\tau_c$';
+cb.Label.Interpreter = 'latex';
+cb.Label.FontSize = 25;
+
+% create legend
+legend('Region of Redundant Solutions', 'Vertically homogenous droplet profile',...
+    'Interpreter', 'latex', 'Fontsize', 18, 'Location', 'best')
+
+title('State space where adiabatic profiles lead to reflectances within MODIS uncertainty', ...
+    'Fontsize', 23)
+
+grid on; grid minor
+
+xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+%% Subplots of reflectance across different wavelengths for a single optical depth
+
+tau_idx = tau_c_fine==6;
+
+% find min and max values of reflectance for this wavelength
+[minR, ~] = min(R_model_fine(:,:,tau_idx,:), [], 'all');
+[maxR, ~] = max(R_model_fine(:,:,tau_idx,:), [], 'all');
+
+
+
+figure;
+for ww = 1:length(band_num)
+
+    subplot(2,4,ww); imagesc(r_bot, r_top, R_model_fine(:,:,tau_idx, ww));
+
+    if ww==1
+        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
+        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter', 'latex')
+    end
+
+    title(['$\lambda$ = ', num2str(round(mean(wavelength(ww, :)))), ' ($nm$)'],...
+        'Interpreter', 'latex')
+
+    if ww==4
+        cb = colorbar;
+        set(get(cb, 'label'), 'string', 'Reflectance $(1/sr)$','Interpreter','latex', 'Fontsize',28)
+
+
+    else
+        colorbar
+    end
+
+    %clim([minR, maxR])
+
+
+
+end
+
+
+% set the plot size
+set(gcf, 'Position', [0 0 1200 600])
+
+% Create textbox
+annotation('textbox',...
+    [0.322666666666667 0.00166666666666667 0.358166666666667 0.0916666666666668],...
+    'VerticalAlignment','middle',...
+    'String',['$\tau_c$ = ',num2str(tau_c_fine(tau_idx))],...
+    'Interpreter','latex',...
+    'HorizontalAlignment','center',...
+    'FontWeight','bold',...
+    'FontSize',35,...
+    'FontName','Helvetica Neue',...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
 
