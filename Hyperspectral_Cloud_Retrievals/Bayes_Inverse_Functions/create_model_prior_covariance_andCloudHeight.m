@@ -156,6 +156,9 @@ else
         % bottom is 58.3% larger. Let's use this as the uncertainty of our
         % guess at cloud bottom
 
+        % Set the uncertainty of the radius at cloud top to be the
+        % retireval uncertainty
+
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
         %stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
         stdev_variables = [GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(indexes2run(nn))*0.01, ...

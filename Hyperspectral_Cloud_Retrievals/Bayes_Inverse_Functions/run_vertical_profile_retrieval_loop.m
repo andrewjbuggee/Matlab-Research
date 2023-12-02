@@ -322,19 +322,19 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             % We need the values before for the filenaming system...
             r_top_apriori_percentage = modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
-            r_bot_apriori_percentage = 0.45;
+            r_bot_apriori_percentage = 0.58;
             tau_c_apriori_percentage = modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(1))/100;
 
 
-            for nn = 1:length(pixels2use.res1km.linearIndex)
-
-                
-
-                GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
-                (GN_inputs.model.apriori(nn,2) * 0.45)^2,...
-                (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
-
-            end
+%             for nn = 1:length(pixels2use.res1km.linearIndex)
+% 
+%                 
+% 
+%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
+%                 (GN_inputs.model.apriori(nn,2) * 0.45)^2,...
+%                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
+% 
+%             end
 
 
 
@@ -347,7 +347,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
             rev = 1;
             if modisInputs.flags.useAdvection == true
 
-                filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
                     '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
 
@@ -356,7 +356,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
                     
                     rev = rev+1;
 
-                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
                     '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
 
@@ -369,7 +369,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             else
 
-                filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
                     '_',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
@@ -378,7 +378,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
                     
                     rev = rev+1;
 
-                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage_vector(rt)*100),...
+                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
                     '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
                     '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
 
