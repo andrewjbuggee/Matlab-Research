@@ -18,9 +18,9 @@ r_bot = 4:2:10;        % microns
 tau_c = 5:5:35;
 
 
-% r_top = 9.15;       % microns
-% r_bot = 6.65;        % microns
-% tau_c = 15.25;
+% r_top = 9.03;       % microns
+% r_bot = 9.03;        % microns
+% tau_c = 6.34;
 
 
 
@@ -75,7 +75,22 @@ modisFolder = '2008_11_11_1850/';
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
 %modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS               
+modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
+
+
+%% Grab the MODIS reflectances for the pixel used
+[r,c] = ind2sub(size(modis.EV1km.reflectance), modis_idx);
+R_modis = zeros(1, size(modis.EV1km.reflectance,3));
+R_uncert_modis = zeros(1, size(modis.EV1km.reflectance, 3));
+
+for bb = 1:size(modis.EV1km.reflectance, 3)
+
+    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
+    % If not you need to divide the MODIS reflectance by cos(sza)
+    R_modis(bb) = modis.EV1km.reflectance(r,c,bb);
+    R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
+end
+
 
 %% Define the parameters of the INP file
 
@@ -157,7 +172,6 @@ end
 
 % Water Cloud depth
 H = z_topBottom(1) - z_topBottom(2);                                % km - geometric thickness of cloud
-
 
 % ------------------------------------------------------------------------
 
@@ -611,10 +625,11 @@ filename = [folderpath,'reflectance_calcs_MODIS-data-from-',modisFolder(1:end-1)
 
 while isfile(filename)
     rev = rev+1;
-    filename = [folderpath,'reflectance_calcs_',char(datetime("today")), 'rev', num2str(rev),'.mat'];
+    filename = [folderpath,'reflectance_calcs_MODIS-data-from-',modisFolder(1:end-1),...
+    '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model");
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "modisFolder", 'modis_idx');
 
 toc
 
@@ -1119,7 +1134,7 @@ warning([newline, 'Are you using reflectance_calcs_standardReflectance_with_mu0_
 
 for wl = 1:size(R_model,4)
 
-    R_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, cosd(sza).*R_model(:, :, :, wl),...
+    R_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, R_model(:, :, :, wl),...
         R_bot_fine, R_top_fine, Tau_c_fine);
 
 
@@ -1301,7 +1316,7 @@ set(gcf, 'Position', [0 0 1200 600])
 
 %% Subplots of reflectance across different wavelengths for a single optical depth
 
-tau_idx = tau_c_fine==6;
+tau_idx = tau_c_fine==8.5;
 
 % find min and max values of reflectance for this wavelength
 [minR, ~] = min(R_model_fine(:,:,tau_idx,:), [], 'all');

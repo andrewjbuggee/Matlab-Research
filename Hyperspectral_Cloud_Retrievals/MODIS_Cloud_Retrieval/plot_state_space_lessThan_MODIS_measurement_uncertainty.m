@@ -1,6 +1,8 @@
 %% 3D Interpolate the reflectance calculations on a finer grid and compare with MODIS measurement
+% This will plot the state space that results in an RMS residual less than
+% the MODIS measurement uncertainty RMS 
 
-function [] = plot_redundant_state_space_for_specific_MODIS_measurement(r_bot, r_top, tau_c, R_model, modis,...
+function [] = plot_state_space_lessThan_MODIS_measurement_uncertainty(r_bot, r_top, tau_c, R_model, modis,...
     idx_modis_pixel)
 
 % Meshgrid is defined on x,y,z space, not row, column, depth space
@@ -54,8 +56,10 @@ for bb = 1:size(modis.EV1km.reflectance,3)
     R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
 end
 
+modis_rms_uncertainty = sqrt(sum(R_uncert_modis.^2));
 
-redundant_states = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
+
+states_lessThan_modisUncert = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
 rms_residual = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
 
 for rt = 1:size(R_model_fine,1)
@@ -66,20 +70,25 @@ for rt = 1:size(R_model_fine,1)
 
         parfor tc = 1:size(R_model_fine,3)
 
-            % Check to see if the reflectance computed by the model is
-            % within the listed uncertainty for MODIS
-            redundant_states(rt,rb,tc) = all(abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis);
-            %redundant_states = [redundant_states; abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis];
-
+            % Compute the RMS residual between the estimated measurement
+            % and the true MODIS measurement
             rms_residual(rt, rb, tc) = sqrt(sum((R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])).^2));
+
+            % Check to see if the rms_residual is less than the MODIS
+            % measurement uncertainty rms
+            states_lessThan_modisUncert(rt,rb,tc) = rms_residual(rt, rb, tc) < modis_rms_uncertainty;
+
+            
 
 
         end
     end
 end
 
-% print the number of redundant states
-if sum(redundant_states, 'all')==0
+% print the number of states that have an RMS residual less than the MODIS
+% uncertainty residual
+if sum(states_lessThan_modisUncert, 'all')==0
+    
     % if there are no measurements within the MODIS measurement
     % uncertainty, find the state vector that comes closest by computing
     % the rms_residual
@@ -87,19 +96,19 @@ if sum(redundant_states, 'all')==0
     [r,c,d] = ind2sub(size(rms_residual), min_rms_idx);
 
 
-    error([newline, 'There are no state vectors that lead to a set of measurements within ',...
-        'the MODIS measurement and uncertainty!', newline,newline,...
+    error([newline, 'There are no state vectors that lead to a set of measurements that ',...
+        'have a residual less than the MODIS uncertainty residual!', newline,newline,...
         'The state vector that leads to a set of measurements closest to the ',...
         'the MODIS measurements is:', newline, 'r_top = ',num2str(R_top_fine(r,c,d)), '  r_bot = ',...
         num2str(R_bot_fine(r,c,d)), '  tau_c = ', num2str(Tau_c_fine(r,c,d)), newline,...
         'This state vector led to an rms residual of ', num2str(min_rms), newline])
 
 else
-    disp([newline, 'There are ', num2str(sum(redundant_states, 'all')), ' sets of measurements within',...
+    disp([newline, 'There are ', num2str(sum(states_lessThan_modisUncert, 'all')), ' sets of measurements within',...
         ' the MODIS measurement and uncertainty.', newline])
 end
 
-[r_redun, c_redun, d_redun] = ind2sub(size(redundant_states), find(redundant_states));
+[r_redun, c_redun, d_redun] = ind2sub(size(states_lessThan_modisUncert), find(states_lessThan_modisUncert));
 
 % ----- Plot all the redundant states on a scatter plot -----
 

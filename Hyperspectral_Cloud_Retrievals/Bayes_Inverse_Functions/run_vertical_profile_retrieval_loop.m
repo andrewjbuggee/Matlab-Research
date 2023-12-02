@@ -283,9 +283,9 @@ GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, p
 
 
 % Let's try using the MODIS retrieval uncertainty
-r_top_apriori_percentage = 1;        % percentage of the TBLUT guess
-r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
-tau_c_apriori_percentage = 1;        % percentage of the TBLUT guess
+r_top_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
+r_bot_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
+tau_c_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
 
 tic
 for rt = 1:length(r_top_apriori_percentage_vector)
