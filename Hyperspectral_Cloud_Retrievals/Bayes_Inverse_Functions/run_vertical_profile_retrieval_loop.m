@@ -99,11 +99,11 @@ end
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisData = '2008_11_11_1430/';
+%modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisData = '2008_11_11_1850/';
+modisData = '2008_11_11_1850/';
 
 
 
@@ -412,7 +412,7 @@ retreived_cov = [];
 
 % which pixel would you like to plot?
 % This is an index value
-modis_pixel_2_plot = 1;
+modis_pixel_2_plot = 2;
 
 % compute the L2 norm value of the variance of each retrieved variable
 L2_mag_total_var = nan(1, length(listing));
