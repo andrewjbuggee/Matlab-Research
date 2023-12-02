@@ -11,9 +11,9 @@ function [] = plot_state_space_lessThan_MODIS_measurement_uncertainty(r_bot, r_t
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.05;      % microns
-d_r_bot = 0.05;      % microns
-d_tau_c = 0.1;
+d_r_top = 0.1;      % microns
+d_r_bot = 0.1;      % microns
+d_tau_c = 0.25;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
@@ -90,64 +90,76 @@ end
 if sum(states_lessThan_modisUncert, 'all')==0
     
     % if there are no measurements within the MODIS measurement
-    % uncertainty, find the state vector that comes closest by computing
-    % the rms_residual
-    [min_rms, min_rms_idx] = min(rms_residual,[],"all");
-    [r,c,d] = ind2sub(size(rms_residual), min_rms_idx);
+    % uncertainty, find the 500 smallest rms residuals and the associated
+    % state vectors
+    N = 500;
+    smallest_rms_residual = zeros(1, N);
+    idx_smallest = zeros(1, N);
+
+    for nn = 1:N
+        [smallest_rms_residual(nn), idx_smallest(nn)] = min(rms_residual, [], "all");
+        % after grabing the smalleset value, set the value to nan
+        rms_residual(idx_smallest(nn)) = nan;
+
+    end
+
+    [r_2plot, c_2plot, d_2plot] = ind2sub(size(rms_residual), idx_smallest);
 
 
-    error([newline, 'There are no state vectors that lead to a set of measurements that ',...
+    disp([newline, 'There are no state vectors that lead to a set of measurements that ',...
         'have a residual less than the MODIS uncertainty residual!', newline,newline,...
         'The state vector that leads to a set of measurements closest to the ',...
-        'the MODIS measurements is:', newline, 'r_top = ',num2str(R_top_fine(r,c,d)), '  r_bot = ',...
-        num2str(R_bot_fine(r,c,d)), '  tau_c = ', num2str(Tau_c_fine(r,c,d)), newline,...
-        'This state vector led to an rms residual of ', num2str(min_rms), newline])
+        'the MODIS measurements is:', newline, 'r_top = ',num2str(R_top_fine(idx_smallest(1))), '  r_bot = ',...
+        num2str(R_bot_fine(idx_smallest(1))), '  tau_c = ', num2str(Tau_c_fine(idx_smallest(1))), newline,...
+        'This state vector led to an rms residual of ', num2str(smallest_rms_residual(1)), newline])
 
 else
     disp([newline, 'There are ', num2str(sum(states_lessThan_modisUncert, 'all')), ' sets of measurements within',...
         ' the MODIS measurement and uncertainty.', newline])
+
+    [r_2plot, c_2plot, d_2plot] = ind2sub(size(states_lessThan_modisUncert), find(states_lessThan_modisUncert));
+
 end
 
-[r_redun, c_redun, d_redun] = ind2sub(size(states_lessThan_modisUncert), find(states_lessThan_modisUncert));
 
 % ----- Plot all the redundant states on a scatter plot -----
 
 % Lets define the color of each marker to be associated with the droplet
 % size
 % set the number of colors to be the length of the data to plot
-r_top_redundant = zeros(length(r_redun), 1);
-r_bot_redundant = zeros(length(r_redun), 1);
-tau_c_redundant = zeros(length(r_redun), 1);
+r_top_2plot = zeros(length(r_2plot), 1);
+r_bot_2plot = zeros(length(r_2plot), 1);
+tau_c_2plot = zeros(length(r_2plot), 1);
 
-for nn = 1:length(r_redun)
-    r_top_redundant(nn) = R_top_fine(r_redun(nn), c_redun(nn), d_redun(nn));
-    r_bot_redundant(nn) = R_bot_fine(r_redun(nn), c_redun(nn), d_redun(nn));
-    tau_c_redundant(nn) = Tau_c_fine(r_redun(nn), c_redun(nn), d_redun(nn));
+for nn = 1:length(r_2plot)
+    r_top_2plot(nn) = R_top_fine(r_2plot(nn), c_2plot(nn), d_2plot(nn));
+    r_bot_2plot(nn) = R_bot_fine(r_2plot(nn), c_2plot(nn), d_2plot(nn));
+    tau_c_2plot(nn) = Tau_c_fine(r_2plot(nn), c_2plot(nn), d_2plot(nn));
 
 end
 
-C = colormap(parula(length(tau_c_redundant)));
+C = colormap(parula(length(tau_c_2plot)));
 % sort the droplet size values
-[tau_c_redundant_sort, idx_sort] = sort(tau_c_redundant, 'ascend');
+[tau_c_redundant_sort, idx_sort] = sort(tau_c_2plot, 'ascend');
 
 figure;
 
 for nn = 1:length(tau_c_redundant_sort)
 
-    plot(r_bot_redundant(idx_sort(nn)), r_top_redundant(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
+    plot(r_bot_2plot(idx_sort(nn)), r_top_2plot(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
 
     hold on
 
 end
 
 % Plot a one-to-one line to show the boundary for homogenous profiles
-[min_radius_val, ~] = min([r_top_redundant; r_bot_redundant]);
-[max_radius_val, ~] = max([r_top_redundant; r_bot_redundant]);
+[min_radius_val, ~] = min([r_top_2plot; r_bot_2plot]);
+[max_radius_val, ~] = max([r_top_2plot; r_bot_2plot]);
 plot([min_radius_val, max_radius_val], [min_radius_val, max_radius_val], 'k-', ...
     'linewidth', 1)
 
-xlim([min(r_bot_redundant), max(r_bot_redundant)])
-ylim([min(r_top_redundant), max(r_top_redundant)])
+xlim([min(r_bot_2plot), max(r_bot_2plot)])
+ylim([min(r_top_2plot), max(r_top_2plot)])
 
 % set the colorbar limits
 % set the limits of the colormap to be the min and max value
@@ -173,7 +185,7 @@ title(['$\triangle r_{top} = $', num2str(d_r_top), ' $\mu m$',...
 
 % for every r-top, what is the largest and smallest r_bot that results in a
 % measurement within the MODIS measurement and uncertainty?
-[r_top_unique, idx_original] = unique(r_top_redundant);
+[r_top_unique, idx_original] = unique(r_top_2plot);
 
 top_boundary = zeros(length(r_top_unique), 2);
 bottom_boundary = zeros(length(r_top_unique), 2);
@@ -185,7 +197,7 @@ tau_c_points_bottom_minVal = zeros(length(r_top_unique), 1);
 for nn = 1:length(r_top_unique)
 
     % find set of r_bottom values for each unique r_top
-    r_bottom_set = r_bot_redundant(r_top_redundant==r_top_unique(nn));
+    r_bottom_set = r_bot_2plot(r_top_2plot==r_top_unique(nn));
 
     % If there is more than 1 value in the set, find the highest and lowest
     % value. These make up the upper and lower boundaries, respectively
@@ -194,10 +206,10 @@ for nn = 1:length(r_top_unique)
     top_boundary(nn,:) = [max(r_bottom_set), r_top_unique(nn)];
 
     % grab the optical depth for each of these points
-    tau_c_points_bottom{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==min(r_bottom_set));
+    tau_c_points_bottom{nn} = tau_c_2plot(r_top_2plot==r_top_unique(nn) & r_bot_2plot==min(r_bottom_set));
     tau_c_points_bottom_minVal(nn) = min(tau_c_points_bottom{nn});
 
-    tau_c_points_top{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==max(r_bottom_set));
+    tau_c_points_top{nn} = tau_c_2plot(r_top_2plot==r_top_unique(nn) & r_bot_2plot==max(r_bottom_set));
     tau_c_points_top_minVal(nn) = min(tau_c_points_top{nn});
 
 end
