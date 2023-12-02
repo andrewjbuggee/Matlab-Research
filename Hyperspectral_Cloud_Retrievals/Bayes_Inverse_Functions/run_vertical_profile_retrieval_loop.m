@@ -99,11 +99,11 @@ end
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-%     modisData = '2008_11_11_1430/';
+modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-modisData = '2008_11_11_1850/';
+%modisData = '2008_11_11_1850/';
 
 
 
@@ -181,7 +181,7 @@ toc
 % This is a number corresponding the the index of
 % vocalsRex.modisIndex_minDist
 
-modis_pixel_2_plot = 1;
+modis_pixel_2_plot = 2;
 plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS

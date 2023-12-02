@@ -152,7 +152,9 @@ else
         % that defines the standard deviation.
 
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
-        stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
+        %stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
+        stdev_variables = [GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(indexes2run(nn))*0.01, ...
+            GN_inputs.model.apriori(nn,2)*0.45, GN_inputs.model.apriori(nn,3) * modis.cloud.optThickness_uncert_17(indexes2run(nn))*0.01];
         
         % variance for the effective radius (microns squared) and optical thickness respectively
         GN_inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];
