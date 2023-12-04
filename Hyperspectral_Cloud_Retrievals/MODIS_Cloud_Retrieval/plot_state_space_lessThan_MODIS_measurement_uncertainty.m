@@ -13,7 +13,7 @@ function [] = plot_state_space_lessThan_MODIS_measurement_uncertainty(r_bot, r_t
 % define the discrete step length of each variable
 d_r_top = 0.1;      % microns
 d_r_bot = 0.1;      % microns
-d_tau_c = 0.25;
+d_tau_c = 0.1;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
@@ -107,17 +107,24 @@ if sum(states_lessThan_modisUncert, 'all')==0
 
 
     disp([newline, 'There are no state vectors that lead to a set of measurements that ',...
-        'have a residual less than the MODIS uncertainty residual!', newline,newline,...
+        'have a residual less than the MODIS uncertainty at each wavelength!', newline,newline,...
         'The state vector that leads to a set of measurements closest to the ',...
         'the MODIS measurements is:', newline, 'r_top = ',num2str(R_top_fine(idx_smallest(1))), '  r_bot = ',...
         num2str(R_bot_fine(idx_smallest(1))), '  tau_c = ', num2str(Tau_c_fine(idx_smallest(1))), newline,...
-        'This state vector led to an rms residual of ', num2str(smallest_rms_residual(1)), newline])
+        'This state vector led to an rms residual of ', num2str(smallest_rms_residual(1)), newline,...
+        'Plotting the state space with the smallest RMS rsidual...', newline])
+
+    title_str = 'State space with smallest RMS residual';
+    legend_str = 'Region with smallest RMS residual';
 
 else
     disp([newline, 'There are ', num2str(sum(states_lessThan_modisUncert, 'all')), ' sets of measurements within',...
         ' the MODIS measurement and uncertainty.', newline])
 
     [r_2plot, c_2plot, d_2plot] = ind2sub(size(states_lessThan_modisUncert), find(states_lessThan_modisUncert));
+    
+    title_str = 'State space with rms residuals less than the MODIS rms uncertainty';
+    legend_str = 'State Space region with RMS $<$ MODIS uncertinaty RMS';
 
 end
 
@@ -140,11 +147,11 @@ end
 
 C = colormap(parula(length(tau_c_2plot)));
 % sort the droplet size values
-[tau_c_redundant_sort, idx_sort] = sort(tau_c_2plot, 'ascend');
+[tau_c_2plot_sort, idx_sort] = sort(tau_c_2plot, 'ascend');
 
 figure;
 
-for nn = 1:length(tau_c_redundant_sort)
+for nn = 1:length(tau_c_2plot_sort)
 
     plot(r_bot_2plot(idx_sort(nn)), r_top_2plot(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
 
@@ -164,7 +171,11 @@ ylim([min(r_top_2plot), max(r_top_2plot)])
 % set the colorbar limits
 % set the limits of the colormap to be the min and max value
 cb = colorbar;
-clim([min(tau_c_redundant_sort), max(tau_c_redundant_sort)]);
+if min(tau_c_2plot_sort) == max(tau_c_2plot_sort)
+    clim([0.95, 1.05] * min(tau_c_2plot_sort));
+else
+    clim([min(tau_c_2plot_sort), max(tau_c_2plot_sort)])
+end
 % set colorbar title
 cb.Label.String = '$\tau_c$ ($\mu m$)';
 cb.Label.Interpreter = 'latex';
@@ -238,10 +249,10 @@ cb.Label.Interpreter = 'latex';
 cb.Label.FontSize = 25;
 
 % create legend
-legend('Region of Redundant Solutions', 'Vertically homogenous droplet profile',...
+legend(legend_str, 'Vertically homogenous droplet profile',...
     'Interpreter', 'latex', 'Fontsize', 18, 'Location', 'best')
 
-title('State space where adiabatic profiles lead to reflectances within MODIS uncertainty', ...
+title(title_str, ...
     'Fontsize', 23)
 
 grid on; grid minor

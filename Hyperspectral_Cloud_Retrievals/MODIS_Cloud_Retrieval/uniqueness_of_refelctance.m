@@ -29,11 +29,10 @@ tau_c = 5:5:35;
 % Load modis data and create input structure
 
 % Determine which computer you're using
-computer_name = whatComputer;
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(computer_name,'anbu8374')==true
+if strcmp(whatComputer,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
@@ -42,7 +41,12 @@ if strcmp(computer_name,'anbu8374')==true
     modisPath = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
 
 
-elseif strcmp(computer_name,'andrewbuggee')==true
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
 
@@ -50,6 +54,10 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
     modisPath = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
         'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 end
 
@@ -62,10 +70,10 @@ end
 %modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisFolder = '2008_11_11_1430/';
+%modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisFolder = '2008_11_11_1850/';
+modisFolder = '2008_11_11_1850/';
 
 
 
@@ -75,8 +83,8 @@ modisFolder = '2008_11_11_1430/';
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
 %modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
-modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
+modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
+%modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
 
 %% Grab the MODIS reflectances for the pixel used
 [r,c] = ind2sub(size(modis.EV1km.reflectance), modis_idx);
@@ -285,11 +293,6 @@ compute_reflectivity_uvSpec = false;
 
 
 %% Write each INP file and Calculate Reflectance for MODIS
-
-% Define the folder path where all .INP files will be saved
-%folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
-folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 inputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
 outputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
@@ -589,18 +592,18 @@ end
 
 rev = 1;
 
-if strcmp(computer_name,'anbu8374')==true
+if strcmp(whatComputer,'anbu8374')==true
 
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/',...
-        'Reflectance_Uniqueness/'];
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/Reflectance_Uniqueness/'];
 
 
 
-elseif strcmp(computer_name,'andrewbuggee')==true
+elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % -------------------------------------
     % ------ Folders on my Macbook --------
@@ -610,7 +613,7 @@ elseif strcmp(computer_name,'andrewbuggee')==true
         'MODIS_Cloud_Retrieval/Reflectance_Uniqueness/'];
 
 
-elseif strcmp(computer_name,'curc')==true
+elseif strcmp(whatComputer,'curc')==true
 
     % ------------------------------------------------
     % ------ Folders on the CU Super Computer --------

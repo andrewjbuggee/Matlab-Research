@@ -137,10 +137,12 @@ else
 
         %bayes_inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
         
-        % set the apriori value of cloud bottom radius as the 
-        % percentage of the value at the top of the cloud for the median
-        % profile. For non-precipitating clouds, this is r_bot = 0.72*r_top
-        GN_inputs.model.apriori(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), 0.72*modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
+        % set the apriori value of cloud bottom radius as some 
+        % percentage of the value at the top of the cloud.
+        % Using in-situ measurements of non-precipitating clouds,
+        % the median value of droplet size at cloud bottom was 
+        %  70% the value at cloud top. This is r_bot = 0.7058*r_top
+        GN_inputs.model.apriori(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), 0.7058*modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
 
 
         % lets create the variance and mean for each model parameter
@@ -151,10 +153,11 @@ else
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
 
-        % Using the ensemble results from the non-precipitating VOCALS-REx
-        % data, the average deviation above the median value at cloud
-        % bottom is 58.3% larger. Let's use this as the uncertainty of our
-        % guess at cloud bottom
+        % Using the ensemble results from in-situ measurements of
+        % non-precipitating cloud from the VOCALS-REx campaign,
+        % the average deviation above the median value at cloud
+        % bottom is 58.3% larger. the average deviation below the
+        % median value at cloud bottom is 25% smaller. 
 
         % Set the uncertainty of the radius at cloud top to be the
         % retireval uncertainty
@@ -162,7 +165,7 @@ else
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
         %stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
         stdev_variables = [GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(indexes2run(nn))*0.01, ...
-            GN_inputs.model.apriori(nn,2)*0.583, GN_inputs.model.apriori(nn,3) * modis.cloud.optThickness_uncert_17(indexes2run(nn))*0.01];
+            GN_inputs.model.apriori(nn,2)*0.25, GN_inputs.model.apriori(nn,3) * modis.cloud.optThickness_uncert_17(indexes2run(nn))*0.01];
         
         % variance for the effective radius (microns squared) and optical thickness respectively
         GN_inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];
