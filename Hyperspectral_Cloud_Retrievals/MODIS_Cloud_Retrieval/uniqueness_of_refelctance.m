@@ -9,13 +9,13 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-% r_top = 6:12;       % microns
-% r_bot = 4:10;        % microns
-% tau_c = 5:5:35;
-
-r_top = 6:2:12;       % microns
-r_bot = 4:2:10;        % microns
+r_top = 6:12;       % microns
+r_bot = 4:10;        % microns
 tau_c = 5:5:35;
+
+% r_top = 6:2:12;       % microns
+% r_bot = 4:2:10;        % microns
+% tau_c = 5:5:35;
 
 
 % r_top = 9.03;       % microns

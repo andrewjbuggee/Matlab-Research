@@ -5,6 +5,9 @@
 function [] = plot_state_space_lessThan_MODIS_measurement_uncertainty(r_bot, r_top, tau_c, R_model, modis,...
     idx_modis_pixel)
 
+% define the number of spectral channels used
+num_bands = size(modis.EV1km.reflectance,3);
+
 % Meshgrid is defined on x,y,z space, not row, column, depth space
 % In 3D space, z = row, x = column, y = depth
 [R_bot, R_top, Tau_c] = meshgrid(r_bot, r_top, tau_c);
@@ -45,10 +48,10 @@ end
 
 % Grab the MODIS reflectances for the pixel used
 [r,c] = ind2sub(size(modis.EV1km.reflectance(:,:,1)), idx_modis_pixel);
-R_modis = zeros(1, size(modis.EV1km.reflectance,3));
-R_uncert_modis = zeros(1, size(modis.EV1km.reflectance,3));
+R_modis = zeros(1, num_bands);
+R_uncert_modis = zeros(1, num_bands);
 
-for bb = 1:size(modis.EV1km.reflectance,3)
+for bb = 1:num_bands
 
     % ****** DID YOU USE REFLECTANCE_4MODIS? ******
     % If not you need to divide the MODIS reflectance by cos(sza)
@@ -56,7 +59,7 @@ for bb = 1:size(modis.EV1km.reflectance,3)
     R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
 end
 
-modis_rms_uncertainty = sqrt(sum(R_uncert_modis.^2));
+modis_rms_uncertainty = sqrt( 1/num_bands * sum(R_uncert_modis.^2));
 
 
 states_lessThan_modisUncert = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
@@ -72,7 +75,7 @@ for rt = 1:size(R_model_fine,1)
 
             % Compute the RMS residual between the estimated measurement
             % and the true MODIS measurement
-            rms_residual(rt, rb, tc) = sqrt(sum((R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])).^2));
+            rms_residual(rt, rb, tc) = sqrt( 1/num_bands * sum((R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])).^2));
 
             % Check to see if the rms_residual is less than the MODIS
             % measurement uncertainty rms
@@ -129,7 +132,9 @@ else
 end
 
 
-% ----- Plot all the redundant states on a scatter plot -----
+% -------------------------------------------------
+% ----- Plot all the states on a scatter plot -----
+% -------------------------------------------------
 
 % Lets define the color of each marker to be associated with the droplet
 % size
@@ -192,7 +197,10 @@ title(['$\triangle r_{top} = $', num2str(d_r_top), ' $\mu m$',...
     '    $\triangle \tau_{c} = $', num2str(d_tau_c)], ...
     'Fontsize', 25, 'Interpreter', 'latex')
 
+
+% ------------------------------------------------------------------------
 % ---- plot the 2D space or r-top and r-bot showing area of redundancy ---
+% ------------------------------------------------------------------------
 
 % for every r-top, what is the largest and smallest r_bot that results in a
 % measurement within the MODIS measurement and uncertainty?
@@ -260,6 +268,51 @@ grid on; grid minor
 xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
 ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
 set(gcf, 'Position', [0 0 1200 600])
+
+
+
+
+% ------------------------------------------------------------------------
+% ---- Plot contours of rms residual over the state space ----------------
+% ------------------------------------------------------------------------
+idx_bot  = 4;
+
+figure;
+
+contour(reshape(Tau_c_fine(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)),...
+    reshape(R_top_fine(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)),...
+    reshape(rms_residual(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)), ...
+    "ShowText", true, "LineWidth", 3)
+
+
+grid on; grid minor
+
+title('RMS Residual')
+xlabel('$\tau_c$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+r_bot_slice = [];
+r_top_slice = [];
+tau_c_slice = [tau_c_2plot_sort(1), tau_c_2plot_sort(round(length(tau_c_2plot_sort)/2)), tau_c_2plot_sort(end)];
+
+figure;
+
+c = contourslice(R_bot_fine, R_top_fine, Tau_c_fine, rms_residual, r_bot_slice, r_top_slice,...
+    tau_c_slice);
+view(3)
+set(c, 'Linewidth', 3)
+
+
+grid on; grid minor
+
+title('RMS Residual')
+xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+zlabel('$\tau_c$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+colormap hot
 
 
 
