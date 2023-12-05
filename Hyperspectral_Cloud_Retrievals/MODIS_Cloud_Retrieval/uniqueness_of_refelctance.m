@@ -67,13 +67,13 @@ end
 % -------------------------------------
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-%modisFolder = '2008_11_09/';
+modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
 %modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-modisFolder = '2008_11_11_1850/';
+%modisFolder = '2008_11_11_1850/';
 
 
 
@@ -82,8 +82,8 @@ modisFolder = '2008_11_11_1850/';
 
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
-%modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
+modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
+%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
 %modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
 
 %% Grab the MODIS reflectances for the pixel used
