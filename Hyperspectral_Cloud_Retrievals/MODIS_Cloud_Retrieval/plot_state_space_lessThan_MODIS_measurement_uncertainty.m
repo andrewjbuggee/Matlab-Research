@@ -275,22 +275,191 @@ set(gcf, 'Position', [0 0 1200 600])
 % ------------------------------------------------------------------------
 % ---- Plot contours of rms residual over the state space ----------------
 % ------------------------------------------------------------------------
-idx_bot  = 4;
+
+% This is for a constant r-bottom with varrying r-top and tau-c
+
+idx_bot = r_bot_fine==4;
 
 figure;
 
-contour(reshape(Tau_c_fine(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)),...
+[C, h] = contour(reshape(Tau_c_fine(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)),...
     reshape(R_top_fine(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)),...
     reshape(rms_residual(:, idx_bot, :), length(r_top_fine), length(Tau_c_fine)), ...
-    "ShowText", true, "LineWidth", 3)
+    "ShowText", true, "LineWidth", 3);
+
+clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+
+grid on; grid minor
+
+title(['RMS Residual with $r_{bot}$  $=$ ', num2str(r_bot_fine(idx_bot)), '$ \mu m$'], 'interpreter', 'latex')
+xlabel('$\tau_c$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+colormap hot
+colorbar
+
+
+
+
+% ------------------------------------------------------------------------
+% ---- Plot contours of rms residual over the state space ----------------
+% ------------------------------------------------------------------------
+
+% This is for a constant tau with varrying r-top and r_bot
+% first, lets find the optical depth associated with the smallest rms
+% resdiual
+[~, idx_smallest] = min(rms_residual, [], 'all');
+tau_smallest = Tau_c_fine(idx_smallest);
+
+idx_tau  = tau_c_fine==(tau_smallest);
+
+figure;
+
+[C, h] = contour(reshape(R_bot_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(R_top_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(rms_residual(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)), ...
+    "ShowText", true, "LineWidth", 3);
+
+clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+
+grid on; grid minor
+
+title(['RMS Residual with $\tau_c$  $=$ ', num2str(tau_c_fine(idx_tau))], 'interpreter', 'latex')
+xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+colormap hot
+colorbar
+
+
+
+
+% -----------------------------------------------------------------------
+% ---- Plot multiple contours of rms residual over the state space ------
+% -----------------------------------------------------------------------
+
+% This is for a constant tau with varrying r-top and r_bot
+clear legend_str
+
+% first, lets find the optical depth associated with the smallest rms
+% resdiual
+[~, idx_smallest] = min(rms_residual, [], 'all');
+tau_smallest = Tau_c_fine(idx_smallest);
+
+idx_tau  = tau_c_fine==(tau_smallest);
+
+figure;
+
+[C, h] = contour(reshape(R_bot_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(R_top_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(rms_residual(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)), ...
+    "ShowText", true, "LineWidth", 3, 'LabelSpacing', 200);
+
+clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+
+legend_str{1} = ['$\tau_c$  $=$ ', num2str(tau_c_fine(idx_tau))];
+
+hold on
+
+idx_tau = tau_c_fine==(tau_smallest+1);
+
+
+[C, h] = contour(reshape(R_bot_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(R_top_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+    reshape(rms_residual(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)), ...
+    "ShowText", true, "LineWidth", 3, "LineStyle",":", 'LabelSpacing', 250);
+
+clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+
+legend_str{2} = ['$\tau_c$  $=$ ', num2str(tau_c_fine(idx_tau))];
+
+% 
+% idx_tau = tau_c_fine==(tau_smallest+1);
+% 
+% 
+% [C, h] = contour(reshape(R_bot_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+%     reshape(R_top_fine(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)),...
+%     reshape(rms_residual(:, :, idx_tau), length(r_top_fine), length(r_bot_fine)), ...
+%     "ShowText", true, "LineWidth", 3, "LineStyle","--", 'LabelSpacing', 250);
+% 
+% clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+% 
+% legend_str{3} = ['$\tau_c$  $=$ ', num2str(tau_c_fine(idx_tau))];
 
 
 grid on; grid minor
 
-title('RMS Residual')
-xlabel('$\tau_c$','Interpreter','latex')
+title('RMS Residual', 'interpreter', 'latex')
+xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
 ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
 set(gcf, 'Position', [0 0 1200 600])
+
+legend(legend_str, 'Interpreter', 'latex', 'location', 'bestoutside', 'Fontsize', 20)
+
+colormap hot
+colorbar
+
+
+
+
+
+% ------------------------------------------------------------------------------
+%  Plot contours of rms residual over the state space by collapsing one variable 
+% ------------------------------------------------------------------------------
+
+% This will vary with tau and with the ratio of r_top/r_bot, thus
+% collapsing two variables into one
+
+% first, lets find the optical depth associated with the smallest rms
+% resdiual
+[~, idx_smallest] = min(rms_residual, [], 'all');
+tau_smallest = Tau_c_fine(idx_smallest);
+
+% Let's only plot +/- 2 optical depth from the smallest value
+dT = 2;
+tau_smallest_2plot = tau_c_fine(tau_c_fine>= (tau_smallest-dT) & tau_c_fine<= (tau_smallest+dT));
+% We need every combo of r_top/r_bot
+ratio_r_top_bottom = R_top_fine(:,:,1)./R_bot_fine(:,:,1);
+
+% collapse this into a vector and repeat it for each optical depth
+ratio_r_top_bottom_matrix = repmat(reshape(ratio_r_top_bottom, [],1), 1, length(tau_smallest_2plot));
+
+
+
+figure;
+
+[C, h] = contour(repmat(tau_smallest_2plot, size(ratio_r_top_bottom_matrix, 1), 1),...
+    ratio_r_top_bottom_matrix,...
+    reshape(rms_residual(:,:, tau_c_fine>= (tau_smallest-dT) & tau_c_fine<= (tau_smallest+dT)),...
+    size(ratio_r_top_bottom_matrix, 1), length(tau_smallest_2plot)));
+
+%clabel(C,h, 'Fontsize', 15, 'Fontweight', 'bold')
+
+% imagesc(tau_smallest_2plot, reshape(ratio_r_top_bottom, [],1),...
+%     reshape(rms_residual(:,:, tau_c_fine>= (tau_smallest-dT) & tau_c_fine<= (tau_smallest+dT)),...
+%     size(ratio_r_top_bottom_matrix, 1), length(tau_smallest_2plot)));
+
+grid on; grid minor
+
+title(['RMS Residual'], 'interpreter', 'latex')
+xlabel('$\tau_c$','Interpreter','latex')
+ylabel('$r_{top} / r_{bot}$','Interpreter','latex')
+set(gcf, 'Position', [0 0 1200 600])
+
+colormap hot
+colorbar
+
+
+
+
+
+
+
+% ------------------------------------------------------------------------
+% - Plot slices of 3D contour space of rms residual over the state space -
+% ------------------------------------------------------------------------
 
 r_bot_slice = [];
 r_top_slice = [];
@@ -313,6 +482,7 @@ zlabel('$\tau_c$','Interpreter','latex')
 set(gcf, 'Position', [0 0 1200 600])
 
 colormap hot
+colorbar
 
 
 
