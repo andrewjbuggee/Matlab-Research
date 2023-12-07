@@ -1124,6 +1124,251 @@ changing_variable = wavelength(:,1);        % center wavelenghts in nm
 plot_probability_scat_top_maxDepth_with_changing_variable(filenames, probability_str ,changing_variable)
 
 
+%% TAKE 2 - Figure 3 - Weighting Functions
+
+
+clear variables
+
+
+wavelength = [578, 1650, 2155, 3700];
+
+filenames = {'2D_MC_04-Dec-2022_Wavelength_578_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
+    '2D_MC_04-Dec-2022_Wavelength_1650_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
+    '2D_MC_04-Dec-2022_Wavelength_2155_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
+    '2D_MC_04-Dec-2022_Wavelength_3700_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat'};
+
+% Do you want to plot the probability of a set of PDF's?
+probability_str = 'pdf';
+
+
+
+% Do you want to smooth the raw PDF's?
+smooth_curves = true;
+
+
+% Define a set of colors based on the number of files
+C = mySavedColors(1:length(filenames), 'fixed');
+
+
+% Store the number of photons from each simulation
+legend_str = cell(1,length(filenames));
+
+
+% Open folder where simulations are saved if it's not already open
+% what computer are we using?
+
+
+if strcmp(whatComputer,'anbu8374')
+
+    saved_simulations = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+                    'Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results'];
+
+
+
+elseif strcmp(whatComputer,'andrewbuggee')
+
+    error([newline, 'Where is the new folder?', newline])
+
+else
+    error('I dont recognize this computer user name')
+end
+
+
+if strcmp(pwd,saved_simulations)==false
+    cd(saved_simulations)
+end
+
+
+
+% Start figure
+figure;
+
+if smooth_curves==false
+
+    % Plot the raw PDF's
+
+    for nn = 1:length(filenames)
+
+
+        % Load a simulation
+        load(filenames{nn})
+
+
+
+        % First select those photons that were scattered out the top
+
+        index_scatter_out_top = final_state.scatter_out_top_INDEX;
+
+        [scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_tau_edges] = ...
+            histcounts(photon_tracking.maxDepth(index_scatter_out_top),'Normalization',probability_str);
+
+
+
+        % Plot the conditional probability
+        plot(scatter_out_top_maxDepth_PDF,...
+            scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2, 'Color',C(nn,:))
+        hold on
+
+
+
+        % Create legend string
+        legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+
+
+
+
+    end
+
+
+
+else
+
+    % If this is true, we smooth each PDF to make a nice pretty plot, but
+    % at the expense of loosing the PDF (the smoothed functions likely
+    % won't integrate to 0)
+
+
+    for nn = 1:length(filenames)
+
+
+        % Load a simulation
+        load(filenames{nn})
+
+
+
+        % First select those photons that were scattered out the top
+
+        index_scatter_out_top = final_state.scatter_out_top_INDEX;
+
+        [scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_tau_edges] = ...
+            histcounts(photon_tracking.maxDepth(index_scatter_out_top),'Normalization',probability_str);
+
+
+
+        % -------------------------------------------------------------
+        % Integrate the drolet profile with the weighting function to
+        % get an average effective radius measured, and thus an average
+        % optical depth.
+        % -------------------------------------------------------------
+        if nn~=0
+            % create an re vector that is the same length as our weighting
+            % function
+            new_tau = linspace(inputs.dropletProfile.tau_layer_mid_points(1), inputs.dropletProfile.tau_layer_mid_points(end), length(scatter_out_top_maxDepth_PDF));
+            re = interp1(inputs.dropletProfile.tau_layer_mid_points, inputs.dropletProfile.re, new_tau);
+            re_avg = trapz(new_tau, re .* scatter_out_top_maxDepth_PDF);
+            tau_avg(nn) = interp1(re, new_tau,re_avg);
+
+
+        end
+        % -------------------------------------------------------------
+        % -------------------------------------------------------------
+
+        % Create smooth spline function
+        f=fit((scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2)',scatter_out_top_maxDepth_PDF', 'smoothingspline','SmoothingParam',0.95);
+
+        % Plot the conditional probability
+        plot(f(scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2),...
+            scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2, 'Color',C(nn,:))
+        hold on
+
+
+
+        % Create legend string
+        legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+
+
+
+
+    end
+
+
+    % horizontal line width
+    horizontal_linewidth = 3;
+    line_font_size = 16;
+
+    for nn = 1:length(filenames)
+        % Plot line of constant tau associated with retrieval depth
+        yline(tau_avg(nn),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color','k','Label',...
+        ['Depth of retrieved $r_e$ for ',num2str(wavelength(nn)/1e3),' $\mu m$'], 'Interpreter','latex',...
+        'FontSize',line_font_size,'LabelVerticalAlignment','middle')
+
+    end
+
+%     % Plot line of constant average tau for 0.66 microns
+% 
+%     yline(tau_avg(1),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color','k','Label',...
+%         ['Depth of retrieved $r_e$ for ',num2str(wavelength(1)/1e3),' $\mu m$'], 'Interpreter','latex',...
+%         'FontSize',line_font_size,'LabelVerticalAlignment','bottom')
+% 
+%     % Plot line of constant average tau for 1.6 microns
+% 
+%     yline(tau_avg(2),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color','k','Label',...
+%         ['Depth of retrieved $r_e$ for ',num2str(wavelength(2)/1e3),' $\mu m$'], 'Interpreter','latex',...
+%         'FontSize',line_font_size,'LabelVerticalAlignment','bottom')
+% 
+%     % Plot line of constant average tau for 2.2 microns
+% 
+%     yline(tau_avg(3),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color','k','Label',...
+%         ['Depth of retrieved $r_e$ for ',num2str(wavelength(3)/1e3),' $\mu m$'], 'Interpreter','latex',...
+%         'FontSize',line_font_size,'LabelVerticalAlignment','top')
+% 
+%     % Plot line of constant average tau for 3.7 microns
+% 
+%     yline(tau_avg(4),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color','k','Label',...
+%         ['Depth of retrieved $r_e$ for ',num2str(wavelength(4)/1e3),' $\mu m$'], 'Interpreter','latex',...
+%         'FontSize',line_font_size,'LabelVerticalAlignment','top')
+
+
+
+
+
+
+
+end
+
+
+
+% Set up axes labels
+set(gca, 'YDir','reverse')
+grid on; grid minor
+xlabel('$P(\tau)$','Interpreter','latex');
+ylabel('$\tau$','Interpreter','latex')
+
+% Create title
+title({'Conditional probability of photons that scatter out cloud top',...
+    'reaching a max depth of $\tau$'},'Interpreter','latex')
+
+
+% Create textbox with simulation properties
+
+% Textbox
+dim = [0.685 0.5 0 0];
+
+texBox_str = {['$N_{photons}^{total} = 10^{', num2str(log10(inputs.N_photons)),'}$'],...
+    ['N layers = ', num2str(inputs.N_layers)],...
+    ['$\mu_0$ = ',num2str(round(cosd(inputs.solar_zenith_angle),2))],...
+    ['$r_{top}$ = ',num2str(round(inputs.layerRadii(1))), ' $\mu m$'],...
+    ['$r_{bot}$ = ',num2str(round(inputs.layerRadii(end))), ' $\mu m$'],...
+    ['$\tau_0$ = ', num2str(inputs.tau_y_upper_limit)],...
+    ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
+t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
+t.Color = 'black';
+t.FontSize = 25;
+t.FontWeight = 'bold';
+t.EdgeColor = 'black';
+t.FitBoxToText = 'on';
+
+
+% Create Legend
+legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
+
+
+set(gcf, 'Position',[0 0 1000 630])
+
+
+clear variables
+
+
 
 %% FIGURE 4
 

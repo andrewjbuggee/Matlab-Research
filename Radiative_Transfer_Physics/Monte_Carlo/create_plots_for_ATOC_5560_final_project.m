@@ -178,14 +178,14 @@ legend_str = cell(1,length(filenames));
 
 if strcmp(whatComputer,'anbu8374')
 
-    saved_simulations = '/Users/anbu8374/Documents/MATLAB/Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results';
+    saved_simulations = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+                    'Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results'];
 
 
 
 elseif strcmp(whatComputer,'andrewbuggee')
 
-    saved_simulations = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Radiative_Transfer_Physics/',...
-        'Monte_Carlo/Monte_Carlo_Simulation_Results'];
+    error([newline, 'Where is the new folder?', newline])
 
 else
     error('I dont recognize this computer user name')

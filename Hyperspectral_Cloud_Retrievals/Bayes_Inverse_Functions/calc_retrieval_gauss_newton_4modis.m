@@ -36,7 +36,7 @@ measurements(6,idx_above30) = nan;
 % -----------------------------------------------------------------------
 % --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
 
-jacobian_barPlot_flag = false;
+jacobian_barPlot_flag = true;
 % -----------------------------------------------------------------------
 
 
@@ -171,7 +171,8 @@ for pp = 1:num_pixels
         
 
         % compute the jacobian
-        Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag);
+        Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs,...
+            pixel_row,pixel_col, pp, jacobian_barPlot_flag, idx_not_nan);
 
 
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);

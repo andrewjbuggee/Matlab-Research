@@ -5,39 +5,58 @@
 
 % By Andrew John Buggee
 
-% save results in the following folder
-inputs.folder_name_2save = 'Monte_Carlo_Simulation_Results';
+clear variables
+
+
 
 % ----------------------------------------------------------------------
 % --------------------- DEFINE CHANGING VARIABLE -----------------------
 % ----------------------------------------------------------------------
-clear variables
+
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-solar_zenith_angle = 0:10:70;                  % deg from zenith
+solar_zenith_angle = 0;                  % deg from zenith
 
 
 % Define a set of wavelengths
 % wavelength = modisBands(1:7);
 % wavelength = wavelength(:,1);   % Center wavelengths of the first 7 MODIS bands
 
-% define a single wavelength
-wavelength = modisBands(7);
-wavelength = wavelength(1);             % center wavelength of the 7th MODIS band
+% define a wavelengths
+%wavelength = [469, 555, 645, 859, 1240, 1640, 2130, 1000, 2000];  % center wavelength of the 7th MODIS band
+wavelength = [555, 1000, 1240, 1640, 2000, 2130];  % center wavelength of the 7th MODIS band
 
 % Define a set of optical depths
 %Tau = [2, 4, 16, 32];
 
-for vv = 1:length(solar_zenith_angle)
+for vv = 1:length(wavelength)
 
 
     clear F_norm final_state input_filename inputs mie_folder output_filename photon_tracking
 
+     disp([newline,'Variable: ', num2str(vv),'/', num2str(length(wavelength)), newline])
 
     %% Define inputs
 
+
+    % save results in the following folder
+
+    if strcmp(whatComputer,'anbu8374')
+    
+        inputs.folder_name_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+            'Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results'];
+    
+    
+    
+    elseif strcmp(whatComputer,'andrewbuggee')
+    
+        error([newline, 'Where is the new folder?', newline])
+    
+    else
+        error('I dont recognize this computer user name')
+    end
 
     % Define the boundaries of the medium
     inputs.tau_y_lower_limit = 0;
@@ -49,7 +68,7 @@ for vv = 1:length(solar_zenith_angle)
     % define the solar zenith angle
     % This is the angle of the incident radiation with respect to the medium
     % normal direction
-    inputs.solar_zenith_angle = solar_zenith_angle(vv);                  % deg from zenith
+    inputs.solar_zenith_angle = solar_zenith_angle;                  % deg from zenith
 
 
     % Define the number of photons to inject into the medium
@@ -102,8 +121,8 @@ for vv = 1:length(solar_zenith_angle)
         inputs.dropletProfile.constraint = 'adiabatic';
 
         % Define the radius value at cloud top and cloud bottom
-        inputs.dropletProfile.r_top = 9;            % microns
-        inputs.dropletProfile.r_bottom = 4.5;          % microns
+        inputs.dropletProfile.r_top = 12;            % microns
+        inputs.dropletProfile.r_bottom = 5;          % microns
 
         % define the number of layers to model within the cloud
         inputs.dropletProfile.N_layers = 100;
@@ -223,7 +242,7 @@ for vv = 1:length(solar_zenith_angle)
 
         % Create a mie file
         [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str);
+            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, nn);
 
         % run the mie file
         [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -280,7 +299,7 @@ for vv = 1:length(solar_zenith_angle)
 
             % Create a mie file
             [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-                inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str);
+                inputs.mie.radius, inputs.mie.wavelength, inputs.mie.distribution, inputs.mie.err_msg_str, nn);
 
             % run the mie file
             [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -337,8 +356,8 @@ for vv = 1:length(solar_zenith_angle)
 
         % Compute the average value for the single scattering albedo over a size
         % distribution
-        [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.layerRadii,inputs.mie.dist_var, inputs.mie.wavelength(1),...
-            inputs.mie.indexOfRefraction, inputs.mie.size_dist);
+        [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.layerRadii,...
+            inputs.mie.dist_var, inputs.mie.wavelength(1), inputs.mie.indexOfRefraction, inputs.mie.size_dist, vv);
 
 
     end

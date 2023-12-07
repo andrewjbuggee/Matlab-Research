@@ -5,11 +5,12 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs, modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag)
+function jacobian = compute_jacobian_4modis(modis,state_vector,measurement_estimate,GN_inputs,...
+    modisInputs, pixel_row,pixel_col, pp, jacobian_barPlot_flag, idx_not_nan)
 
 
 % Define the measurement variance for the current pixel
-measurement_variance = GN_inputs.measurement.variance(:,pp);
+measurement_variance = GN_inputs.measurement.variance(idx_not_nan,pp);
 
 % --- Define the filename to save all calculations ---
 saveCalculations_fileName = GN_inputs.save_calcs_fileName;
@@ -147,15 +148,19 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
+    
+    spectral_bands = zeros(1,length(GN_inputs.spec_response));
+    for bb = 1:length(GN_inputs.spec_response)
 
-    spectral_bands = modisBands(GN_inputs.bands2use);
+        spectral_bands(bb) = round(median(GN_inputs.spec_response{bb}(:,1)));
+    end
     [~, index_sort] = sort(spectral_bands);
-    string_bands = string(round(spectral_bands(index_sort(:,1),1)));
+    string_bands = string(spectral_bands(index_sort));
 
 
-    f = figure; bar(abs(change_in_measurement(index_sort(:,1),:)))
+    f = figure; bar(abs(change_in_measurement(index_sort,:)))
     hold on;
-    plot(sqrt(measurement_variance(index_sort(:,1))), 'k--')
+    plot(sqrt(measurement_variance(index_sort)), 'k--')
     hold on
     xticklabels(string_bands);
     xlabel('Wavelength $(nm)$', 'Interpreter','latex')
