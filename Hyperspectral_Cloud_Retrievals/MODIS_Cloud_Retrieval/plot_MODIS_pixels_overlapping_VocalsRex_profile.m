@@ -129,11 +129,11 @@ end
 % ----- Plot the Vocals-Rex data ------
 if modisInputs.flags.useAdvection==true
 
-    geoscatter(vocalsRex.lat_withAdvection, vocalsRex.long_withAdvection, 10, "red",'*')
+    geoscatter(vocalsRex.lat_withAdvection, vocalsRex.long_withAdvection, 50, "red",'*')
 
 else
 
-    geoscatter(vocalsRex.latitude, vocalsRex.longitude, 10, "red",'*')
+    geoscatter(vocalsRex.latitude, vocalsRex.longitude, 50, "red",'*')
 
 end
 

@@ -4,7 +4,7 @@ function f = plot_MODIS_re_and_Tau_with_VOCALS_overlap(modis,inputs, vocalsRex)
 liquidWater_mask = modis.cloud.phase == 2; % 2 is the value designated for liquid water
 
 % create tau mask based on threshold
-tauThreshold = inputs.pixels.tauThreshold;
+tauThreshold = inputs.pixels.tau_min_threshold;
 %tauThreshold = 5;
 
 % finds clouds with an optical thickness of a certain value and an
