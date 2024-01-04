@@ -33,8 +33,18 @@ set(groot,'DefaultFigureColor','k')
 if strcmp(whatComputer, 'andrewbuggee')==true
 
     addpath('/Users/andrewbuggee/Documents/MATLAB/Generally_Useful_Functions')
-else
+    addpath('/Users/andrewbuggee/Documents/MATLAB/startup')
+
+elseif strcmp(computer_name,'anbu8374')==true
+% ----- MACBOOK ------
+
     addpath('/Users/anbu8374/Documents/MATLAB/Generally_Useful_Functions')
+    addpath('/Users/anbu8374/Documents/MATLAB/startup')
+
+elseif strcmp(computer_name,'curc')==true
+% ----- CU SUPERCOMPUTER ------
+    
+    addpath('/projects/anbu8374/Matlab-Research/startup')
 
 end
 
