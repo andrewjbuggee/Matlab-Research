@@ -24,30 +24,36 @@ r_bottom = state_vector(2);
 tau_c = state_vector(3);
 
 
+% ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
+% if you'd like different folders to use different percentage changes...
+% if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
+% 
+%     % For 11/11/2008 - 18:50 data
+%     %change_in_state = [0.1 * r_top, 0.025 * r_bottom, 0.0375 * tau_c];
+%     change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
+% 
+% elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1430/')==true
+% 
+%     % For 11/11/2008 - 14:30 data
+%     change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
+% 
+% elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_09/')==true
+% 
+%     % For 11/09/2008 data
+%     change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
+% 
+% else
+% 
+%     change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
+% 
+% end
 
-    % For 11/11/2008 - 18:50 data
-    %change_in_state = [0.1 * r_top, 0.025 * r_bottom, 0.0375 * tau_c];
-    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
-
-elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1430/')==true
-
-    % For 11/11/2008 - 14:30 data
-    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
-
-elseif strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_09/')==true
-
-    % For 11/09/2008 data
-    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
-
-else
-
-    change_in_state = ([0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c]);
-
-end
-
+%change_in_state = [0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c];
+%change_in_state = [0.03 * r_top, 0.25 * r_bottom, 0.04 * tau_c];        % values that just exceed measurement uncertainty for the Nov 2009 data set
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c]; 
+% ----------------------------------------------------------------
 
 
 
@@ -171,7 +177,7 @@ if jacobian_barPlot_flag==true
     set(f, 'Position',[0 0 1000 500])
     title('The Jacobian', 'Interpreter','latex')
     dim = [.14 0.67 .3 .3];
-    str = ['$r_{top} = $',num2str(state_vector(1)),', $r_{bot} = $ ',num2str(state_vector(2)),', $\tau_c = $ ',num2str(state_vector(3))];
+    str = ['$r_{top} = $',num2str(r_top),', $r_{bot} = $ ',num2str(r_bottom),', $\tau_c = $ ',num2str(tau_c)];
     annotation('textbox',dim,'String',str,'FitBoxToText','on','Color','k',...
         'FontWeight','bold','FontSize',14, 'EdgeColor','w','Interpreter','latex');
 
