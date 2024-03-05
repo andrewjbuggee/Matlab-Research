@@ -217,8 +217,8 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -----------------------------------------------
  [max__re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
 
-% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]); 
-% title('r_e best distribution fit'); ylabel('Counts')
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]); 
+title('r_e best distribution fit'); ylabel('Counts')
 
 
 
@@ -227,8 +227,8 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -------------------------------------------
 [max__lwc_p, idx_lwc_p] = max([lwc_p_normal; lwc_p_lognormal; lwc_p_gamma],[], 1);
 
-% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_lwc_p==1), sum(idx_lwc_p==2), sum(idx_lwc_p==3)]); 
-% title('LWC best distribution fit'); ylabel('Counts')
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_lwc_p==1), sum(idx_lwc_p==2), sum(idx_lwc_p==3)]); 
+title('LWC best distribution fit'); ylabel('Counts')
 
 
 % -------------------------------------------
@@ -237,8 +237,8 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 
 [max__Nc_p, idx_Nc_p] = max([Nc_p_normal; Nc_p_lognormal; Nc_p_gamma],[], 1);
 
-% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_Nc_p==1), sum(idx_Nc_p==2), sum(idx_Nc_p==3)]); 
-% title('N_c best distribution fit'); ylabel('Counts')
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_Nc_p==1), sum(idx_Nc_p==2), sum(idx_Nc_p==3)]); 
+title('N_c best distribution fit'); ylabel('Counts')
 
 
 %%  Compute the Median LWC, re, and Nc of each layer
@@ -249,7 +249,9 @@ re_std = zeros(n_bins, 1);
 re_avg_deviation_from_median = zeros(n_bins, 1);
 re_logNormal_std = zeros(n_bins, 1);
 re_logNormal_mean = zeros(n_bins, 1);
-
+re_logNormal_median = zeros(n_bins, 1);
+re_custom_logNormal_std_larger = zeros(n_bins, 1);
+re_custom_logNormal_std_smaller = zeros(n_bins, 1);
 
 % ---- most common best fit distribution for LWC was is the normal dist ---
 lwc_median = zeros(n_bins, 1);
@@ -282,8 +284,24 @@ for bb = 1:n_bins
     % find the mean of the log normal distribution
     re_logNormal_mean(bb) = exp(re_fit_lognormal(bb).mu + re_fit_lognormal(bb).sigma^2 /2);
 
+    % find the median of the log normal distribution
+    re_logNormal_median(bb) = re_fit_lognormal(bb).median;
+
     % find squareroot of the variance of the lognormal distribution
     re_logNormal_std(bb) = sqrt(exp(2*re_fit_lognormal(bb).mu + re_fit_lognormal(bb).sigma^2)*(exp(re_fit_lognormal(bb).sigma^2) - 1));
+
+    % Let's also compute the average deviation from the median value when
+    % radii are larger and smaller than the median.
+    % For radii larger than the median...
+    idx_larger = vertically_segmented_attributes{bb,1}>re_logNormal_median(bb);
+    re_larger = vertically_segmented_attributes{bb,1}(idx_larger);
+    re_custom_logNormal_std_larger(bb) = sqrt(mean((re_larger - re_logNormal_median(bb)).^2));
+    %re_custom_logNormal_std_larger(bb) = mean(re_larger - re_logNormal_median(bb));
+
+    % For radii smaller than the median...
+    idx_smaller = vertically_segmented_attributes{bb,1}<re_logNormal_median(bb);
+    re_smaller = vertically_segmented_attributes{bb,1}(idx_smaller);
+    re_custom_logNormal_std_smaller(bb) = sqrt(mean((re_smaller - re_logNormal_median(bb)).^2));
 
 
     % ----- COMPUTE STATISTICS FOR LIQUID WATER CONTENT -----
@@ -323,15 +341,18 @@ subplot(1,3,1)
 % plot the standard deviation of the median profile as an transparent area
 % centered around the mean radius profile
 % x = [re_min; flipud(re_median + re_avg_deviation_from_median)];
-x = [re_median - re_avg_deviation_from_median; flipud(re_median + re_avg_deviation_from_median)];
+% x = [re_median - re_avg_deviation_from_median; flipud(re_median + re_avg_deviation_from_median)];
 % x = [re_logNormal_mean - re_logNormal_std; flipud(re_logNormal_mean + re_logNormal_std)];
+% x = [re_logNormal_median - re_logNormal_std; flipud(re_logNormal_median + re_logNormal_std)];
+x = [re_logNormal_median - re_custom_logNormal_std_smaller; flipud(re_logNormal_median + re_custom_logNormal_std_larger)];
+
 y = [bin_center; flipud(bin_center)];
 fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 
 hold on
 
 % plot the median droplet profile
-plot(re_median, bin_center, 'Color', mySavedColors(2, 'fixed'))
+plot(re_logNormal_median, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor

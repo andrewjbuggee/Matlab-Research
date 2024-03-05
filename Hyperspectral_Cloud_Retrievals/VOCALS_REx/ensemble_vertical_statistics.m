@@ -12,14 +12,14 @@ clear variables
 
 if strcmp(whatComputer,'anbu8374')==true
 
-    foldername = ['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/',...
-        'vocals_rex_data/SPS_1/'];
+    foldername = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Macbook folder name
-    foldername = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/'...
-        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+    foldername = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 end
 
@@ -83,10 +83,10 @@ ensemble_profiles.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-ensemble_profiles.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
+ensemble_profiles.keep_precip_drizzle_profiles = true;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
-ensemble_profiles.precip_driz_threshold = 1;         % g/m^2
+ensemble_profiles.precip_driz_threshold = 5;         % g/m^2
 
 % Load data
 
@@ -349,8 +349,8 @@ end
 
 % store the LWC threshold
 
-increasing_profiles.lwc_threshold = LWC_threshold;
-decreasing_profiles.lwc_threshold = LWC_threshold;
+increasing_profiles.lwc_threshold = ensemble_profiles.inputs.LWC_threshold;
+decreasing_profiles.lwc_threshold = ensemble_profiles.inputs.LWC_threshold;
 
 
 
