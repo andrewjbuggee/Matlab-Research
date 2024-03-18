@@ -27,8 +27,8 @@ tau_upper_limit = 10;
 N_photons = 10000;
 
 % define the wavelength
-wavelength = 1950;            % nanometers - ssa ~ 0.9
-%wavelength = 500;            % nanometers - conservative scattering
+%wavelength = 1950;            % nanometers - ssa ~ 0.9
+wavelength = 500;            % nanometers - conservative scattering
 
 % -----------------------------------------------------------
 % ************* Define Scattering Properties ****************
@@ -43,7 +43,7 @@ ssa = mie_properties_water(6);
 g = mie_properties_water(7);
 
 % ***** Custom ssa and g *****
-ssa = 1;                % between 0 and 1
+ssa = 0.8;                % between 0 and 1
 g = 0.85;               % between -1 and 1
 % ----------------------------
 

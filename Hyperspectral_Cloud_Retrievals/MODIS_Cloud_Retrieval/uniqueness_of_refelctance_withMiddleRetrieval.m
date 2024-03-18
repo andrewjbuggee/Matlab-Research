@@ -9,10 +9,10 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 6:12;       % microns
+r_top = 6:10;       % microns
 r_bot = 4:10;        % microns
 
-tau_c = 5:5:35;
+tau_c = 8:0.5:10.5;       % optical depth
 
 % r_top = 6:2:12;       % microns
 % r_bot = 4:2:10;        % microns
@@ -58,7 +58,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the folder path where all .INP files will be saved
     folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 end
 
@@ -84,7 +84,7 @@ modisFolder = '2008_11_09/';
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
 modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
+%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS
 %modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
 
 %% Grab the MODIS reflectances for the pixel used
@@ -630,7 +630,7 @@ filename = [folderpath,'reflectance_calcs_MODIS-data-from-',modisFolder(1:end-1)
 while isfile(filename)
     rev = rev+1;
     filename = [folderpath,'reflectance_calcs_MODIS-data-from-',modisFolder(1:end-1),...
-    '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
 save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "modisFolder", 'modis_idx');
