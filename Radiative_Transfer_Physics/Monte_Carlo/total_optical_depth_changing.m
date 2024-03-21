@@ -14,7 +14,7 @@ clear variables
 tau = @(x) -log(1 - x);
 
 tau_lower_limit = 0;
-tau_upper_limit = 1:50;
+tau_upper_limit = 1:20;
 
 
 % We start by injecting a single photon into our medium.
@@ -25,7 +25,7 @@ N_photons = 10000;
 
 % ***** Custom ssa and g *****
 ssa = 1;                % between 0 and 1
-g = 0.85;               % between -1 and 1
+g = 0;               % between -1 and 1
 % ----------------------------
 
 % reset the random number generator

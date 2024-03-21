@@ -18,7 +18,7 @@ clear variables
 tau = @(x) -log(1 - x);
 
 tau_lower_limit = 0;
-tau_upper_limit = 10;
+tau_upper_limit = 5;
 
 
 % We start by injecting a single photon into our medium.
@@ -43,8 +43,8 @@ ssa = mie_properties_water(6);
 g = mie_properties_water(7);
 
 % ***** Custom ssa and g *****
-ssa = 0.8;                % between 0 and 1
-g = 0.85;               % between -1 and 1
+ssa = 1;                % between 0 and 1
+g = 0.75;               % between -1 and 1
 % ----------------------------
 
 % reset the random number generator
