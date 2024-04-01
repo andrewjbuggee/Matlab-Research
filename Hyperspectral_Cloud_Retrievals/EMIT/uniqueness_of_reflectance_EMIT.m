@@ -53,8 +53,12 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the EMIT data folder path
 
-    error(['Where is the EMIT data?'])
+    emitPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 
 end
@@ -64,7 +68,7 @@ end
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
 
-emitFolder = '17_Jan_2024/';
+emitFolder = '17_Jan_2024_coast/';
 
 
 
@@ -73,22 +77,16 @@ emitFolder = '17_Jan_2024/';
 
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
-emit_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
-%modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
+row = 1112;
+col = 974;
+emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2008 - pixel overlapping with VOCALS
+
 
 %% Grab the EMIT radiances for the pixel used
-[r,c] = ind2sub(size(emit.EV1km.reflectance), emit_idx);
-R_emit = zeros(1, size(emit.EV1km.reflectance,3));
-R_uncert_emit = zeros(1, size(emit.EV1km.reflectance, 3));
+R_emit = reshape(emit.radiance.measurements(row, col, :), [],1);
+%R_uncert_emit = zeros(1, size(emit.EV1km.reflectance, 3));
 
-for bb = 1:size(emit.EV1km.reflectance, 3)
 
-    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
-    % If not you need to divide the MODIS reflectance by cos(sza)
-    R_emit(bb) = emit.EV1km.reflectance(r,c,bb);
-    R_uncert_emit(bb) = R_emit(bb) * 0.01*double(emit.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
-end
 
 
 %% Define the parameters of the INP file
@@ -116,11 +114,12 @@ source_file_resolution = 1;           % nm
 % ------------------------------------------------------------------------
 % band7 = modisBands(band_num);
 % wavelength = [band7(2), band7(3)];              % nm - monochromatic wavelength calcualtion
-wavelength = zeros(length(emit.wavelength), 2);
+wavelength = zeros(length(emit.radiance.wavelength), 2);
 
-for ww = 1:length(emit.wavelength)
+for ww = 1:length(emit.radiance.wavelength)
     % the emit wavelength vector is the center wavelength
-    wavelength(ww,:) = [emit.wavelength(ww) - emit.fwhm(ww)/2, emit.wavelength(ww) + emit.fwhm(ww)/2];
+    wavelength(ww,:) = [emit.radiance.wavelength(ww) - emit.radiance.fwhm(ww)/2, ...
+                        emit.radiance.wavelength(ww) + emit.radiance.fwhm(ww)/2];
 end
 
 % ------------------------------------------------------------------------
@@ -224,24 +223,27 @@ end
 
 
 % define the solar zenith angle
-sza = double(emit.solar.zenith(emit_idx));           % degree
+sza = double(emit.obs.solar.zenith(emit_idx));           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
-% this is how we map MODIS azimuth of the sun to the LibRadTran measurement
-phi0 = double(emit.solar.azimuth(emit_idx) + 180);         % degree
+% The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
+% due north. The libRadTran solar azimuth is defined as 0-360 degrees
+% clockwise from due south. So they are separated by 180 degrees. To map
+% the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
+% 360
+phi0 = mod(double(emit.obs.solar.azimuth(emit_idx) + 180), 360);         % degree
 
 % define the viewing zenith angle
-vza = double(emit.sensor.zenith(emit_idx)); % values are in degrees;                        % degree
+vza = double(emit.obs.sensor.zenith(emit_idx)); % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
-% define the viewing azimuth angle
-% to properly map the azimuth angle onto the reference plane used by
-% libRadTran, we need an if statement
-if emit.sensor.azimuth(emit_idx)<0
-    vaz = 360 + emit.sensor.azimuth(emit_idx);
-else
-    vaz = emit.sensor.azimuth(emit_idx);
-end
+% The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
+% due north. The libRadTran sensor azimuth is defined as 0-360 degrees
+% clockwise from due North as well. So they are separated by 180 degrees. A
+% sensor azimuth angle of 0 means the sensor is in the North, looking
+% south. No transformation is needed
+
+vaz = emit.obs.sensor.azimuth(emit_idx);     % degree
 
 
 % --------------------------------------------------------------
@@ -275,12 +277,12 @@ compute_reflectivity_uvSpec = false;
 
 %% Write each INP file and Calculate Reflectance for MODIS
 
-inputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
-outputName = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
-wc_filename = cell(length(r_top), length(r_bot), length(tau_c), length(band_num));
+inputName = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
+outputName = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
+wc_filename = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
 
 
-R_model = zeros(length(r_top), length(r_bot), length(tau_c), length(band_num));
+R_model = zeros(length(r_top), length(r_bot), length(tau_c), length(wavelength));
 
 
 tic
@@ -296,7 +298,7 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            parfor ww = 1:length(band_num)
+            for ww = 1:length(wavelength)
 
 
 

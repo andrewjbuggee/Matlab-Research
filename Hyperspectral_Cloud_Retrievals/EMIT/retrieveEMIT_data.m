@@ -35,12 +35,12 @@ for ii = 1:length(files)
     if strcmp(file_ii(10:12), 'RAD')==true
 
         % read in the radiance data
-        emit = readEMIT_L1B_radiance_data(file_ii);
+        emit.radiance = readEMIT_L1B_radiance_data(file_ii);
 
     elseif strcmp(file_ii(10:12), 'OBS')==true
 
         % read in the observation data
-        warning([newline, 'I dont know how to read observation data', newline])
+        emit.obs = readEMIT_L1B_observation_data(file_ii);
 
 
     end
