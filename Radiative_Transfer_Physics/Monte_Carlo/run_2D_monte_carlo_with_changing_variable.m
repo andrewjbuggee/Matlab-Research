@@ -26,13 +26,13 @@ solar_zenith_angle = 0;                  % deg from zenith
 
 % define a wavelengths
 %wavelength = [469, 555, 645, 859, 1240, 1640, 2130, 1000, 2000];  % center wavelength of the 7th MODIS band
-wavelength = [555, 1000, 1240, 1640, 2000, 2130];  % center wavelength of the 7th MODIS band
+wavelength = [555];  % center wavelength of the 7th MODIS band
 
 % Define a set of optical depths
 %Tau = [2, 4, 16, 32];
 
+%%
 for vv = 1:length(wavelength)
-
 
     clear F_norm final_state input_filename inputs mie_folder output_filename photon_tracking
 
@@ -52,7 +52,8 @@ for vv = 1:length(wavelength)
     
     elseif strcmp(whatComputer,'andrewbuggee')
     
-        error([newline, 'Where is the new folder?', newline])
+        inputs.folder_name_2save = ['/Users/andrewbuggee/Documents/MATLAB/',...
+            'Matlab-Research/Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results'];
     
     else
         error('I dont recognize this computer user name')
@@ -60,7 +61,7 @@ for vv = 1:length(wavelength)
 
     % Define the boundaries of the medium
     inputs.tau_y_lower_limit = 0;
-    inputs.tau_y_upper_limit = 15;
+    inputs.tau_y_upper_limit = 6.5;
 
     % Define the albedo of the bottom boundary (tau upper limit)
     inputs.albedo_maxTau = 0;
@@ -72,7 +73,7 @@ for vv = 1:length(wavelength)
 
 
     % Define the number of photons to inject into the medium
-    inputs.N_photons = 1e7;
+    inputs.N_photons = 1e5;
 
 
     % ----------------------------------------------------------------------

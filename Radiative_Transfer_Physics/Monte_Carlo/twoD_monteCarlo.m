@@ -1,4 +1,4 @@
-% 2-stream radiative transfer using Monte Carlo methods
+% radiative transfer using Monte Carlo methods
 % by Andrew John Buggee
 
 function [F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs)
@@ -99,7 +99,7 @@ mu = @(g, x) 1/(2*g) * (1 + g^2 - ((1 - g^2)./(1 - g + 2*g*x)).^2);
 % *** Define the clockwise and counter-clockwise rotation transformation matrix in 2D ***
 % ---------------------------------------------------------------------------------------
 
-% There are from the perspective of the most recent tau vector
+% These are from the perspective of the most recent tau vector
 
 % clockwise rotation
 M_clockwise = @(Mu) [Mu, sqrt(1 - Mu^2);...
