@@ -8,8 +8,8 @@ clear variables
 
 % Load MODIS data set
 
-%modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/';
-modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+modisFolder = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+%modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
 
 [modis,L1B_1km_fileName] = retrieveMODIS_data(modisFolder);
 
@@ -185,9 +185,9 @@ compute_reflectivity_uvSpec = false;
 %% Write each INP file using various MODIS values
 
 % Define the folder path where all .INP files will be saved
-%folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/solving_modeling_discrepancy_2/';
-folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-    'LibRadTran/libRadtran-2.0.4/Matching_MODIS_Reflectance/'];
+folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/solving_modeling_discrepancy_2/';
+% folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+%     'LibRadTran/libRadtran-2.0.4/Matching_MODIS_Reflectance/'];
 
 inputName = cell(1, length(idx));
 outputName = cell(1, length(idx));
@@ -520,7 +520,7 @@ modis_radiance = modis.EV1km.radiance(:, :, band_num);
 %modis_radiance_uncertainty = modis.EV1km.radiance(:,:,band_num);
 
 tic
-parfor nn = 1:length(idx)
+for nn = 1:length(idx)
 
     % Store the modis reflectance value
     % ---------------------------------------------------------------------

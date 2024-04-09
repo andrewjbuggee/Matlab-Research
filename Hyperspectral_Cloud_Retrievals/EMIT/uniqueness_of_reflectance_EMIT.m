@@ -9,7 +9,7 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 6:12;       % microns
+r_top = 5:13;       % microns
 r_bot = 4:10;        % microns
 
 tau_c = 5:5:35;
@@ -58,7 +58,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the folder path where all .INP files will be saved
     folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-    'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 
 end
@@ -83,9 +83,7 @@ emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2
 
 
 %% Grab the EMIT radiances for the pixel used
-R_emit = reshape(emit.radiance.measurements(row, col, :), [],1);
-%R_uncert_emit = zeros(1, size(emit.EV1km.reflectance, 3));
-
+Rad_emit = reshape(emit.radiance.measurements(row, col, :), [],1);      % microW/cm^2/nm/sr
 
 
 
@@ -97,30 +95,83 @@ num_streams = 16;
 % ------------------------------------------------------------------------
 
 
-% Define the source file
+% ------- Define the source file ------
+source_file_resolution = 0.1;           % nm
+
 %source_file = '../data/solar_flux/lasp_TSIS1_hybrid_solar_reference_p01nm_resolution.dat';
-source_file = '../data/solar_flux/kurudz_1.0nm.dat';
-source_file_resolution = 1;           % nm
+if source_file_resolution==0.1
+    
+    source_file = '../data/solar_flux/kurudz_0.1nm.dat';
+
+elseif source_file_resolution==1
+
+    source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+
+end
 
 
 
 % Define the spectral response function
 % ------------------------------------------------------------------------
 
+% ****************************************************************
+% *-*-*-*- Only keep wavelengths that avoid water vapor -*-*-*-*-*
+
+% The following indexes are for wavelengths that avoid water vapor
+% absopriton according to figure 5 from King and Vaughan, which shows the
+% information content for r_top, r_bot, tau_c, and water vapor across
+% wavelengths from 500 to 2500 nm
+wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
+    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
+    248, 252, 259]';
+Rad_emit = Rad_emit(wavelength_idx);
+% -------------------------------------------------
 
 
 % define the wavelength range. If monochromatic, enter the same number
 % twice
 % ------------------------------------------------------------------------
-% band7 = modisBands(band_num);
-% wavelength = [band7(2), band7(3)];              % nm - monochromatic wavelength calcualtion
-wavelength = zeros(length(emit.radiance.wavelength), 2);
 
-for ww = 1:length(emit.radiance.wavelength)
+spec_response = cell(length(wavelength_idx), 1);
+wavelength = zeros(length(wavelength_idx), 2);
+
+for ww = 1:length(wavelength_idx)
+
+    % first we will create and store the spectral response function from
+    % the full-wdith-half-max provided for each spectral channel
+    % the spectral response function is gaussian
     % the emit wavelength vector is the center wavelength
-    wavelength(ww,:) = [emit.radiance.wavelength(ww) - emit.radiance.fwhm(ww)/2, ...
-                        emit.radiance.wavelength(ww) + emit.radiance.fwhm(ww)/2];
+    
+    % set the center wavelength as the mean of the distribution
+    mu = emit.radiance.wavelength(wavelength_idx(ww));      % nm
+    % compute the standard deviation from the FWHM
+
+    sigma = emit.radiance.fwhm(wavelength_idx(ww))/(2*sqrt(2*log(2)));      % std
+
+    % create a wavelength vector
+    if source_file_resolution==0.1
+        
+        wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1):...
+            source_file_resolution:round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1);
+
+    elseif source_file_resolution==1
+        
+        wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww)))):...
+            round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))));
+
+    end
+
+    % compute the gaussian spectral response function
+    spec_response{ww} = pdf('Normal', wl, mu, sigma)';
+
+    % The wavelength vector for libRadTran is simply the lower and upper
+    % bounds
+    wavelength(ww,:) = [wl(1), wl(end)];
+
 end
+
+
+
 
 % ------------------------------------------------------------------------
 % --- Do you want to use the Nakajima and Tanka radiance correction? -----
@@ -261,6 +312,16 @@ aerosol_type = 4;               % 4 = maritime aerosols
 aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
 
+% --------------------------------------------------------
+% --------- What is column water vapor amount? -----------
+
+% Using measurements from the AMSR2 instrument, a passive microwave
+% radiometer for 17 Jan 2024
+yesModify_waterVapor = true;
+
+waterVapor_column = 16;              % mm - milimeters of water condensed in a column
+% ------------------------------------------------------------------------
+
 
 
 % --------------------------------------------------------------
@@ -277,13 +338,15 @@ compute_reflectivity_uvSpec = false;
 
 %% Write each INP file and Calculate Reflectance for MODIS
 
-inputName = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
-outputName = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
-wc_filename = cell(length(r_top), length(r_bot), length(tau_c), length(wavelength));
+inputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
+outputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
+wc_filename = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 
 
-R_model = zeros(length(r_top), length(r_bot), length(tau_c), length(wavelength));
+Rad_model = zeros(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
+Refl_model = zeros(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 
+Refl_emit = zeros(size(Rad_emit));
 
 tic
 for rt = 1:length(r_top)
@@ -298,7 +361,7 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            for ww = 1:length(wavelength)
+            parfor ww = 1:size(wavelength,1)
 
 
 
@@ -331,7 +394,7 @@ for rt = 1:length(r_top)
                 %                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
 
                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
-                    'reflectance', atm_file(1:end-4),'.INP'];
+                    'nm_radiance_', atm_file(1:end-4),'.INP'];
 
 
 
@@ -447,6 +510,20 @@ for rt = 1:length(r_top)
 
 
 
+                % Define the column water vapor amount
+                % --------------------------------------------------------------------
+                if yesModify_waterVapor==true
+
+                    % Turn on default aersol layer, which occupies lower 2km of model
+                    % --------------------------------------------------------------
+                    formatSpec = '%s %f %s %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'mol_modify H2O ', waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+
+                end
+
+
+
                 % Define the Aerosol Layer properties, if you want a cloud in your model
                 % --------------------------------------------------------------------
                 if yesAerosols==true
@@ -544,15 +621,34 @@ for rt = 1:length(r_top)
                 % read .OUT file
                 [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
 
-                if compute_reflectivity_uvSpec==false
-                    % compute reflectance in the MODIS style (without
-                    % dividing by cos(sza)
-                    R_model(rt,rb, tc, ww) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
+                % compute the reflectance
+                Refl_model(rt, rb, tc, ww) = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww});
 
-                else
+                % integrate the radiance over the wavelength channel and
+                % convert the output to the same units as the EMIT data
+                % LibRadTran reports radiance in units of mW/m^2/nm/sr
+                % EMIT reports radiance in units of microW/cm^2/nm/sr
+                % Divide the libRadTran values to get the output into the
+                % same units as EMIT
+                % Make sure to integrate with the spectral response
+                % function!
+                Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response{ww}.*ds.radiance.value)/10;        % microW/cm^2/sr
 
-                    R_model(rt,rb, tc, ww) = ds.reflectivity.value;
+                % Now divide by the wavelength range of the channel to get
+                % units of micro-watts/cm^2/sr/nm
+
+                Rad_model(rt, rb, tc, ww) = Rad_model(rt, rb, tc, ww)/(ds.wavelength(end)-ds.wavelength(1));       % microW/cm^2/nm/sr
+
+                % Convert the EMIT radiance into reflectance
+                if rt==1 && rb==1 && tc==1
+                    
+                    % The source function has units of mW/m^2/nm
+                    % Divide this by 10 to get units of microW/cm^2/nm
+                    Refl_emit(ww) = pi*Rad_emit(ww)/(cosd(inputSettings{2,4}) * ...
+                        trapz(inputSettings{2,7}(:,1), spec_response{ww} .* inputSettings{2,7}(:,2))/10);
+
                 end
+
 
 
 
@@ -581,8 +677,8 @@ if strcmp(whatComputer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'MODIS_Cloud_Retrieval/Reflectance_Uniqueness/'];
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/EMIT/Reflectance_Uniqueness/'];
 
 
 
@@ -593,7 +689,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % -------------------------------------
 
     folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'MODIS_Cloud_Retrieval/Reflectance_Uniqueness/'];
+        'EMIT/Reflectance_Uniqueness/'];
 
 
 elseif strcmp(whatComputer,'curc')==true
@@ -601,6 +697,9 @@ elseif strcmp(whatComputer,'curc')==true
     % ------------------------------------------------
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
+
+    warning([newline, 'No folder to store things in!', newline])
+
 
 
 end
@@ -612,21 +711,21 @@ filename = [folderpath,'reflectance_calcs_MODIS-data-from-',emitFolder(1:end-1),
 while isfile(filename)
     rev = rev+1;
     filename = [folderpath,'reflectance_calcs_MODIS-data-from-',emitFolder(1:end-1),...
-    '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "emitFolder", 'emit_idx');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'emit_idx');
 
 toc
 
 
-%% Subplots of reflectance across different optical depths for a single wavelength
+%% Subplots of Radiance across different optical depths for a single wavelength
 
 wave_len_idx = 1;
 
 % find min and max values of reflectance for this wavelength
-[minR, ~] = min(R_model(:,:,:,wave_len_idx), [], 'all');
-[maxR, ~] = max(R_model(:,:,:,wave_len_idx), [], 'all');
+[minR, ~] = min(Rad_model(:,:,:,wave_len_idx), [], 'all');
+[maxR, ~] = max(Rad_model(:,:,:,wave_len_idx), [], 'all');
 
 % set colorbar limits for each subplot
 color_lim = [minR, maxR];
@@ -636,7 +735,7 @@ color_lim = [minR, maxR];
 figure;
 for tc = 1:length(tau_c)
 
-    subplot(2,4,tc); imagesc(r_bot, r_top, R_model(:,:,tc, wave_len_idx));
+    subplot(2,4,tc); imagesc(r_bot, r_top, Rad_model(:,:,tc, wave_len_idx));
 
     if tc==1
         xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
@@ -647,7 +746,7 @@ for tc = 1:length(tau_c)
 
     if tc==4
         cb = colorbar;
-        set(get(cb, 'label'), 'string', 'Reflectance $(1/sr)$','Interpreter','latex', 'Fontsize',28)
+        set(get(cb, 'label'), 'string', 'Radiance $(\mu W/cm^{2}/nm/sr)$','Interpreter','latex', 'Fontsize',28)
         %cb.Limits = color_lim;
 
     else
@@ -682,7 +781,7 @@ annotation('textbox',...
 
 
 
-%% Make lineplots of reflectance versus optical depth at a constant wavelength
+%% Make lineplots of Radiance versus optical depth at a constant wavelength
 
 
 wave_len_idx = 1;
@@ -694,7 +793,7 @@ for rt = 1:length(r_top)
     for rb = 1:length(r_bot)
 
 
-        plot(tau_c, reshape(R_model(rt,rb,:, wave_len_idx), 1, []));
+        plot(tau_c, reshape(Rad_model(rt,rb,:, wave_len_idx), 1, []));
 
         hold on
 
@@ -702,7 +801,7 @@ for rt = 1:length(r_top)
 end
 
 xlabel('$\tau_{c}$', 'Interpreter', 'latex')
-ylabel('Reflectance $(1/sr)$', 'Interpreter', 'latex')
+ylabel('Radiance $(\mu W/cm^{2}/nm/sr)$', 'Interpreter', 'latex')
 
 title(['Reflectance $\lambda$ = ', num2str(round(mean(wavelength(wave_len_idx, :)))), ' $nm$'], 'Interpreter', 'latex')
 
@@ -715,20 +814,20 @@ grid on; grid minor
 
 
 
-%% Subplots of reflectance across different wavelengths for a single optical depth
+%% Subplots of radiance across different wavelengths for a single optical depth
 
-tau_idx = 1;
+tau_idx = 4;
 
 % find min and max values of reflectance for this wavelength
-[minR, ~] = min(R_model(:,:,tau_idx,:), [], 'all');
-[maxR, ~] = max(R_model(:,:,tau_idx,:), [], 'all');
+[minR, ~] = min(Rad_model(:,:,tau_idx,:), [], 'all');
+[maxR, ~] = max(Rad_model(:,:,tau_idx,:), [], 'all');
 
 
 
 figure;
-for ww = 1:length(band_num)
+for ww = 1:size(wavelength, 1)
 
-    subplot(2,4,ww); imagesc(r_bot, r_top, R_model(:,:,tau_idx, ww));
+    subplot(2,4,ww); imagesc(r_bot, r_top, Rad_model(:,:,tau_idx, ww));
 
     if ww==1
         xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
@@ -776,32 +875,33 @@ annotation('textbox',...
 
 
 
-%% Subplots of reflectance across different optical depths for all wavelengths
+%% Subplots of radiance across different optical depths for all wavelengths
 
 
 
 
-for ww = 1:length(band_num)
+for ww = 1:size(wavelength, 1)
 
     % find min and max values of reflectance for this wavelength
-    [minR, ~] = min(R_model(:,:,:,ww), [], 'all');
-    [maxR, ~] = max(R_model(:,:,:,ww), [], 'all');
+    [minR, ~] = min(Rad_model(:,:,:,ww), [], 'all');
+    [maxR, ~] = max(Rad_model(:,:,:,ww), [], 'all');
 
     figure;
-    for ww = 1:length(tau_c)
+    for tc = 1:length(tau_c)
 
-        subplot(2,4,ww); imagesc(r_bot, r_top, R_model(:,:,ww,ww));
+        subplot(2,4,tc); imagesc(r_bot, r_top, Rad_model(:,:,tc,ww));
 
-        if ww==1
+        if tc==1
             xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
             ylabel('$r_{top}$ ($\mu m$)', 'Interpreter', 'latex')
         end
 
-        title(['$\tau_c$ = ', num2str(tau_c(ww))], 'Interpreter', 'latex')
+        title(['$\tau_c$ = ', num2str(tau_c(tc))], 'Interpreter', 'latex')
 
-        if ww==3
+        if tc==3
             cb = colorbar;
-            set(get(cb, 'label'), 'string', 'Reflectance $(1/sr)$','Interpreter','latex', 'Fontsize',28)
+            set(get(cb, 'label'), 'string', 'Radiance $(\mu W/cm^{2}/nm/sr)$',...
+                'Interpreter','latex', 'Fontsize',28)
 
 
         else
@@ -835,19 +935,19 @@ end
 
 
 
-%% Plot a 3D surf figure with r_bot r_top and reflectance as the variables. Plot
+%% Plot a 3D surf figure with r_bot r_top and radiance as the variables. Plot
 % for a single optical depth at a single wavelength
 
 wave_len_idx = 1;
-tau_c_idx = 4;
+tau_c_idx = 5;
 
 % ADD A PLANE OF CONSTANT REFLECTANCE TO SHOW DIFFERENT SOLUTIONS
-R_constant = 0.65;
+R_constant = Rad_emit(wave_len_idx);
 
 
 r_top_mat = repmat(r_top', 1, length(r_bot));
 r_bot_mat = repmat(r_bot, length(r_top), 1);
-R_mat = reshape(R_model(:,:, tau_c_idx, wave_len_idx), size(r_top_mat));
+R_mat = reshape(Rad_model(:,:, tau_c_idx, wave_len_idx), size(r_top_mat));
 
 % Set the color of the
 
@@ -880,58 +980,6 @@ surf(r_bot_mat, r_top_mat, repmat(R_constant, length(r_top), length(r_bot)));
 set(gcf, 'Position', [0 0 1200 600])
 
 
-%% Plot a 3D surf figure with r_bot r_top and optical depth as the variables. Plot
-% for multiple optical depths at a single wavelength
-
-wave_len_idx = 7;
-
-r_top_mat = repmat(r_top', 1, length(r_bot));
-r_bot_mat = repmat(r_bot, length(r_top), 1);
-
-
-
-% designate the color of each surface as the optical depth
-% We span the colormap only by the number of unique data values
-C = parula(length(tau_c));
-
-
-figure;
-for ww = 1:length(tau_c)
-
-    R_mat = reshape(R_model(:,:, ww, wave_len_idx), size(r_top_mat));
-
-
-    % plot the first band
-    surf(r_bot_mat, r_top_mat, R_mat, repmat(tau_c(ww), length(r_top), length(r_bot)));
-
-    hold on
-
-
-end
-
-
-% set colorbar label
-cb = colorbar;
-set(get(cb, 'label'), 'string', '$\tau_c$','Interpreter','latex', 'Fontsize',28)
-
-% interpolate between points to smooth the surface
-%shading interp
-
-% set up plot stuff
-grid on; grid minor
-xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
-ylabel('$r_{top}$ ($\mu m$)', 'Interpreter', 'latex')
-zlabel('Reflectance ($1/sr$)', 'Interpreter','latex')
-
-title(['$\lambda$ = ',num2str(round(mean(wavelength(wave_len_idx, :)))), ' $nm$'],...
-    Interpreter='latex')
-
-
-
-% set the plot size
-set(gcf, 'Position', [0 0 1200 600])
-
-
 
 %% Plot a 3D surf figure with r_bot r_top and wavelength as the variables. Plot
 % for multiple wavelengths as different planes for a single optical depth
@@ -951,7 +999,7 @@ C = parula(length(tau_c));
 figure;
 for ww = 1:length(band_num)
 
-    R_mat = reshape(R_model(:,:, tau_idx, ww), size(r_top_mat));
+    R_mat = reshape(Rad_model(:,:, tau_idx, ww), size(r_top_mat));
 
 
     % plot the first band
@@ -988,41 +1036,34 @@ set(gcf, 'Position', [0 0 1200 600])
 
 
 
-%% Can I determine uniqueness by rounding the reflectance computed to the measurement uncertainty of MODIS?
-% Then, see how redundant certain states are for all 7 wavelenghts
+%% Can I determine uniqueness by rounding the reflectance computed to the measurement uncertainty of EMIT?
+% Then, see how redundant certain states are for all EMIT wavelenghts
 % OR, should I instead ask, how many sets of measurements I computed are
-% within the uncertainty of the MODIS measurements? That is maybe a better
-% estimate of uniqueness, because MODIS claims a specific measurement but
-% then include confidence intervals. They can say for certain that there
+% within the uncertainty of the EMIT measurements? That is maybe a better
+% estimate of uniqueness, because EMIT claims a specific measurement but
+% then includes confidence intervals. They can say for certain that their
 % measurement lies somewhere within that uncertainty interval.
 
-% According to MODIS data, the reflectance uncertainty is betwen 1.5 and
-% 2.5%
+% We have to compute the EMIT reflectance uncertainty using 3 spectrally
+% indexed functions provided in the metadata
+
+% ******** but I can't find these metadata ***********
+% So for now, let's say it's 2% across all channels for now
+emit_uncert = 0.02;
 
 % Let's assume the reflectance uncertainty is 1%
 % Let's truncate the reflectance data to hundreds decimal point
 
-% For our 7 spectral measurements, how any different states of (r_top,
-% r_bot, tau_c) lead to the same 7 measurements
+% For our spectral measurements, how many different states of (r_top,
+% r_bot, tau_c) lead to the same set of spectral measurements within the
+% uncertainty
 
-% Let's reshape R_model_round to be 7 rows and N number of columns
-% corresponding the N number of unique states
+% Let's reshape R_model_round to be W rows, where W is the number of wavelengths
+% and N number of columns corresponding the number of unique states
 
-%R_model_round_states = zeros(length(band_num), length(r_top)*length(r_bot)*length(tau_c));
-R_model_round_states = [];
+% Grab the EMIT radiances for the pixel used
+Refl_emit_uncert = Refl_emit * emit_uncert; % microW/cm^2/nm/sr - converted from percentage to radiance
 
-% Grab the MODIS reflectances for the pixel used
-[r,c] = ind2sub(size(emit.EV1km.reflectance(:,:,1)), emit_idx);
-R_emit = zeros(1, length(band_num));
-R_uncert_emit = zeros(1, length(band_num));
-
-for bb = 1:length(band_num)
-
-    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
-    % If not you need to divide the MODIS reflectance by cos(sza)
-    R_emit(bb) = emit.EV1km.reflectance(r,c,bb)/cosd(double(emit.solar.zenith(r,c)));
-    R_uncert_emit(bb) = R_emit(bb) * 0.01*double(emit.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
-end
 
 redundant_states = [];
 
@@ -1035,14 +1076,9 @@ for rt = 1:length(r_top)
 
         for tc = 1:length(tau_c)
 
-            % Round reflectance calculations to the nearest hundreth
-            % decimal place
-            R_model_round_states = [R_model_round_states; reshape(round(R_model(rt,rb,tc,:),2), 1, [])];
-
-            % Check to see if the reflectance computed by the model is
-            % within the listed uncertainty for MODIS
-            %             redundant_states = [redundant_states, all(abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis)];
-            redundant_states = [redundant_states; abs(R_emit - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_emit];
+            % Check to see if the radaiance computed by the model is
+            % within the listed uncertainty for EMIT
+            redundant_states = [redundant_states, abs(Refl_emit - reshape(Refl_model(rt,rb,tc,:), [], 1)) <= Refl_emit_uncert];
 
 
         end
@@ -1050,47 +1086,19 @@ for rt = 1:length(r_top)
 end
 
 
-% Find the number of unique measurements
-[R_model_unique, idx_original, idx_unique] = unique(R_model_round_states, 'rows');
+% Find the number states that lead to modeled measurements within the EMIT
+% measurement uncertainty
+num_states = sum(all(redundant_states, 1));
 
 % print the percentage of redundant states
-disp([newline, num2str(100*(size(R_model_round_states,1) - size(R_model_unique,1))/size(R_model_round_states,1)),...
-    '% of retireved states are redundant', newline])
-
-% find the logical array of unique values
-idx_unique_logical = ismember((1:size(R_model_round_states,1)), idx_original);
+disp([newline, num2str(100* (num_states/(numel(r_top)*numel(r_bot)*numel(tau_c)))),...
+    '% of modeled states are redundant', newline])
 
 
 
-%% Interpolate the reflectance calculations on a finer grid
-
-tau_c_fine = tau_c(1):tau_c(end);
-
-R_model_fine = zeros(length(r_top), length(r_bot), length(tau_c_fine), length(band_num));
 
 
-
-for rt = 1:length(r_top)
-
-
-    for rb = 1:length(r_bot)
-
-
-        for wl = 1:length(band_num)
-
-            new_reflectance = interp1(tau_c, reshape(R_model(rt, rb, :, wl), 1, []), tau_c_fine);
-            R_model_fine(rt,rb,:,wl) = reshape(new_reflectance, 1,1,[],1);
-
-
-        end
-
-    end
-
-end
-
-
-
-%% 3D Interpolate the reflectance calculations on a finer grid and compare with MODIS measurement
+%% 3D Interpolate the radiance calculations on a finer grid and compare with EMIT measurement
 
 
 % Meshgrid is defined on x,y,z space, not row, column, depth space
@@ -1099,8 +1107,8 @@ end
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.05;      % microns
-d_r_bot = 0.05;      % microns
+d_r_top = 0.25;      % microns
+d_r_bot = 0.25;      % microns
 d_tau_c = 0.1;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
@@ -1109,18 +1117,13 @@ tau_c_fine = tau_c(1):d_tau_c:tau_c(end);
 
 [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
 
-R_model_fine = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine), size(R_model,4));
+Refl_model_fine = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine), size(Refl_model,4));
 
 
-% ***** IF USING REFLECTANCE CALCS USING STANDARD REFLECTANCE DEFINITION *****
-% MULTIPLY EACH VALUE BY THE AIRMASS: COS(SZA)
-warning([newline, 'Are you using reflectance_calcs_standardReflectance_with_mu0_9-nov-2008-data_15-Nov-2023.mat?',...
-    newline, 'Make sure you multiply all reflectances by cos(sza)!', newline])
 
+for wl = 1:size(Refl_model,4)
 
-for wl = 1:size(R_model,4)
-
-    R_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, R_model(:, :, :, wl),...
+    Refl_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, Refl_model(:, :, :, wl),...
         R_bot_fine, R_top_fine, Tau_c_fine);
 
 
@@ -1129,229 +1132,317 @@ end
 
 
 % Using the new fine grid, calculate how many sets of measurements are
-% within the MODIS measurement and it's uncertainty
-
-% Grab the MODIS reflectances for the pixel used
-[r,c] = ind2sub(size(emit.EV1km.reflectance(:,:,1)), emit_idx);
-R_emit = zeros(1, length(band_num));
-R_uncert_emit = zeros(1, length(band_num));
-
-for bb = 1:length(band_num)
-
-    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
-    % If not you need to divide the MODIS reflectance by cos(sza)
-    R_emit(bb) = emit.EV1km.reflectance(r,c,bb)/cosd(double(emit.solar.zenith(r,c)));
-    R_uncert_emit(bb) = R_emit(bb) * 0.01*double(emit.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
-end
+% within the EMIT measurement and it's uncertainty
 
 
-redundant_states = zeros(size(R_model_fine,1), size(R_model_fine,2), size(R_model_fine,3));
+redundant_states = [];
+rms_residual = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine));
 
 
-for rt = 1:size(R_model_fine,1)
+
+for rt = 1:size(Refl_model_fine,1)
 
 
-    for rb = 1:size(R_model_fine,2)
+    for rb = 1:size(Refl_model_fine,2)
 
 
-        for tc = 1:size(R_model_fine,3)
+        parfor tc = 1:size(Refl_model_fine,3)
 
-            % Check to see if the reflectance computed by the model is
-            % within the listed uncertainty for MODIS
-            redundant_states(rt,rb,tc) = all(abs(R_emit - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_emit);
-            %redundant_states = [redundant_states; abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis];
+            % Check to see if the radiance computed by the model is
+            % within the listed uncertainty for EMIT
+            %redundant_states(rt,rb,tc) = all(abs(R_emit - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_emit_uncert);
+            redundant_states = [redundant_states, abs(Refl_emit - reshape(Refl_model_fine(rt,rb,tc,:), [], 1)) <= Refl_emit_uncert];
+            rms_residual(rt, rb, tc) = sqrt(mean( (Refl_emit - reshape(Refl_model_fine(rt,rb,tc,:), [], 1)).^2) );
 
 
         end
     end
 end
 
+% Find the number states that lead to modeled measurements within the EMIT
+% measurement uncertainty
+num_states = sum(all(redundant_states, 1));
+
 % print the percentage of redundant states
-disp([newline, 'There are ', num2str(sum(redundant_states, 'all')), ' sets of measurements within',...
-    ' the MODIS measurement and uncertainty.', newline])
-
-[r_redun, c_redun, d_redun] = ind2sub(size(redundant_states), find(redundant_states));
-
-% ----- Plot all the redundant states on a scatter plot -----
-
-% Lets define the color of each marker to be associated with the droplet
-% size
-% set the number of colors to be the length of the data to plot
-r_top_redundant = zeros(length(r_redun), 1);
-r_bot_redundant = zeros(length(r_redun), 1);
-tau_c_redundant = zeros(length(r_redun), 1);
-
-for nn = 1:length(r_redun)
-    r_top_redundant(nn) = R_top_fine(r_redun(nn), c_redun(nn), d_redun(nn));
-    r_bot_redundant(nn) = R_bot_fine(r_redun(nn), c_redun(nn), d_redun(nn));
-    tau_c_redundant(nn) = Tau_c_fine(r_redun(nn), c_redun(nn), d_redun(nn));
-
-end
-
-C = colormap(parula(length(tau_c_redundant)));
-% sort the droplet size values
-[tau_c_redundant_sort, idx_sort] = sort(tau_c_redundant, 'ascend');
-
-figure;
-
-for nn = 1:length(tau_c_redundant_sort)
-
-    plot(r_bot_redundant(idx_sort(nn)), r_top_redundant(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
-
-    hold on
-
-end
-
-% Plot a one-to-one line to show the boundary for homogenous profiles
-[min_radius_val, ~] = min([r_top_redundant; r_bot_redundant]);
-[max_radius_val, ~] = max([r_top_redundant; r_bot_redundant]);
-plot([min_radius_val, max_radius_val], [min_radius_val, max_radius_val], 'k-', ...
-    'linewidth', 1)
-
-xlim([min(r_bot_redundant), max(r_bot_redundant)])
-ylim([min(r_top_redundant), max(r_top_redundant)])
-
-% set the colorbar limits
-% set the limits of the colormap to be the min and max value
-cb = colorbar;
-clim([min(tau_c_redundant_sort), max(tau_c_redundant_sort)]);
-% set colorbar title
-cb.Label.String = '$\tau_c$ ($\mu m$)';
-cb.Label.Interpreter = 'latex';
-cb.Label.FontSize = 25;
-
-grid on; grid minor
-xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
-ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
-set(gcf, 'Position', [0 0 1000 500])
-
-% Set title as the resolution of each variable
-title(['$\triangle r_{top} = $', num2str(d_r_top), ' $\mu m$',...
-    '    $\triangle r_{bot} = $', num2str(d_r_bot), ' $\mu m$',...
-    '    $\triangle \tau_{c} = $', num2str(d_tau_c)], ...
-    'Fontsize', 25, 'Interpreter', 'latex')
-
-% ---- plot the 2D space or r-top and r-bot showing area of redundancy ---
-
-% for every r-top, what is the largest and smallest r_bot that results in a
-% measurement within the MODIS measurement and uncertainty?
-[r_top_unique, idx_original] = unique(r_top_redundant);
-
-top_boundary = zeros(length(r_top_unique), 2);
-bottom_boundary = zeros(length(r_top_unique), 2);
-tau_c_points_top = cell(length(r_top_unique),1);
-tau_c_points_top_minVal = zeros(length(r_top_unique), 1);
-tau_c_points_bottom = cell(length(r_top_unique),1);
-tau_c_points_bottom_minVal = zeros(length(r_top_unique), 1);
-
-for nn = 1:length(r_top_unique)
-
-    % find set of r_bottom values for each unique r_top
-    r_bottom_set = r_bot_redundant(r_top_redundant==r_top_unique(nn));
-
-    % If there is more than 1 value in the set, find the highest and lowest
-    % value. These make up the upper and lower boundaries, respectively
-    % The locations should be (r_bot,r_top)
-    bottom_boundary(nn,:) = [min(r_bottom_set), r_top_unique(nn)];
-    top_boundary(nn,:) = [max(r_bottom_set), r_top_unique(nn)];
-
-    % grab the optical depth for each of these points
-    tau_c_points_bottom{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==min(r_bottom_set));
-    tau_c_points_bottom_minVal(nn) = min(tau_c_points_bottom{nn});
-
-    tau_c_points_top{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==max(r_bottom_set));
-    tau_c_points_top_minVal(nn) = min(tau_c_points_top{nn});
-
-end
-
-% Create a polyshape using the vertices above
-figure;
-p = patch([bottom_boundary(:,1); flipud(top_boundary(:,1))], ...
-    [bottom_boundary(:,2); flipud(top_boundary(:,2))],...
-    [tau_c_points_bottom_minVal; tau_c_points_top_minVal], 'FaceColor','interp');
+disp([newline, num2str(100* (num_states/(numel(r_top_fine)*numel(r_bot_fine)*numel(tau_c_fine)))),...
+    '% of modeled states that produce measurements within the EMIT uncertainty', newline])
 
 
-xlim([r_bot(1), r_bot(end)])
-ylim([r_top(1), r_top(end)])
+if num_states>1
 
-% create a one-to-one line to delineate between profiles where r-top>r-bot
-% and those where this isn't true
-hold on;
-plot([r_top(1), r_bot(end)], [r_top(1), r_bot(end)], 'k-', 'linewidth', 2)
+    [r_redun, c_redun, d_redun] = ind2sub(size(redundant_states), find(redundant_states));
 
-p.EdgeAlpha = 0;
+    % ----- Plot all the redundant states on a scatter plot -----
 
-cb = colorbar;
-% set colorbar title
-cb.Label.String = '$\tau_c$';
-cb.Label.Interpreter = 'latex';
-cb.Label.FontSize = 25;
+    % Lets define the color of each marker to be associated with the droplet
+    % size
+    % set the number of colors to be the length of the data to plot
+    r_top_redundant = zeros(length(r_redun), 1);
+    r_bot_redundant = zeros(length(r_redun), 1);
+    tau_c_redundant = zeros(length(r_redun), 1);
 
-% create legend
-legend('Region of Redundant Solutions', 'Vertically homogenous droplet profile',...
-    'Interpreter', 'latex', 'Fontsize', 18, 'Location', 'best')
+    for nn = 1:length(r_redun)
+        r_top_redundant(nn) = R_top_fine(r_redun(nn), c_redun(nn), d_redun(nn));
+        r_bot_redundant(nn) = R_bot_fine(r_redun(nn), c_redun(nn), d_redun(nn));
+        tau_c_redundant(nn) = Tau_c_fine(r_redun(nn), c_redun(nn), d_redun(nn));
 
-title('State space where adiabatic profiles lead to reflectances within MODIS uncertainty', ...
-    'Fontsize', 23)
-
-grid on; grid minor
-
-xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
-ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
-set(gcf, 'Position', [0 0 1200 600])
-
-%% Subplots of reflectance across different wavelengths for a single optical depth
-
-tau_idx = tau_c_fine==8.5;
-
-% find min and max values of reflectance for this wavelength
-[minR, ~] = min(R_model_fine(:,:,tau_idx,:), [], 'all');
-[maxR, ~] = max(R_model_fine(:,:,tau_idx,:), [], 'all');
-
-
-
-figure;
-for ww = 1:length(band_num)
-
-    subplot(2,4,ww); imagesc(r_bot, r_top, R_model_fine(:,:,tau_idx, ww));
-
-    if ww==1
-        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter', 'latex')
-        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter', 'latex')
     end
 
-    title(['$\lambda$ = ', num2str(round(mean(wavelength(ww, :)))), ' ($nm$)'],...
-        'Interpreter', 'latex')
+    C = colormap(parula(length(tau_c_redundant)));
+    % sort the droplet size values
+    [tau_c_redundant_sort, idx_sort] = sort(tau_c_redundant, 'ascend');
 
-    if ww==4
-        cb = colorbar;
-        set(get(cb, 'label'), 'string', 'Reflectance $(1/sr)$','Interpreter','latex', 'Fontsize',28)
+    figure;
 
+    for nn = 1:length(tau_c_redundant_sort)
 
-    else
-        colorbar
+        plot(r_bot_redundant(idx_sort(nn)), r_top_redundant(idx_sort(nn)),'Marker','.','Color',C(nn,:),'MarkerSize',25)
+
+        hold on
+
     end
 
-    %clim([minR, maxR])
+    % Plot a one-to-one line to show the boundary for homogenous profiles
+    [min_radius_val, ~] = min([r_top_redundant; r_bot_redundant]);
+    [max_radius_val, ~] = max([r_top_redundant; r_bot_redundant]);
+    plot([min_radius_val, max_radius_val], [min_radius_val, max_radius_val], 'k-', ...
+        'linewidth', 1)
 
+    xlim([min(r_bot_redundant), max(r_bot_redundant)])
+    ylim([min(r_top_redundant), max(r_top_redundant)])
+
+    % set the colorbar limits
+    % set the limits of the colormap to be the min and max value
+    cb = colorbar;
+    clim([min(tau_c_redundant_sort), max(tau_c_redundant_sort)]);
+    % set colorbar title
+    cb.Label.String = '$\tau_c$ ($\mu m$)';
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = 25;
+
+    grid on; grid minor
+    xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+    ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+    set(gcf, 'Position', [0 0 1000 500])
+
+    % Set title as the resolution of each variable
+    title(['$\triangle r_{top} = $', num2str(d_r_top), ' $\mu m$',...
+        '    $\triangle r_{bot} = $', num2str(d_r_bot), ' $\mu m$',...
+        '    $\triangle \tau_{c} = $', num2str(d_tau_c)], ...
+        'Fontsize', 25, 'Interpreter', 'latex')
+
+    % ---- plot the 2D space or r-top and r-bot showing area of redundancy ---
+
+    % for every r-top, what is the largest and smallest r_bot that results in a
+    % measurement within the MODIS measurement and uncertainty?
+    [r_top_unique, idx_original] = unique(r_top_redundant);
+
+    top_boundary = zeros(length(r_top_unique), 2);
+    bottom_boundary = zeros(length(r_top_unique), 2);
+    tau_c_points_top = cell(length(r_top_unique),1);
+    tau_c_points_top_minVal = zeros(length(r_top_unique), 1);
+    tau_c_points_bottom = cell(length(r_top_unique),1);
+    tau_c_points_bottom_minVal = zeros(length(r_top_unique), 1);
+
+    for nn = 1:length(r_top_unique)
+
+        % find set of r_bottom values for each unique r_top
+        r_bottom_set = r_bot_redundant(r_top_redundant==r_top_unique(nn));
+
+        % If there is more than 1 value in the set, find the highest and lowest
+        % value. These make up the upper and lower boundaries, respectively
+        % The locations should be (r_bot,r_top)
+        bottom_boundary(nn,:) = [min(r_bottom_set), r_top_unique(nn)];
+        top_boundary(nn,:) = [max(r_bottom_set), r_top_unique(nn)];
+
+        % grab the optical depth for each of these points
+        tau_c_points_bottom{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==min(r_bottom_set));
+        tau_c_points_bottom_minVal(nn) = min(tau_c_points_bottom{nn});
+
+        tau_c_points_top{nn} = tau_c_redundant(r_top_redundant==r_top_unique(nn) & r_bot_redundant==max(r_bottom_set));
+        tau_c_points_top_minVal(nn) = min(tau_c_points_top{nn});
+
+    end
+
+    % Create a polyshape using the vertices above
+    figure;
+    p = patch([bottom_boundary(:,1); flipud(top_boundary(:,1))], ...
+        [bottom_boundary(:,2); flipud(top_boundary(:,2))],...
+        [tau_c_points_bottom_minVal; tau_c_points_top_minVal], 'FaceColor','interp');
+
+
+    xlim([r_bot(1), r_bot(end)])
+    ylim([r_top(1), r_top(end)])
+
+    % create a one-to-one line to delineate between profiles where r-top>r-bot
+    % and those where this isn't true
+    hold on;
+    plot([r_top(1), r_bot(end)], [r_top(1), r_bot(end)], 'k-', 'linewidth', 2)
+
+    p.EdgeAlpha = 0;
+
+    cb = colorbar;
+    % set colorbar title
+    cb.Label.String = '$\tau_c$';
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = 25;
+
+    % create legend
+    legend('Region of Redundant Solutions', 'Vertically homogenous droplet profile',...
+        'Interpreter', 'latex', 'Fontsize', 18, 'Location', 'best')
+
+    title('State space where adiabatic profiles lead to reflectances within MODIS uncertainty', ...
+        'Fontsize', 23)
+
+    grid on; grid minor
+
+    xlabel('$r_{bot}$ $(\mu m)$','Interpreter','latex')
+    ylabel('$r_{top}$ $(\mu m)$','Interpreter','latex')
+    set(gcf, 'Position', [0 0 1200 600])
+
+end
+
+
+%% Find the states with the lowest rms residul
+
+% find n smallest rms states
+n_states = 10;
+
+% store the state values at each minimum
+r_top_min = zeros(n_states, 1);
+r_bot_min = zeros(n_states, 1);
+tau_c_min = zeros(n_states, 1);
+
+% store the rms value and the index
+min_val = zeros(n_states, 1);
+idx_min = zeros(n_states, 1);
+
+
+for nn = 1:n_states
+    
+    % find the smallest rms residual value, omitting nans
+    [min_val(nn), idx_min(nn)] = min(rms_residual, [], 'all', 'omitnan');
+
+    r_top_min(nn) = R_top_fine(idx_min(nn));
+    r_bot_min(nn) = R_bot_fine(idx_min(nn));
+    tau_c_min(nn) = Tau_c_fine(idx_min(nn));
+
+    % set the minimum value to nan and omit
+    rms_residual(idx_min(nn)) = nan;
 
 
 end
 
 
-% set the plot size
-set(gcf, 'Position', [0 0 1200 600])
 
-% Create textbox
-annotation('textbox',...
-    [0.322666666666667 0.00166666666666667 0.358166666666667 0.0916666666666668],...
-    'VerticalAlignment','middle',...
-    'String',['$\tau_c$ = ',num2str(tau_c_fine(tau_idx))],...
-    'Interpreter','latex',...
-    'HorizontalAlignment','center',...
-    'FontWeight','bold',...
-    'FontSize',35,...
-    'FontName','Helvetica Neue',...
-    'FitBoxToText','off',...
-    'EdgeColor','none');
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+
+
+% define the optical depth slice you'd like to plot
+idx_tauC = tau_c_fine == tau_c_min(1);
+
+% Create figure
+figure;
+colormap(hot);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% Create contour
+[c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
+clabel(c1,h1,'FontSize',15,'FontWeight','bold');
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create title
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+
+
+% Also try a filled contour plot
+
+
+% Create figure
+figure;
+colormap(hot);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% Create contour
+[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
+clabel(c1,h1,'FontSize',15,'FontWeight','bold');
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create title
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+%% Create an imagesc plot of the rms residual
+
+
+% define the optical depth slice you'd like to plot
+idx_tauC = tau_c_fine == tau_c_min(1);
+
+% Create figure
+figure;
+colormap(parula);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% Create contour
+imagesc(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC));
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+
+% Create title
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
 

@@ -70,7 +70,7 @@ elseif length(wavelength)>1
         % First calculate the reflectance function at each discrete
         % wavelength within the wavelength band
         R_lambda(:,ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr/nm - reflectance function for monochromatic calculation
-        R(ii) = trapz(wavelength,R_lambda(:,ii).*spec_response.*irrad0)./trapz(wavelength,spec_response.*irrad0); % - 1/sr - reflectance function over a finite bandwidth
+        R(ii) = trapz(wavelength, R_lambda(:,ii).*spec_response.*irrad0)./trapz(wavelength, spec_response.*irrad0); % - 1/sr - reflectance function over a finite bandwidth
         
     end
     

@@ -310,12 +310,12 @@ end
 %   means sensors looking downward (i.e. satellite), and umu<0 means
 %   looking upward; phi=phi0 means sensor is looking into direction of the
 %   sun; phi-phi0=180 means the sun is in back of the sensor.
-%   Units: (mW/m^2/nm,sr)
+%   Units: (mW/m^2/nm/sr)
 
 
 %   9) u0u - Azimuthally averaged Radiance - If umu is specified, where
 %   umu is the cosine of the zenith viewing angle,then u0u is the
-%   azimuthally averaged radiance at umu angles. Units: (mW/m^2/sr/s)
+%   azimuthally averaged radiance at umu angles. Units: (mW/m^2/sr)
 
 
 % we want an array ouput of the irradiance and radiance data for wasy

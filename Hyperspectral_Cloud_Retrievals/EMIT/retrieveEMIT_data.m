@@ -17,11 +17,11 @@ addpath(folderName)
 % -----------------------------------------------------
 
 
-files = dir([folderName,'*.nc']); % find all files that end in .hdf
+files = dir([folderName, '*.nc']);       % find all files that end in .hdf
 
 % check to see if we found any files!
 if isempty(files)==true
-    error([newline,'There are not files in the folder provided!', newline])
+    error([newline,'There are no files in the folder provided!', newline])
 end
 
 L1B_fileNames = cell(1,length(files));
