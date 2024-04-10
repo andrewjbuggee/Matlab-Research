@@ -25,7 +25,7 @@ function [sensor,solar,geo] = readMODIS_geolocation(fileName)
     % --------------------------------------------------------------------
     % The azimuth angles are relative to local geodetic north. This is how
     % 0 degrees is defined. Azimuth values range from [-180, 180]. If the
-    % measurement is made in the northern hemisphere, the the positive
+    % measurement is made in the northern hemisphere, the. the positive
     % azimuth values range from due north (0 deg) to due East (90 deg) to
     % due south (180 deg). And moving from due north towards the west would
     % result in negative values from 0 to -180. The same goes for the
