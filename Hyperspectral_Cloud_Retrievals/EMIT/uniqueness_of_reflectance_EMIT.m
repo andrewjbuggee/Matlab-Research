@@ -6,6 +6,26 @@
 clear variables
 % By Andrew John Buggee
 
+%% Define the cloud parameters that will be changing during each reflectance calculation
+
+
+r_top = 5:13;       % microns
+r_bot = 4:10;        % microns
+
+tau_c = 5:5:35;
+
+% r_top = 6:2:12;       % microns
+% r_bot = 4:2:10;        % microns
+% tau_c = 5:5:35;
+
+
+% r_top = 9.03;       % microns
+% r_bot = 9.03;        % microns
+% tau_c = 6.34;
+
+
+
+
 %% Want to use real EMIT geometry inputs?
 
 % Load modis data and create input structure
@@ -50,7 +70,6 @@ end
 % -------------------------------------
 
 emitFolder = '17_Jan_2024_coast/';
-%emitFolder = '23_Jan_2024/';
 
 
 
@@ -58,48 +77,11 @@ emitFolder = '17_Jan_2024_coast/';
 
 
 % Define an index to use
-% cloud pixel for 17 jan 2024 coast
+%modis_idx = 110292;     % for 9 nov 2008
 row = 1112;
 col = 974;
-
-% row and column for a cloud free pixel over ocean 23 Jan 2024
-% row = 1069;
-% col = 550;
-
 emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2008 - pixel overlapping with VOCALS
 
-
-%% Define the cloud parameters that will be changing during each reflectance calculation
-
-
-% -------------- Do you want a cloud in your model? ----------------------
-yesCloud = true;
-
-
-if yesCloud == true
-
-    r_top = 4:13;       % microns
-    r_bot = 4:10;        % microns
-
-    tau_c = 5:5:40;
-
-    % r_top = 6:2:12;       % microns
-    % r_bot = 4:2:10;        % microns
-    % tau_c = 5:5:35;
-
-
-    % r_top = 9.03;       % microns
-    % r_bot = 9.03;        % microns
-    % tau_c = 6.34;
-
-else
-
-    r_top = 1;
-    r_bot = 1;
-    tau_c = 1;
-
-
-end
 
 %% Grab the EMIT radiances for the pixel used
 Rad_emit = reshape(emit.radiance.measurements(row, col, :), [],1);      % microW/cm^2/nm/sr
@@ -119,7 +101,7 @@ source_file_resolution = 0.1;           % nm
 
 %source_file = '../data/solar_flux/lasp_TSIS1_hybrid_solar_reference_p01nm_resolution.dat';
 if source_file_resolution==0.1
-
+    
     source_file = '../data/solar_flux/kurudz_0.1nm.dat';
 
 elseif source_file_resolution==1
@@ -141,8 +123,8 @@ end
 % information content for r_top, r_bot, tau_c, and water vapor across
 % wavelengths from 500 to 2500 nm
 wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
-    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 236,...
-    238, 240, 242, 244, 246, 248, 250, 252, 254, 256, 258]';
+    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
+    248, 252, 259]';
 Rad_emit = Rad_emit(wavelength_idx);
 % -------------------------------------------------
 
@@ -160,21 +142,21 @@ for ww = 1:length(wavelength_idx)
     % the full-wdith-half-max provided for each spectral channel
     % the spectral response function is gaussian
     % the emit wavelength vector is the center wavelength
-
+    
     % set the center wavelength as the mean of the distribution
     mu = emit.radiance.wavelength(wavelength_idx(ww));      % nm
-
     % compute the standard deviation from the FWHM
+
     sigma = emit.radiance.fwhm(wavelength_idx(ww))/(2*sqrt(2*log(2)));      % std
 
     % create a wavelength vector
     if source_file_resolution==0.1
-
+        
         wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1):...
             source_file_resolution:round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1);
 
     elseif source_file_resolution==1
-
+        
         wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww)))):...
             round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))));
 
@@ -235,6 +217,8 @@ H = z_topBottom(1) - z_topBottom(2);                                % km - geome
 
 
 % ------------------------------------------------------------------------
+% -------------- Do you want a cloud in your model? ----------------------
+yesCloud = true;
 
 % ---- Do you want a linear adjustment to the cloud pixel fraction? ------
 linear_cloudFraction = false;
@@ -336,7 +320,7 @@ aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % radiometer for 17 Jan 2024
 yesModify_waterVapor = true;
 
-waterVapor_column = 10;              % mm - milimeters of water condensed in a column
+waterVapor_column = 16;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -353,7 +337,7 @@ compute_reflectivity_uvSpec = false;
 
 
 
-  %% Write each INP file and Calculate Reflectance for MODIS
+%% Write each INP file and Calculate Reflectance for MODIS
 
 inputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 outputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
@@ -379,6 +363,26 @@ for rt = 1:length(r_top)
 
 
             parfor ww = 1:size(wavelength,1)
+
+
+
+                % -----------------------------------
+                % ---- Write a Water Cloud file! ----
+                % -----------------------------------
+                % most uncertainties for the modis optical retrieval are between 2
+                % and 10 percent. So lets round off all re values to the 1000th decimal
+                % place
+
+                re = create_droplet_profile2([r_top(rt), r_bot(rb)], z, indVar, profile_type);     % microns - effective radius vector
+
+
+                % ------------------------------------------------------
+                % --------------------VERY IMPORTANT ------------------
+                % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
+                % ------------------------------------------------------
+                wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
+                    dist_var, vert_homogeneous_str, parameterization_str, ww);
+                wc_filename{rt,rb,tc,ww} = wc_filename{rt,rb,tc,ww}{1};
 
 
                 % ------------------------------------------------
@@ -460,28 +464,9 @@ for rt = 1:length(r_top)
                 fprintf(fileID, formatSpec,'albedo', albedo, ' ', '# Surface albedo of the ocean');
 
 
-
                 % Define the Water Cloud properties, if you want a cloud in your model
                 % --------------------------------------------------------------------
                 if yesCloud==true
-
-                    % -----------------------------------
-                    % ---- Write a Water Cloud file! ----
-                    % -----------------------------------
-                    % most uncertainties for the modis optical retrieval are between 2
-                    % and 10 percent. So lets round off all re values to the 1000th decimal
-                    % place
-
-                    re = create_droplet_profile2([r_top(rt), r_bot(rb)], z, indVar, profile_type);     % microns - effective radius vector
-
-
-                    % ------------------------------------------------------
-                    % --------------------VERY IMPORTANT ------------------
-                    % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-                    % ------------------------------------------------------
-                    wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
-                        dist_var, vert_homogeneous_str, parameterization_str, ww);
-                    wc_filename{rt,rb,tc,ww} = wc_filename{rt,rb,tc,ww}{1};
 
                     % Define the water cloud file
                     % ------------------------------------------------
@@ -657,7 +642,7 @@ for rt = 1:length(r_top)
 
                 % Convert the EMIT radiance into reflectance
                 if rt==1 && rb==1 && tc==1
-
+                    
                     % The source function has units of mW/m^2/nm
                     % Divide this by 10 to get units of microW/cm^2/nm
                     Refl_emit(ww) = pi*Rad_emit(ww)/(cosd(inputSettings{2,4}) * ...
@@ -730,7 +715,7 @@ while isfile(filename)
         '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "Refl_model", "Rad_emit", "Refl_emit", "emitFolder", 'emit_idx');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'emit_idx');
 
 toc
 
@@ -1335,7 +1320,7 @@ idx_min = zeros(n_states, 1);
 
 
 for nn = 1:n_states
-
+    
     % find the smallest rms residual value, omitting nans
     [min_val(nn), idx_min(nn)] = min(rms_residual, [], 'all', 'omitnan');
 
@@ -1461,47 +1446,4 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
     'on');
 % Create colorbar
 colorbar(axes1);
-
-
-
-%% For cloudless data, plot comparison between Emit Reflectance and LibRadTran reflectance
-
-
-figure; 
-
-% Plot one to one line
-plot(linspace(min([Refl_emit; reshape(Refl_model, [], 1)]), max([Refl_emit; reshape(Refl_model, [], 1)]), 100),...
-    linspace(min([Refl_emit; reshape(Refl_model, [], 1)]), max([Refl_emit; reshape(Refl_model, [], 1)]), 100), 'k-',...
-    'Linewidth', 1)
-
-hold on
-
-% Plot the reflectance data
-plot(Refl_emit, reshape(Refl_model, [], 1), '.', 'Markersize', 20)
-grid on; grid minor; 
-xlabel('EMIT Reflectance')
-ylabel('Modeled Reflectance')
-
-title('Comparison between EMIT and LibRadTran Reflectance')
-set(gcf, 'Position', [0 0 1200 600])
-
-
-%% For Cloudless Pixels, plot the reflectance at each wavelength for both EMIT and LibRadTran
-
-figure; 
-
-% Plot the EMIT reflectance data
-plot((wavelength(:,2) - wavelength(:,1))/2 + wavelength(:,1),...
-    Refl_emit, '.', 'Markersize', 25)
-hold on
-plot((wavelength(:,2) - wavelength(:,1))/2 + wavelength(:,1),...
-    reshape(Refl_model, [], 1), '.', 'Markersize', 25)
-legend('EMIT', 'LibRadTran')
-grid on; grid minor; 
-xlabel('Center Wavelength (nm)')
-ylabel('Reflectance (1/sr)')
-
-title('Comparison between EMIT and LibRadTran Reflectance')
-set(gcf, 'Position', [0 0 1200 600])
-
 
