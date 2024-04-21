@@ -63,7 +63,7 @@ function [input_filename, output_filename, mie_folder] = write_mie_file(mie_prog
 
 
 if nargin~=7
-    error([newline,'Not enough inputs. Need 6: mie program type, index of refraction, droplet effective radius',...
+    error([newline,'Not enough inputs. Need 7: mie program type, index of refraction, droplet effective radius,',...
         ' wavelength, droplet distribution info, the error message command and the file number.', newline])
 end
 

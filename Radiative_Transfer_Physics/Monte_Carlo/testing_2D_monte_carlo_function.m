@@ -9,19 +9,19 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 4;
+inputs.tau_y_upper_limit = 30;
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 60;                  % deg from zenith
+inputs.solar_zenith_angle = 0;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
-inputs.albedo_maxTau = 1;
+inputs.albedo_maxTau = 0;
 
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e4;
+inputs.N_photons = 1e6;
 
 
 % ----------------------------------------------------------------------
@@ -208,7 +208,7 @@ elseif inputs.N_layers>1 && inputs.createDropletProfile==false
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-        inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str);
+        inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, 1);
 
     % run the mie file
     [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -335,10 +335,10 @@ end
 tic
 
 % ------- Without Live Plotting ---------
-%[F_norm, final_state, photon_tracking, inputs] = twoStream_2D_monteCarlo(inputs);
+[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs);
 
 % ---------- With Live Plotting ---------
-[F_norm, final_state, photon_tracking, inputs] = twoStream_2D_monteCarlo_withLivePlot(inputs);
+%[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
 
 toc
 

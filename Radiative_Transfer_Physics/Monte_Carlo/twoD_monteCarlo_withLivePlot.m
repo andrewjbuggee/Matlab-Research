@@ -174,10 +174,10 @@ hold on;
 grid on; grid minor
 
 % Set figure position and size
-set(gcf, 'Position',[0 0 1000 630])
+set(gcf, 'Position',[0 0 1200 700])
 
 ylim([-1,tau_y_upper_limit+1])
-xlim([-2*tau_y_upper_limit, 2*tau_y_upper_limit])
+xlim([-round(3*tau_y_upper_limit), round(3*tau_y_upper_limit)])
 title('Photon position','Interpreter','latex')
 xlabel('$\tau_x$','Interpreter','latex', 'FontSize',32);
 ylabel('$\tau_y$','Interpreter','latex', 'FontSize',32);
@@ -187,7 +187,7 @@ set(gca,'FontSize',20)
 
 
 % Set the text box location
-dim = [0.669538461538462 0.828134647212069 0.236083824157715 0.0985912584612054];
+dim = [0.7 0.875 0.236083824157715 0.0985912584612054];
 
 drawnow
 
