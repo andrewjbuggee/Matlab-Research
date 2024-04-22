@@ -78,8 +78,15 @@ emitFolder = '17_Jan_2024_coast/';
 
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
-row = 1112;
-col = 974;
+
+% 17_Jan_2024_coast - large optical depth
+% row = 1112;
+% col = 974;
+
+% 17_Jan_2024_coast - large optical depth
+row = 912;
+col = 929;
+
 emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2008 - pixel overlapping with VOCALS
 
 
