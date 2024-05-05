@@ -46,28 +46,45 @@ elseif strcmp(computer_name,'anbu8374')==true
 end
 
 
+%% Check to see if the hitran file is a .par
 
-%% Read in the hitran output file at the desired wavelengths
+if strcmp(hitran_file(end-3:end), 'par')==true
 
-% ---- Open the File ----
-    
-file_id = fopen([hitran_folder, hitran_file], 'r');   % 'r' tells the function to open the file for reading
+    % Then we will import the .par file using the function 'importhitran'
+    % and save it as a .mat file
 
-% ------------------------------------------------------
-% -------- Reading .txt file using textscan ------------
-% ------------------------------------------------------
-% Or we could use the textscan() function instead, which allows us to define comments to ignore
+    lines = importhitran([hitran_folder, hitran_file]);
+    save([hitran_folder, hitran_file(1:end-3), 'mat'], "lines");
 
-format_spec = ['%1d %1d %12.6f %10.3e %10.3e %5.4f %5.3f ',...
-    '%10.4f %4.2f %8.6f %15s %15s %15s %15s %1d %2d %1s %7.1f %7.1f'];
-shape_output = [2, 19];
+end
 
-% now the file pointer will be at the data
-A = fscanf(file_id, format_spec, shape_output); % sxtract data!
+%% Specify the wavelength index using the range of interest
+
+wl_index = lines.transitionWavenumber>=(10^4/(wl(end)/1e3)) & lines.transitionWavenumber<=(10^4/(wl(1)/1e3));
+
+%% Define some constants and read the Total Internal Partition Sums
+
+% define the reference temperature
+T_ref = 296;            % kelvin
+
+% define the radiometric constants
+c2 = 1.4387769;      % cm*K
+
+% Read in the total internal partition Q at the reference temperature for
+% the molecule and isotopologue in question
+Q_ref = read_reference_total_internal_partition(lines.moleculeNumber(1), lines.isotopologueNumber(1));
+
+% the line intensity is defined at a reference temperature of 296K
+S0 = lines.lineIntensity(wl_index);
+
+% grab the wavenumbers of the desired wavelength range
+wavenumber = lines.transitionWavenumber(wl_index);      % cm^-1
+
+% Grab the lower energy energy state of the transition
+E_lower = lines.lowerStateEnergy(wl_index);         % cm^-1
 
 
-Ds = textscan(file_id, format_spec, 'Delimiter',' ',...
-    'MultipleDelimsAsOne',1, 'CommentStyle','#');
+
 
 
 
