@@ -8,8 +8,8 @@ clear variables
 
 
 % Define the boundaries of the medium
-inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 10;
+inputs.tau_lower_limit = 0;
+inputs.tau_upper_limit = 10;
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -89,7 +89,7 @@ end
 
 % Create a mie file
 [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-    inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str);
+    inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, 1);
 
 % run the mie file
 runMIE(mie_folder,input_filename,output_filename);
@@ -110,6 +110,7 @@ inputs.g = ds.asymParam;
 
 
 %% Run 2 stream 1D monte carlo code
+
 
 [F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo(inputs);
 

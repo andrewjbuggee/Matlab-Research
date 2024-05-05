@@ -18,7 +18,7 @@ clear variables
 tau = @(x) -log(1 - x);
 
 tau_lower_limit = 0;
-tau_upper_limit = 7;
+tau_upper_limit = 10;
 
 
 % We start by injecting a single photon into our medium.
@@ -340,6 +340,7 @@ text(bar_label_xLocation,bar_label_yLocation,bar_labels,'HorizontalAlignment','c
     'VerticalAlignment','bottom','FontSize',20,'FontWeight','bold','Interpreter','latex')
 grid on; grid minor
 ylabel('Counts','Interpreter','latex')
+ylim([0, N_photons])
 title([num2str(N_photons),' photons,   ',...
     '$\lambda$ = ',num2str(wavelength), ' $nm$',...
     ', $\tilde{\omega}$ = ', num2str(ssa), ...
