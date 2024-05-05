@@ -14,16 +14,16 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(folderName, L1B_fileNames)
+function inputs = create_emit_inputs_TBLUT(folderName, L1B_fileName, emit)
 
 
-% --- SAVE THE MODIS FILE NAME ----
+% --- SAVE THE EMIT FILE NAME ----
 inputs.emitDataFolder = folderName;
 
 
 
 % ----- Save the L1B file name -----
-inputs.L1B_filename = L1B_fileNames{1};
+inputs.L1B_filename = L1B_fileName{1};
  
 
 
@@ -45,26 +45,14 @@ inputs.savedCalculations_folderName = [folderName, 'Retrieval_outputs_', char(da
 
 inputs.saveCalculations_fileName = ['uvspec_calculations_', char(datetime("today")),'.mat'];
 
-% save the day of the year
-if L1B_fileNames{1}(15)==0
-    inputs.day_of_year = L1B_fileNames{1}(16:17);           % day of year of the EMIT measurement
 
-else
-    inputs.day_of_year = L1B_fileNames{1}(15:17);           % day of year of the EMIT measurement
-end
 
 % Define the folder to save all the INP files in using the month, day and
 % year
-data_date = datetime([L1B_fileNames{1}(11:14),'-01-01'],'InputFormat','yyyy-MM-dd') + days(str2double(L1B_fileNames{1}(15:17)) -1);
-% check to see if the MODIS instrument is aboard Terra or Aqua
-if strcmp(L1B_fileNames{1}(1:3), 'MOD')==true
-    % Then read in the spectral response functions for the terra instrument
-    inputs.INP_folderName = ['MODIS_Terra_',char(data_date),'_time_',L1B_fileNames{1}(19:22),'/']; % this is the folder name that the INP files will be written to 
-elseif strcmp(L1B_fileNames{1}(1:3), 'MYD')==true
-    % Then read in the spectral response functions for the Aqua instrument
-        inputs.INP_folderName = ['MODIS_Aqua_',char(data_date),'_time_',L1B_fileNames{1}(19:22),'/']; % this is the folder name that the INP files will be written to 
+data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', L1B_fileName{1}(24:25)],...
+    'InputFormat','yyyy-MM-dd');
 
-end
+inputs.INP_folderName = ['EMIT_',char(data_date),'_time_',L1B_fileName{1}(27:30),'/']; % this is the folder name that the INP files will be written to 
 
 
 
@@ -84,10 +72,10 @@ inputs.flags.findSuitablePixels = false; % if true, this will search the modis d
 
 % if true, the code will load an older set of pixels that has already been used before, and 
 % likely has INP files. If false, it tells the code to find a new random subset of pixels
-inputs.flags.loadPixelSet = false; 
+inputs.flags.loadPixelSet = true; 
 inputs.flags.writeINPfiles = true; % if true, this will create inp files for each the length of vector pixel.row
 inputs.flags.runUVSPEC = true; % if true, this will run all of the inp files create from the above flag through uvspec
-inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot the 
+inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot 
 
 
 
@@ -124,9 +112,8 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
 % resolution should match the value listed in the file name
-inputs.RT.sourceFile_resolution = 1;                  % nm
-% Define the source file
-inputs.RT.source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+inputs.RT.source_file_resolution = 0.1;           % nm
+
 
 % define the atmospheric data file
 inputs.RT.atm_file = 'afglus.dat';
@@ -135,7 +122,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.surface_albedo = 0.05;
 
 % day of the year
-inputs.RT.day_of_year = str2double(L1B_fileNames{1}(15:17));
+inputs.RT.day_of_year = emit.day_of_year;
 
 
 

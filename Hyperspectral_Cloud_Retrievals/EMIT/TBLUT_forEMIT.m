@@ -7,7 +7,7 @@
 
 function [opt_prop] = TBLUT_forEMIT(emit_)
 
-%% Check to make sure we have the correct inputs
+% Check to make sure we have the correct inputs
 
 %% what computer are we using?
 
@@ -34,8 +34,7 @@ end
 % this is a built-in function that is defined at the bottom of this script
 inputs = create_modis_inputs(folderName, L1B_1km_fileName);
 
-
-
+% *** Check Inputs ***
 
 
 end

@@ -30,7 +30,7 @@ radiance0 = ncread(fileName, 'radiance');
 % Let's reshape the data so the format is cross-track by down-track by
 % spectral-channel
 for bb = 1:size(radiance0,1)
-    ds.measurements(:,:, bb) = reshape(radiance0(bb,:,:), size(radiance0,2), size(radiance0,3), []);
+    ds.measurements(:,:, bb) = reshape(radiance0(bb,:,:), size(radiance0,2), size(radiance0,3), []);        % - microW/nm/cm^2/sr
 end
 
 % read the center wavelength of each band
