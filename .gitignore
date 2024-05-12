@@ -19,6 +19,7 @@ Radiative_Transfer_Physics/bhmie-matlab/*
 *.jpg
 *.jpeg
 *.xlsx
+*.par
 
 # Windows default autosave extension
 *.asv
