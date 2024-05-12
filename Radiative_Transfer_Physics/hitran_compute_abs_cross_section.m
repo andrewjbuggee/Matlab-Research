@@ -17,7 +17,7 @@
 % ----- OUTPUTS -----
 
 
-% (1) Brightness Temperature (Tb) - units in Kelvin (K)
+% (1) abs_cross_sec - absorption cross section
 
 
 % By Andrew John Buggee
@@ -25,7 +25,7 @@
 %%
 
 
-function [outputArg1,outputArg2] = hitran_compute_abs_cross_section(hitran_file, T, P, P_self wl)
+function [abs_cross_sec] = hitran_compute_abs_cross_section(hitran_file, T, P, P_self, wl)
 
 
 
@@ -56,6 +56,11 @@ if strcmp(hitran_file(end-3:end), 'par')==true
     lines = importhitran([hitran_folder, hitran_file]);
     save([hitran_folder, hitran_file(1:end-3), 'mat'], "lines");
 
+else
+
+    % if its a .mat file, simply load the saved data into the workspave
+    load([hitran_folder, hitran_file])
+
 end
 
 %% Specify the wavelength index using the range of interest
@@ -72,7 +77,9 @@ c2 = 1.4387769;      % cm*K
 
 % Read in the total internal partition Q at the reference temperature for
 % the molecule and isotopologue in question
-Q_ref = read_reference_total_internal_partition(lines.moleculeNumber(1), lines.isotopologueNumber(1));
+Q = read_total_internal_partition_sum(lines.moleculeNumber(1), lines.isotopologueNumber(1), T);
+
+%% Compute the line intensity
 
 % the line intensity is defined at a reference temperature of 296K
 S0 = lines.lineIntensity(wl_index);
@@ -82,6 +89,16 @@ wavenumber = lines.transitionWavenumber(wl_index);      % cm^-1
 
 % Grab the lower energy energy state of the transition
 E_lower = lines.lowerStateEnergy(wl_index);         % cm^-1
+
+% Compute the line intensity at some new temperature
+S = S0 .* (Q.ref * exp(-c2 * E_lower./T) .* (1 - exp(-c2*wavenumber./T))) ./...
+    (Q.T * exp(-c2 * E_lower./T_ref) .* (1 - exp(-c2*wavenumber./T_ref)));
+
+
+%% Create a Voigt Lineshape
+
+voigt = voigt_lineShape_for_hitran(lines, wl);
+
 
 
 

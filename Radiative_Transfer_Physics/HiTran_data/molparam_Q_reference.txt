@@ -1,4 +1,4 @@
-Molecule # Iso Abundance     Q(296K)      gj    Molar Mass(g)
+Molecule # | Iso Abundance  |   Q(296K)  |   gj  |  Molar Mass(g)
    H2O (1)
          161  9.97317E-01    1.7458E+02    1     18.010565 
          181  1.99983E-03    1.7605E+02    1     20.014811 
