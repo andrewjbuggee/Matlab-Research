@@ -14,18 +14,18 @@ clear variables
 tau = @(x) -log(1 - x);
 
 tau_lower_limit = 0;
-tau_upper_limit = 1:20;
+tau_upper_limit = 1:100;
 
 
 % We start by injecting a single photon into our medium.
 
 % define the number of photons that will run through our simulation
-N_photons = 10000;
+N_photons = 5000;
 
 
 % ***** Custom ssa and g *****
-ssa = 1;                % between 0 and 1
-g = 0;               % between -1 and 1
+ssa = 0.9;                % between 0 and 1
+g = 0.85;               % between -1 and 1
 % ----------------------------
 
 % reset the random number generator
@@ -259,4 +259,18 @@ for tt = 1:length(tau_upper_limit)
 end
 
 %%
+
+figure; 
+plot(tau_upper_limit, final_state.scatter_out_bottom./N_photons)
+hold on
+ylabel('Transmission')
+yyaxis right
+hold on
+plot(tau_upper_limit, final_state.scatter_out_top./N_photons)
+xlabel('Total Optical Depth')
+ylabel('Reflectivity')
+grid on; grid minor
+title(['$\tilde{\omega} = $', num2str(ssa), '$\;\;\;\; g = $',...
+    num2str(g), '$\;\;\;\; N_{photons} = $', num2str(N_photons)], ...
+    'Interpreter','latex', 'FontSize', 25)
 
