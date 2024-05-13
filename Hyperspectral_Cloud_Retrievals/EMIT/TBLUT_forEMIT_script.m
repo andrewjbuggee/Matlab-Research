@@ -101,7 +101,7 @@ inputs = create_emit_inputs_TBLUT(folder2save, L1B_fileName, emit);
 % create the spectral response functions
 emit.spec_response = create_EMIT_specResponse(emit, inputs);
 
-%% Define the source file name and read in the source data
+%% Define the solar source file name and read in the solar source data
 
 % define the source file using the input resolution
 inputs = define_source_for_EMIT(inputs, emit);

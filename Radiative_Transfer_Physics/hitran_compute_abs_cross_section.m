@@ -36,7 +36,7 @@ computer_name = whatComputer;
 % find the folder where the water cloud files are stored.
 if strcmp(computer_name,'andrewbuggee')==true
 
-    error('You havent stored the atm profiles on you desktop yet!')
+    hitran_folder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/HiTran_data/';
 
 elseif strcmp(computer_name,'anbu8374')==true
 
@@ -97,7 +97,7 @@ S = S0 .* (Q.ref * exp(-c2 * E_lower./T) .* (1 - exp(-c2*wavenumber./T))) ./...
 
 %% Create a Voigt Lineshape
 
-voigt = voigt_lineShape_for_hitran(lines, wl);
+voigt = voigt_lineShape_for_hitran(lines, wl, T, P, P_self);
 
 
 

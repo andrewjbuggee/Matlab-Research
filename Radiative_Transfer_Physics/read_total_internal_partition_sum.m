@@ -35,7 +35,7 @@ computer_name = whatComputer;
 % find the folder where the water cloud files are stored.
 if strcmp(computer_name,'andrewbuggee')==true
 
-    error('You havent stored the atm profiles on you desktop yet!')
+    hitran_folder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/HiTran_data/';
 
 elseif strcmp(computer_name,'anbu8374')==true
 

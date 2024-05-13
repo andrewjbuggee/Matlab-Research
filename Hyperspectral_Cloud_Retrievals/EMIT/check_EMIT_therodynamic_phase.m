@@ -91,7 +91,7 @@ for jj = 1:length(indexOfRefraction)
 
 end
 
-%% Compute the absorption coefficient for water vapor
+%% Compute the bulk absorption coefficient for water vapor
 
 hitran_waterVapor_file = 'hitran_water_vapor_absorption_350_to_2600nm.mat';
 
