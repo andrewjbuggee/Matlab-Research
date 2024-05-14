@@ -97,7 +97,7 @@ S = S0 .* (Q.ref * exp(-c2 * E_lower./T) .* (1 - exp(-c2*wavenumber./T))) ./...
 
 %% Create a Voigt Lineshape
 
-voigt = voigt_lineShape_for_hitran(lines, wl, T, P, P_self);
+voigt = voigt_lineShape_for_hitran(lines, T, P, P_self);
 
 
 

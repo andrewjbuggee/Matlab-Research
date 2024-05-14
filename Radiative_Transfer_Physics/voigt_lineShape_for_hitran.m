@@ -6,7 +6,7 @@
 
 %%
 
-function voigt = voigt_lineShape_for_hitran(hitran_lines, wavelength_boundaries, T, P, P_self)
+function voigt = voigt_lineShape_for_hitran(hitran_lines, T, P, P_self)
 
 
 % Determine which computer you're using
@@ -26,76 +26,44 @@ elseif strcmp(computer_name,'anbu8374')==true
 end
 
 
-%% Compute the Doppler broadened line shape (gaussian line shape)
-% Doppler broadening tends to dominate in the upper atmosphere where
-% pressure is low
+%% We need the Doppler Broadened line shape for each energy transition
 
-% we have to compute a line shape for each spectral transition
+f_doppler = gaussian_lineShape_for_hitran(hitran_lines, T);
 
-% We need the molar mass of the isotopologue
+%% We also need the Pressure Broadened line shape for each energy transition
 
-molar_mass = read_isotopologue_molar_mass_hitran(hitran_lines);     % g/mol
-% convert molar_mass to kg/mol
-molar_mass = molar_mass/1000;                           % kg/mol
-
-% load physical constants
-con = physical_constants();
-
-% compute the doppler profile half-width at half-max
-% use SI units for everything, except leave the spectral dimension in
-% wavenumbers with units of inverse centimeters
-doppler_hwhm = hitran_lines.transitionWavenumber./con.c .* sqrt((2*con.N_A * con.k_B * T * log(2))/molar_mass);
-
-
-% compute the Doppler line shape for each line transition
-for vv = 1:length(hitran_lines.transitionWavenumber)
-    
-    % Lines are narrow! Some less than a wavenumber
-    wavenumber_vector{vv} = linspace(hitran_lines.transitionWavenumber(vv) - 2.5*doppler_hwhm(vv),...
-        hitran_lines.transitionWavenumber(vv) + 2.5*doppler_hwhm(vv), 100);
-
-    f_doppler{vv} = sqrt(log(2)./(pi*doppler_hwhm(vv).^2)) .* ...
-        exp(- ((wavenumber_vector{vv} - hitran_lines.transitionWavenumber(vv)).^2 * log(2))./doppler_hwhm(vv)^2);
-
-end
-
-
-
-%% Compute the Pressure broadened line shape (Lorentz line shape)
-% In the lower atmosphere, pressure broadening dominates
-
-% we have to compute a line shape for each spectral transition
-
-% define the hitran reference temperature
-T_ref = 296;        % K 
-
-% compute the doppler profile half-width at half-max
-% use SI units for everything, except leave the spectral dimension in
-% wavenumbers with units of inverse centimeters
-pressure_hwhm = (T_ref/T).^hitran_lines.temperatureDependence .* hitran_lines.airBroadenedWidth .* (P - P_self) +...
-    hitran_lines.selfBroadenedWidth .* P_self;
-
-
-% compute the pressure broadened line shape for each line transition
-for vv = 1:length(hitran_lines.transitionWavenumber)
-
-     % Lines are narrow! Some less than a wavenumber
-    wavenumber_vector{vv} = linspace(hitran_lines.transitionWavenumber(vv) - 2.5*pressure_hwhm(vv),...
-        hitran_lines.transitionWavenumber(vv) + 2.5*pressure_hwhm(vv), 100);
-
-    f_pressure{vv} = pressure_hwhm(vv)./pi .* 1./...
-        (pressure_hwhm(vv).^2 + (wavenumber_vector{vv} - (hitran_lines.transitionWavenumber(vv) +...
-        hitran_lines.pressureShift(vv) .* P).^2));
-
-end
-
+f_pressure = lorentz_lineShape_for_hitran(hitran_lines, T, P, P_self);
 
 %% The Voigt Lineshape is the convolution of the doppler broadened and pressure broadened line shapes
 
-for vv = 1:length(hitran_lines.transitionWavenumber)
+% compute the Doppler line shape for each line transition
+voigt.shape = zeros(size(f_pressure.shape,1), size(f_pressure.shape,2));
+voigt.wavenum = zeros(size(f_pressure.wavenum,1), size(f_pressure.shape,2));
 
-    voigt.wavenumbers{vv} = wavenumber_vector{vv};
-    voigt.shape{vv} = conv(f_doppler{vv}, f_pressure{vv});
+%idx_half_width = floor(median(1:size(f_doppler.shape,2)));
+
+for vv = 1:size(f_doppler,1)
+
+%     half_width_wavenum = f_pressure.wavenum(vv,idx_median) - f_pressure.wavenum(vv,1);       % cm^(-1)
+%     voigt.wavenumbers(vv,:) = [f_pressure.wavenum(vv,1:idx_half_width)-half_width_wavenum,...
+%         f_pressure.wavenum(vv,1:idx_half_width+1)+half_width_wavenum];     % cm^(-1) - wavenumbers
+
+    voigt.wavenum(vv,:) = f_pressure.wavenum(vv,:);     % cm^(-1) - wavenumbers
+    % Create a lineshape that is the same size as the pressure broadened
+    % line shape
+    voigt.shape(vv,:) = conv(f_pressure.shape(vv,:), f_doppler.shape(vv,:), "same");  % (cm^(-1))^(-1) - this is a PDF
+
+    % Testing my own convolution
+    for kk = 1:length(f_pressure.wavenum(vv,:))
+        for jj = 1:length(f_doppler.wavenum(vv,:))
+            while kk-jj+1 > 0
+                
+                shape_sum = f_doppler.shape(vv,jj) * f_pressure.shape(vv,jj-kk+1);
+
+            end
+        end
+    end
+                voigt.shape(vv,kk) = (f_pressure.wavenum(1,end)-f_pressure.wavenum(2,1))
 
 end
 

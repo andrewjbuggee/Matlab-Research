@@ -96,9 +96,9 @@ end
 hitran_waterVapor_file = 'hitran_water_vapor_absorption_350_to_2600nm.mat';
 
 % --- Define the pressure, temperature and wavelength range
-T = 273;                % K - temperature of gas
-P = 1;                  % atm - pressure of whole atmosphere
-P_self = 0.05;          % atm - partial pressure of water vapor
+T = 238;                % K - temperature of gas
+P = 0.01;                  % atm - pressure of whole atmosphere
+P_self = 0.001;          % atm - partial pressure of water vapor
 
 
 [abs_cross_sec] = hitran_compute_abs_cross_section(hitran_waterVapor_file, T, P, P_self, wavelength_boundaries);
