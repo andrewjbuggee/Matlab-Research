@@ -25,7 +25,7 @@
 %%
 
 
-function [abs_cross_sec] = hitran_compute_abs_cross_section(hitran_file, T, P, P_self, wl)
+function [abs_cross_sec] = hitran_compute_abs_cross_section(hitran_file, T, P, P_self, wavelength_boundaries)
 
 
 
@@ -65,7 +65,8 @@ end
 
 %% Specify the wavelength index using the range of interest
 
-wl_index = lines.transitionWavenumber>=(10^4/(wl(end)/1e3)) & lines.transitionWavenumber<=(10^4/(wl(1)/1e3));
+wl_index = lines.transitionWavenumber>=(10^4/(wavelength_boundaries(end)/1e3)) &...
+    lines.transitionWavenumber<=(10^4/(wavelength_boundaries(1)/1e3));
 
 %% Define some constants and read the Total Internal Partition Sums
 
@@ -96,8 +97,14 @@ S = S0 .* (Q.ref * exp(-c2 * E_lower./T) .* (1 - exp(-c2*wavenumber./T))) ./...
 
 
 %% Create a Voigt Lineshape
+tic
+voigt = voigt_lineShape_for_hitran(lines, wavelength_boundaries, T, P, P_self);
+toc
+%% Compute the Absorption cross-section
 
-voigt = voigt_lineShape_for_hitran(lines, T, P, P_self);
+% the aborption cross section is the product of the line strength and the
+% voigt line shape
+abs_cross_sec = S .* voigt.shape;
 
 
 
