@@ -113,7 +113,6 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 %% Check to see if the pixel in question is looking at a cloud made of liquid water
 
-
 inputs = check_EMIT_therodynamic_phase(emit, pixels2use);
 
 

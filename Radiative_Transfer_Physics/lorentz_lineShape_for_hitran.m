@@ -20,7 +20,7 @@
 
 % ----------- OUTPUTS -----------------
 
-% (1) f_pressure - a structure containing the independent variable, which
+% (1) f_pressure - [(cm^(-1)]^-1 - a structure containing the independent variable, which
 % is the wavenumber encompassing the pressure broadened line, the
 % dependent variable, the Lorentz line shape, and the
 % half-width-at-half-max (HWHM)
@@ -30,16 +30,38 @@
 
 %%
 
-function f_pressure = lorentz_lineShape_for_hitran(hitran_lines, wavelength_boundaries, T, P, P_self)
+function f_pressure = lorentz_lineShape_for_hitran(hitran_lines, wavelength_grid, T, P, P_self)
 
 
-% Specify the wavelength index using the range of interest
-wl_index = hitran_lines.transitionWavenumber>=(10^4/(wavelength_boundaries(end)/1e3)) &...
-    hitran_lines.transitionWavenumber<=(10^4/(wavelength_boundaries(1)/1e3));
+%% Convert the wavelength grid to a wavenumber grid
 
-% store variables you'll need in the for loop
-transition_wavenumbers = hitran_lines.transitionWavenumber(wl_index);
-pressure_shift = hitran_lines.pressureShift(wl_index);
+
+% ------------------------------------------------------------------------
+% ************ DOESN'T PLACE LINE SHAPES ON THE SAME GRID ****************
+% ------------------------------------------------------------------------
+
+
+% Convert this linearly spaced wavelength grid into a wavenumber grid
+% Make sure the wavelength vector is in microns
+wavenumber_master_grid = 10^4 ./ (wavelength_grid./1e3);        % cm^(-1)
+
+% Make sure wavenumber_master_grid is a row vector
+if size(wavenumber_master_grid,1)==1 && size(wavenumber_master_grid,2)>1
+
+    wavenumber_master_grid = wavenumber_master_grid';
+end
+
+% Find the line centers closest to each value of the wavenumber grid
+[~, w_index] = min(abs(wavenumber_master_grid - hitran_lines.transitionWavenumber'), [], 2);
+
+% Keep only the unique values
+w_index = unique(w_index, 'stable');
+
+% grab the the line strength centers
+line_center = hitran_lines.transitionWavenumber(w_index);
+
+%%
+pressure_shift = hitran_lines.pressureShift(w_index);
 
 
 % we have to compute a line shape for each spectral transition
@@ -52,26 +74,25 @@ num_hwhm = 11;
 % define the hitran reference temperature
 T_ref = 296;        % K
 
-% compute the doppler profile half-width at half-max
-% use SI units for everything, except leave the spectral dimension in
-% wavenumbers with units of inverse centimeters
-f_pressure.hwhm = (T_ref/T).^hitran_lines.temperatureDependence(wl_index) .* (hitran_lines.airBroadenedWidth(wl_index) .* (P - P_self) +...
-    hitran_lines.selfBroadenedWidth(wl_index) .* P_self);
+% compute the pressure broadened half-width at half-max
+f_pressure.hwhm = (T_ref/T).^hitran_lines.temperatureDependence(w_index) .*...
+    (hitran_lines.airBroadenedWidth(w_index) .* (P - P_self) +...
+    hitran_lines.selfBroadenedWidth(w_index) .* P_self);
 
 
 % compute the pressure broadened line shape for each line transition
-f_pressure.shape = zeros(length(transition_wavenumbers), lineShape_length);
-f_pressure.wavenum = zeros(length(transition_wavenumbers), lineShape_length);
+f_pressure.shape = zeros(length(line_center), lineShape_length);
+f_pressure.wavenum = zeros(length(line_center), lineShape_length);
 
-for vv = 1:length(transition_wavenumbers)
+for vv = 1:length(line_center)
 
     % Lines are narrow! Some less than a wavenumber
-    f_pressure.wavenum(vv,:) = linspace(transition_wavenumbers(vv) - num_hwhm*f_pressure.hwhm(vv),...
-        transition_wavenumbers(vv) + num_hwhm*f_pressure.hwhm(vv), lineShape_length);
+    f_pressure.wavenum(vv,:) = linspace(line_center(vv) - num_hwhm*f_pressure.hwhm(vv),...
+        line_center(vv) + num_hwhm*f_pressure.hwhm(vv), lineShape_length);
 
 
     f_pressure.shape(vv,:) = f_pressure.hwhm(vv)./pi ./...
-        (f_pressure.hwhm(vv).^2 + (f_pressure.wavenum(vv,:) - (transition_wavenumbers(vv) +...
+        (f_pressure.hwhm(vv).^2 + (f_pressure.wavenum(vv,:) - (line_center(vv) +...
         pressure_shift(vv) .* P)).^2 );
 
 end

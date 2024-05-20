@@ -13,7 +13,7 @@ function inputs = check_EMIT_therodynamic_phase(emit, pixels2use)
 %% We start by assuming if we deal with small wavelength intervals, the reflectance is linear with lambda
 % We will use the region from 1400 to 1800 nms
 
-wavelength_boundaries = [1400, 1401];       % nm
+wavelength_boundaries = [1400, 1800];       % nm
 
 % To make out linear assumption valid, let's use the wavelength spacing
 % between the center wavelengths of adjacent emit channels
@@ -23,8 +23,8 @@ wavelength_idx = emit.radiance.wavelength >= wavelength_boundaries(1)...
 reflectance = emit.reflectance(wavelength_idx, :);      % 1/sr
 
 % the center wavelengths for each measurement
-center_wavelength = emit.radiance.wavelength(wavelength_idx);       % nm
-
+%wavelength_center_emit = emit.radiance.wavelength(wavelength_idx);       % nm
+wavelength_center_emit = (wavelength_boundaries(1):5:wavelength_boundaries(2))';        % nm
 
 
 %% Using Mie theory, compute the absorption coefficients
@@ -61,18 +61,18 @@ radius = 10;            % microns
 
 
 % Step through each absorber and each wavelength
-k_bluk = zeros(length(center_wavelength), length(indexOfRefraction));
-
+k_bulk_water = zeros(1, length(wavelength_center_emit));
+k_bulk_ice = zeros(1, length(wavelength_center_emit));
 
 for jj = 1:length(indexOfRefraction)
 
 
-    for ww = 1:length(center_wavelength)
+    for ww = 1:length(wavelength_center_emit)
 
         % define the wavelength
         % The wavelength input is defined as follows:
         % [wavelength_start, wavelength_end, wavelength_step].
-        wl = [center_wavelength(ww), center_wavelength(ww), 0];
+        wl = [wavelength_center_emit(ww), wavelength_center_emit(ww), 0];
 
         % Create a mie file
         [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, indexOfRefraction{jj},...
@@ -85,7 +85,15 @@ for jj = 1:length(indexOfRefraction)
         [ds,~,~] = readMIE(mie_folder,output_filename);
 
         % store the complex index of refraction
-        k_bluk(ww,jj) = 4*pi*ds.refrac_imag/(center_wavelength(ww)*1e-7);       % centimeters^(-1)
+        if jj==1
+            
+            k_bulk_water(ww) = 4*pi*ds.refrac_imag/(wavelength_center_emit(ww)*1e-7);       % centimeters^(-1)
+
+        elseif jj==2
+            
+            k_bulk_ice(ww) = 4*pi*ds.refrac_imag/(wavelength_center_emit(ww)*1e-7);       % centimeters^(-1)
+
+        end
 
     end
 
@@ -96,12 +104,38 @@ end
 hitran_waterVapor_file = 'hitran_water_vapor_absorption_350_to_2600nm.mat';
 
 % --- Define the pressure, temperature and wavelength range
-T = 238;                % K - temperature of gas
-P = 0.01;                  % atm - pressure of whole atmosphere
-P_self = 0.001;          % atm - partial pressure of water vapor
+T = 298;                % K - temperature of gas
+P = 1;                  % atm - pressure of whole atmosphere
+P_self = 0.03;          % atm - partial pressure of water vapor
+
+% --- Define the solution type ----
+% How should we solve for the absorption cross section?
+% 'full_integral' solves for the Voigt function by solving a numerical
+% integral over a finely spaced grid. This takes a while
+% 'whitting' uses an approximation
+solution_type = 'whitting';
+
+abs_waterVapor = hitran_compute_abs_cross_section(hitran_waterVapor_file, T, P, P_self,...
+    wavelength_center_emit, solution_type);
 
 
-[abs_cross_sec] = hitran_compute_abs_cross_section(hitran_waterVapor_file, T, P, P_self, wavelength_boundaries);
+%% Set up the non-negative least squares solution
+
+% Following D.R. Thompson et al. 2016
+
+% Solve the problem ||d - Gm|| subject to m>0
+
+% set up the matrix G
+
+% *** QUESTION ***
+% Should I take the average value of the bulk absorption coeff over each
+% EMIT channel?
+
+G = [ones(length(wavelength_center_emit), 1), wavelength_center_emit', -wavelength_center_emit',...
+    k_bulk_water', k_bulk_ice', abs_waterVapor.bulk_coefficient];
+
+
+
 
 
 end
