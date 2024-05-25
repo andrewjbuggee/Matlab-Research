@@ -8,7 +8,7 @@
 
 %%
 
-function [R,Rl] = runReflectanceFunction(inputs,names, spectral_response)
+function [R,Rl] = runReflectanceFunction_4modis(inputs,names, spectral_response)
 
 % what computer are we using?
 
@@ -57,11 +57,9 @@ for pp = 1:size(inputFileNames,1)
     for bb = 1:size(inputFileNames,4)
 
 
-        % next step through the different values for r per band
+        % next step through the different values of effective radius per band
         parfor rr = 1:size(inputFileNames,2)
         %for rr = 1:size(inputFileNames,2)
-
-            % if pp==1 && bb ==1 && rr == 1
 
             % there is a new geometry setting every time we switch
             % pixels. So we need a new input settings for when we
@@ -69,16 +67,9 @@ for pp = 1:size(inputFileNames,1)
 
             % --- For now, calculate inputSettings every time ---
 
-            % start by running uvspec
+            % start by running uvspec for a single pixel, a single band, a
+            % single effective radius an for all opticl depths
             [inputSettings] = runUVSPEC(inp_folder,inputFileNames(pp,rr,:,bb),outputFileNames(pp,rr,:,bb));
-
-            % save the input settings file. In this case each band will have the
-            % same geometry so we only need to save a single settings file per band
-            %                 save([inp_folder,'runUVSPEC_settings.mat'],"inputSettings"); % save inputSettings to the same folder as the input and output file
-
-            %             else
-            %                 runUVSPEC(inp_folder,inputFileNames(pp,rr,:,bb),outputFileNames(pp,rr,:,bb));
-            %             end
 
 
 
@@ -97,11 +88,13 @@ for pp = 1:size(inputFileNames,1)
                 [pp,rr,tt,bb]
                 
                 % Read the UV spec calculation into an array
-                [ds{tt},~,~] = readUVSPEC(inp_folder,outputFileNames{pp,rr,tt,bb},inputSettings(tt+1,:), computeReflectivity); % headers don't change per iteration
+                [ds{tt},~,~] = readUVSPEC(inp_folder,outputFileNames{pp,rr,tt,bb},inputSettings(tt+1,:),...
+                    computeReflectivity); % headers don't change per iteration
                 
-                % Compute the reflectance function
-                %[R(pp,rr,tt,bb),Rl{pp,rr,tt,bb}] = reflectanceFunction(inputSettings(tt+1,:),ds{tt}, spectral_response{bb}(:,2));
-                [R(pp,rr,tt,bb),Rl{pp,rr,tt,bb}] = reflectanceFunction_4modis(inputSettings(tt+1,:),ds{tt}, spectral_response{bb}(:,2));
+                % ----------- Compute the reflectance function -----------
+                [R(pp,rr,tt,bb),Rl{pp,rr,tt,bb}] = reflectanceFunction_4modis(inputSettings(tt+1,:),ds{tt},...
+                spectral_response{bb}(:,2));
+
 
             end
 

@@ -36,8 +36,8 @@ end
 % read the center wavelength of each band
 ds.wavelength = ncread(fileName, 'sensor_band_parameters/wavelengths');     % nm
 
-% read the full-width at half-max - roughly speaking the band width of each
-% spectral channel
+% read the full-width at half-max - this is used to define the gaussian
+% spectral response function
 ds.fwhm = ncread(fileName, 'sensor_band_parameters/fwhm');     % nm
 
 % read the lat and long position of each pixel

@@ -220,7 +220,8 @@ elseif strcmp(solution_type, 'whitting')==true
     % values of the absorption cross section at the user input defined
     % desired wavelengths are determined from this grid
     d_lambda = 0.01;     % nm
-    wavelength_master_grid_internal = wavelength_grid_output(1): d_lambda : wavelength_grid_output(end);    % nm
+    wavelength_master_grid_internal = (wavelength_grid_output(1) - d_lambda): d_lambda :...
+        (wavelength_grid_output(end) + d_lambda);    % nm
 
     % Convert this linearly spaced wavelength grid into a wavenumber grid
     % Make sure the wavelength vector is in microns

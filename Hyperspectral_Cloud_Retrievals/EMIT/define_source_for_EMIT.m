@@ -4,6 +4,11 @@
 % This is accomplished by integrating the TOA solar flux over each EMIT spectral channel
 % using the spectral response function
 
+% ----- OUTPUTS -----
+
+% (1) source.flux - W/nm/m^2
+% (2) source.wavelength - nm
+
 % By Andrew John Buggee
 
 
@@ -52,7 +57,7 @@ for ww = 1:length(emit.radiance.wavelength)
         source.wavelength <= emit.spec_response.wavelength{ww}(end);
 
     inputs.source.flux(ww) = trapz(source.wavelength(wavelength_idx),...
-        emit.spec_response.value{ww} .* source.flux(wavelength_idx));           % W/nm/sr
+        emit.spec_response.value{ww} .* source.flux(wavelength_idx));           % W/nm/m^2
 
     inputs.source.wavelength(ww) = source.wavelength(center_wavelength_idx);    % nm
 

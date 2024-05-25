@@ -11,7 +11,7 @@ clear variables
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
 
-emitFolder = '17_Jan_2024_coast/';
+emitDataFolder = '17_Jan_2024_coast/';
 
 % -------------------------------------
 
@@ -29,14 +29,18 @@ if strcmp(whatComputer,'anbu8374')==true
 
     % Define the EMIT data folder path
 
-    emitPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+    emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
     % Define the LibRadTran path
     libRadTran_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4'];
 
 
     % Define the folder path where all .INP files will be saved
-    folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+    folder2save.libRadTran_INP_OUT = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/'];
+
+    % Define the folder path where the mat files of reflectances will be
+    % saved
+    folder2save.reflectance_calcs = emitDataPath;
 
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
@@ -45,15 +49,19 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the EMIT data folder path
 
-    emitPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+    emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
     % Define the LibRadTran path
     libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4'];
 
-    % Define the folder path where all .INP files will be saved
-    folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+    % Define the folder path where all .INP and .OUT files will be saved
+    folder2save.libRadTran_INP_OUT = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/'];
+
+    % Define the folder path where the mat files of reflectances will be
+    % saved
+    folder2save.reflectance_calcs = emitDataPath;
 
 
 
@@ -62,7 +70,7 @@ end
 
 
 
-[emit,L1B_fileName] = retrieveEMIT_data([emitPath, emitFolder]);
+[emit,L1B_fileName] = retrieveEMIT_data([emitDataPath, emitDataFolder]);
 
 
 %% Define the pixels to use for the retrieval
@@ -77,7 +85,7 @@ end
 
 % 17_Jan_2024_coast - large optical depth
 pixels2use.row = [912, 913];
-pixels2use.col = 929;
+pixels2use.col = [929, 929];
 
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
@@ -92,7 +100,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_TBLUT(folder2save, L1B_fileName, emit);
+inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
 
@@ -103,8 +111,12 @@ emit.spec_response = create_EMIT_specResponse(emit, inputs);
 
 %% Define the solar source file name and read in the solar source data
 
+% ********* IMPORTANT *************
+% The source flux is integrated with the EMIT spectral response function
+
 % define the source file using the input resolution
 inputs = define_source_for_EMIT(inputs, emit);
+
 
 %% Convert radiance measurements to TOA reflectance for the desired pixels
 
@@ -112,20 +124,62 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 
 %% Check to see if the pixel in question is looking at a cloud made of liquid water
+tic
+inputs = check_EMIT_therodynamic_phase(emit, inputs);
+toc
 
-inputs = check_EMIT_therodynamic_phase(emit, pixels2use);
-
-
-
-
-
+%% ----- Create .INP files for EMTI TBLUT -----
 
 
+if inputs.flags.writeINPfiles == true
+    
+    [names.inp, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit);
+    
+    % now lets write the output names
+    
+    names.out = writeOutputNames(names.inp);
+else
+    
+    % if the files already exist, just grab the names!
+    [names.inp, inputs] = getMODIS_INPnames_withClouds(emit.solar, inputs, pixels2use);
+    names.out = writeOutputNames(names.inp);
+end
+
+
+%% ----- Run uvspec and calculate Reflectance Function using LibRadTran -----
+
+% geometry stays the same, but we calculate the radiative transfer equation
+% for different values of effective radius and optical depth
+
+if inputs.flags.runUVSPEC == true
+    
+    % 1st output - R is the reflectance integrated over a bandwidth
+    % 2nd output - Rl is the reflectance at each spectral bin
+    tic
+    [R,~] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response);
+    toc
+    
+elseif inputs.flags.runUVSPEC == false
+    
+    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','R');
+    
+end
+
+
+%% ----- Compare Reflectance Function of MODIS with Theoretical Calculations (Grid Search) -----
+
+% first grid search is on a coarse grid
+% we want to minimize two the reflectance for two wavelengths
+
+% if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
+% rows, and 10 columns will be interpolated to be 100 columns
+
+minVals = leastSquaresGridSearch(emit.reflectance, R, inputs);
+
+[truth_estimate_table] = gatherTruthEstimateVals(modis, minVals, inputs, pixels2use); % containts truth ad estimates and difference
 
 
 
 
+%% ------------ Make plots! ---------
 
-
-
-%%

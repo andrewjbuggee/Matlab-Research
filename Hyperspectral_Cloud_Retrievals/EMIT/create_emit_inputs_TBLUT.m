@@ -14,11 +14,11 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(folderName, L1B_fileName, emit)
+function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, L1B_fileName, emit)
 
 
 % --- SAVE THE EMIT FILE NAME ----
-inputs.emitDataFolder = folderName;
+inputs.emitDataFolder = emitDataFolder;
 
 
 
@@ -29,34 +29,32 @@ inputs.L1B_filename = L1B_fileName{1};
 
 % Define which EMIT bands to run
 inputs.bands2run = [38, 235]; % these are the bands that we will run uvspec with
-inputs.bands2search = [38, 235]; % these are the EMIT bands that are used in the retrieval problem
 inputs.bands2plot = [38, 235]; % these are the EMIT bands that will be plotted, both the modis calcualted stuff and the stuff I calcualte
 
 % if interpGridScaleFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase the grid size for interpolation.
 
+
 % --------------------------------------------
 % Create a new folder to save all calculations
 % --------------------------------------------
-inputs.savedCalculations_folderName = [folderName, 'Retrieval_outputs_', char(datetime("today")),'/']; % this is the folder that all the saved calculations will go
 
-
-
-inputs.saveCalculations_fileName = ['uvspec_calculations_', char(datetime("today")),'.mat'];
-
-
-
-% Define the folder to save all the INP files in using the month, day and
-% year
+% Define the folder that stores the inputs and calculated reflectanes
+% using todays date
 data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', L1B_fileName{1}(24:25)],...
     'InputFormat','yyyy-MM-dd');
 
-inputs.INP_folderName = ['EMIT_',char(data_date),'_time_',L1B_fileName{1}(27:30),'/']; % this is the folder name that the INP files will be written to 
+% Store the file name for the libRadTran INP and OUT files
+inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
+    '_time_', L1B_fileName{1}(27:30), '/'];
 
 
+% This is the folder where the reflectance calculations will be stored
+inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
 
-
+% This is the name of the .mat file with the reflectance calcs
+inputs.reflectance_calculations_fileName = ['reflectance_calculations_', char(datetime("today")),'.mat'];
 
 
 
