@@ -13,7 +13,7 @@ function inputs = check_EMIT_therodynamic_phase(emit, pixels2use)
 %% We start by assuming if we deal with small wavelength intervals, the reflectance is linear with lambda
 % We will use the region from 1400 to 1800 nms
 
-wavelength_boundaries = [1400, 1401];       % nm
+wavelength_boundaries = [1400, 1800];       % nm
 
 % To make out linear assumption valid, let's use the wavelength spacing
 % between the center wavelengths of adjacent emit channels
