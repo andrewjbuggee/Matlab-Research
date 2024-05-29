@@ -116,8 +116,8 @@ for pp = 1:numPixels
     [minVals.minLSD(pp),index] = min(leastSquaresGrid,[],'all','linear');
     [row,col] = ind2sub(size(leastSquaresGrid),index);
 
-    minVals.minR(pp) = Re(row,col);
-    minVals.minT(pp) = T(row,col);
+    minVals.minRe(pp) = Re(row,col);
+    minVals.minTau(pp) = T(row,col);
 
     % lets look at the least squares grid
     if inputs.flags.plotMLS_figures == true

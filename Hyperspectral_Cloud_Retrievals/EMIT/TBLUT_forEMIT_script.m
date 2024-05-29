@@ -16,9 +16,6 @@ emitDataFolder = '17_Jan_2024_coast/';
 % -------------------------------------
 
 
-
-% Load modis data and create input structure
-
 % Determine which computer you're using
 
 % Find the folder where the mie calculations are stored
@@ -30,9 +27,6 @@ if strcmp(whatComputer,'anbu8374')==true
     % Define the EMIT data folder path
 
     emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
-
-    % Define the LibRadTran path
-    libRadTran_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4'];
 
 
     % Define the folder path where all .INP files will be saved
@@ -51,9 +45,6 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
-    % Define the LibRadTran path
-    libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4'];
 
     % Define the folder path where all .INP and .OUT files will be saved
     folder2save.libRadTran_INP_OUT = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
@@ -174,12 +165,8 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-minVals = leastSquaresGridSearch(emit.reflectance, R, inputs);
-
-[truth_estimate_table] = gatherTruthEstimateVals(modis, minVals, inputs, pixels2use); % containts truth ad estimates and difference
+minVals = leastSquaresGridSearch_EMIT(emit.reflectance, R, inputs);
 
 
-
-
-%% ------------ Make plots! ---------
+%% ------------ Make plots! ------------
 
