@@ -14,10 +14,11 @@ for ww = 1:length(emit.radiance.wavelength)
 
     % first we will create and store the spectral response function from
     % the full-wdith-half-max provided for each spectral channel
-    % the spectral response function is gaussian
+    % the spectral response function is a gaussian function
     % the emit wavelength vector is the center wavelength
     
-    % set the center wavelength as the mean of the distribution
+    % set the center wavelength as the value defined by the EMIT wavelength
+    % grid
     lambda_center = emit.radiance.wavelength(ww);      % nm
 
     % compute the standard deviation from the FWHM

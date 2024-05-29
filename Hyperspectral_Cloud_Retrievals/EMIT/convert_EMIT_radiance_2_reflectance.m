@@ -14,8 +14,9 @@ function emit = convert_EMIT_radiance_2_reflectance(emit, inputs)
 % read in the source file
 % The solar flux, as defined by define_source_for_emit.m, is the same
 % length as the spectral dimension of the EMIT data cube.
-% *** IMPORTANTLY, the solar flux has been integrated over each EMIT
-% spectral channel ***
+
+% *** IMPORTANT *** the solar flux has been integrated over each EMIT
+% spectral channel with the spectral response function
 solar_flux = inputs.source.flux;     % W/m^2/nm
 
 % Convert this into the same units used by EMIT (microW/cm^2/nm)

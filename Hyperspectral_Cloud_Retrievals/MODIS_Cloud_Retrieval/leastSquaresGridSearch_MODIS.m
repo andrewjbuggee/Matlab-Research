@@ -8,7 +8,7 @@
 
 %%
 
-function [minVals] = leastSquaresGridSearch(modisRefl,modelRefl,inputs)
+function [minVals] = leastSquaresGridSearch_MODIS(modisRefl,modelRefl,inputs)
 
 
 

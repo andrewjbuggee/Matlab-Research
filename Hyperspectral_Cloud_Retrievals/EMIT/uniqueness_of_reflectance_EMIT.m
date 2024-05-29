@@ -9,10 +9,15 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 5:13;       % microns
-r_bot = 4:10;        % microns
+% r_top = 5:13;       % microns
+% r_bot = 4:10;        % microns
+% 
+% tau_c = 5:5:35;
 
-tau_c = 5:5:35;
+r_top = 11;       % microns
+r_bot = 5;        % microns
+
+tau_c = 15;
 
 % r_top = 6:2:12;       % microns
 % r_bot = 4:2:10;        % microns
@@ -69,8 +74,8 @@ end
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
 
-emitFolder = '17_Jan_2024_coast/';
-
+%emitFolder = '17_Jan_2024_coast/';
+emitFolder = '17_Jan_2024_ocean/';
 
 
 [emit,L1B_fileName] = retrieveEMIT_data([emitPath, emitFolder]);
@@ -129,9 +134,12 @@ end
 % absopriton according to figure 5 from King and Vaughan, which shows the
 % information content for r_top, r_bot, tau_c, and water vapor across
 % wavelengths from 500 to 2500 nm
-wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
-    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
-    248, 252, 259]';
+
+% wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
+%     158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
+%     248, 252, 259]';
+
+wavelength_idx = [38, 235]';
 Rad_emit = Rad_emit(wavelength_idx);
 % -------------------------------------------------
 
@@ -248,8 +256,9 @@ vert_homogeneous_str = 'vert-non-homogeneous';
 parameterization_str = 'mie';
 
 % define the wavelength used for the optical depth as the 650 nm
-band1 = modisBands(1);
-lambda_forTau = band1(1);            % nm
+% band1 = modisBands(1);
+% lambda_forTau = band1(1);            % nm
+lambda_forTau = mean(wavelength(1,:));            % nm
 
 
 % ------------------------------------------------------------------------
@@ -369,8 +378,8 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            parfor ww = 1:size(wavelength,1)
-
+            %parfor ww = 1:size(wavelength,1)
+            for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------
@@ -627,10 +636,11 @@ for rt = 1:length(r_top)
                 [inputSettings] = runUVSPEC(folder2save,inputName{rt,rb, tc, ww},outputName{rt,rb, tc, ww});
 
                 % read .OUT file
+                % radiance is in units of mW/nm/m^2/sr
                 [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
 
                 % compute the reflectance
-                Refl_model(rt, rb, tc, ww) = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww});
+                Refl_model(rt, rb, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds, spec_response{ww});
 
                 % integrate the radiance over the wavelength channel and
                 % convert the output to the same units as the EMIT data
@@ -640,8 +650,9 @@ for rt = 1:length(r_top)
                 % same units as EMIT
                 % Make sure to integrate with the spectral response
                 % function!
-                Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response{ww}.*ds.radiance.value)/10;        % microW/cm^2/sr
-
+                Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response{ww}.*(ds.radiance.value./10));        % microW/cm^2/sr
+                %Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, 1.*(ds.radiance.value./10));
+                
                 % Now divide by the wavelength range of the channel to get
                 % units of micro-watts/cm^2/sr/nm
 
@@ -650,10 +661,10 @@ for rt = 1:length(r_top)
                 % Convert the EMIT radiance into reflectance
                 if rt==1 && rb==1 && tc==1
                     
-                    % The source function has units of mW/m^2/nm
-                    % Divide this by 10 to get units of microW/cm^2/nm
+                    % The source function has units of W/m^2/nm
+                    % Multiply by 100 to convert it into units of microW/cm^2/nm
                     Refl_emit(ww) = pi*Rad_emit(ww)/(cosd(inputSettings{2,4}) * ...
-                        trapz(inputSettings{2,7}(:,1), spec_response{ww} .* inputSettings{2,7}(:,2))/10);
+                        trapz(inputSettings{2,7}(:,1), spec_response{ww} .* (inputSettings{2,7}(:,2).*100)));
 
                 end
 
@@ -824,7 +835,7 @@ grid on; grid minor
 
 %% Subplots of radiance across different wavelengths for a single optical depth
 
-tau_idx = 4;
+tau_idx = 1;
 
 % find min and max values of reflectance for this wavelength
 [minR, ~] = min(Rad_model(:,:,tau_idx,:), [], 'all');
