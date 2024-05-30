@@ -93,7 +93,7 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 %% Compute the TBLUT retrieval estimate
 
-tblut_retrieval = TBLUT_forEMIT(emitDataFolder, pixels2use);
+tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, pixels2use);
 
 
 %% Create the Model and Measurement prior

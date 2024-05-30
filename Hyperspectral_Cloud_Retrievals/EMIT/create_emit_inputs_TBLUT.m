@@ -14,16 +14,44 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, L1B_fileName, emit)
+function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, emit)
 
+
+%% Which computer are we using?
+
+
+
+if strcmp(whatComputer,'anbu8374')
+
+    EMIT_dataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+elseif strcmp(userName,'andrewbuggee')
+
+    EMIT_dataPath = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'EMIT/EMIT_data/'];
+
+else
+    error('I dont recognize this computer user name')
+end
+
+%%
 
 % --- SAVE THE EMIT FILE NAME ----
 inputs.emitDataFolder = emitDataFolder;
 
-
+% read the contents of the EMIT data folder
+folder_contents = dir([EMIT_dataPath, emitDataFolder]);
 
 % ----- Save the L1B file name -----
-inputs.L1B_filename = L1B_fileName{1};
+for nn = 1:length(folder_contents)
+
+    if length(folder_contents(nn).name)>5 && strcmp(folder_contents(nn).name(1:12), 'EMIT_L1B_RAD')==true
+
+        inputs.L1B_filename = folder_contents(nn).name;
+
+    end
+
+end 
  
 
 
@@ -42,12 +70,12 @@ inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase 
 
 % Define the folder that stores the inputs and calculated reflectanes
 % using todays date
-data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', L1B_fileName{1}(24:25)],...
+data_date = datetime([inputs.L1B_filename(18:21), '-', inputs.L1B_filename(22:23), '-', inputs.L1B_filename(24:25)],...
     'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
 inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
-    '_time_', L1B_fileName{1}(27:30), '/'];
+    '_time_', inputs.L1B_filename(27:30), '/'];
 
 
 % This is the folder where the reflectance calculations will be stored

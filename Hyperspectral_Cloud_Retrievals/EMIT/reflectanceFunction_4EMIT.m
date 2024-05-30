@@ -27,8 +27,6 @@ function [R,R_lambda] = reflectanceFunction_4EMIT(inputSettings,ds, spec_respons
 mu = inputSettings{2}; % cosine of the viewing zenith angle
 phi = inputSettings{3}; % sensor aziumuth angle
 sza = inputSettings{4}; % solar zenith angle
-phi0 = inputSettings{5}; % solar azimuth angle
-sensorAlt = inputSettings{6}; % sensor altitude in km
 source = inputSettings{7}; % - W/(m^2 nm) - source irradiance
 
 % radiative transfer solutions
@@ -70,6 +68,11 @@ elseif length(wavelength)>1
         % First calculate the reflectance function at each discrete
         % wavelength within the wavelength band
         R_lambda(:,ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr/nm - reflectance function for monochromatic calculation
+
+        % Next, integrate over the spectral band with the spectral response
+        % function.
+        % *** The source function has already been integrated with the
+        % spectral response function ***
         R(ii) = trapz(wavelength, R_lambda(:,ii).*spec_response.*irrad0)./trapz(wavelength, spec_response.*irrad0); % - 1/sr - reflectance function over a finite bandwidth
         
     end

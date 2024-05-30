@@ -38,8 +38,8 @@ keep_emit_data_index = logical(keep_emit_data_index);
 % remove all unwanted data from the radiance data cube
 emit.radiance.measurements = rad_data2keep;
 
-emit.radiance.lat(~keep_emit_data_index(:,:,1)) = [];
-emit.radiance.long(~keep_emit_data_index(:,:,1)) = [];
+emit.radiance.geo.lat(~keep_emit_data_index(:,:,1)) = [];
+emit.radiance.geo.long(~keep_emit_data_index(:,:,1)) = [];
 
 % remove all unwanted data from the observation cube
 emit.obs.sensor.azimuth(~keep_emit_data_index(:,:,1)) = [];
