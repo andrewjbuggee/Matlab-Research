@@ -47,8 +47,7 @@ spectral_response_2run = cell(1, length(inputs.bands2run));
 
 for nn = 1:length(inputs.bands2run)
 
-    spectral_response_2run{nn}.wavelength = spectral_response.wavelength{inputs.bands2run(nn)};
-    spectral_response_2run{nn}.value = spectral_response.value{inputs.bands2run(nn)};
+    spectral_response_2run{nn} = spectral_response{inputs.bands2run(nn)};
 
 end
 
@@ -111,7 +110,7 @@ for pp = 1:size(inputFileNames,1)
 
                 % ----------- Compute the reflectance function -----------
                 [R(pp,rr,tt,bb),~] = reflectanceFunction_4EMIT(inputSettings(tt+1,:), ds{tt},...
-                    spectral_response_2run{bb}.value);
+                    spectral_response_2run{bb});
 
 
             end

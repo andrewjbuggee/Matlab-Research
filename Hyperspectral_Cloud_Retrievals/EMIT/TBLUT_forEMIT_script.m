@@ -78,6 +78,9 @@ end
 pixels2use.row = [912, 913];
 pixels2use.col = [929, 929];
 
+% pixels2use.row = [932];
+% pixels2use.col = [960];
+
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 
@@ -91,7 +94,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, L1B_fileName, emit);
+inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, emit);
 
 % *** Check Inputs ***
 
@@ -147,7 +150,7 @@ if inputs.flags.runUVSPEC == true
     % 1st output - R is the reflectance integrated over a bandwidth
     % 2nd output - Rl is the reflectance at each spectral bin
     tic
-    [R,~] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response);
+    [R,~] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
     toc
     
 elseif inputs.flags.runUVSPEC == false

@@ -29,7 +29,7 @@ numPixels = size(modelRefl,1); % number of pixels to preform grid search on
 
 
 % Define the midpoint of each spectral channel
-band_midPoint = inputs.source.wavelength(inputs.bands2search);      % nm
+band_midPoint = inputs.source.wavelength(inputs.bands2run);      % nm
 
 
 % lets interpolate the model data to increase our grid
