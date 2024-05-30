@@ -82,8 +82,14 @@ for pp = 1:size(inputFileNames,1)
 
             % start by running uvspec for a single pixel, a single band, a
             % single effective radius an for all opticl depths
-            [inputSettings] = runUVSPEC(libRadTran_INP_OUT,inputFileNames(pp,rr,:,bb),outputFileNames(pp,rr,:,bb));
+            if iscell(inputFileNames)==true
 
+                [inputSettings] = runUVSPEC(libRadTran_INP_OUT,inputFileNames{pp,rr,:,bb},outputFileNames{pp,rr,:,bb});
+                
+            elseif ischar(inputFileNames)==true
+
+                [inputSettings] = runUVSPEC(libRadTran_INP_OUT,inputFileNames(pp,rr,:,bb),outputFileNames(pp,rr,:,bb));
+            end
 
             % read in the data structure and calculate reflectance function
 

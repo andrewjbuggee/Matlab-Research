@@ -41,9 +41,12 @@ addpath(libRadTran_path);
 % -----------------------------------------------------------------------
 % MODIS only considers homogenous plane parallel clouds. Lets construct the
 % re matrix needed to create homogenous water clouds using write_wc_file
-re = 3:3:24;     % microns - values of re that we wish to model
+% re = 3:3:24;     % microns - values of re that we wish to model
+% 
+% tau_c = [1,3, 5:5:50];      % values of tau that we wish to model
 
-tau_c = [1,3, 5:5:50];      % values of tau that we wish to model
+re = 10.566;     % microns - values of re that we wish to model
+tau_c = 5.984;      % values of tau that we wish to model
 
 
 

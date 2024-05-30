@@ -9,15 +9,15 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-% r_top = 5:13;       % microns
-% r_bot = 4:10;        % microns
+r_top = 5:15;       % microns
+r_bot = 4:10;        % microns
+
+tau_c = 5.984;
+
+% r_top = 11;       % microns
+% r_bot = 5;        % microns
 % 
-% tau_c = 5:5:35;
-
-r_top = 11;       % microns
-r_bot = 5;        % microns
-
-tau_c = 15;
+% tau_c = 15;
 
 % r_top = 6:2:12;       % microns
 % r_bot = 4:2:10;        % microns
@@ -74,8 +74,8 @@ end
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
 
-%emitFolder = '17_Jan_2024_coast/';
-emitFolder = '17_Jan_2024_ocean/';
+emitFolder = '17_Jan_2024_coast/';
+%emitFolder = '17_Jan_2024_ocean/';
 
 
 [emit,L1B_fileName] = retrieveEMIT_data([emitPath, emitFolder]);
