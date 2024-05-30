@@ -66,8 +66,12 @@ else
 end
 
 if numFiles2Run==1
-
-    textFile = fileread([folderName,inputName]);
+    
+    if iscell(inputName)==true
+        textFile = fileread([folderName,inputName{:}]);
+    elseif ischar(inputName)==true
+        textFile = fileread([folderName,inputName]);
+    end
 
     expr1 = '[^\n]*rte_solver [^\n]*';
     expr2 = '[^\n]*umu [^\n]*';
