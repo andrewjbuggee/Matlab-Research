@@ -56,6 +56,15 @@ pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 emit = remove_unwanted_emit_data(emit, pixels2use);
 
 
+%% Compute the radiance measurement uncertainty 
+
+emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
+
+
+%% Compute the reflectance uncertainty
+
+
+
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script

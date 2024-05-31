@@ -49,10 +49,6 @@ for ii = 1:length(files)
 
 end
 
-%% Compute the radiance measurement uncertainty 
-
-
-
 
 %%
 

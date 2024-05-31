@@ -25,9 +25,9 @@ if strcmp(whatComputer,'anbu8374')
 
     EMIT_dataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
-elseif strcmp(userName,'andrewbuggee')
+elseif strcmp(whatComputer,'andrewbuggee')
 
-    EMIT_dataPath = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    EMIT_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'EMIT/EMIT_data/'];
 
 else
