@@ -49,6 +49,13 @@ for ii = 1:length(files)
 
 end
 
+%% Compute the radiance measurement uncertainty 
+
+
+
+
+%%
+
 % Record the time the data was taken
 % Time recorded in [hours, minutes]
 emit.time = [str2double(L1B_fileNames{ii}(27:28)), str2double(L1B_fileNames{ii}(29:30))];        % UTC time of data recording

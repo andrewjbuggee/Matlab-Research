@@ -18,6 +18,8 @@ covariance_type = inputs.measurement.covariance_type;
 % Define the number of spectral channels
 num_bands_2run = length(inputs.bands2run);
 
+% define the number of pixels to run
+num_pixels = length(pixels2use.idx);
 
 % --------------------------------------------------------
 % Create the covariance matrix by taking the cross
@@ -50,15 +52,15 @@ elseif strcmp(covariance_type,'independent') == true
     % product
     % ----------------------------------------------------------------
 
-    inputs.measurement.variance = zeros(num_bands_2run,length(pixels2use.res1km.linearIndex));
-    inputs.measurement.covariance = zeros(num_bands_2run,num_bands_2run,length(pixels2use.res1km.linearIndex));
+    inputs.measurement.variance = zeros(num_bands_2run, num_pixels);
+    inputs.measurement.covariance = zeros(num_bands_2run, num_bands_2run, num_pixels);
 
     % Step through each pixel being used
-    for pp = 1:length(pixels2use.res1km.linearIndex)
+    for pp = 1:num_pixels
 
         % Grab the row and column
-        r = pixels2use.res1km.row(pp);
-        c = pixels2use.res1km.col(pp);
+        r = pixels2use.row(pp);
+        c = pixels2use.col(pp);
 
         % Step through each band
         for bb = 1:num_bands_2run

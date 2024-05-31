@@ -12,7 +12,7 @@ clear variables
 r_top = 5:15;       % microns
 r_bot = 4:10;        % microns
 
-tau_c = 5.984;
+tau_c = [1,3,5:5:35];
 
 % r_top = 11;       % microns
 % r_bot = 5;        % microns
@@ -88,9 +88,12 @@ emitFolder = '17_Jan_2024_coast/';
 % row = 1112;
 % col = 974;
 
-% 17_Jan_2024_coast - large optical depth
-row = 912;
-col = 929;
+% 17_Jan_2024_coast - small optical depth
+% row = 912;
+% col = 929;
+
+row = [932];
+col = [960];
 
 emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2008 - pixel overlapping with VOCALS
 
@@ -135,11 +138,11 @@ end
 % information content for r_top, r_bot, tau_c, and water vapor across
 % wavelengths from 500 to 2500 nm
 
-% wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
-%     158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
-%     248, 252, 259]';
+wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
+    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
+    248, 252, 259]';
 
-wavelength_idx = [38, 235]';
+%wavelength_idx = [38, 235]';
 Rad_emit = Rad_emit(wavelength_idx);
 % -------------------------------------------------
 
@@ -218,10 +221,10 @@ albedo = 0.05;
 day_of_year = 17;
 
 % ------------------------------------------------------------------------
-cloud_depth = 500;                % meters
+cloud_depth = 1000;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-z_topBottom = [2.5, 2];          % km above surface
+z_topBottom = [3, 2];          % km above surface
 
 
 
@@ -378,8 +381,8 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            %parfor ww = 1:size(wavelength,1)
-            for ww = 1:size(wavelength,1)
+            parfor ww = 1:size(wavelength,1)
+            %for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------

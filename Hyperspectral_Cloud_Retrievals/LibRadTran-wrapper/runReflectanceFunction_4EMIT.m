@@ -81,14 +81,9 @@ for pp = 1:size(inputFileNames,1)
 
             % start by running uvspec for a single pixel, a single band, a
             % single effective radius an for all opticl depths
-            if iscell(inputFileNames)==true
+            [inputSettings] = runUVSPEC(libRadTran_INP_OUT, inputFileNames(pp,rr,:,bb), outputFileNames(pp,rr,:,bb));
 
-                [inputSettings] = runUVSPEC(libRadTran_INP_OUT,inputFileNames{pp,rr,:,bb},outputFileNames{pp,rr,:,bb});
-                
-            elseif ischar(inputFileNames)==true
 
-                [inputSettings] = runUVSPEC(libRadTran_INP_OUT,inputFileNames(pp,rr,:,bb),outputFileNames(pp,rr,:,bb));
-            end
 
             % read in the data structure and calculate reflectance function
 
@@ -102,7 +97,7 @@ for pp = 1:size(inputFileNames,1)
             % Finally, step through the different values of optical thickness
             for tt = 1:length_tau
 
-                [pp,rr,tt,bb]
+                disp(['[pp,rr,tt,bb] = [', num2str(pp), ',' num2str(rr), ',', num2str(tt), ',', num2str(bb), ']'])
 
                 % Read the UV spec calculation into an array
                 [ds{tt},~,~] = readUVSPEC(libRadTran_INP_OUT,outputFileNames{pp,rr,tt,bb},inputSettings(tt+1,:),...
@@ -143,8 +138,8 @@ if isfile(save_calculated_reflectances_filename)==true
 
         nn = nn+1;
         % Create a new file name
-        save_calculated_reflectances_filename = [save_calculated_reflectances_filename(1:end-4),...
-            '_num',num2str(nn), '.mat'];
+        save_calculated_reflectances_filename = [save_calculated_reflectances_filename(1:end-5),...
+            num2str(nn), '.mat'];
 
     end
 end

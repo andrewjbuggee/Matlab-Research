@@ -5,7 +5,7 @@
 
 %%
 
-function [inputs] = create_model_prior_covariance_andCloudHeight_EMIT(inputs, pixels2use, tblut_retrieval,use_TBLUT_estimates)
+function [inputs] = create_model_prior_covariance_EMIT(inputs, pixels2use, tblut_retrieval,use_TBLUT_estimates)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -156,26 +156,6 @@ else
 
 
 
-
-
-
-    %----------------------------------------------------------
-    % ------- Define the Cloud Top Height and Depth -----------
-    %----------------------------------------------------------
-
-
-    % Define a fixed cloud top height
-    inputs.RT.cloudTop_height = 3;           % km
-
-    % Define a custom cloud depth
-    inputs.RT.cloudDepth = 1;            % km
-
-
-
-
-    % Define number of layers to use in libRadTran when defining
-    % vertically inhomogenous clouds
-    inputs.RT.cloud_layers = 10;
 
 
 

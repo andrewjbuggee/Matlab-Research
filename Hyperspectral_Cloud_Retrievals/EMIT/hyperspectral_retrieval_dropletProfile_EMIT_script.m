@@ -38,7 +38,7 @@ emitDataFolder = '17_Jan_2024_coast/';
 % row = 1112;
 % col = 974;
 
-% 17_Jan_2024_coast - large optical depth
+% 17_Jan_2024_coast - small optical depth
 % pixels2use.row = [912, 913];
 % pixels2use.col = [929, 929];
 
@@ -99,9 +99,9 @@ tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
 %% Create the Model and Measurement prior
  
 
-inputs = create_model_prior_covariance_andCloudHeight_EMIT(inputs, pixels2use, tblut_retrieval, use_TBLUT_estimates);
+inputs = create_model_prior_covariance_andCloudHeight_EMIT(inputs, pixels2use, tblut_retrieval, true);
 
-inputs = create_MODIS_measurement_covariance(inputs, modis, modisInputs, pixels2use);
+inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 
 
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval

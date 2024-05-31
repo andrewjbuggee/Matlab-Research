@@ -266,6 +266,23 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
 
 
+%----------------------------------------------------------
+% ------- Define the Cloud Top Height and Depth -----------
+%----------------------------------------------------------
+
+
+% Define a fixed cloud top height
+inputs.RT.cloudTop_height = 3;           % km
+
+% Define a custom cloud depth
+inputs.RT.cloudDepth = 1;            % km
+
+
+% Define number of layers to use in libRadTran when defining
+% vertically inhomogenous clouds
+inputs.RT.cloud_layers = 10;
+
+
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'

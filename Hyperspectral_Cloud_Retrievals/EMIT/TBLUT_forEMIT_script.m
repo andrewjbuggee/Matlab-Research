@@ -75,11 +75,11 @@ end
 % col = 974;
 
 % 17_Jan_2024_coast - large optical depth
-pixels2use.row = [912, 913];
-pixels2use.col = [929, 929];
+% pixels2use.row = [912, 913];
+% pixels2use.col = [929, 929];
 
-% pixels2use.row = [932];
-% pixels2use.col = [960];
+pixels2use.row = [932];
+pixels2use.col = [960];
 
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
