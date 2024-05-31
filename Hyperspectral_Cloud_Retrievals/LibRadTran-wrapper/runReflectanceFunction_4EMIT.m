@@ -8,7 +8,7 @@
 
 %%
 
-function [R,Rl] = runReflectanceFunction_4EMIT(inputs, names, spectral_response)
+function [R,Rl, inputs] = runReflectanceFunction_4EMIT(inputs, names, spectral_response)
 
 % what computer are we using?
 
@@ -144,6 +144,10 @@ if isfile(save_calculated_reflectances_filename)==true
     end
 end
 
+% Save the new filename
+inputs.reflectance_calculations_fileName = save_calculated_reflectances_filename;
+
+% save the calculated reflectances and the inputs
 save(save_calculated_reflectances_filename, "inputs", "R"); % save inputSettings to the same folder as the input and output file
 
 

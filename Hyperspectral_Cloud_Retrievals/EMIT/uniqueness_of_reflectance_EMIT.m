@@ -92,15 +92,14 @@ emitFolder = '17_Jan_2024_coast/';
 % row = 912;
 % col = 929;
 
-row = [932];
-col = [960];
+pixels2use.row = [932];
+pixels2use.col = [960];
 
-emit_idx = sub2ind(size(emit.radiance.measurements), row, col);    % for 9 nov 2008 - pixel overlapping with VOCALS
-
+% Grab the pixel indices
+pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 
 %% Grab the EMIT radiances for the pixel used
-Rad_emit = reshape(emit.radiance.measurements(row, col, :), [],1);      % microW/cm^2/nm/sr
-
+Rad_emit = reshape(emit.radiance.measurements(pixels2use.row, pixels2use.col, :), [],1);      % microW/cm^2/nm/sr
 
 
 %% Define the parameters of the INP file
@@ -294,7 +293,7 @@ end
 
 
 % define the solar zenith angle
-sza = double(emit.obs.solar.zenith(emit_idx));           % degree
+sza = double(emit.obs.solar.zenith(pixels2use.idx));           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -302,10 +301,10 @@ sza = double(emit.obs.solar.zenith(emit_idx));           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-phi0 = mod(double(emit.obs.solar.azimuth(emit_idx) + 180), 360);         % degree
+phi0 = mod(double(emit.obs.solar.azimuth(pixels2use.idx) + 180), 360);         % degree
 
 % define the viewing zenith angle
-vza = double(emit.obs.sensor.zenith(emit_idx)); % values are in degrees;                        % degree
+vza = double(emit.obs.sensor.zenith(pixels2use.idx)); % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -314,7 +313,7 @@ vza = double(emit.obs.sensor.zenith(emit_idx)); % values are in degrees;        
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-vaz = emit.obs.sensor.azimuth(emit_idx);     % degree
+vaz = emit.obs.sensor.azimuth(pixels2use.idx);     % degree
 
 
 % --------------------------------------------------------------
@@ -353,6 +352,10 @@ compute_reflectivity_uvSpec = false;
 
 
 
+
+%% Delete the EMIT data that isn't being used
+
+emit = remove_unwanted_emit_data(emit, pixels2use);
 
 
 
@@ -736,7 +739,7 @@ while isfile(filename)
         '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'emit_idx');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'pixels2use.idx');
 
 toc
 
@@ -1328,7 +1331,7 @@ end
 %% Find the states with the lowest rms residul
 
 % find n smallest rms states
-n_states = 10;
+n_states = 50;
 
 % store the state values at each minimum
 r_top_min = zeros(n_states, 1);
@@ -1340,21 +1343,30 @@ min_val = zeros(n_states, 1);
 idx_min = zeros(n_states, 1);
 
 
+% create a new array where the rms_residual can be used to determine the
+% smallest values. We have to insert a nan each time
+rms_residual_placeHolder = rms_residual;
+
+
 for nn = 1:n_states
     
     % find the smallest rms residual value, omitting nans
-    [min_val(nn), idx_min(nn)] = min(rms_residual, [], 'all', 'omitnan');
+    [min_val(nn), idx_min(nn)] = min(rms_residual_placeHolder, [], 'all', 'omitnan');
 
     r_top_min(nn) = R_top_fine(idx_min(nn));
     r_bot_min(nn) = R_bot_fine(idx_min(nn));
     tau_c_min(nn) = Tau_c_fine(idx_min(nn));
 
     % set the minimum value to nan and omit
-    rms_residual(idx_min(nn)) = nan;
+    rms_residual_placeHolder(idx_min(nn)) = nan;
 
 
 end
 
+
+% save the reflectance estimates associated with the minimum rms value
+% across all three variables
+min_Refl_model_fine = reshape(Refl_model_fine(r_top_fine==r_top_min(1), r_bot_fine==r_bot_min(1), tau_c_fine==tau_c_min(1),:), [],1);
 
 
 %% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
@@ -1373,16 +1385,40 @@ hold(axes1,'on');
 
 % Create contour
 [c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
-clabel(c1,h1,'FontSize',15,'FontWeight','bold');
+clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+% Overlay the 5 state vectors with the smallest rms_residual for this
+% optical depth, or how every many there are in the 30 smallest RMS values
+hold on;
+tau_c_min_idx = find(tau_c_min == tau_c_min(1));
+num_2Plot = 5;
+
+if length(tau_c_min_idx)<5
+
+    plot(r_bot_min(tau_c_min_idx), r_top_min(tau_c_min_idx), '.', 'MarkerSize', 20, 'Color', 'k')
+
+    % Create legend
+    legend('', [num2str(length(tau_c_min_idx)), ' smallest RMS differences'], 'location', 'best',...
+        'Interpreter', 'latex', 'FontSize', 25)
+
+else
+
+    plot(r_bot_min(tau_c_min_idx(1:num_2Plot)), r_top_min(1:num_2Plot), '.', 'MarkerSize', 20, 'Color', 'k')
+
+    legend('', [num2str(num_2Plot), ' smallest RMS differences'], 'location', 'best',...
+        'Interpreter', 'latex', 'FontSize', 25)
+
+end
 
 % Create ylabel
-ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create xlabel
-xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create title
-title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+    ' between EMIT and LibRadTran'],'Interpreter','latex');
 
 box(axes1,'on');
 grid(axes1,'on');
@@ -1394,42 +1430,47 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
 % Create colorbar
 colorbar(axes1);
 
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
 
 
 
 % Also try a filled contour plot
 
 
-% Create figure
-figure;
-colormap(hot);
-
-% Create axes
-axes1 = axes;
-hold(axes1,'on');
-
-% Create contour
-[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
-clabel(c1,h1,'FontSize',15,'FontWeight','bold');
-
-% Create ylabel
-ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
-
-% Create xlabel
-xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
-
-% Create title
-title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
-
-box(axes1,'on');
-grid(axes1,'on');
-axis(axes1,'tight');
-hold(axes1,'off');
-% Set the remaining axes properties
-set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
-    'on');
-% Create colorbar
-colorbar(axes1);
+% % Create figure
+% figure;
+% colormap(hot);
+% 
+% % Create axes
+% axes1 = axes;
+% hold(axes1,'on');
+% 
+% % Create contour
+% [c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
+% clabel(c1,h1,'FontSize',15,'FontWeight','bold');
+% 
+% % Create ylabel
+% ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+% 
+% % Create xlabel
+% xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
+% 
+% % Create title
+% title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
+% 
+% box(axes1,'on');
+% grid(axes1,'on');
+% axis(axes1,'tight');
+% hold(axes1,'off');
+% % Set the remaining axes properties
+% set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+%     'on');
+% % Create colorbar
+% colorbar(axes1);
 
 
 %% Create an imagesc plot of the rms residual
@@ -1467,4 +1508,49 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
     'on');
 % Create colorbar
 colorbar(axes1);
+
+
+%% Plot the EMIT measured reflectance and the Calculated reflectance associated with the minimum RMS residual
+
+figure; 
+
+plot(Refl_emit, min_Refl_model_fine, '.', 'markersize', 25, 'Color', mySavedColors(1, 'fixed'))
+xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title('Comparison between EMIT and Calculated Reflectance', 'Interpreter', 'latex', 'Fontsize', 35);
+grid on; grid minor
+
+% plot a one-to-one line
+hold on; 
+plot(linspace(min([Refl_emit; min_val]), max([Refl_emit; min_val]), 1000), ...
+    linspace(min([Refl_emit; min_val]), max([Refl_emit; min_val]), 1000), 'k', ...
+    'linewidth', 1)
+
+% set figure size
+set(gcf, 'Position', [0 0 1200 700])
+
+
+
+%% Plot the EMIT measured reflectance and the Calculates reflectance associated with the minimum RMS residual
+% do this as a function of wavelength
+
+figure; 
+
+plot(emit.radiance.wavelength(wavelength_idx), Refl_emit, '.-', 'MarkerSize', 25,...
+    'LineWidth', 1, 'Color', mySavedColors(1,'fixed'))
+hold on;
+plot(emit.radiance.wavelength(wavelength_idx), min_Refl_model_fine, '.-', 'MarkerSize', 25,...
+    'LineWidth', 1, 'Color', mySavedColors(2, 'fixed'))
+xlabel('Wavelength ($nm$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title('Comparison between EMIT and Calculated Reflectance', 'Interpreter', 'latex', 'Fontsize', 35);
+grid on; grid minor
+
+% set legend
+legend('EMIT', 'Calculated', 'location', 'best', 'Interpreter', 'latex', 'FontSize', 30)
+
+
+% set figure size
+set(gcf, 'Position', [0 0 1200 700])
+
 
