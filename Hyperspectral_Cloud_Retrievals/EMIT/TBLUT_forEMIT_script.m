@@ -74,12 +74,17 @@ end
 % row = 1112;
 % col = 974;
 
-% 17_Jan_2024_coast - large optical depth
+% 17_Jan_2024_coast - optical depth of 4 and 4.5
 % pixels2use.row = [912, 913];
 % pixels2use.col = [929, 929];
 
-pixels2use.row = [932];
-pixels2use.col = [960];
+% 17_Jan_2024_coast - optical depth of 6.6
+% pixels2use.row = [932];
+% pixels2use.col = [960];
+
+% 17_Jan_2024_coast - varrying optical depth
+pixels2use.row = [932, 932];
+pixels2use.col = [970, 969];
 
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
@@ -150,7 +155,7 @@ if inputs.flags.runUVSPEC == true
     % 1st output - R is the reflectance integrated over a bandwidth
     % 2nd output - Rl is the reflectance at each spectral bin
     tic
-    [R,~] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
+    [R,~, inputs] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
     toc
     
 elseif inputs.flags.runUVSPEC == false

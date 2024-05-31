@@ -64,7 +64,7 @@ if inputs.flags.runUVSPEC == true
     % 1st output - R is the reflectance integrated over a bandwidth
     % 2nd output - Rl is the reflectance at each spectral bin
     tic
-    [R,~] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
+    [R,~, inputs] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
     toc
 
 elseif inputs.flags.runUVSPEC == false
