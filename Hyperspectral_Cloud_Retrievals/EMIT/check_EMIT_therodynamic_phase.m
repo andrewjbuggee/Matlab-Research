@@ -33,6 +33,7 @@ function inputs = check_EMIT_therodynamic_phase(emit, inputs)
 % We will use the region from 1400 to 1800 nms
 
 wavelength_boundaries = [1400, 1800];       % nm
+%wavelength_boundaries = [300, 2500];       % nm
 
 % To make out linear assumption valid, let's use the wavelength spacing
 % between the center wavelengths of adjacent emit channels

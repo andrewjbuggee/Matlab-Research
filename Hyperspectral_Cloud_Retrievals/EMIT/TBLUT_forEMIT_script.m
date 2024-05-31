@@ -82,7 +82,7 @@ end
 % pixels2use.row = [932];
 % pixels2use.col = [960];
 
-% 17_Jan_2024_coast - varrying optical depth
+% 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 pixels2use.row = [932, 932];
 pixels2use.col = [970, 969];
 
@@ -131,14 +131,14 @@ toc
 
 
 if inputs.flags.writeINPfiles == true
-    
+
     [names.inp, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit);
-    
+
     % now lets write the output names
-    
+
     names.out = writeOutputNames(names.inp);
 else
-    
+
     % if the files already exist, just grab the names!
     [names.inp, inputs] = getMODIS_INPnames_withClouds(emit.solar, inputs, pixels2use);
     names.out = writeOutputNames(names.inp);
@@ -151,17 +151,21 @@ end
 % for different values of effective radius and optical depth
 
 if inputs.flags.runUVSPEC == true
-    
+
     % 1st output - R is the reflectance integrated over a bandwidth
     % 2nd output - Rl is the reflectance at each spectral bin
     tic
     [R,~, inputs] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
     toc
-    
+
+    % Save the pixels2use structure
+    save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
+        "pixels2use", "-append"); % save inputSettings to the same folder as the input and output file
+
 elseif inputs.flags.runUVSPEC == false
-    
+
     load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','R');
-    
+
 end
 
 
@@ -177,4 +181,6 @@ minVals = leastSquaresGridSearch_EMIT(emit.reflectance, R, inputs);
 
 
 %% ------------ Make plots! ------------
+
+plot2ReflectanceFuncBands_EMIT(emit, R, inputs, pixels2use, 'king')
 

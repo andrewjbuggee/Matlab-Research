@@ -67,6 +67,10 @@ if inputs.flags.runUVSPEC == true
     [R,~, inputs] = runReflectanceFunction_4EMIT(inputs, names, emit.spec_response.value);
     toc
 
+    % Save the pixels2use structure
+    save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
+        "pixels2use", "-append"); % save inputSettings to the same folder as the input and output file
+
 elseif inputs.flags.runUVSPEC == false
 
     load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','R');

@@ -100,8 +100,7 @@ if strcmp(computer_name,'andrewbuggee')==true
 
 elseif strcmp(computer_name,'anbu8374')==true
 
-    error('You havent stored the atm profiles on you desktop yet!')
-    atm_profile_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/solar_flux/';
+    atm_profile_folder = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/';
 
 end
 

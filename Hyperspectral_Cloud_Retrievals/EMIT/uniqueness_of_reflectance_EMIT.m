@@ -12,7 +12,7 @@ clear variables
 r_top = 5:15;       % microns
 r_bot = 4:10;        % microns
 
-tau_c = [1,3,5:5:35];
+tau_c = [1,2,3,5,7,10];
 
 % r_top = 11;       % microns
 % r_bot = 5;        % microns
@@ -92,8 +92,13 @@ emitFolder = '17_Jan_2024_coast/';
 % row = 912;
 % col = 929;
 
+% 17_Jan_2024_coast - optical depth of 6.6
+% pixels2use.row = [932];
+% pixels2use.col = [960];
+
+% 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 pixels2use.row = [932];
-pixels2use.col = [960];
+pixels2use.col = [970];
 
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
@@ -137,9 +142,15 @@ end
 % information content for r_top, r_bot, tau_c, and water vapor across
 % wavelengths from 500 to 2500 nm
 
-wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
-    158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
-    248, 252, 259]';
+% --- Old indexes ---
+% wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
+%     158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
+%     248, 252, 259]';
+
+% --- New indexs - tried to improve avoidance of water vapor ---
+wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
+159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
+249, 250, 251, 252, 253, 254]';
 
 %wavelength_idx = [38, 235]';
 Rad_emit = Rad_emit(wavelength_idx);

@@ -95,7 +95,7 @@ if strcmp(kingORsurf, 'king')==true
 
         % Now plot the EMIT measurement on top
         plot(emit.reflectance(inputs.bands2run(1),pp),emit.reflectance(inputs.bands2run(2),pp), 'x',...
-            'MarkerSize',10, 'Color','white');
+            'MarkerSize',10, 'Color','black');
 
 
         % ------ Plot lines of constant optical depth ------
@@ -106,7 +106,7 @@ if strcmp(kingORsurf, 'king')==true
             x = reshape(R(index_2plot(pp),:,tt, 1),1,[]);
             y = reshape(R(index_2plot(pp),:,tt, 2),1,[]);
 
-            t = plot(x, y, 'LineStyle','--', 'Color','w');
+            t = plot(x, y, 'LineStyle','--', 'Color','k');
 
             % add line label on plot
             if tt==1
@@ -141,8 +141,8 @@ if strcmp(kingORsurf, 'king')==true
         'FontSize', 20,...
         'Interpreter','latex',...
         'FitBoxToText','on',...
-        'Color','w',...
-        'EdgeColor', 'w');
+        'Color','k',...
+        'EdgeColor', 'k');
 
 
 
