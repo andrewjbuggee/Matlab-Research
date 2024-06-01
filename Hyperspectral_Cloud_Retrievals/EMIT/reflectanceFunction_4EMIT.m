@@ -29,7 +29,7 @@ phi = inputSettings{3}; % sensor aziumuth angle
 sza = inputSettings{4}; % solar zenith angle
 source = inputSettings{7}; % - W/(m^2 nm) - source irradiance
 
-% radiative transfer solutions
+% define wavelength vector and source function
 wavelength = ds.wavelength;     % nm
 irrad0 = source(:,2).*1e3; % - mW/(m^2 nm) -  source irradiance
 

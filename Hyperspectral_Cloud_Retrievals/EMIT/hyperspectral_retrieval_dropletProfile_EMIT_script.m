@@ -56,29 +56,12 @@ pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 emit = remove_unwanted_emit_data(emit, pixels2use);
 
 
-%% Compute the radiance measurement uncertainty 
-
-emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
-
-
-%% Compute the reflectance uncertainty
-
-
-
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
 inputs = create_emit_inputs_hyperspectral(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
-
-
-%% Check the thermodynamic phase of the defined pixels
-
-tic
-inputs = check_EMIT_therodynamic_phase(emit, inputs);
-toc
-
 
 %% Define the spectral response function of EMIT for the desired Bands
 
@@ -98,6 +81,25 @@ inputs = define_source_for_EMIT(inputs, emit);
 %% Convert radiance measurements to TOA reflectance for the desired pixels
 
 emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
+
+
+%% Compute the radiance measurement uncertainty 
+
+emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
+
+
+%% Compute the reflectance uncertainty
+
+emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
+
+
+%% Check the thermodynamic phase of the defined pixels
+
+tic
+inputs = check_EMIT_therodynamic_phase(emit, inputs);
+toc
+
+
 
 
 %% Compute the TBLUT retrieval estimate

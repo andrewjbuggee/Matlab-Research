@@ -30,20 +30,20 @@ if length(emit.obs.solar.zenith)==1
 
     % Compute EMIT measurements to reflectance according to eq. 1 from
     % Thompson et al. 2016
-    emit.reflectance = pi*emit.radiance.measurements ./...
+    emit.reflectance.value = pi*emit.radiance.measurements ./...
         (cosd(emit.obs.solar.zenith) * solar_flux);             % 1/sr
 
 
 else
 
-    emit.reflectance = zeros(length(emit.radiance.wavelength), length(emit.obs.solar.zenith));
+    emit.reflectance.value = zeros(length(emit.radiance.wavelength), length(emit.obs.solar.zenith));
 
     % Step through each pixel and compute the reflectance
     for nn = 1:length(emit.obs.solar.zenith)
 
         % Compute EMIT measurements to reflectance according to eq. 1 from
         % Thompson et al. 2016
-        emit.reflectance(:, nn) = pi*emit.radiance.measurements(:,nn) ./...
+        emit.reflectance.value(:, nn) = pi*emit.radiance.measurements(:,nn) ./...
             (cosd(emit.obs.solar.zenith(nn)) * solar_flux);             % 1/sr
 
     end
