@@ -4,22 +4,19 @@
 % By Andrew J. Buggee
 %%
 
-function [inputs] = create_EMIT_measurement_covariance(inputs,modis,modisInputs,pixels2use)
+function [inputs] = create_EMIT_measurement_covariance(inputs, emit, pixels2use)
 
 
+% define the covariance type
 covariance_type = inputs.measurement.covariance_type;
 
-
-
-% ---**--- Important Quantity ---**---
-% According To "VALIDATION OF MODIS-DERIVED TOP-OF-ATMOSPHERE SPECTRAL RADIANCES BY MEANS OF VICARIOUS CALIBRATION"
-%GN_inputs.measurement.uncertainty = 0.02; % percentage of measurement uncertainty for reflectance
 
 % Define the number of spectral channels
 num_bands_2run = length(inputs.bands2run);
 
 % define the number of pixels to run
 num_pixels = length(pixels2use.idx);
+
 
 % --------------------------------------------------------
 % Create the covariance matrix by taking the cross
@@ -28,7 +25,7 @@ num_pixels = length(pixels2use.idx);
 
 if strcmp(covariance_type,'computed') == true
 
-    data = cat(3,modis.EV.m250.reflectance,modis.EV.m500.reflectance);
+    data = cat(3,emit.EV.m250.reflectance,emit.EV.m500.reflectance);
     data = data(:,:,inputs.spectral_bins);
     for bb = 1:length(inputs.spectral_bins)
         for ii = 1:length(modisInputs.pixels2use.res500m.row)
@@ -42,50 +39,38 @@ if strcmp(covariance_type,'computed') == true
 
 elseif strcmp(covariance_type,'independent') == true
 
-    % create the covaraince matrix of the model parameters
+    % create the measurement covariance matrix using EMIT uncertainty
+    % estimates
+
     % if the covariance matrix is diagonal, then we are assuming each
     % measurement (spectral channel) is independent of one another
-    
+
 
     % ---------------------------------------------------------------
     % Create the measurement covariance using the radiance uncertainty
     % product
     % ----------------------------------------------------------------
 
-    inputs.measurement.variance = zeros(num_bands_2run, num_pixels);
+    % if each uncertainty represents the standard deviation, the
+    % variance is the square of each value.
+
+    % the refelctance uncertanties are listed in units of reflectance
+    % keep only the values used in the retrieval
+    inputs.measurement.variance = emit.reflectance.uncertainty(inputs.bands2run,:).^2;      % variance in reflectance
+
+
     inputs.measurement.covariance = zeros(num_bands_2run, num_bands_2run, num_pixels);
 
     % Step through each pixel being used
     for pp = 1:num_pixels
 
-        % Grab the row and column
-        r = pixels2use.row(pp);
-        c = pixels2use.col(pp);
 
-        % Step through each band
-        for bb = 1:num_bands_2run
-
-            band_num = inputs.bands2use(bb);
-            % if each uncertainty represents the standard deviation, the
-            % variance is the square of each value.
-            % the refelctance uncertanties are listed in percentages. So we
-            % multiply these percentages with the modis reflectance values to
-            % get the uncertainty in reflectance.
+        % Lets assume the percentage given is the standard deviation
+        % According to King and Vaughn (2012): 'the values along the main
+        % diagonal correspond to the square of the uncertainty estimate for
+        % each wavelength channel'
 
 
-            % Lets start by converting the percentage to a decimal
-            inputs.measurement.uncertainty(bb,pp) = 0.01* double(modis.EV1km.reflectanceUncert(r,c,band_num));        % uncertainty as a decimal
-
-
-            % Lets assume the percentage given is the standard deviation
-            % According to King and Vaughn (2012): 'the values along the main
-            % diagonal correspond to the square of the uncertainty estimate for
-            % each wavelength channel'
-
-            inputs.measurement.variance(bb,pp) = (modis.EV1km.reflectance(r,c,band_num).* inputs.measurement.uncertainty(bb,pp)).^2;
-
-
-        end
 
         % Create a diagonal matrix where each entry is the variance of that
         % spectral channel for reflectance measurements
@@ -110,8 +95,7 @@ end
 % should be within this uncertainty. Using MODIS, we can compute the
 % RMS uncertainty vector and set this as the convergence limit.
 
-%GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2, 1));        % uncertainty as a decimal
-inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.res1km.linearIndex));  % generic convergence limit
+inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.idx));  % generic convergence limit
 
 
 

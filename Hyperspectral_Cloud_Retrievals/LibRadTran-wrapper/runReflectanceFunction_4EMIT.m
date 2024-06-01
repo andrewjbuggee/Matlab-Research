@@ -121,7 +121,7 @@ end
 toc
 
 
-% Change to the proper MODIS data folder
+% Change to the proper EMIT data folder
 cd(save_calculated_reflectances_folder);
 
 % Check to see that the file exists

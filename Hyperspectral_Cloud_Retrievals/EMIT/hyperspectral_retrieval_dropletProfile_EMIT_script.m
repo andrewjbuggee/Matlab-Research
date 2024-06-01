@@ -110,12 +110,16 @@ tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
 %% Create the Model and Measurement prior
  
 
-inputs = create_model_prior_covariance_andCloudHeight_EMIT(inputs, pixels2use, tblut_retrieval, true);
+inputs = create_model_prior_covariance_EMIT(inputs, pixels2use, tblut_retrieval, true);
 
 inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 
 
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
+
+% Compute the retrieval variables
+[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT(inputs, emit ,pixels2use);
+
 
 
 

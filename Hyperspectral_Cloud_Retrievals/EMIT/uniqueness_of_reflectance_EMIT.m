@@ -750,7 +750,7 @@ while isfile(filename)
         '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'pixels2use.idx');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'pixels2use');
 
 toc
 
