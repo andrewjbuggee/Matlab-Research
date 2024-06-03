@@ -60,13 +60,12 @@ Rl = cell(size(inputFileNames)); % each value here is the spectral reflectance o
 computeReflectivity = false;
 
 
-% step through the band dimension
+% --- step through the band dimension ---
 parfor bb = 1:length(inputFileNames)
-    %for bb = 1:length(inputFileNames)
+ %for bb = 1:length(inputFileNames)
     % --- For now, calculate inputSettings every time ---
 
-    % start by running uvspec for a single pixel, a single band, a
-    % single effective radius an for all opticl depths
+    % run uvSpec across all wavelengths
     [inputSettings] = runUVSPEC(libRadTran_INP_OUT, inputFileNames{bb}, outputFileNames{bb});
 
 

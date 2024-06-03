@@ -6,32 +6,7 @@
 
 function inpNames = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use, emit, wc_filename)
 
-% ------------------------------------------------
-% ---------- INPUTS AND FUNCTION SET UP ----------
-% ------------------------------------------------
 
-
-% what computer are we using?
-
-% a template file has been set up to be edited and saved as a new file
-% determine which computer is being used
-userName = whatComputer;
-
-if strcmp(userName,'anbu8374')
-
-    libRadTran_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4'];
-
-elseif strcmp(userName,'andrewbuggee')
-
-    libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4'];
-
-else
-    error('I dont recognize this computer user name')
-end
-
-
-addpath(libRadTran_path);
 
 %%
 
@@ -46,7 +21,8 @@ addpath(libRadTran_path);
 
 
 
-folder2save = [libRadTran_path,'/',inputs.folder2save.libRadTran_INP_OUT]; % where the newly created .inp files will be saved
+folder2save = [inputs.folder2save.libRadTran_INP_OUT]; % where the newly created .inp files will be saved
+addpath(folder2save);
 
 % If the folder doesn't exist, create it
 if ~exist(folder2save, 'dir')

@@ -42,8 +42,13 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.row = [912, 913];
 % pixels2use.col = [929, 929];
 
+% 17_Jan_2024_coast - optical depth of 6.6
 pixels2use.row = [932];
 pixels2use.col = [960];
+
+% 17_Jan_2024_coast - optical depth of 3.2 and 3.8
+% pixels2use.row = [932, 932];
+% pixels2use.col = [970, 969];
 
 
 % Grab the pixel indices

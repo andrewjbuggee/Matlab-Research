@@ -122,7 +122,7 @@ for pp = 1:num_pixels
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
-            residual{pp}(:,ii) = measurements(idx_not_nan,pp) - measurement_estimate;
+            residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
             rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
 
         else
@@ -134,8 +134,8 @@ for pp = 1:num_pixels
         
 
         % compute the jacobian
-        Jacobian = compute_jacobian_4modis(emit,current_guess,measurement_estimate,inputs,modisInputs,...
-            pixels2use, pp, jacobian_barPlot_flag, idx_not_nan);
+        Jacobian = compute_jacobian_4EMIT(emit,current_guess,measurement_estimate,inputs,...
+            pixels2use, pp, jacobian_barPlot_flag);
 
 
         diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
@@ -150,8 +150,8 @@ for pp = 1:num_pixels
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
+        new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(:,:,pp)^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
 
         % fine the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + new_direction <u
@@ -201,7 +201,7 @@ for pp = 1:num_pixels
             % Use the new guess to compute the rms residual, which is used
             % to detmerine convergence
             new_measurement_estimate = compute_forward_model_4modis(emit, new_guess, inputs,pixels2use, modisInputs, pp)';
-            residual{pp}(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
+            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
 
 
@@ -250,7 +250,7 @@ for pp = 1:num_pixels
             end
             
             % compute the rms_residual for the constrained state vector
-            rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(idx_not_nan,pp), 1, length(a))).^2, 1));
+            rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a))).^2, 1));
             % find the smallest rms residual that is less than the previus
             % itereates rms residual
             [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual{pp}(ii)));
@@ -277,7 +277,7 @@ for pp = 1:num_pixels
             % Select the step length by choosing the a value with the minimumum
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual{pp}(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
+            residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(sum(residual{pp}(:,ii+1).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
@@ -401,9 +401,9 @@ for pp = 1:num_pixels
     
     % we need to compute the jacobian using the solution state
     Jacobian = compute_jacobian_4modis(emit, retrieval{pp}(:,end), new_measurement_estimate, inputs,...
-                    modisInputs, pixels2use, pp, jacobian_barPlot_flag, idx_not_nan);
+                    modisInputs, pixels2use, pp, jacobian_barPlot_flag);
 
-    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *...
+    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) *...
                         Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 
 
