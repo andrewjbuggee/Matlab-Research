@@ -94,8 +94,8 @@ if strcmp(kingORsurf, 'king')==true
         colororder(mySavedColors(1:length(re),'fixed'));
 
         % Now plot the EMIT measurement on top
-        plot(emit.reflectance(inputs.bands2run(1),pp),emit.reflectance(inputs.bands2run(2),pp), 'x',...
-            'MarkerSize',10, 'Color','black');
+        plot(emit.reflectance.value(inputs.bands2run(1),pp),emit.reflectance.value(inputs.bands2run(2),pp),...
+            'x', 'MarkerSize',10, 'Color','black');
 
 
         % ------ Plot lines of constant optical depth ------
@@ -110,10 +110,12 @@ if strcmp(kingORsurf, 'king')==true
 
             % add line label on plot
             if tt==1
-                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",20, "FontWeight","bold")
+                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",...
+                    25, "FontWeight","bold")
                 hold on
             else
-                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",20, "FontWeight","bold")
+                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",...
+                    25, "FontWeight","bold")
                 hold on
             end
 
@@ -124,14 +126,16 @@ if strcmp(kingORsurf, 'king')==true
 
         % Add text to indicate the black lines are lines of constant optical
         % thickness
-        text(1.05*x(end), 0.85*y(end), '$\tau_c$','Interpreter','latex',"FontSize",20, "FontWeight","bold")
+        text(1.05*x(end), 0.85*y(end), '$\tau_c$','Interpreter','latex',"FontSize",25, "FontWeight","bold")
 
 
 
         % set up plot stuff
         grid on; grid minor
-        xlabel(['Reflectance ', num2str(round(emit.radiance.wavelength(inputs.bands2run(1)))), ' $nm$'],Interpreter='latex')
-        ylabel(['Reflectance ', num2str(round(emit.radiance.wavelength(inputs.bands2run(2)))), ' $nm$'],Interpreter='latex')
+        xlabel(['Reflectance ', num2str(round(emit.radiance.wavelength(inputs.bands2run(1)))), ' $nm$'],...
+            Interpreter='latex', FontSize=30)
+        ylabel(['Reflectance ', num2str(round(emit.radiance.wavelength(inputs.bands2run(2)))), ' $nm$'],...
+            Interpreter='latex', FontSize=30)
 
         % Create textbox
     annotation('textbox',[0.305 0.159443176631675 0.387963790893555 0.0485714285714286],...
@@ -149,7 +153,7 @@ if strcmp(kingORsurf, 'king')==true
         % set the last string entry to be MODIS value
         legend_str{end} = 'EMIT';
 
-        legend(legend_str, 'Interpreter','latex','Location','best' , 'FontSize', 20, 'FontWeight','bold')
+        legend(legend_str, 'Interpreter','latex','Location','best' , 'FontSize', 25, 'FontWeight','bold')
         title('Simulated Reflectance','Interpreter','latex')
         set(gcf,"Position", [0 0 1200 700])
 
