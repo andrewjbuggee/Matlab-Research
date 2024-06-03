@@ -9,10 +9,10 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 7:10;       % microns
-r_bot = 4:5;        % microns
+r_top = 3:20;       % microns
+r_bot = 1:14;        % microns
 
-tau_c = 5:5:15;
+tau_c = [6,7];
 
 % r_top = 6:2:12;       % microns
 % r_bot = 4:2:10;        % microns
@@ -68,13 +68,13 @@ end
 % -------------------------------------
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisFolder = '2008_11_09/';
+%modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
 %modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisFolder = '2008_11_11_1850/';
+modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
 
 
 
@@ -83,8 +83,8 @@ modisFolder = '2008_11_09/';
 
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
-modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
-%modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
+%modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
+modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS     
 %modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
 
 %% Grab the MODIS reflectances for the pixel used
@@ -125,7 +125,7 @@ source_file_resolution = 1;           % nm
 
 % Define the spectral response function
 % ------------------------------------------------------------------------
-spec_response = modis_terra_specResponse_func(band_num, source_file_resolution);
+spec_response = modis_aqua_specResponse_func(band_num, source_file_resolution);
 
 
 % define the wavelength range. If monochromatic, enter the same number

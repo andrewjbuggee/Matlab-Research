@@ -103,7 +103,8 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 % --- Create plot ---
 
 figure;
-plot(emit.radiance.wavelength, emit.reflectance.value)
+plot(emit.radiance.wavelength, emit.reflectance.value, '.-', 'MarkerSize', 20,...
+    'LineWidth',1, 'Color', mySavedColors(3, 'fixed'))
 xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
 ylabel('Reflectance ($1/sr$)', Interpreter='latex', FontSize=30)
 grid on; grid minor
