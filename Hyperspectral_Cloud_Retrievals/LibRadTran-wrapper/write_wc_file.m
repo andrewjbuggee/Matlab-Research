@@ -195,32 +195,32 @@ end
 % outside the bounds of the Hu and Stamnes or Mie Interpolate
 % parameterization
 if size(re,1)>1 && size(re,2)>1
-    if any(any(re<2.5)) || any(any(re>60))
+    if strcmp(parameterization_str, 'hu')==true && any(any(re<2.5)) || any(any(re>60))
         warning([newline, 'At least one value in r_{e} is outside the range of the Hu and Stamnes parameterization',newline,...
             'This is the default parameterization used to convert water cloud parameters to optical properites.',newline,...
             'The range of acceptable values for this parameterization is [2.5, 60] microns.',newline]);
     end
 
-    if any(any(re>25))
+    if strcmp(parameterization_str, 'mie')==true && any(any(re<1)) || any(any(re>25))
         warning([newline,'At least one value in r_{e} is greater than 25 microns, which is the upper limit',...
             ' to the Mie Interpolate parameterization that computes optical properties from the water cloud ',...
             'parameters. The netcdf file downloaded from LibRadTrans website includes values of re up to',...
-            ' 25 microns. The acceptable range for Mie Interpolation is [1, 25] micorns.',newline]);
+            ' 25 microns. The acceptable range for Mie Interpolation is [1, 25] microns.',newline]);
     end
 
 else
 
-    if any(re<2.5) || any(re>60)
+    if strcmp(parameterization_str, 'hu')==true && any(re<2.5) || any(re>60)
         warning([newline, 'At least one value in r_{e} is outside the range of the Hu and Stamnes parameterization',newline,...
             'This is the default parameterization used to convert water cloud parameters to optical properites.',newline,...
             'The range of acceptable values for this parameterization is [2.5, 60] microns.',newline]);
     end
 
-    if any(re>25)
+    if strcmp(parameterization_str, 'mie')==true && any(any(re<1)) || any(any(re>25))
         warning([newline,'At least one value in r_{e} is greater than 25 microns, which is the upper limit',...
             ' to the Mie Interpolate parameterization that computes optical properties from the water cloud ',...
             'parameters. The netcdf file downloaded from LibRadTrans website includes values of re up to',...
-            ' 25 microns. The acceptable range for Mie Interpolation is [1, 25] micorns.',newline]);
+            ' 25 microns. The acceptable range for Mie Interpolation is [1, 25] microns.',newline]);
     end
 
 end

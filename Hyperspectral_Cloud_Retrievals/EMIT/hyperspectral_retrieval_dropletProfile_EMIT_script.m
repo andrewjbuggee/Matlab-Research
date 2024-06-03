@@ -43,12 +43,16 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [929, 929];
 
 % 17_Jan_2024_coast - optical depth of 6.6
-pixels2use.row = [932];
-pixels2use.col = [960];
+% pixels2use.row = [932];
+% pixels2use.col = [960];
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
 % pixels2use.col = [970, 969];
+
+% 17_Jan_2024_coast - optical depth of 3.2
+pixels2use.row = [932];
+pixels2use.col = [970];
 
 
 % Grab the pixel indices
@@ -125,6 +129,8 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 % Compute the retrieval variables
 [retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT(inputs, emit ,pixels2use);
 
-
+% --- save the output ---
+ save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
+        "inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
 
 

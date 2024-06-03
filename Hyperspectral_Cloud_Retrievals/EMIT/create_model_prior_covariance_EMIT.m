@@ -98,7 +98,7 @@ else
     for nn = 1:num_pixels_2run
 
 
-        %bayes_inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
+        %inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
 
         % set the apriori value of cloud bottom radius as some
         % percentage of the value at the top of the cloud.
@@ -126,7 +126,11 @@ else
         % Set the uncertainty of the radius at cloud top to be the
         % retireval uncertainty
 
-        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];
+        %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];
+%         stdev_variables = [inputs.model.apriori(1)*0.1, inputs.model.apriori(2)*0.3,...
+%             inputs.model.apriori(3)*0.05];
+        stdev_variables = [sqrt(0.1), sqrt(0.1), sqrt(0.1)];
+
 
         % variance for the effective radius (microns squared) and optical thickness respectively
         inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];

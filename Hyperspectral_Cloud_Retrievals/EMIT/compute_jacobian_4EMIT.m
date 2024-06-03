@@ -48,7 +48,7 @@ tau_c = state_vector(3);
 
 %change_in_state = [0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c];
 %change_in_state = [0.03 * r_top, 0.25 * r_bottom, 0.04 * tau_c];        % values that just exceed measurement uncertainty for the Nov 2009 data set
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c]; 
+change_in_state = [0.05 * r_top, 0.2 * r_bottom, 0.025 * tau_c]; 
 % ----------------------------------------------------------------
 
 
@@ -149,21 +149,28 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
-    
-    spectral_bands = zeros(1,length(inputs.spec_response));
-    for bb = 1:length(inputs.spec_response)
 
-        spectral_bands(bb) = round(median(inputs.spec_response{bb}(:,1)));
+    spectral_bands = zeros(1,length(inputs.bands2run));
+    for bb = 1:length(inputs.bands2run)
+
+        spectral_bands(bb) = round(median(emit.spec_response.wavelength{inputs.bands2run(bb)}));
+
     end
-    [~, index_sort] = sort(spectral_bands);
-    string_bands = string(spectral_bands(index_sort));
+
+    % turn the spectral channels into a string array
+    string_bands = string(spectral_bands);
+
+    % create a categorical array
+    string_bands_cat = categorical(string_bands);
+    % reorder the categorical array to fix the order of the bar chart
+    string_bands_cat_reorder = reordercats(string_bands_cat, string_bands);
 
 
-    f = figure; bar(abs(change_in_measurement(index_sort,:)))
+    f = figure; bar(string_bands_cat_reorder, abs(change_in_measurement))
     hold on;
-    plot(sqrt(measurement_variance(index_sort)), 'k--')
+    plot(sqrt(measurement_variance), 'k--')
     hold on
-    xticklabels(string_bands);
+
     xlabel('Wavelength $(nm)$', 'Interpreter','latex')
     ylabel('$\triangle$ Reflectance','Interpreter','latex')
     legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
