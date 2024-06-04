@@ -932,6 +932,30 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
+%% Plot the EMIT measured reflectance and the Calculated reflectance associated with the minimum RMS residual
+
+figure; 
+
+% plot a one-to-one line
+plot(linspace(0.95 * min([R_modis'; min_Refl_model_fine]), max(1.05 * [R_modis'; min_Refl_model_fine]), 100), ...
+    linspace(min(0.95 * [R_modis'; min_Refl_model_fine]), max(1.05 * [R_modis'; min_Refl_model_fine]), 100),...
+    'k', 'linewidth', 1)
+
+hold on
+
+% plot the MODIs reflectance against the forward model estimate of
+% reflectance
+errorbar(R_modis, min_Refl_model_fine, R_uncert_modis, 'horizontal', '.',...
+    'markersize', 30, 'Color', mySavedColors(1, 'fixed'))
+xlabel('MODIS Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title(['RMS = ', num2str(min_val(1))], 'Interpreter', 'latex', 'Fontsize', 35);
+grid on; grid minor
+
+
+
+% set figure size
+set(gcf, 'Position', [0 0 700 700])
 
 
 
@@ -942,7 +966,14 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
-%%  PLOTS BELOW AREN'T AS IMPORTANT
+%% ********  PLOTS BELOW AREN'T AS IMPORTANT ************
+
+
+
+
+
+
+
 
 
 

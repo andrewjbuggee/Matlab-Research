@@ -507,6 +507,7 @@ end
 
 
 retrieval_output.variables = retrieval;
+retrieval_output.computed_reflectance = new_measurement_estimate;
 retrieval_output.residual = residual;
 retrieval_output.rms_residual = rms_residual;
 retrieval_output.diff_guess_prior = diff_guess_prior;

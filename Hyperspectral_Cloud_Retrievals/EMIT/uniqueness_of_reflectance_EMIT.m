@@ -9,10 +9,10 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-r_top = 5:15;       % microns
-r_bot = 4:10;        % microns
+r_top = 3:20;       % microns
+r_bot = 1:14;        % microns
 
-tau_c = [1,2,3,5,7,10];
+tau_c = [6,7];
 
 % r_top = 11;       % microns
 % r_bot = 5;        % microns
@@ -69,7 +69,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
 end
 
-
+%%
 % -------------------------------------
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
@@ -93,19 +93,31 @@ emitFolder = '17_Jan_2024_coast/';
 % col = 929;
 
 % 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = [932];
-% pixels2use.col = [960];
+pixels2use.row = 932;
+pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
-pixels2use.row = [932];
-pixels2use.col = [970];
+% pixels2use.row = [932];
+% pixels2use.col = [970];
 
 % Grab the pixel indices
 pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 
-%% Grab the EMIT radiances for the pixel used
-Rad_emit = reshape(emit.radiance.measurements(pixels2use.row, pixels2use.col, :), [],1);      % microW/cm^2/nm/sr
 
+%% Remove data that is not needed
+
+emit = remove_unwanted_emit_data(emit, pixels2use);
+
+
+%% Grab the EMIT radiances
+Rad_emit = emit.radiance.measurements;      % microW/cm^2/nm/sr
+
+
+%% Compute the radiance measurement uncertainty 
+
+emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
+
+Rad_emit_uncertainty = emit.radiance.uncertainty;
 
 %% Define the parameters of the INP file
 
@@ -304,7 +316,7 @@ end
 
 
 % define the solar zenith angle
-sza = double(emit.obs.solar.zenith(pixels2use.idx));           % degree
+sza = double(emit.obs.solar.zenith);           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -312,10 +324,10 @@ sza = double(emit.obs.solar.zenith(pixels2use.idx));           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-phi0 = mod(double(emit.obs.solar.azimuth(pixels2use.idx) + 180), 360);         % degree
+phi0 = mod(double(emit.obs.solar.azimuth + 180), 360);         % degree
 
 % define the viewing zenith angle
-vza = double(emit.obs.sensor.zenith(pixels2use.idx)); % values are in degrees;                        % degree
+vza = double(emit.obs.sensor.zenith); % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -324,7 +336,7 @@ vza = double(emit.obs.sensor.zenith(pixels2use.idx)); % values are in degrees;  
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-vaz = emit.obs.sensor.azimuth(pixels2use.idx);     % degree
+vaz = emit.obs.sensor.azimuth;     % degree
 
 
 % --------------------------------------------------------------
@@ -364,10 +376,30 @@ compute_reflectivity_uvSpec = false;
 
 
 
-%% Delete the EMIT data that isn't being used
 
-emit = remove_unwanted_emit_data(emit, pixels2use);
+%% Convert radiance measurements to TOA reflectance for the desired pixels
 
+% First we need the spectral response functions
+% create the spectral response functions
+% define the source file using the input resolution
+inputs.RT.source_file_resolution = source_file_resolution;
+emit.spec_response = create_EMIT_specResponse(emit, inputs);
+
+% Next we need the source function
+% ********* IMPORTANT *************
+% The source flux is integrated with the EMIT spectral response function
+inputs = define_source_for_EMIT(inputs, emit);
+
+emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
+
+% store the refletance
+Refl_emit = emit.reflectance.value(wavelength_idx);
+
+% Compute the reflectance uncertainty
+
+emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
+
+Refl_emit_uncertainty = emit.reflectance.uncertainty(wavelength_idx);
 
 
 %% Write each INP file and Calculate Reflectance for MODIS
@@ -380,7 +412,6 @@ wc_filename = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,
 Rad_model = zeros(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 Refl_model = zeros(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 
-Refl_emit = zeros(size(Rad_emit));
 
 tic
 for rt = 1:length(r_top)
@@ -674,17 +705,6 @@ for rt = 1:length(r_top)
                 % units of micro-watts/cm^2/sr/nm
 
                 Rad_model(rt, rb, tc, ww) = Rad_model(rt, rb, tc, ww)/(ds.wavelength(end)-ds.wavelength(1));       % microW/cm^2/nm/sr
-
-                % Convert the EMIT radiance into reflectance
-                if rt==1 && rb==1 && tc==1
-                    
-                    % The source function has units of W/m^2/nm
-                    % Multiply by 100 to convert it into units of microW/cm^2/nm
-                    Refl_emit(ww) = pi*Rad_emit(ww)/(cosd(inputSettings{2,4}) * ...
-                        trapz(inputSettings{2,7}(:,1), spec_response{ww} .* (inputSettings{2,7}(:,2).*100)));
-
-                end
-
 
 
 
@@ -1539,6 +1559,27 @@ plot(linspace(min([Refl_emit; min_val]), max([Refl_emit; min_val]), 1000), ...
 
 % set figure size
 set(gcf, 'Position', [0 0 1200 700])
+
+
+figure;
+
+plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
+hold on
+errorbar(Refl_emit, min_Refl_model_fine, emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
+    'Color', mySavedColors(1, 'fixed'))
+
+xlim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance])])
+ylim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance])])
+grid on; grid minor
+
+xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title('Reflectance Comparison', 'Interpreter', 'latex', 'Fontsize', 35);
+
+% set figure size
+set(gcf, 'Position', [0 0 800 800])
 
 
 

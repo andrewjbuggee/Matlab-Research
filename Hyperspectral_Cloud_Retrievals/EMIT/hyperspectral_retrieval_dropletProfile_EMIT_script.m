@@ -134,3 +134,32 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
         "inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
 
 
+%% Make plot of the retrieved profile
+
+plot_EMIT_retrieved_vertProf(emit, retrieval, tblut_retrieval)
+
+%% Make plot comparing the estimate of reflectance from the retrieved variables and the true measurements
+
+figure;
+
+% plot a one-to-one line
+plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
+hold on
+
+% plot the emit reflectance versus the forward model computed reflectance
+errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.calculated_reflectance,...
+    emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
+    'Color', mySavedColors(1, 'fixed'))
+
+xlim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance])])
+ylim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.calculated_reflectance])])
+grid on; grid minor
+
+xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title(['RMS = ', num2str(retrieval.rms_residual{1}(end))], 'Interpreter', 'latex', 'Fontsize', 35);
+
+% set figure size
+set(gcf, 'Position', [0 0 700 700])
