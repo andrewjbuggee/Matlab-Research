@@ -56,7 +56,7 @@ for pp = 1:numPixels
 
     % grab the observations for the pair of bands desired for the
     % retrieval
-    observations = emitRefl(bands2run, :);     % 1/sr - reflectance
+    observations = emitRefl.value(bands2run', :);     % 1/sr - reflectance
 
     if iscell(modelRefl) == true
 
