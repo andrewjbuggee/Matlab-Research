@@ -37,7 +37,9 @@ z_top = inputs.RT.cloudTop_height(pp);        % km -  cloud top height
 
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 
-indVar = 'altitude';                    % string that tells the code which independent variable we used
+tau = linspace(0, tau_c, n_layers);            % optical depth vector
+
+indVar = 'optical_depth';                    % string that tells the code which independent variable we used
 
 % constraint - the physical constraint (string) - there are four
 %       different string options for a physical constraint:
@@ -55,7 +57,7 @@ constraint = profile_type;              % string that tells the code which physi
 
 
 
-re = create_droplet_profile2_top_middle([r_top, r_middle], z, indVar, constraint);     % microns - effective radius vector
+re = create_droplet_profile2_top_middle([r_top, r_middle], z, tau, indVar, constraint);     % microns - effective radius vector
 
 
 % Set the droplet distribution type
