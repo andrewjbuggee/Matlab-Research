@@ -7,14 +7,14 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4EMIT(emit, current_guess, inputs, pixels2use, pp)
+function measurement_estimate = compute_forward_model_4EMIT_top_middle(emit, current_guess, inputs, pixels2use, pp)
 
 % Define some needed folder and file names
 INP_folderName = inputs.folder2save.libRadTran_INP_OUT;      % Where to save the INP files
 
 % --- compute the forward model at our current estimate ---
 r_top = current_guess(1);
-r_bottom = current_guess(2);
+r_middle = current_guess(2);
 tau_c = current_guess(3);
 
 
@@ -55,7 +55,7 @@ constraint = profile_type;              % string that tells the code which physi
 
 
 
-re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
+re = create_droplet_profile2_top_middle([r_top, r_middle], z, indVar, constraint);     % microns - effective radius vector
 
 
 % Set the droplet distribution type

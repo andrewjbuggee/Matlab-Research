@@ -68,7 +68,8 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_hyperspectral(emitDataFolder, folder2save, L1B_fileName, emit);
+%inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit);
+inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
 
@@ -119,7 +120,8 @@ tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
 %% Create the Model and Measurement prior
  
 
-inputs = create_model_prior_covariance_EMIT(inputs, pixels2use, tblut_retrieval, true);
+%inputs = create_model_prior_covariance_EMIT_top_bottom(inputs, pixels2use, tblut_retrieval, true);
+inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
 
 inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 
@@ -127,7 +129,8 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
 % Compute the retrieval variables
-[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT(inputs, emit ,pixels2use);
+%[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit ,pixels2use);
+[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
 % --- save the output ---
  save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...

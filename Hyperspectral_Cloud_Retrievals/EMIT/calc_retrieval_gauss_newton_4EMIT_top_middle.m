@@ -1,7 +1,7 @@
 
 
 
-function [retrieval_output, inputs] = calc_retrieval_gauss_newton_4EMIT(inputs, emit, pixels2use)
+function [retrieval_output, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit, pixels2use)
 
 
 % ----- unpack inputs -----
@@ -86,7 +86,6 @@ for pp = 1:num_pixels
     % approach and the hyperspectal approach
 
     % define the initial guess
-    % Here we define it to be the same re retireved for r_top and r_bottom
     retrieval{pp}(:,1) = initialGuess(:,pp);
 
     % -----------------------------------------------
@@ -117,7 +116,7 @@ for pp = 1:num_pixels
             % we compute the forward model at our previous estimate of the state vector
             % Therefore, we ask, 'what is the reflectance of a cloud with our
             % current state vector guess?'
-            measurement_estimate = compute_forward_model_4EMIT(emit, current_guess,inputs, pixels2use, pp)';
+            measurement_estimate = compute_forward_model_4EMIT_top_middle(emit, current_guess,inputs, pixels2use, pp)';
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -134,7 +133,7 @@ for pp = 1:num_pixels
         
 
         % compute the jacobian
-        Jacobian = compute_jacobian_4EMIT(emit,current_guess,measurement_estimate,inputs,...
+        Jacobian = compute_jacobian_4EMIT_top_bottom(emit,current_guess,measurement_estimate,inputs,...
             pixels2use, pp, jacobian_barPlot_flag);
 
 
@@ -217,7 +216,7 @@ for pp = 1:num_pixels
 
             % Use the new guess to compute the rms residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = compute_forward_model_4EMIT(emit, new_guess, inputs, pixels2use, pp)';
+            new_measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, new_guess, inputs, pixels2use, pp)';
             residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
             rms_residual{pp}(ii+1) = sqrt(mean(residual{pp}(:,ii+1).^2));
 
@@ -262,7 +261,7 @@ for pp = 1:num_pixels
             % measurement vector is less than the previous RMS difference
             constrained_measurement_estimate = zeros(num_bands, length(a));
             for mm = 1:length(a)
-                constrained_measurement_estimate(:,mm) = compute_forward_model_4EMIT(emit, constrained_guesses(:,mm),...
+                constrained_measurement_estimate(:,mm) = compute_forward_model_4EMIT_top_bottom(emit, constrained_guesses(:,mm),...
                     inputs, pixels2use, pp)';
             end
             
@@ -445,7 +444,7 @@ for pp = 1:num_pixels
     % First compute the latest measurement estimate
     
     % we need to compute the jacobian using the solution state
-    Jacobian = compute_jacobian_4EMIT(emit, retrieval{pp}(:,end), new_measurement_estimate, inputs,...
+    Jacobian = compute_jacobian_4EMIT_top_bottom(emit, retrieval{pp}(:,end), new_measurement_estimate, inputs,...
                     pixels2use, pp, jacobian_barPlot_flag);
 
     posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) *...

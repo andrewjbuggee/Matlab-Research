@@ -5,7 +5,7 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4EMIT(emit, state_vector, measurement_estimate, inputs,...
+function jacobian = compute_jacobian_4EMIT_top_bottom(emit, state_vector, measurement_estimate, inputs,...
     pixels2use, pp, jacobian_barPlot_flag)
 
 

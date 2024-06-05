@@ -1,11 +1,13 @@
 %% Create the model covariance matrix and define the a priori guesses
 
+% Use for retrieving droplet size at cloud top and half the cloud optical
+% depth
 
 % By Andrew John Buggee
 
 %%
 
-function [inputs] = create_model_prior_covariance_EMIT(inputs, pixels2use, tblut_retrieval,use_TBLUT_estimates)
+function [inputs] = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval,use_TBLUT_estimates)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -98,14 +100,12 @@ else
     for nn = 1:num_pixels_2run
 
 
-        %inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
-
-        % set the apriori value of cloud bottom radius as some
+        % set the apriori value of cloud middle radius as some
         % percentage of the value at the top of the cloud.
         % Using in-situ measurements of non-precipitating clouds,
-        % the median value of droplet size at cloud bottom was
-        %  70% the value at cloud top. This is r_bot = 0.7058*r_top
-        inputs.model.apriori(nn,:) = [tblut_retrieval.minRe(nn), 0.7058*tblut_retrieval.minRe(nn),...
+        % the median value of droplet size at cloud middle was
+        %  about 85% the value at cloud top. This is r_middle = 0.85*r_top
+        inputs.model.apriori(nn,:) = [tblut_retrieval.minRe(nn), 0.85*tblut_retrieval.minRe(nn),...
             tblut_retrieval.minTau(nn)];
 
 
@@ -113,7 +113,7 @@ else
         % Using the same values defined by King and Vaughn (2012)
         % King and Vaughn define the standard deviation of each variable...
         % The first two values are the standard deviation of the effective
-        % radius at the top of the cloud and the bottom of the cloud, measured
+        % radius at the top of the cloud and the middle of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
 
@@ -129,7 +129,7 @@ else
         %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];
 %         stdev_variables = [inputs.model.apriori(1)*0.1, inputs.model.apriori(2)*0.3,...
 %             inputs.model.apriori(3)*0.05];
-        stdev_variables = [sqrt(0.1), sqrt(0.1), sqrt(0.1)];
+        stdev_variables = [sqrt(0.1), sqrt(0.5), sqrt(0.1)];
 
 
         % variance for the effective radius (microns squared) and optical thickness respectively

@@ -18,7 +18,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_hyperspectral(emitDataFolder, folder2save, L1B_fileName, emit)
+function inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit)
 
 
 % --- SAVE THE EMIT FILE NAME ----
