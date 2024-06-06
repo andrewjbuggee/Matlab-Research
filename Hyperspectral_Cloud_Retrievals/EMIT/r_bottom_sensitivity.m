@@ -22,7 +22,7 @@ emitDataFolder = '17_Jan_2024_coast/';
 % -------------------------------------
 
 
-%% Load EMIT data and define folders 
+%% Load EMIT data and define folders
 
 [emitDataPath, folder2save] = define_EMIT_dataPath_and_saveFolders();
 
@@ -94,7 +94,7 @@ inputs = define_source_for_EMIT(inputs, emit);
 emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 
-%% Compute the radiance measurement uncertainty 
+%% Compute the radiance measurement uncertainty
 
 emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
 
@@ -104,14 +104,35 @@ emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
 emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
 
 
-%% Compute the change in the reflectance
+%% Define the state vector
 
-% define the current state vector [r_top, r_bottom, tau_c]
-state_vector = [12, 6, 3];
+% define the state vector [r_top, r_bottom, tau_c]
+r_top_bottom = [12, 6];
+tau_vector = 3:2:11;
 
-% Compute the reflectances for the above state vector
-measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, state_vector, inputs, pixels2use, 1)';
 
-measurement_change = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector, measurement_estimate, inputs,...
-    pixels2use, pp, false);
+%% compute the refltances for the state vector and compute the change due to a changing r_bottom
+
+% Step through different optical depths and compute the measurement change
+measurement_estimate = zeros(length(inputs.bands2run), length(tau_vector));
+measurement_change = cell(1, length(tau_vector));
+
+for tt = 1:length(tau_vector)
+
+    tic
+    % define the current state vector [r_top, r_bottom, tau_c]
+    state_vector = [r_top_bottom, tau_vector(tt)];
+
+    % Compute the reflectances for the above state vector
+    measurement_estimate(:,tt) = compute_forward_model_4EMIT_top_bottom(emit, state_vector, inputs, pixels2use, 1)';
+
+    measurement_change{tt} = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector, measurement_estimate(:,tt), inputs,...
+        pixels2use, 1);
+
+    disp([newline, 'Iteration: Tau_c = ',num2str(tt), '/', num2str(length(tau_vector)), ...
+        ', Time to run was: ', num2str(toc), ' sec', newline])
+
+end
+
+
 
