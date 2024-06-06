@@ -17,7 +17,7 @@ clear variables
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-solar_zenith_angle = 0;                  % deg from zenith
+solar_zenith_angle = 19.57;                  % deg from zenith
 
 
 % Define a set of wavelengths
@@ -26,10 +26,49 @@ solar_zenith_angle = 0;                  % deg from zenith
 
 % define a wavelengths
 %wavelength = [469, 555, 645, 859, 1240, 1640, 2130, 1000, 2000];  % center wavelength of the 7th MODIS band
-wavelength = [555];  % center wavelength of the 7th MODIS band
+%wavelength = [555];  % center wavelength of the 7th MODIS band
+% --- EMIT wavelenghts used in retrieval ----
+wavelength = [499.771423339844
+551.866699218750
+611.462219238281
+671.097534179688
+768.055725097656
+872.517578125000
+1014.29498291016
+1036.67773437500
+1044.13830566406
+1245.51538085938
+1252.97241210938
+1260.42834472656
+1267.88330078125
+1275.33923339844
+1558.43286132813
+1565.87658691406
+1573.31933593750
+1580.76208496094
+1588.20495605469
+1595.64672851563
+1603.08862304688
+1610.52954101563
+1617.97045898438
+1625.41040039063
+1632.85131835938
+1640.29028320313
+1647.73034667969
+1655.16943359375
+1662.60742187500
+2063.69653320313
+2130.41748046875
+2226.71948242188
+2234.12329101563
+2241.52685546875
+2248.92968750000
+2256.33276367188
+2263.73461914063];
+% -----------------------
 
 % Define a set of optical depths
-%Tau = [2, 4, 16, 32];
+Tau = 3.2;
 
 %%
 for vv = 1:length(wavelength)
@@ -58,10 +97,13 @@ for vv = 1:length(wavelength)
     else
         error('I dont recognize this computer user name')
     end
+    
+    % Store the wavelength
+    inputs.wavelength = wavelength(vv);
 
     % Define the boundaries of the medium
     inputs.tau_y_lower_limit = 0;
-    inputs.tau_y_upper_limit = 6.5;
+    inputs.tau_y_upper_limit = Tau;
 
     % Define the albedo of the bottom boundary (tau upper limit)
     inputs.albedo_maxTau = 0;
@@ -73,7 +115,7 @@ for vv = 1:length(wavelength)
 
 
     % Define the number of photons to inject into the medium
-    inputs.N_photons = 1e5;
+    inputs.N_photons = 2e5;
 
 
     % ----------------------------------------------------------------------
@@ -387,7 +429,7 @@ for vv = 1:length(wavelength)
     % scattered out the cloud top, and plot the probability of a photon being
     % absorbed at a depth tau given that it was absorbed.
 
-    plot_probability_absANDscatTop_maxDepth(inputs, final_state, photon_tracking, 'pdf')
+    %plot_probability_absANDscatTop_maxDepth(inputs, final_state, photon_tracking, 'pdf')
 
 
 
