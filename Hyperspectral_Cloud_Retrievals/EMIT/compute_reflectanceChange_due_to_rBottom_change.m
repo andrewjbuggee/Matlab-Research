@@ -1,11 +1,11 @@
-% --- Compute Jacobian matrix for EMIT channels-----
+% --- Compute change in reflectance due to a change in the radius at cloud bottom for EMIT channels-----
 
 
 
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4EMIT_top_bottom(emit, state_vector, measurement_estimate, inputs,...
+function measurement_change = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector, measurement_estimate, inputs,...
     pixels2use, pp, jacobian_barPlot_flag)
 
 
@@ -14,7 +14,7 @@ measurement_variance = inputs.measurement.variance(:,pp);
 
 
 
-% --- compute the Jacobian at out current estimate ---
+% --- compute the measurement change at a specific state vector ---
 r_top = state_vector(1);
 r_bottom = state_vector(2);
 tau_c = state_vector(3);
@@ -23,10 +23,9 @@ tau_c = state_vector(3);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-%change_in_state = [0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c];
-%change_in_state = [0.03 * r_top, 0.25 * r_bottom, 0.04 * tau_c];        % values that just exceed measurement uncertainty for the Nov 2009 data set
-change_in_state = [0.05 * r_top, 0.2 * r_bottom, 0.025 * tau_c]; 
-% ----------------------------------------------------------------
+change_in_r_bottom = 0.1:0.1:1;       % microns
+ 
+% ---------------------------------------------------------
 
 
 
@@ -64,34 +63,26 @@ parameterization_str = inputs.RT.parameterization_str;
 wavelength_tau_c = emit.radiance.wavelength(inputs.bands2run(1));    % nm - Wavelength used for cloud optical depth calculation
 
 % Lets step through each model variable and compute the derivative
-jacobian = zeros(length(measurement_estimate), num_model_parameters);
-change_in_measurement = zeros(length(measurement_estimate), num_model_parameters);
+change_in_measurement = zeros(length(measurement_estimate), length(change_in_r_bottom));
 
-% ----- Let's define the 3 new state vectors -----
-% each new state vector perturbs one variable only
+% ----- Determine when we have a change in our measurement above the uncertainty -----
 
 
-for xx = 1:num_model_parameters
+for xx = 1:length(change_in_measurement)
     
-    % We start with the original state vector
-    newState_vector = state_vector;
+    % add to the radius at cloud bottom
+    new_r_bottom = r_bottom + change_in_r_bottom(xx);       % microns
+
+    % ------------------------------------------------
+    % create water cloud file with new droplet profile
+    % ------------------------------------------------
     
-    % Then we alter just one of them
-    newState_vector(xx) = state_vector(xx) + change_in_state(xx);
-    
-    new_r_top = newState_vector(1);
-    new_r_bottom = newState_vector(2);
-    new_tau_c = newState_vector(3);
-    % --------------------------------------------
-    % create water cloud file with droplet profile
-    % --------------------------------------------
-    
-    new_re = create_droplet_profile2([new_r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
+    new_re = create_droplet_profile2([r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
     
     
     loop_var = 0;
 
-    wc_filename = write_wc_file(new_re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist_str,...
+    wc_filename = write_wc_file(new_re, tau_c, z_topBottom, wavelength_tau_c(1,1), dist_str,...
         dist_var, vert_homogeneous_str, parameterization_str, loop_var);
     
     
@@ -106,9 +97,7 @@ for xx = 1:num_model_parameters
     [new_measurement_estimate,~] = runReflectanceFunction_4EMIT_gaussNewton(names, inputs, emit.spec_response.value);
     
     change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
-
-    jacobian(:,xx) = change_in_measurement(:,xx)./change_in_state(xx);
-
+    
 
     
 end
