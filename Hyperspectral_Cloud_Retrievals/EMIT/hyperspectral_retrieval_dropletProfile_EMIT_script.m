@@ -35,8 +35,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 %modis_idx = 110292;     % for 9 nov 2008
 
 % 17_Jan_2024_coast - large optical depth
-% row = 1112;
-% col = 974;
+pixels2use.row = 1112;
+pixels2use.col = 974;
 
 % 17_Jan_2024_coast - small optical depth
 % pixels2use.row = [912, 913];
@@ -51,8 +51,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [970, 969];
 
 % 17_Jan_2024_coast - optical depth of 3.2
-pixels2use.row = [932];
-pixels2use.col = [970];
+% pixels2use.row = [932];
+% pixels2use.col = [970];
 
 
 % Grab the pixel indices
@@ -68,8 +68,8 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-%inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit);
-inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
+inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit);
+%inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
 
@@ -108,7 +108,6 @@ emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs
 tic
 inputs = check_EMIT_therodynamic_phase(emit, inputs);
 toc
-
 
 
 

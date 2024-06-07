@@ -114,6 +114,17 @@ grid on; grid minor
 % set figure size
 set(gcf, 'Position', [0 0 1200 650])
 
+% Zoom in
+xlim([1400, 1800])
+
+% add the simualted reflectance and phase determination
+inputs = check_EMIT_therodynamic_phase(emit, inputs);
+hold on;
+plot(inputs.phase.wavelength_grid, inputs.phase.reflectance_sim, 'Color',...
+    mySavedColors(3, 'fixed'))
+legend('EMIT Reflectance', 'Simulated Reflectance', 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', 25)
+
 
 %%         RAW WEIGHTING FUNCTIONS
 

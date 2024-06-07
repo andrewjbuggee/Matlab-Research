@@ -51,7 +51,8 @@ wavelength_center_emit = emit.radiance.wavelength(wavelength_idx);       % nm
 % resolution wavelength grid that can be down sampled later to match the
 % wavelength grid of EMIT measurements. Make sure the grid is bounded by
 % the wavelengths on the EMIT wavelength grid
-wavelength_grid_fine = wavelength_center_emit(1):wavelength_center_emit(end);  % nm
+grid_resolution = 1;        % nm
+wavelength_grid_fine = wavelength_center_emit(1):grid_resolution:wavelength_center_emit(end);  % nm
 
 %% Using Mie theory, compute the absorption coefficients
 
@@ -361,9 +362,13 @@ reflectance_sim = G_fine*x;
 reflectance_sim = exp(-reflectance_sim);
 
 % --- Store the retrieved values of the effective water thickness ---
-inputs.RT.effectiveWaterThickness.liquid = x(4,:);      % liquid water thickness in cm
-inputs.RT.effectiveWaterThickness.ice = x(5,:);      % ice water thickness in cm
-inputs.RT.effectiveWaterThickness.vapor = x(6,:);      % water vapor thickness in cm
+inputs.phase.effectiveWaterThickness.liquid = x(4,:);      % liquid water thickness in cm
+inputs.phase.effectiveWaterThickness.ice = x(5,:);      % ice water thickness in cm
+inputs.phase.effectiveWaterThickness.vapor = x(6,:);      % water vapor thickness in cm
+
+% also store the simulated reflectance and the wavelength grid
+inputs.phase.reflectance_sim = reflectance_sim;
+inputs.phase.wavelength_grid = wavelength_grid_fine;
 
 %% Compare the true reflectance with the simulated reflectance
 
