@@ -207,6 +207,7 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
 % resolution should match the value listed in the file name
+inputs.RT.source_file_resolution = 0.025;           % nm
 inputs.RT.source_file_resolution = 0.1;           % nm
 
 

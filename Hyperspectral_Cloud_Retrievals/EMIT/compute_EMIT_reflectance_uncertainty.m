@@ -34,7 +34,7 @@ reflectance_uncertainty = zeros(size(emit.radiance.measurements));
 for nn = 1:num_pixels
 
     reflectance_uncertainty(:,nn) = ( pi * NEdR(:,nn) )./...
-                                ( cosd(sza) * solar_irradiance);                   % 1/sr
+                                ( cosd(sza(nn)) * solar_irradiance);                   % 1/sr
 
 end
 

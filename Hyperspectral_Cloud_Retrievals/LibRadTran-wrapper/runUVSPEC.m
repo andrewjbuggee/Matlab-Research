@@ -296,7 +296,8 @@ elseif numFiles2Run>1
 
         index7_space1 = regexp(match7{1},'\s[a-z]'); % find the spaces
         index7_space2 = regexp(match7{1},'[a-z]\s'); % Brackets treat the symbol literally. number of decimals tells us how many values there are in the vector
-        index7_file1 = regexp(match7{1},'flux[/][a-z]'); % find the locaition a letter follows two dots and a forward slash
+        %index7_file1 = regexp(match7{1},'flux[/][a-z]'); % find the location a letter follows two dots and a forward slash
+        %index7_file1 = regexp(match7{1},'flux[/][a-z]'); % find the location a letter follows two dots and a forward slash
         index7_file2 = regexp(match7{1},'[.]dat');
 
         index8_space1 = regexp(match8{1},'\s[0123456789]+'); % There is only 1 value for the solar zenith angle
@@ -379,7 +380,8 @@ elseif numFiles2Run>1
             else
                 error('Dont reconginze the libradtran solar flux folder')
             end
-            fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
+            %fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
+            fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
 
             % Read the solar flux file over the wavelength range specified
             [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar); % - (W/nm/m^2) - 

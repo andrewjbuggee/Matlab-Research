@@ -30,7 +30,7 @@ if length(emit.obs.solar.zenith)==1
 
     % Compute EMIT measurements to reflectance according to eq. 1 from
     % Thompson et al. 2016
-    emit.reflectance.value = pi*emit.radiance.measurements ./...
+    emit.reflectance.value = (pi*emit.radiance.measurements) ./...
         (cosd(emit.obs.solar.zenith) * solar_flux);             % 1/sr
 
 

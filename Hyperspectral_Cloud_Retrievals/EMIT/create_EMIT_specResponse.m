@@ -24,18 +24,27 @@ for ww = 1:length(emit.radiance.wavelength)
     % compute the standard deviation from the FWHM
     sigma = emit.radiance.fwhm(ww)/(2*sqrt(2*log(2)));      % std
 
-    % create a wavelength vector
-    if inputs.RT.source_file_resolution==0.1
-        
-        wl = round(lambda_center-(1.5*emit.radiance.fwhm(ww)), 1):...
-            0.1:round(lambda_center+(1.5*emit.radiance.fwhm(ww)), 1);
+    % create a wavelength vector using the source file resolution
+    source_file_resolution = inputs.RT.source_file_resolution;      % nm
 
-    elseif inputs.RT.source_file_resolution==1
-        
-        wl = round(lambda_center-(1.5*emit.radiance.fwhm(ww))):...
-            round(lambda_center+(1.5*emit.radiance.fwhm(ww)));
+    wl = round(lambda_center-(1.5*emit.radiance.fwhm(ww)), 1):...
+         source_file_resolution:round(lambda_center+(1.5*emit.radiance.fwhm(ww)), 1);
 
-    end
+%     if inputs.RT.source_file_resolution==0.1
+%         
+%         wl = round(lambda_center-(1.5*emit.radiance.fwhm(ww)), 1):...
+%             0.1:round(lambda_center+(1.5*emit.radiance.fwhm(ww)), 1);
+% 
+%     elseif inputs.RT.source_file_resolution==1
+%         
+%         wl = round(lambda_center-(1.5*emit.radiance.fwhm(ww))):...
+%             round(lambda_center+(1.5*emit.radiance.fwhm(ww)));
+% 
+%     else
+% 
+%         error([newline, 'What resolution do you want to use?'], newline)
+% 
+%     end
 
     % compute the gaussian spectral response function
     spec_response.value{ww} = pdf('Normal', wl, lambda_center, sigma)';

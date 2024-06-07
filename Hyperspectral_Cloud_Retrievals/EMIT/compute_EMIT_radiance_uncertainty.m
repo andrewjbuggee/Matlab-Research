@@ -48,6 +48,6 @@ eta_1 = repmat(noise_model.data(:,2), 1, num_pixels);
 eta_2 = repmat(noise_model.data(:,3), 1, num_pixels);
 eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 
-radiance_uncertainty = eta_1 .* sqrt(eta_2 .* emit.radiance.measurements) + eta_3;      % microW/cm^2/nm/sr
+radiance_uncertainty = real( eta_1 .* sqrt(eta_2 .* emit.radiance.measurements) + eta_3 );      % microW/cm^2/nm/sr
 
 end

@@ -5,8 +5,8 @@
 % By Andrew J. Buggee
 %%
 
-function measurement_change = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector, measurement_estimate, inputs,...
-    pixels2use, pp)
+function [measurement_change, change_in_r_bottom] = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector,...
+    measurement_estimate, inputs, pixels2use, pp)
 
 % --- define the reflectance uncertinaty ---
 reflectance_uncertainty = emit.reflectance.uncertainty(inputs.bands2run);
