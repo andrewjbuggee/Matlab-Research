@@ -118,19 +118,29 @@ num_streams = 16;
 % ------------------------------------------------------------------------
 
 
-% ------- Define the source file ------
-source_file_resolution = 0.1;           % nm
-
-%source_file = '../data/solar_flux/lasp_TSIS1_hybrid_solar_reference_p01nm_resolution.dat';
-if source_file_resolution==0.1
+% ------- Define the source file and resolution ------
     
-    source_file = '../data/solar_flux/kurudz_0.1nm.dat';
+%source_file = 'kurudz_0.1nm.dat';
+%source_file_resolution = 0.1;         % nm
 
-elseif source_file_resolution==1
+%source_file = 'kurudz_1.0nm.dat';
+%source_file_resolution = 1;         % nm
 
-    source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+%source_file = 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.dat';
+%source_file_resolution = 0.001;         % nm
 
-end
+%source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.dat';
+%source_file_resolution = 0.005;         % nm
+
+source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
+source_file_resolution = 0.025;         % nm
+
+%source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+%source_file_resolution = 0.1;         % nm
+
+
+
+
 
 
 
@@ -151,14 +161,14 @@ end
 %     248, 252, 259]';
 
 % --- New indexs - tried to improve avoidance of water vapor ---
-wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
-159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
-249, 250, 251, 252, 253, 254]';
+% wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
+% 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
+% 249, 250, 251, 252, 253, 254]';
 
 % Testing discrepancies between measured reflectance and computed
 %wavelength_idx = [53, 119, 120, 121, 227];
 
-%wavelength_idx = [38, 235]';
+wavelength_idx = [38, 235]';
 Rad_emit = Rad_emit(wavelength_idx);
 % -------------------------------------------------
 
@@ -184,17 +194,8 @@ for ww = 1:length(wavelength_idx)
     sigma = emit.radiance.fwhm(wavelength_idx(ww))/(2*sqrt(2*log(2)));      % std
 
     % create a wavelength vector
-    if source_file_resolution==0.1
-        
-        wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1):...
-            source_file_resolution:round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1);
-
-    elseif source_file_resolution==1
-        
-        wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww)))):...
-            round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))));
-
-    end
+    wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1):...
+        source_file_resolution:round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1);
 
     % compute the gaussian spectral response function
     spec_response{ww} = pdf('Normal', wl, mu, sigma)';
@@ -379,6 +380,7 @@ compute_reflectivity_uvSpec = false;
 % First we need the spectral response functions
 % create the spectral response functions
 % define the source file using the input resolution
+inputs.RT.source_file = source_file;
 inputs.RT.source_file_resolution = source_file_resolution;
 emit.spec_response = create_EMIT_specResponse(emit, inputs);
 
@@ -423,8 +425,8 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            parfor ww = 1:size(wavelength,1)
-            %for ww = 1:size(wavelength,1)
+            %parfor ww = 1:size(wavelength,1)
+            for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------

@@ -35,8 +35,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 %modis_idx = 110292;     % for 9 nov 2008
 
 % 17_Jan_2024_coast - large optical depth
-pixels2use.row = 1112;
-pixels2use.col = 974;
+% pixels2use.row = 1112;
+% pixels2use.col = 974;
 
 % 17_Jan_2024_coast - small optical depth
 % pixels2use.row = [912, 913];
@@ -51,8 +51,8 @@ pixels2use.col = 974;
 % pixels2use.col = [970, 969];
 
 % 17_Jan_2024_coast - optical depth of 3.2
-% pixels2use.row = [932];
-% pixels2use.col = [970];
+pixels2use.row = 932;
+pixels2use.col = 970;
 
 
 % Grab the pixel indices

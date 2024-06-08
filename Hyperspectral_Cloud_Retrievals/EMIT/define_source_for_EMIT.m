@@ -23,29 +23,33 @@ function inputs = define_source_for_EMIT(inputs, emit)
 % ---------------------------------------------------------
 % resolution should match the value listed in the file name
 source_file_resolution = inputs.RT.source_file_resolution;
+source_file = inputs.RT.source_file;
 
-if source_file_resolution==0.1
-    
-    inputs.RT.source_file = 'kurudz_0.1nm.dat';
-
-
-elseif source_file_resolution==1
-
-    inputs.RT.source_file = 'kurudz_1.0nm.dat';
-
-elseif source_file_resolution==0.05
-
-    inputs.RT.source_file = 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.nc';
-
-elseif source_file_resolution==0.025
-
-    inputs.RT.source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.nc';
-
-else
-
-    error([newline, 'What wavelength resolution do you wish to use?', newline])
-
-end
+% 
+% if source_file_resolution==0.1
+%     
+%     inputs.RT.source_file = 'kurudz_0.1nm.dat';
+% 
+% 
+% elseif source_file_resolution==1
+% 
+%     inputs.RT.source_file = 'kurudz_1.0nm.dat';
+% 
+% 
+% elseif source_file_resolution==0.025
+% 
+%     inputs.RT.source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.nc';
+%     
+% 
+% elseif source_file_resolution==0.005
+% 
+%     inputs.RT.source_file = 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.nc';
+% 
+% else
+% 
+%     error([newline, 'What wavelength resolution do you wish to use?', newline])
+% 
+% end
 
 
 
@@ -53,7 +57,7 @@ end
 % [source.flux, source.wavelength] = read_solar_flux_file([emit.spec_response.wavelength{1}(1), ...
 %     emit.spec_response.wavelength{end}(end)], inputs.RT.source_file);        % (W/nm/m^2) 
 
-[source.flux, source.wavelength] = read_solar_flux_file([300, 2600], inputs.RT.source_file);        % (W/nm/m^2) 
+[source.flux, source.wavelength] = read_solar_flux_file([300, 2600], source_file);        % (W/nm/m^2) 
 
 % Trim the solar flux data so it uses the same wavelength gird as EMIT
 % Do this by integrating the spectral response function of each
