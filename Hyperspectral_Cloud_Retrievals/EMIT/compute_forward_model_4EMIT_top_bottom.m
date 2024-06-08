@@ -103,7 +103,10 @@ GN_names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use, emit, wc_fi
 GN_names.out = writeOutputNames(GN_names.inp);
 
 % ---- Run uvspec for the files created -----
-[measurement_estimate,~] = runReflectanceFunction_4EMIT_gaussNewton(GN_names, inputs, emit.spec_response.value);
+% frist grab the spectral response functions
+spec_response = emit.spec_response.value(inputs.bands2run, :);
+
+[measurement_estimate,~] = runReflectanceFunction_4EMIT_gaussNewton(GN_names, inputs, spec_response);
 
 
 

@@ -40,18 +40,6 @@ libRadTran_INP_OUT = inputs.folder2save.libRadTran_INP_OUT; % where the newly cr
 inputFileNames = names.inp;
 outputFileNames = names.out;
 
-% We only need the spectral response functions for the bands being using in
-% this analysis
-spectral_response_2run = cell(1, length(inputs.bands2run));
-
-for nn = 1:length(inputs.bands2run)
-
-    spectral_response_2run{nn} = spectral_response{inputs.bands2run(nn)};
-
-end
-
-
-
 
 R = zeros(size(inputFileNames)); % each value here is integrated over the band provided
 Rl = cell(size(inputFileNames)); % each value here is the spectral reflectance over the entire band
@@ -61,8 +49,8 @@ computeReflectivity = false;
 
 
 % --- step through the band dimension ---
-parfor bb = 1:length(inputFileNames)
- %for bb = 1:length(inputFileNames)
+parfor bb = 1:size(inputFileNames, 2)
+%for bb = 1:size(inputFileNames,2)
     % --- For now, calculate inputSettings every time ---
 
     % run uvSpec across all wavelengths
@@ -76,7 +64,7 @@ parfor bb = 1:length(inputFileNames)
 
     % ----------- Compute the reflectance function -----------
     [R(bb),~] = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
-        spectral_response_2run{bb});
+        spectral_response(bb,:)');
 
 end
 

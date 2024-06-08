@@ -82,7 +82,7 @@ inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_'
 inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
 
 % This is the name of the .mat file with the reflectance calcs
-inputs.reflectance_calculations_fileName = ['reflectance_calculations_', char(datetime("today")),'.mat'];
+inputs.reflectance_calculations_fileName = ['TBLUT_reflectance_calculations_', char(datetime("today")),'.mat'];
 
 
 
@@ -134,11 +134,32 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ------------------------------------------------------------------------
 
 
+
 % ---------------------------------------------------------
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
 % resolution should match the value listed in the file name
-inputs.RT.source_file_resolution = 0.1;           % nm
+
+%inputs.RT.source_file = 'kurudz_0.1nm.dat';
+%inputs.RT.source_file_resolution = 0.1;         % nm
+
+%inputs.RT.source_file = 'kurudz_1.0nm.dat';
+%inputs.RT.source_file_resolution = 1;         % nm
+
+%inputs.RT.source_file = 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.dat';
+%inputs.RT.source_file_resolution = 0.001;         % nm
+
+%inputs.RT.source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.dat';
+%inputs.RT.source_file_resolution = 0.005;         % nm
+
+% inputs.RT.source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
+% inputs.RT.source_file_resolution = 0.025;         % nm
+
+inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+inputs.RT.source_file_resolution = 0.1;         % nm
+
+
+
 
 
 % define the atmospheric data file

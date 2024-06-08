@@ -348,7 +348,7 @@ inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_'
 inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
 
 % This is the name of the .mat file with the reflectance calcs
-inputs.reflectance_calculations_fileName = ['reflectance_calculations_', char(datetime("today")),'.mat'];
+inputs.reflectance_calculations_fileName = ['hyperspectral_reflectance_calculations_', char(datetime("today")),'.mat'];
 
 
 

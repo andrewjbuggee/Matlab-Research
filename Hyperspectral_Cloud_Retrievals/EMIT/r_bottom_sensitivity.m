@@ -55,13 +55,18 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.row = [932];
 % pixels2use.col = [970];
 
-% 17_Jan_2024_coast - optical depths of 3.2, 
+% 17_Jan_2024_coast - optical depths of 3.2, 4.8, 5.4, 5.9, 6.6, 7.2, 7.5
 pixels2use.row = [932, 932, 932, 932, 932, 932, 932];
 pixels2use.col = [970, 968, 967, 966, 960, 959, 957];
 
-% 17_Jan_2024_coast - optical depths of 3.2, 
-pixels2use.row = [969, 969, 969, 969, 969, 969, 969, 969, 969, 969];
-pixels2use.col = [991, 989, 987, 986, 984, 980, 976, 974, 966, 957];
+% 17_Jan_2024_coast - optical depths of 8.7, 9.22, 9.68, 10.3, 11.6, 12.54,
+% 13.61, 14.53, 16.79, 19.8
+% pixels2use.row = [969, 969, 969, 969, 969, 969, 969, 969, 969, 969];
+% pixels2use.col = [991, 989, 987, 986, 984, 980, 976, 974, 966, 957];
+
+% 17_Jan_2024_coast - optical depths of 10.3
+% pixels2use.row = 969;
+% pixels2use.col = 986;
 
 
 
@@ -121,7 +126,9 @@ tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
 %% Define the state vector
 
 % define the state vector [r_top, r_bottom, tau_c]
-state_vector = [13.275, 6.6, 5.8];
+%state_vector = [13.275, 6.6, 5.8];
+
+state_vector = [minVals.minRe(4)*1.2, minVals.minRe(4)*0.7, minVals.minTau(4)];
 
 % r_top_bottom = [12, 6];
 % tau_vector = 3:2:11;
@@ -132,26 +139,39 @@ state_vector = [13.275, 6.6, 5.8];
 
 %% compute the refltances for the state vector and compute the change due to a changing r_bottom
 
-% Step through different optical depths and compute the measurement change
-measurement_estimate = zeros(length(inputs.bands2run), length(tau_vector));
-measurement_change = cell(1, length(tau_vector));
+% Compute the Measurement Change for a single pixel
 
-for tt = 1:length(tau_vector)
+% Compute the reflectances for the above state vector
+measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, state_vector, inputs, pixels2use, 1)';
 
-    disp([newline, 'Iteration: Tau_c = ',num2str(tt), '/', num2str(length(tau_vector)), newline])
-
-    % define the current state vector [r_top, r_bottom, tau_c]
-    state_vector = [r_top_bottom, tau_vector(tt)];
-
-    % Compute the reflectances for the above state vector
-    measurement_estimate(:,tt) = compute_forward_model_4EMIT_top_bottom(emit, state_vector, inputs, pixels2use, 1)';
-
-    [measurement_change{tt}, change_in_r_bottom] = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector,...
-        measurement_estimate(:,tt), inputs,pixels2use, 1);
+[measurement_change, change_in_r_bottom] = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector,...
+    measurement_estimate, inputs,pixels2use, 1);
 
 
 
-end
+
+
+
+% % Step through different optical depths and compute the measurement change
+% measurement_estimate = zeros(length(inputs.bands2run), length(tau_vector));
+% measurement_change = cell(1, length(tau_vector));
+% 
+% for tt = 1:length(tau_vector)
+% 
+%     disp([newline, 'Iteration: Tau_c = ',num2str(tt), '/', num2str(length(tau_vector)), newline])
+% 
+%     % define the current state vector [r_top, r_bottom, tau_c]
+%     state_vector = [r_top_bottom, tau_vector(tt)];
+% 
+%     % Compute the reflectances for the above state vector
+%     measurement_estimate(:,tt) = compute_forward_model_4EMIT_top_bottom(emit, state_vector, inputs, pixels2use, 1)';
+% 
+%     [measurement_change{tt}, change_in_r_bottom] = compute_reflectanceChange_due_to_rBottom_change(emit, state_vector,...
+%         measurement_estimate(:,tt), inputs,pixels2use, 1);
+% 
+% 
+% 
+% end
 
 %% --- save the output ---
  save([inputs.folder2save.reflectance_calcs, 'r_bottom_analysis_', char(datetime("today")),'.mat'],...

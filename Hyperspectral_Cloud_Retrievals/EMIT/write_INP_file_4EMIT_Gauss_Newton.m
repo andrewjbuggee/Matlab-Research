@@ -34,7 +34,7 @@ end
 
 % -----------------------------------------------------------------------
 % define the EMIT bands to run using the spectral response functions
-wavelength = emit.spec_response.wavelength(inputs.bands2run);
+wavelength = emit.spec_response.wavelength(inputs.bands2run, :);
 
 % ------------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ wavelength = emit.spec_response.wavelength(inputs.bands2run);
 
 
 % step through each band, each effective raidus and each optical depth
-inpNames = cell(length(pixels2use.row), length(wavelength));
+inpNames = cell(length(pixels2use.row), length(inputs.bands2run));
 
 for pp = 1:length(pixels2use.row)
 
@@ -101,11 +101,11 @@ for pp = 1:length(pixels2use.row)
     % create the begining of the file name string
     fileBegin = ['pixel_',num2str(pixels2use.row(pp)),'r_',num2str(pixels2use.col(pp)),'c_sza_',num2str(round(sza)),'_vza_',num2str(round(vza)),'_'];
 
-    for bb = 1:length(wavelength)
+    for bb = 1:length(inputs.bands2run)
 
 
         % Define the file name
-        inpNames{pp,bb} = [fileBegin,num2str(round(median(wavelength{bb}(:,1)))),'nm.INP'];
+        inpNames{pp,bb} = [fileBegin,num2str(round(median(wavelength(bb,:)))),'nm.INP'];
 
 
 
@@ -227,7 +227,7 @@ for pp = 1:length(pixels2use.row)
         % be solve
         % -------------------------------------------------------------------------
         formatSpec = '%s %f %f %5s %s \n\n';
-        fprintf(fileID, formatSpec,'wavelength', wavelength{bb}(1), wavelength{bb}(end), ' ', '# Wavelength range');
+        fprintf(fileID, formatSpec,'wavelength', wavelength(bb,1), wavelength(bb,end), ' ', '# Wavelength range');
 
 
 

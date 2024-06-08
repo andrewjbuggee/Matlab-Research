@@ -43,7 +43,7 @@ addpath(libRadTran_path);
 % re matrix needed to create homogenous water clouds using write_wc_file
 re = 3:3:24;     % microns - values of re that we wish to model
 
-tau_c = [1,3, 5:5:50];      % values of tau that we wish to model
+tau_c = [1, 2, 3, 4, 5, 7.5, 10:5:50];      % values of tau that we wish to model
 
 % re = 12.965;     % microns - values of re that we wish to model
 % tau_c = 4.8949;      % values of tau that we wish to model
@@ -63,7 +63,7 @@ inputs.RT.tau_c = tau_c;
 % -- Use the spectral response function to define the wavelength range --
 % -----------------------------------------------------------------------
 
-wavelengths = emit.spec_response.wavelength;
+wavelengths = emit.spec_response.wavelength(inputs.bands2run, :);
 
 % ------------------------------------------------------------------------
 
@@ -434,8 +434,8 @@ for pp = 1:length(pixel_row)
                 % be solve. Should be in nm
                 % -------------------------------------------------------------------------
                 formatSpec = '%s %f %f %5s %s \n\n';
-                fprintf(fileID, formatSpec,'wavelength', wavelengths{inputs.bands2run(bb)}(1),...
-                    wavelengths{inputs.bands2run(bb)}(end), ' ', '# Wavelength range');
+                fprintf(fileID, formatSpec,'wavelength', wavelengths(bb,1),...
+                    wavelengths(bb,end), ' ', '# Wavelength range');
 
 
 
