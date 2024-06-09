@@ -41,17 +41,11 @@ save_calculated_reflectances_filename = inputs.reflectance_calculations_fileName
 inputFileNames = names.inp;
 outputFileNames = names.out;
 
-% We only need the spectral response functions for the bands being using in
-% this analysis
-spectral_response_2run = cell(1, length(inputs.bands2run));
-
-for nn = 1:length(inputs.bands2run)
-
-    spectral_response_2run{nn} = spectral_response{inputs.bands2run(nn)};
-
-end
 
 length_tau = size(outputFileNames,3);
+
+% Define the spectral response functions for the desired wavelengths
+spectral_response_2run = spectral_response(inputs.bands2run, :);
 
 
 R = zeros(size(inputFileNames)); % each value here is integrated over the band provided
@@ -69,7 +63,7 @@ for pp = 1:size(inputFileNames,1)
     for bb = 1:size(inputFileNames,4)
 
 
-        % next step through the different values of effective radius per band
+        % next step through the different values of effective radius
         %parfor rr = 1:size(inputFileNames,2)
         for rr = 1:size(inputFileNames,2)
 
@@ -80,7 +74,7 @@ for pp = 1:size(inputFileNames,1)
             % --- For now, calculate inputSettings every time ---
 
             % start by running uvspec for a single pixel, a single band, a
-            % single effective radius an for all opticl depths
+            % single effective radius an for all optical depths
             [inputSettings] = runUVSPEC(libRadTran_INP_OUT, inputFileNames(pp,rr,:,bb), outputFileNames(pp,rr,:,bb));
 
 
@@ -105,7 +99,7 @@ for pp = 1:size(inputFileNames,1)
 
                 % ----------- Compute the reflectance function -----------
                 [R(pp,rr,tt,bb),~] = reflectanceFunction_4EMIT(inputSettings(tt+1,:), ds{tt},...
-                    spectral_response_2run{bb});
+                    spectral_response_2run(bb,:)');
 
 
             end
