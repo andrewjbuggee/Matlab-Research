@@ -30,28 +30,25 @@
 %       - this is a hybrind reference spectrum downloaded from LASP's
 %       LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
 %       These data range from 202 to 2730 nm
-%       These data have a smapling resolution of 0.005 nm
+%       These data have a smapling resolution of 0.005 nm.  The original
+%       data were converted to mW / (m2 nm)
 
 %       (e)
 %       'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat'
 %       - this is a hybrind reference spectrum downloaded from LASP's
 %       LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
 %       These data range from 202 to 2730 nm
-%       These data have a smapling resolution of 0.025 nm
+%       These data have a smapling resolution of 0.025 nm.  The original
+%       data were converted to mW / (m2 nm)
 
-%       (f)
-%       'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.dat'
-%       - this is a hybrind reference spectrum downloaded from LASP's
-%       LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
-%       These data range from 202 to 2730 nm
-%       These data have a smapling resolution of 0.001 nm
 
 %       (f)
 %       'hybrid_reference_spectrum_nm_resolution_c2022-11-30_with_unc.dat'
 %       - this is a hybrind reference spectrum downloaded from LASP's
 %       LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
 %       These data range from 202 to 2730 nm
-%       These data have a smapling resolution of 0.1 nm
+%       These data have a smapling resolution of 0.1 nm.  The original
+%       data were converted to mW / (m2 nm)
 
 
 % OUTPUTS:
@@ -295,7 +292,7 @@ elseif strcmp(file_name, 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-3
 
 elseif strcmp(file_name, 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat')==true
 
-    % Use the TSIS-1 hypbring solar reference spectrum (W/m^2/nm)
+    % Use the TSIS-1 hypbring solar reference spectrum (mW/m^2/nm)
     % These data have 0.1 nm sampling resolution
 
 
@@ -323,12 +320,16 @@ elseif strcmp(file_name, 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_w
 
     wavelength = B{1}(index_wavelength);                % wavelengths within the user specified range
 
-    solar_flux = B{2}(index_wavelength);                % Watts/m^2/nm - flux values at the corresponding wavelength values
+    solar_flux = B{2}(index_wavelength);                % milli-Watts/m^2/nm - flux values at the corresponding wavelength values
+
+    % lets convert solar flux to Watts/nm/m^2
+
+    solar_flux = solar_flux./1000;
 
 
 elseif strcmp(file_name, 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat')==true
 
-    % Use the TSIS-1 hypbring solar reference spectrum (W/m^2/nm)
+    % Use the TSIS-1 hypbring solar reference spectrum (mW/m^2/nm)
     % These data have 0.025 nm sampling resolution
 
     % Lets check to make sure the wavelength input is within bounds of the
@@ -355,13 +356,17 @@ elseif strcmp(file_name, 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_
 
     wavelength = B{1}(index_wavelength);                % wavelengths within the user specified range
 
-    solar_flux = B{2}(index_wavelength);                % Watts/m^2/nm - flux values at the corresponding wavelength values
+    solar_flux = B{2}(index_wavelength);                % milli-Watts/m^2/nm - flux values at the corresponding wavelength values
+
+    % lets convert solar flux to Watts/nm/m^2
+
+    solar_flux = solar_flux./1000;
 
 
 
 elseif strcmp(file_name, 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.dat')==true
 
-    % Use the TSIS-1 hypbring solar reference spectrum (W/m^2/nm)
+    % Use the TSIS-1 hypbring solar reference spectrum (mW/m^2/nm)
 
     % Lets check to make sure the wavelength input is within bounds of the
     % file selected
@@ -387,27 +392,12 @@ elseif strcmp(file_name, 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-3
 
     wavelength = B{1}(index_wavelength);                % wavelengths within the user specified range
 
-    solar_flux = B{2}(index_wavelength);                % Watts/m^2/nm - flux values at the corresponding wavelength values
+    solar_flux = B{2}(index_wavelength);                % milli-Watts/m^2/nm - flux values at the corresponding wavelength values
 
+    % lets convert solar flux to Watts/nm/m^2
 
+    solar_flux = solar_flux./1000;
 
-    %     % open the netCDF file
-    %     %info = ncinfo([solar_source_folder, file_name]);
-    %
-    %     % read the wavelength grid
-    %     wavelength_grid = ncread([solar_source_folder, file_name], 'Vacuum Wavelength');     % nm
-    %
-    %     % find the indices for the wavelengths that lie within out wavelengths
-    %     % of interest
-    %     index_wavelength = wavelength_grid>=wavelength_boundaries(1) & wavelength_grid<=wavelength_boundaries(2);
-    %
-    %     % read in the solar spectral flux
-    %     solar_flux_data = ncread([solar_source_folder, file_name], 'SSI');             % W/m^2/nm
-    %
-    %
-    %     % store the values that we wish to keep
-    %     wavelength = wavelength_grid(index_wavelength);
-    %     solar_flux = solar_flux_data(index_wavelength);
 
 else
 

@@ -64,8 +64,8 @@ for pp = 1:size(inputFileNames,1)
 
 
         % next step through the different values of effective radius
-        %parfor rr = 1:size(inputFileNames,2)
-        for rr = 1:size(inputFileNames,2)
+        parfor rr = 1:size(inputFileNames,2)
+        %for rr = 1:size(inputFileNames,2)
 
             % there is a new geometry setting every time we switch
             % pixels. So we need a new input settings for when we

@@ -25,31 +25,6 @@ function inputs = define_source_for_EMIT(inputs, emit)
 source_file_resolution = inputs.RT.source_file_resolution;
 source_file = inputs.RT.source_file;
 
-% 
-% if source_file_resolution==0.1
-%     
-%     inputs.RT.source_file = 'kurudz_0.1nm.dat';
-% 
-% 
-% elseif source_file_resolution==1
-% 
-%     inputs.RT.source_file = 'kurudz_1.0nm.dat';
-% 
-% 
-% elseif source_file_resolution==0.025
-% 
-%     inputs.RT.source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.nc';
-%     
-% 
-% elseif source_file_resolution==0.005
-% 
-%     inputs.RT.source_file = 'hybrid_reference_spectrum_p005nm_resolution_c2022-11-30_with_unc.nc';
-% 
-% else
-% 
-%     error([newline, 'What wavelength resolution do you wish to use?', newline])
-% 
-% end
 
 
 

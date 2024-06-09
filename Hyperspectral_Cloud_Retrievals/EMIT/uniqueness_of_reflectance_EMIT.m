@@ -9,15 +9,15 @@ clear variables
 %% Define the cloud parameters that will be changing during each reflectance calculation
 
 
-% r_top = 3:20;       % microns
-% r_bot = 1:14;        % microns
-% 
-% tau_c = [6,7];
+r_top = 3:20;       % microns
+r_bot = 2:14;        % microns
+
+tau_c = [5, 6, 7];
 
 
-r_top = 12.5;
-r_bot = 2.75;
-tau_c = 5.5;
+% r_top = 12.5;
+% r_bot = 2.75;
+% tau_c = 5.5;
 
 
 
@@ -117,7 +117,7 @@ Rad_emit_uncertainty = emit.radiance.uncertainty;
 num_streams = 16;
 % ------------------------------------------------------------------------
 
-
+% ------------------------------------------------------------------------
 % ------- Define the source file and resolution ------
     
 %source_file = 'kurudz_0.1nm.dat';
@@ -132,12 +132,17 @@ num_streams = 16;
 %source_file = 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-30_with_unc.dat';
 %source_file_resolution = 0.005;         % nm
 
-source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
-source_file_resolution = 0.025;         % nm
+% source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
+% source_file_resolution = 0.025;         % nm
 
-%source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-%source_file_resolution = 0.1;         % nm
+source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+source_file_resolution = 0.1;         % nm
 
+% create the spectral response functions
+% define the source file using the input resolution
+inputs.RT.source_file = source_file;
+inputs.RT.source_file_resolution = source_file_resolution;
+% ------------------------------------------------------------------------
 
 
 
@@ -161,14 +166,16 @@ source_file_resolution = 0.025;         % nm
 %     248, 252, 259]';
 
 % --- New indexs - tried to improve avoidance of water vapor ---
-% wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
-% 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
-% 249, 250, 251, 252, 253, 254]';
+wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
+159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
+249, 250, 251, 252, 253, 254]';
 
 % Testing discrepancies between measured reflectance and computed
 %wavelength_idx = [53, 119, 120, 121, 227];
 
-wavelength_idx = [38, 235]';
+% wavelength_idx = [38, 235]';
+
+
 Rad_emit = Rad_emit(wavelength_idx);
 % -------------------------------------------------
 
@@ -177,32 +184,20 @@ Rad_emit = Rad_emit(wavelength_idx);
 % twice
 % ------------------------------------------------------------------------
 
-spec_response = cell(length(wavelength_idx), 1);
+% create the spectral response functions
+spec_response = create_EMIT_specResponse(emit, inputs);
+% keep only the response functions for the wavelengths we care about
+spec_response_2run.value = spec_response.value(wavelength_idx, :);
+spec_response_2run.wavelength = spec_response.wavelength(wavelength_idx, :);
+
 wavelength = zeros(length(wavelength_idx), 2);
 
 for ww = 1:length(wavelength_idx)
 
-    % first we will create and store the spectral response function from
-    % the full-wdith-half-max provided for each spectral channel
-    % the spectral response function is gaussian
-    % the emit wavelength vector is the center wavelength
-    
-    % set the center wavelength as the mean of the distribution
-    mu = emit.radiance.wavelength(wavelength_idx(ww));      % nm
-    % compute the standard deviation from the FWHM
-
-    sigma = emit.radiance.fwhm(wavelength_idx(ww))/(2*sqrt(2*log(2)));      % std
-
-    % create a wavelength vector
-    wl = round(mu-(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1):...
-        source_file_resolution:round(mu+(1.5*emit.radiance.fwhm(wavelength_idx(ww))), 1);
-
-    % compute the gaussian spectral response function
-    spec_response{ww} = pdf('Normal', wl, mu, sigma)';
-
     % The wavelength vector for libRadTran is simply the lower and upper
     % bounds
-    wavelength(ww,:) = [wl(1), wl(end)];
+    wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+        spec_response_2run.wavelength(ww, end)];
 
 end
 
@@ -222,7 +217,6 @@ use_nakajima_phaseCorrection = true;
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
 band_parameterization = 'reptran coarse';
-%band_parameterization = 'reptran_channel modis_terra_b07';
 % ------------------------------------------------------------------------
 
 
@@ -293,7 +287,7 @@ z = linspace(z_topBottom(1), z_topBottom(2), n_layers);        % km - altitude a
 
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-dist_var = linspace(20,20,n_layers);              % distribution variance
+dist_var = linspace(10,10,n_layers);              % distribution variance
 % ------------------------------------------------------------------------
 
 
@@ -377,12 +371,6 @@ compute_reflectivity_uvSpec = false;
 
 %% Convert radiance measurements to TOA reflectance for the desired pixels
 
-% First we need the spectral response functions
-% create the spectral response functions
-% define the source file using the input resolution
-inputs.RT.source_file = source_file;
-inputs.RT.source_file_resolution = source_file_resolution;
-emit.spec_response = create_EMIT_specResponse(emit, inputs);
 
 % Next we need the source function
 % ********* IMPORTANT *************
@@ -687,7 +675,8 @@ for rt = 1:length(r_top)
                 [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
 
                 % compute the reflectance
-                Refl_model(rt, rb, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds, spec_response{ww});
+                Refl_model(rt, rb, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
+                    spec_response_2run.value(ww, :)');
 
                 % integrate the radiance over the wavelength channel and
                 % convert the output to the same units as the EMIT data
@@ -697,7 +686,7 @@ for rt = 1:length(r_top)
                 % same units as EMIT
                 % Make sure to integrate with the spectral response
                 % function!
-                Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response{ww}.*(ds.radiance.value./10));        % microW/cm^2/sr
+                Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response_2run.value(ww, :)' .*(ds.radiance.value./10));        % microW/cm^2/sr
                 %Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, 1.*(ds.radiance.value./10));
                 
                 % Now divide by the wavelength range of the channel to get
