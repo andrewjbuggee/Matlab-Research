@@ -71,8 +71,7 @@ elseif length(wavelength)>1
 
         % Next, integrate over the spectral band with the spectral response
         % function.
-        % *** The source function has already been integrated with the
-        % spectral response function ***
+        % *** The source function has not been convolved with the spectral response funtion ***
         R(ii) = trapz(wavelength, R_lambda(:,ii).*spec_response.*irrad0)./trapz(wavelength, spec_response.*irrad0); % - 1/sr - reflectance function over a finite bandwidth
         
     end

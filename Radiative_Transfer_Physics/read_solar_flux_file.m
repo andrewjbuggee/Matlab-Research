@@ -43,7 +43,7 @@
 
 
 %       (f)
-%       'hybrid_reference_spectrum_nm_resolution_c2022-11-30_with_unc.dat'
+%       'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat'
 %       - this is a hybrind reference spectrum downloaded from LASP's
 %       LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
 %       These data range from 202 to 2730 nm

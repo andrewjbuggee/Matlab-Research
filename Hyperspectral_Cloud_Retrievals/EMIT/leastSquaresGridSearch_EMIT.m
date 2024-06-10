@@ -87,7 +87,7 @@ for pp = 1:numPixels
     end
 
     % finally, lets create an array with the same shape as the new
-    % interpolated array, but where the only value is the observed
+    % interpolated array, but where every value is the observed
     % reflectance
     % for band 1...
     observations_newGrid(:,:,1) = repmat(observations(1,pp),length(new_re),length(newTau_c));
@@ -115,9 +115,15 @@ for pp = 1:numPixels
 
     [minVals.minLSD(pp),index] = min(leastSquaresGrid,[],'all','linear');
     [row,col] = ind2sub(size(leastSquaresGrid),index);
-
+    
+    % Save the effective radius and optical depth associated with the
+    % minimum RMS difference
     minVals.minRe(pp) = Re(row,col);
     minVals.minTau(pp) = T(row,col);
+
+    % Save the reflectance associated with the minimum RMS difference
+    minVals.reflectance(:, pp) = [interp_modelRefl(row, col, 1); interp_modelRefl(row, col, 2)];
+
 
     % lets look at the least squares grid
     if inputs.flags.plotMLS_figures == true
@@ -131,6 +137,62 @@ for pp = 1:numPixels
         colorbar
         set(gcf,"Position", [0 0 1000 700])
         title('Error Function')
+
+
+        % -- Create contour plot of RMS residual ---
+
+        % Create figure
+        figure;
+        colormap(hot);
+
+        % Create axes
+        axes1 = axes;
+        hold(axes1,'on');
+
+        % plot the whole space?
+        T_idx = 250;
+        % number of levels to plot
+        n = 15;
+
+        % Create contour
+        [c1,h1] = contour(T(:, 1:T_idx), Re(:, 1:T_idx), leastSquaresGrid(:, 1:T_idx), n,'LineWidth',3);
+        clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+        % round off the level list
+        h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+        clabel(c1,h1)
+
+        % plot the global minimum
+        hold on; plot(minVals.minTau(pp), minVals.minRe(pp), 'k.', 'MarkerSize', 25)
+
+        % make a legend
+        legend('RMS differences', 'Global Minimum', 'Location', 'best', 'Interpreter', 'latex');
+
+        % Create ylabel
+        xlabel('$\tau_{c}$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+        % Create xlabel
+        ylabel('$r_{e}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+        % Create title
+        title('RMS difference between EMIT and libRadTran calculations','Interpreter','latex');
+
+        box(axes1,'on');
+        grid(axes1,'on');
+        axis(axes1,'tight');
+        hold(axes1,'off');
+        % Set the remaining axes properties
+        set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+            'on');
+        % Create colorbar
+        colorbar(axes1);
+        % set the figure size to be proportional to the length of the r_top and
+        % r_bot vectors
+        %set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+        set(gcf, 'Position', [0 0 900 900])
+
+
+
     end
 
 
@@ -138,6 +200,9 @@ for pp = 1:numPixels
 
     save([saveCalcs_folder, saveCalcs_filename],"minVals",'-append'); % save inputSettings to the same folder as the input and output file
 
+
+
+end
 
 
 end
