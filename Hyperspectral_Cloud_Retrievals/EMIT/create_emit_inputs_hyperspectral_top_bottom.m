@@ -276,7 +276,7 @@ inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and stamn
 inputs.RT.drop_distribution_str = 'gamma';
 % define the distribution varaince
 % 7 is the value libRadTran uses for liquid water clouds
-inputs.RT.drop_distribution_var = 7;
+inputs.RT.drop_distribution_var = 10;
 % define whether this is a vertically homogenous cloud or not
 inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 % define how liquid water content will be computed

@@ -552,16 +552,16 @@ if strcmp(whatComputer, 'anbu8374')==true
 elseif strcmp(whatComputer, 'andrewbuggee')==true
 
     % --- non-precip profiles only, LWC>0.005, Nc>1 ----
-    load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
-        '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.005_Nc-threshold_1_17-Sep-2023'])
+%     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
+%         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.005_Nc-threshold_1_17-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
     %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
     %         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_stopAtMaxLWC_Nc-threshold_1_19-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
-    %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
-    %         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+        load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+          'vocals_rex_data/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023'])
 
     % --- all profiles, LWC>0.005, Nc>1 ----
     %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...

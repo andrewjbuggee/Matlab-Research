@@ -27,7 +27,7 @@ measurements = emit.reflectance.value(inputs.bands2run,:); % each column represe
 
 % -----------------------------------------------------------------------
 % --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
-jacobian_barPlot_flag = true;
+jacobian_barPlot_flag = false;
 % -----------------------------------------------------------------------
 
 

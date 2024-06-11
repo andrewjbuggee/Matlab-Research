@@ -130,7 +130,7 @@ if jacobian_barPlot_flag==true
     spectral_bands = zeros(1,length(inputs.bands2run));
     for bb = 1:length(inputs.bands2run)
 
-        spectral_bands(bb) = round(median(emit.spec_response.wavelength{inputs.bands2run(bb)}));
+        spectral_bands(bb) = round(median(emit.spec_response.wavelength(inputs.bands2run(bb), :)));
 
     end
 
