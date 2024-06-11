@@ -758,7 +758,8 @@ while isfile(filename)
         '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "emitFolder", 'pixels2use');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "Refl_model",...
+    "emitFolder", 'pixels2use');
 
 toc
 
@@ -831,9 +832,9 @@ disp([newline, num2str(100* (num_states/(numel(r_top)*numel(r_bot)*numel(tau_c))
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.25;      % microns
-d_r_bot = 0.25;      % microns
-d_tau_c = 0.1;
+d_r_top = 0.1;      % microns
+d_r_bot = 0.1;      % microns
+d_tau_c = 0.05;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
@@ -863,11 +864,14 @@ redundant_states = [];
 rms_residual = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine));
 
 
+test = [];
 
 for rt = 1:size(Refl_model_fine,1)
 
 
     for rb = 1:size(Refl_model_fine,2)
+
+        test = [test; r_top_fine(rt)-r_bot_fine(rb)];
 
 
         parfor tc = 1:size(Refl_model_fine,3)
@@ -882,6 +886,9 @@ for rt = 1:size(Refl_model_fine,1)
         end
     end
 end
+
+
+
 
 % Find the number states that lead to modeled measurements within the EMIT
 % measurement uncertainty
@@ -1081,38 +1088,54 @@ idx_tauC = tau_c_fine == tau_c_min(1);
 
 % Create figure
 figure;
-colormap(hot);
+colormap(jet);
 
 % Create axes
 axes1 = axes;
 hold(axes1,'on');
 
+% plot the whole space?
+T_idx = 250;
+% number of levels to plot
+n = 200;
+
 % Create contour
-[c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
+[c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC), n, 'LineWidth',4);
 clabel(c1,h1,'FontSize',20,'FontWeight','bold');
 
-% Overlay the 5 state vectors with the smallest rms_residual for this
-% optical depth, or how every many there are in the 30 smallest RMS values
-hold on;
-tau_c_min_idx = find(tau_c_min == tau_c_min(1));
-num_2Plot = 5;
+% round off the level list
+% h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+% labels_2Print = h1.LevelList(1:5:end);
+% clabel(c1,h1, labels_2Print)
 
-if length(tau_c_min_idx)<5
+% round off the level list and only keep a fraction of them!
+h1.LevelList = round(h1.LevelList(1:10:end),4);  %rounds levels to 3rd decimal place
+clabel(c1,h1)
 
-    plot(r_bot_min(tau_c_min_idx), r_top_min(tau_c_min_idx), '.', 'MarkerSize', 20, 'Color', 'k')
 
-    % Create legend
-    legend('', [num2str(length(tau_c_min_idx)), ' smallest RMS differences'], 'location', 'best',...
-        'Interpreter', 'latex', 'FontSize', 25)
 
-else
-
-    plot(r_bot_min(tau_c_min_idx(1:num_2Plot)), r_top_min(1:num_2Plot), '.', 'MarkerSize', 20, 'Color', 'k')
-
-    legend('', [num2str(num_2Plot), ' smallest RMS differences'], 'location', 'best',...
-        'Interpreter', 'latex', 'FontSize', 25)
-
-end
+% % Overlay the 5 state vectors with the smallest rms_residual for this
+% % optical depth, or how every many there are in the 30 smallest RMS values
+% hold on;
+% tau_c_min_idx = find(tau_c_min == tau_c_min(1));
+% num_2Plot = 5;
+% 
+% if length(tau_c_min_idx)<5
+% 
+%     plot(r_bot_min(tau_c_min_idx), r_top_min(tau_c_min_idx), '.', 'MarkerSize', 20, 'Color', 'k')
+% 
+%     % Create legend
+%     legend('', [num2str(length(tau_c_min_idx)), ' smallest RMS differences'], 'location', 'best',...
+%         'Interpreter', 'latex', 'FontSize', 25)
+% 
+% else
+% 
+%     plot(r_bot_min(tau_c_min_idx(1:num_2Plot)), r_top_min(1:num_2Plot), '.', 'MarkerSize', 20, 'Color', 'k')
+% 
+%     legend('', [num2str(num_2Plot), ' smallest RMS differences'], 'location', 'best',...
+%         'Interpreter', 'latex', 'FontSize', 25)
+% 
+% end
 
 % Create ylabel
 ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
@@ -1181,6 +1204,210 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% --- (r_top - r_bot) versus tau ----
+
+
+% --- Reduce the rms_grid by 1 dimension -----
+% Take the difference between r_top and r_bot
+% reshape stacks columns
+rms_residual_reducedDimension = reshape(rms_residual, [], length(tau_c_fine));
+
+% define the independent vector in the row space
+rTop_minus_rBot = r_top_fine' - r_bot_fine;
+% stack the columns!
+rTop_minus_rBot = reshape(rTop_minus_rBot, [], 1);
+
+
+
+% Create figure
+figure;
+colormap(hot);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% plot the whole space?
+T_idx = 250;
+% number of levels to plot
+n = 15;
+
+% Create contour
+[c1,h1] = contour(tau_c_fine, 1:length(rTop_minus_rBot), rms_residual_reducedDimension, n,'LineWidth',3);
+
+% round off the level list
+h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+%clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+
+% Create ylabel
+ylabel('$r_{top} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual between EMIT and LibRadTran'],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% --- (r_top - r_bot) versus tau  for the minimum r_top ----
+
+
+
+% define the optical depth slice you'd like to plot
+idx_rTop = r_top_fine == r_top_min(1);
+
+% Create figure
+figure;
+colormap(jet);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% plot the whole space?
+T_idx = 250;
+% number of levels to plot
+n = 200;
+
+% Create contour
+[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :), length(r_bot_fine),...
+    length(tau_c_fine)), n, 'LineWidth',4);
+
+% % round off the level list
+% h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+% labels_2Print = h1.LevelList(1:8:end);
+% clabel(c1,h1,labels_2Print, 'FontSize',20,'FontWeight','bold');
+
+% round off the level list and only keep a fraction of them!
+h1.LevelList = round(h1.LevelList(1:15:end),4);  %rounds levels to 3rd decimal place
+clabel(c1,h1, 'FontSize',20,'FontWeight','bold')
+
+
+% Create ylabel
+ylabel('$r_{top}^{min} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual between EMIT and LibRadTran at min $r_{top}$'],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% --- (r_top - r_bot) versus tau  for the minimum r_bot ----
+
+
+
+% define the optical depth slice you'd like to plot
+idx_rBot = r_bot_fine == r_bot_min(1);
+
+% Create figure
+figure;
+colormap(jet);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+% plot the whole space?
+T_idx = 250;
+% number of levels to plot
+n = 200;
+
+% Create contour
+[c1,h1] = contour(tau_c_fine, r_top_fine - r_bot_min(1), reshape(rms_residual(:, idx_rBot, :), length(r_top_fine),...
+    length(tau_c_fine)), n, 'LineWidth',4);
+
+% % round off the level list
+% h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+% labels_2Print = h1.LevelList(1:5:end);
+% clabel(c1,h1,labels_2Print, 'FontSize',20,'FontWeight','bold');
+
+% round off the level list and only keep a fraction of them!
+h1.LevelList = round(h1.LevelList(1:10:end),4);  %rounds levels to 3rd decimal place
+clabel(c1,h1, 'FontSize',20,'FontWeight','bold')
+
+% Ovelay the root-mean-square of the uncertainty of each channel used
+% hold on
+% contour(repmat(sqrt(mean(Refl_emit_uncertainty.^2)), 2, 2), 'LineStyle', '--', 'LineWidth', 4, 'Color', ...
+%     'black')
+
+% Create ylabel
+ylabel('$r_{top} - r_{bot}^{min}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual between EMIT and LibRadTran at min $r_{bot}$'],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+
+
+
+
+
 %% Plot the EMIT measured reflectance and the Calculated reflectance associated with the minimum RMS residual
 
 figure;
@@ -1204,7 +1431,7 @@ set(gcf, 'Position', [0 0 700 700])
 
 
 
-%% Plot the EMIT measured reflectance and the Calculates reflectance associated with the minimum RMS residual
+%% Plot the EMIT measured reflectance and the Calculated reflectance associated with the minimum RMS residual
 % do this as a function of wavelength
 
 figure; 

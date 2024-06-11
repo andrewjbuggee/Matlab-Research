@@ -174,6 +174,8 @@ if strcmp(file_name,'kurudz_1.0nm.dat')
 
     solar_flux = solar_flux./1000;
 
+
+
 elseif strcmp(file_name,'kurudz_0.1nm.dat')
 
     % Lets check to make sure the wavelength input is within bounds of the
@@ -404,6 +406,10 @@ else
     error([newline,'I dont recognize the source file you entered!',newline])
 
 end
+
+
+    % --- You must close the file! Too many open files can crash Matlab ---
+    fclose(file_id);
 
 
 

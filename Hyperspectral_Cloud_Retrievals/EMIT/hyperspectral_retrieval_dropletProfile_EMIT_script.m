@@ -51,8 +51,19 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [970, 969];
 
 % 17_Jan_2024_coast - optical depth of 3.2
-pixels2use.row = 932;
-pixels2use.col = 970;
+% pixels2use.row = 932;
+% pixels2use.col = 970;
+
+% 17_Jan_2024_coast - optical depths of 8.7, 9.22, 9.68, 10.3, 11.6, 12.54,
+% 13.61, 14.53, 16.79, 19.8
+% pixels2use.row = [969, 969, 969, 969, 969, 969, 969, 969, 969, 969];
+% pixels2use.col = [991, 989, 987, 986, 984, 980, 976, 974, 966, 957];
+
+
+% 17_Jan_2024_coast - optical depths of 8.7, 9.22, 9.68, 10.3, 11.6, 12.54,
+% 13.61, 14.53, 16.79, 19.8
+pixels2use.row = [932, 932, 969, 969, 969];
+pixels2use.col = [970, 960, 984, 980, 974];
 
 
 % Grab the pixel indices
@@ -119,8 +130,8 @@ tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
 %% Create the Model and Measurement prior
  
 
-%inputs = create_model_prior_covariance_EMIT_top_bottom(inputs, pixels2use, tblut_retrieval, true);
-inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
+inputs = create_model_prior_covariance_EMIT_top_bottom(inputs, pixels2use, tblut_retrieval, true);
+%inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
 
 inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 
@@ -128,8 +139,8 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
 % Compute the retrieval variables
-%[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit ,pixels2use);
-[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
+[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit ,pixels2use);
+%[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
 % --- save the output ---
  save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
@@ -149,7 +160,7 @@ plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
 hold on
 
 % plot the emit reflectance versus the forward model computed reflectance
-errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.calculated_reflectance,...
+errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.computed_reflectance,...
     emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
     'Color', mySavedColors(1, 'fixed'))
 
