@@ -68,8 +68,8 @@ end
 % --- Define the pixels to use for the retrieval ---
 
 % 17_Jan_2024_coast - optical depth of 6.6
-pixels2use.row = 932;
-pixels2use.col = 960;
+% pixels2use.row = 932;
+% pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 8.53
 pixels2use.row = 969;
@@ -505,7 +505,7 @@ set(gcf, 'Position',[0 0 1000 630])
 
 
 
-%% --- Create animation of VOCALS-REx data ---
+%% --- Create plot of LWC, effective radius and droplet number concentration of VOCALS-REx data ---
 
 
 clear variables
@@ -680,25 +680,35 @@ toc
 
 
 % ----------------- PLOT ----------------------------------
+figure; 
+
 % plot LWC, droplet size and number concentration with altitude
 % First plot the LWC
-ax1 = subplot(1,3,1); plot(vocalsRex.lwc, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'));
+ax1 = subplot(1,3,1); plot(vocalsRex.lwc, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'),...
+    'LineWidth', 5);
 hold on
 
 % next plot the effective radius
 % if the 2DC data is compliant, plot the effective radius computed
 % using both instruments
 if vocalsRex.flag_2DC_data_is_conforming==true
-    ax2 = subplot(1,3,2); plot(vocalsRex.re, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'));
+    ax2 = subplot(1,3,2); plot(vocalsRex.re, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'),...
+        'LineWidth', 5);
 else
     % if the 2DC data is non-conforming, use only the CDP data and
     % make a note of it
-    ax2 = subplot(1,3,2); plot(vocalsRex.re_CDP, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'));
+    ax2 = subplot(1,3,2); plot(vocalsRex.re_CDP, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'),...
+        'LineWidth', 5);
 end
 hold on
 
+% --- Plot a line of constant effective radius for the MODIS retrieved
+% value ---
+xline(8.2, 'LineWidth', 5, 'Color', [0.2422    0.1504    0.6603])
+
 % Lastly, plot the total droplet number concentration
-ax3 = subplot(1,3,3); plot(vocalsRex.Nc, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'));
+ax3 = subplot(1,3,3); plot(vocalsRex.Nc, vocalsRex.altitude, 'Color', mySavedColors(5, 'fixed'),...
+    'LineWidth', 5);
 hold on
 % Make each subplot pretty
 subplot(1,3,1)
@@ -737,6 +747,8 @@ end
 subplot(1,3,3)
 grid on; grid minor;
 xlabel('$N_c$ ($cm^{-3}$)', 'Interpreter','latex')
+
+
 
 
 % set plot size
