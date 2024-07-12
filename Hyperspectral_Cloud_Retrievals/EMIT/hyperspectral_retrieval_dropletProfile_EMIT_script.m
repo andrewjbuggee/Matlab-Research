@@ -43,8 +43,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [929, 929];
 
 % 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = [932];
-% pixels2use.col = [960];
+pixels2use.row = [932];
+pixels2use.col = [960];
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -61,8 +61,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 
 
 % 17_Jan_2024_coast - optical depths of 3.2, 6.6, 10.3, 12.54, 14.53, 19.8
-pixels2use.row = [932, 932, 969, 969, 969, 969];
-pixels2use.col = [970, 960, 986, 980, 974, 987];
+% pixels2use.row = [932, 932, 969, 969, 969, 969];
+% pixels2use.col = [970, 960, 986, 980, 974, 987];
 
 % 17_Jan_2024_coast - optical depths of 10.3
 % pixels2use.row = 969;
