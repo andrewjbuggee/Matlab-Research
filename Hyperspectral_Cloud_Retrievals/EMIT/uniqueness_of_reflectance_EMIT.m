@@ -12,8 +12,8 @@ clear variables
 r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
-tau_c = [5, 5.5, 6, 6.5, 7];
-
+%tau_c = [5, 5.5, 6, 6.5, 7];
+tau_c = 4:0.5:8;
 
 % r_top = 12.5;
 % r_bot = 2.75;
@@ -114,7 +114,7 @@ Rad_emit_uncertainty = emit.radiance.uncertainty;
 
 
 % Define the number of streams to use in your radiative transfer model
-num_streams = 16;
+inputs.RT.num_streams = 16;
 % ------------------------------------------------------------------------
 
 % ------------------------------------------------------------------------
@@ -135,13 +135,10 @@ num_streams = 16;
 % source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
 % source_file_resolution = 0.025;         % nm
 
-source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-source_file_resolution = 0.1;         % nm
+inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+inputs.RT.source_file_resolution = 0.1;         % nm
 
-% create the spectral response functions
-% define the source file using the input resolution
-inputs.RT.source_file = source_file;
-inputs.RT.source_file_resolution = source_file_resolution;
+
 % ------------------------------------------------------------------------
 
 
@@ -166,8 +163,13 @@ inputs.RT.source_file_resolution = source_file_resolution;
 %     248, 252, 259]';
 
 % --- New indexs - tried to improve avoidance of water vapor ---
-wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
+inputs.RT.wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
+249, 250, 251, 252, 253, 254]';
+
+% --- New New indexs - avoid water vapor and other absorbing gasses! ---
+inputs.bands2run = [17, 20, 24, 32, 38, 66, 67, 68, 86, 89, 90, 92, 115, 116, 117,...
+156, 157, 158, 175, 176, 230, 231, 233, 234, 235, 236, 237,...
 249, 250, 251, 252, 253, 254]';
 
 % Testing discrepancies between measured reflectance and computed
@@ -176,7 +178,7 @@ wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,..
 % wavelength_idx = [38, 235]';
 
 
-Rad_emit = Rad_emit(wavelength_idx);
+Rad_emit = Rad_emit(inputs.RT.wavelength_idx);
 % -------------------------------------------------
 
 
@@ -187,12 +189,12 @@ Rad_emit = Rad_emit(wavelength_idx);
 % create the spectral response functions
 spec_response = create_EMIT_specResponse(emit, inputs);
 % keep only the response functions for the wavelengths we care about
-spec_response_2run.value = spec_response.value(wavelength_idx, :);
-spec_response_2run.wavelength = spec_response.wavelength(wavelength_idx, :);
+spec_response_2run.value = spec_response.value(inputs.RT.wavelength_idx, :);
+spec_response_2run.wavelength = spec_response.wavelength(inputs.RT.wavelength_idx, :);
 
-wavelength = zeros(length(wavelength_idx), 2);
+wavelength = zeros(length(inputs.RT.wavelength_idx), 2);
 
-for ww = 1:length(wavelength_idx)
+for ww = 1:length(inputs.RT.wavelength_idx)
 
     % The wavelength vector for libRadTran is simply the lower and upper
     % bounds
@@ -206,7 +208,7 @@ end
 
 % ------------------------------------------------------------------------
 % --- Do you want to use the Nakajima and Tanka radiance correction? -----
-use_nakajima_phaseCorrection = true;
+inputs.RT.use_nakajima_phaseCorrection = true;
 % ------------------------------------------------------------------------
 
 
@@ -216,88 +218,88 @@ use_nakajima_phaseCorrection = true;
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-band_parameterization = 'reptran coarse';
+inputs.RT.band_parameterization = 'reptran coarse';
 % ------------------------------------------------------------------------
 
 
 
 
 % define the atmospheric data file
-atm_file = 'afglus.dat';
+inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-albedo = 0.05;
+inputs.RT.albedo = 0.05;
 
 % day of the year
-day_of_year = 17;
+inputs.RT.day_of_year = 17;
 
 % ------------------------------------------------------------------------
-cloud_depth = 1000;                % meters
+inputs.RT.cloud_depth = 1000;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-z_topBottom = [3, 2];          % km above surface
+inputs.RT.z_topBottom = [3, 2];          % km above surface
 
 
 
 % Water Cloud depth
-H = z_topBottom(1) - z_topBottom(2);                                % km - geometric thickness of cloud
+inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
 % ------------------------------------------------------------------------
 
 
 % ------------------------------------------------------------------------
 % -------------- Do you want a cloud in your model? ----------------------
-yesCloud = true;
+inputs.RT.yesCloud = true;
 
 % ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-linear_cloudFraction = false;
+inputs.RT.linear_cloudFraction = false;
 % if false, define the cloud cover percentage
-percent_cloud_cover = 1;
+inputs.RT.percent_cloud_cover = 1;
 % ------------------------------------------------------------------------
 
 
 
 % ------------------------------------------------------------------------
 % ---------- Do you want use your custom mie calculation file? -----------
-use_custom_mie_calcs = false;
+inputs.RT.use_custom_mie_calcs = false;
 % ------------------------------------------------------------------------
 
 % define the type of droplet distribution
-distribution_str = 'gamma';
+inputs.RT.distribution_str = 'gamma';
 % define whether this is a vertically homogenous cloud or not
-vert_homogeneous_str = 'vert-non-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 % define how liquid water content will be computed
-parameterization_str = 'mie';
+inputs.RT.parameterization_str = 'mie';
 
 % define the wavelength used for the optical depth as the 650 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
-lambda_forTau = mean(wavelength(1,:));            % nm
+inputs.RT.lambda_forTau = mean(wavelength(1,:));            % nm
 
 
 % ------------------------------------------------------------------------
 % ------------------- Radius Profile attributes --------------------------
 % ------------------------------------------------------------------------
 
-profile_type = 'adiabatic'; % type of water droplet profile
+inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
-n_layers = 10;                          % number of layers to model within cloud
+inputs.RT.n_layers = 10;                          % number of layers to model within cloud
 
-z = linspace(z_topBottom(1), z_topBottom(2), n_layers);        % km - altitude above ground vector
+inputs.RT.z = linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers);        % km - altitude above ground vector
 
-indVar = 'altitude';                    % string that tells the code which independent variable we used
+inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-dist_var = linspace(10,10,n_layers);              % distribution variance
+inputs.RT.dist_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 % ------------------------------------------------------------------------
 
 
 
 % Define the parameterization scheme used to comptue the optical quantities
-if use_custom_mie_calcs==false
-    wc_parameterization = 'mie interpolate';
+if inputs.RT.use_custom_mie_calcs==false
+    inputs.RT.wc_parameterization = 'mie interpolate';
 else
     %wc_parameterization = '../data/wc/mie/wc.mie_test.cdf interpolate';
-    wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+    inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
 end
 
 % --------------------------------------------------------------
@@ -305,7 +307,7 @@ end
 
 
 % define the solar zenith angle
-sza = double(emit.obs.solar.zenith);           % degree
+inputs.RT.sza = double(emit.obs.solar.zenith);           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -313,10 +315,10 @@ sza = double(emit.obs.solar.zenith);           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-phi0 = mod(double(emit.obs.solar.azimuth + 180), 360);         % degree
+inputs.RT.phi0 = mod(double(emit.obs.solar.azimuth + 180), 360);         % degree
 
 % define the viewing zenith angle
-vza = double(emit.obs.sensor.zenith); % values are in degrees;                        % degree
+inputs.RT.vza = double(emit.obs.sensor.zenith); % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -325,22 +327,22 @@ vza = double(emit.obs.sensor.zenith); % values are in degrees;                  
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-vaz = emit.obs.sensor.azimuth;     % degree
+inputs.RT.vaz = emit.obs.sensor.azimuth;     % degree
 
 
 % --------------------------------------------------------------
 % --- Do you want to use the Cox-Munk Ocean Surface Model? -----
-use_coxMunk = true;
-wind_speed = 3;             % m/s
+inputs.RT.use_coxMunk = true;
+inputs.RT.wind_speed = 3;             % m/s
 % --------------------------------------------------------------
 
 
 % ------------------------------------------------------------------------
 % --------- Do you want boundary layer aerosols in your model? -----------
-yesAerosols = true;
+inputs.RT.yesAerosols = true;
 
-aerosol_type = 4;               % 4 = maritime aerosols
-aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
+inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
+inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
 
 
@@ -351,16 +353,16 @@ aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-modify_waterVapor = false;
+inputs.RT.modify_waterVapor = false;
 
-waterVapor_column = 30;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 30;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-compute_reflectivity_uvSpec = false;
+inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
@@ -380,13 +382,13 @@ inputs = define_source_for_EMIT(inputs, emit);
 emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 % store the refletance
-Refl_emit = emit.reflectance.value(wavelength_idx);
+Refl_emit = emit.reflectance.value(inputs.RT.wavelength_idx);
 
 % Compute the reflectance uncertainty
 
 emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
 
-Refl_emit_uncertainty = emit.reflectance.uncertainty(wavelength_idx);
+Refl_emit_uncertainty = emit.reflectance.uncertainty(inputs.RT.wavelength_idx);
 
 
 %% Write each INP file and Calculate Reflectance for MODIS
@@ -424,15 +426,17 @@ for rt = 1:length(r_top)
                 % and 10 percent. So lets round off all re values to the 1000th decimal
                 % place
 
-                re = create_droplet_profile2([r_top(rt), r_bot(rb)], z, indVar, profile_type);     % microns - effective radius vector
+                re = create_droplet_profile2([r_top(rt), r_bot(rb)],...
+                    inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
 
                 % ------------------------------------------------------
                 % --------------------VERY IMPORTANT ------------------
                 % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
                 % ------------------------------------------------------
-                wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
-                    dist_var, vert_homogeneous_str, parameterization_str, ww);
+                wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), inputs.RT.z_topBottom,...
+                    inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
+                    inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, ww);
                 wc_filename{rt,rb,tc,ww} = wc_filename{rt,rb,tc,ww}{1};
 
 
@@ -446,7 +450,7 @@ for rt = 1:length(r_top)
                 %                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
 
                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
-                    'nm_radiance_', atm_file(1:end-4),'.INP'];
+                    'nm_radiance_', inputs.RT.atm_file(1:end-4),'.INP'];
 
 
 
@@ -471,12 +475,12 @@ for rt = 1:length(r_top)
                 % of radiative transfer
                 % ------------------------------------------------
                 formatSpec = '%s %u %5s %s \n\n';
-                fprintf(fileID, formatSpec,'number_of_streams', num_streams,' ', '# Number of streams');
+                fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
 
 
                 % Use phase function correction?
                 % ------------------------------------------------
-                if use_nakajima_phaseCorrection==true
+                if inputs.RT.use_nakajima_phaseCorrection==true
                     % define the pahse correction to be true
                     % ------------------------------------------------
                     formatSpec = '%s %5s %s \n\n';
@@ -488,36 +492,37 @@ for rt = 1:length(r_top)
                 % of radiative transfer
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'mol_abs_param', band_parameterization,' ', '# Band model');
+                fprintf(fileID, formatSpec,'mol_abs_param', inputs.RT.band_parameterization,' ', '# Band model');
 
 
                 % Define the location and filename of the atmopsheric profile to use
                 % ------------------------------------------------
                 formatSpec = '%s %5s %s \n';
-                fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/',atm_file],' ', '# Location of atmospheric profile');
+                fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/', inputs.RT.atm_file],...
+                    ' ', '# Location of atmospheric profile');
 
                 % Define the location and filename of the extraterrestrial solar source
                 % ---------------------------------------------------------------------
                 formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'source solar', source_file, ' ', '# Bounds between 250 and 10000 nm');
+                fprintf(fileID, formatSpec,'source solar', inputs.RT.source_file, ' ', '# Bounds between 250 and 10000 nm');
 
 
                 % Define the location and filename of the extraterrestrial solar source
                 % ---------------------------------------------------------------------
                 formatSpec = '%s %u %5s %s \n\n';
-                fprintf(fileID, formatSpec,'day_of_year', day_of_year, ' ', '# accounts for changing Earth-Sun distance');
+                fprintf(fileID, formatSpec,'day_of_year', inputs.RT.day_of_year, ' ', '# accounts for changing Earth-Sun distance');
 
 
 
                 % Define the surface albedo
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'albedo', albedo, ' ', '# Surface albedo of the ocean');
+                fprintf(fileID, formatSpec,'albedo', inputs.RT.albedo, ' ', '# Surface albedo of the ocean');
 
 
                 % Define the Water Cloud properties, if you want a cloud in your model
                 % --------------------------------------------------------------------
-                if yesCloud==true
+                if inputs.RT.yesCloud==true
 
                     % Define the water cloud file
                     % ------------------------------------------------
@@ -528,14 +533,14 @@ for rt = 1:length(r_top)
                     % This is a number between 0 and 1
                     % ------------------------------------------------
                     formatSpec = '%s %f %5s %s \n';
-                    fprintf(fileID, formatSpec,'cloudcover wc', percent_cloud_cover, ' ', '# Cloud cover percentage');
+                    fprintf(fileID, formatSpec,'cloudcover wc', inputs.RT.percent_cloud_cover, ' ', '# Cloud cover percentage');
 
 
                     % Define the technique or parameterization used to convert liquid cloud
                     % properties of r_eff and LWC to optical depth
                     % ----------------------------------------------------------------------
                     formatSpec = '%s %s %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'wc_properties', wc_parameterization, ' ', '# optical properties parameterization technique');
+                    fprintf(fileID, formatSpec,'wc_properties', inputs.RT.wc_parameterization, ' ', '# optical properties parameterization technique');
 
                 end
               
@@ -550,13 +555,13 @@ for rt = 1:length(r_top)
 
 
 
-                if use_coxMunk==true
+                if inputs.RT.use_coxMunk==true
 
                     % Define the wind speed for the Cox-Munk ocean surface bi-directional reflectance model
                     % be solve
                     % -------------------------------------------------------------------------
                     formatSpec = '%s %f %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'brdf_cam u10', wind_speed, ' ', '# (m/s) Ocean Surface wind speed');
+                    fprintf(fileID, formatSpec,'brdf_cam u10', inputs.RT.wind_speed, ' ', '# (m/s) Ocean Surface wind speed');
 
                 end
 
@@ -564,12 +569,12 @@ for rt = 1:length(r_top)
 
                 % Define the column water vapor amount
                 % --------------------------------------------------------------------
-                if modify_waterVapor==true
+                if inputs.RT.modify_waterVapor==true
 
                     % Turn on default aersol layer, which occupies lower 2km of model
                     % --------------------------------------------------------------
                     formatSpec = '%s %f %s %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'mol_modify H2O ', waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+                    fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
 
 
                 end
@@ -578,7 +583,7 @@ for rt = 1:length(r_top)
 
                 % Define the Aerosol Layer properties, if you want a cloud in your model
                 % --------------------------------------------------------------------
-                if yesAerosols==true
+                if inputs.RT.yesAerosols==true
 
                     % Turn on default aersol layer, which occupies lower 2km of model
                     % --------------------------------------------------------------
@@ -591,13 +596,14 @@ for rt = 1:length(r_top)
                     % 6=Tropospheric aerosols
                     % ------------------------------------------------
                     formatSpec = '%s %u %5s %s \n';
-                    fprintf(fileID, formatSpec,'aerosol_haze', aerosol_type, ' ', '# Aerosol type');
+                    fprintf(fileID, formatSpec,'aerosol_haze', inputs.RT.aerosol_type, ' ', '# Aerosol type');
 
 
                     % Define aerosol layer optical depth
                     % ----------------------------------------------------------------------
                     formatSpec = '%s %f %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'aerosol_modify tau set', aerosol_opticalDepth, ' ', '# Optical Depth of aerosol layer');
+                    fprintf(fileID, formatSpec,'aerosol_modify tau set', inputs.RT.aerosol_opticalDepth, ' ',...
+                        '# Optical Depth of aerosol layer');
 
                 end
 
@@ -612,26 +618,26 @@ for rt = 1:length(r_top)
                 % Define the solar zenith angle
                 % ------------------------------------------------
                 formatSpec = '%s %f %5s %s \n';
-                fprintf(fileID, formatSpec,'sza', sza, ' ', '# Solar zenith angle');
+                fprintf(fileID, formatSpec,'sza', inputs.RT.sza, ' ', '# Solar zenith angle');
 
                 % Define the solar azimuth angle
                 % -------------------------------------------------------
                 formatSpec = '%s %f %5s %s \n';
-                fprintf(fileID, formatSpec,'phi0', phi0, ' ', '# Solar azimuth angle');
+                fprintf(fileID, formatSpec,'phi0', inputs.RT.phi0, ' ', '# Solar azimuth angle');
 
                 % Define the cosine of the zenith viewing angle
                 % ------------------------------------------------
                 formatSpec = '%s %f %5s %s \n';
-                fprintf(fileID, formatSpec,'umu', round(cosd(vza),4), ' ', '# Cosine of the zenith viewing angle');
+                fprintf(fileID, formatSpec,'umu', round(cosd(inputs.RT.vza),4), ' ', '# Cosine of the zenith viewing angle');
 
                 % Define the azimuth viewing angle
                 % ------------------------------------------------
                 formatSpec = '%s %f %5s %s \n\n';
-                fprintf(fileID, formatSpec,'phi', vaz, ' ', '# Azimuthal viewing angle');
+                fprintf(fileID, formatSpec,'phi', inputs.RT.vaz, ' ', '# Azimuthal viewing angle');
 
 
 
-                if compute_reflectivity_uvSpec==true
+                if inputs.RT.compute_reflectivity_uvSpec==true
                     % Set the output quantity to be reflectivity
                     % ------------------------------------------------
                     formatSpec = '%s %s %5s %s \n\n';
@@ -672,7 +678,8 @@ for rt = 1:length(r_top)
 
                 % read .OUT file
                 % radiance is in units of mW/nm/m^2/sr
-                [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
+                [ds,~,~] = readUVSPEC(folder2save,outputName{rt,rb, tc, ww},inputSettings(2,:),...
+                    inputs.RT.compute_reflectivity_uvSpec);
 
                 % compute the reflectance
                 Refl_model(rt, rb, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
@@ -759,7 +766,7 @@ while isfile(filename)
 end
 
 save(filename,"r_top", "r_bot", "tau_c", "wavelength", "Rad_model", "Refl_model",...
-    "emitFolder", 'pixels2use');
+    "emitFolder", 'pixels2use', "Refl_emit_uncertainty", "inputs");
 
 toc
 

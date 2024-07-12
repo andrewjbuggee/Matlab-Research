@@ -79,8 +79,8 @@ end
 % pixels2use.col = [929, 929];
 
 % 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = [932];
-% pixels2use.col = [960];
+pixels2use.row = [932];
+pixels2use.col = [960];
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -98,8 +98,8 @@ end
 
 % 17_Jan_2024_coast - optical depths of 3.28   4.87   6.53   8.64   9.67  10.34  11.63  12.54
 % 13.61  14.55  16.83  19.86
-pixels2use.row = [932, 913, 932, 969, 969, 969, 969, 969, 969, 969, 969, 969];
-pixels2use.col = [970, 929, 960, 991, 987, 986, 984, 980, 976, 974, 966, 957];
+% pixels2use.row = [932, 913, 932, 969, 969, 969, 969, 969, 969, 969, 969, 969];
+% pixels2use.col = [970, 929, 960, 991, 987, 986, 984, 980, 976, 974, 966, 957];
 
 
 % Grab the pixel indices

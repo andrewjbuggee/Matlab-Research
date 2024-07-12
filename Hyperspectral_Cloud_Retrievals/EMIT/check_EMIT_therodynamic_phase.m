@@ -140,11 +140,11 @@ con = physical_constants();
 % reasonable height for the lifting condensation level using the US
 % standard atmosphere
 
-H_lcl = 3;            % km
-atm_prof = read_atm_profile(H_lcl, 'atm_profile_with_homogenous_cloud.txt', true);
+H_above_cloud = 3;            % km
+atm_prof = read_atm_profile(H_above_cloud, 'atm_profile_with_homogenous_cloud.txt', true);
 
-T = atm_prof.temperature;                % K - temperature of gas
-P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole atmosphere
+T = atm_prof.temperature;                % K - temperature of atm at the specified height (H_lcl)
+P = (atm_prof.pressure*100)/con.atm;     % atm - pressure of the atm at the specified height (H_lcl)
 
 % because number density is directly proportional to the pressure, the
 % partial pressure is the ratio of number density of water vapor to the
@@ -156,7 +156,9 @@ P_self = atm_prof.H2O_Nc/atm_prof.air_Nc;          % atm - partial pressure of w
 % How should we solve for the absorption cross section?
 % 'full_integral' solves for the Voigt function by solving a numerical
 % integral over a finely spaced grid. This takes a while
-% 'whitting' uses an approximation
+% 'whitting' uses an approximation. **Important** the whitting
+% approximation computes the voigt cross section on an internal grid of
+% 0.01nm, so the desired resolution can not be finer than that.
 solution_type = 'whitting';
 
 tic
@@ -176,8 +178,8 @@ con = physical_constants();
 % reasonable height for the lifting condensation level using the US
 % standard atmosphere
 
-H_lcl = 3;            % km
-atm_prof = read_atm_profile(H_lcl, 'atm_profile_with_homogenous_cloud.txt', true);
+H_above_cloud = 3;            % km
+atm_prof = read_atm_profile(H_above_cloud, 'atm_profile_with_homogenous_cloud.txt', true);
 
 T = atm_prof.temperature;                % K - temperature of gas
 P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole atmosphere
@@ -208,8 +210,8 @@ con = physical_constants();
 % reasonable height for the lifting condensation level using the US
 % standard atmosphere
 
-H_lcl = 3;            % km
-atm_prof = read_atm_profile(H_lcl, 'atm_profile_with_homogenous_cloud.txt', true);
+H_above_cloud = 3;            % km
+atm_prof = read_atm_profile(H_above_cloud, 'atm_profile_with_homogenous_cloud.txt', true);
 
 T = atm_prof.temperature;                % K - temperature of gas
 P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole atmosphere
@@ -239,8 +241,8 @@ con = physical_constants();
 % reasonable height for the lifting condensation level using the US
 % standard atmosphere
 
-H_lcl = 3;            % km
-atm_prof = read_atm_profile(H_lcl, 'atm_profile_with_homogenous_cloud.txt', true);
+H_above_cloud = 3;            % km
+atm_prof = read_atm_profile(H_above_cloud, 'atm_profile_with_homogenous_cloud.txt', true);
 
 T = atm_prof.temperature;                % K - temperature of gas
 P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole atmosphere
@@ -270,15 +272,16 @@ con = physical_constants();
 % reasonable height for the lifting condensation level using the US
 % standard atmosphere
 
-H_lcl = 3;            % km
-atm_prof = read_atm_profile(H_lcl, 'atm_profile_with_homogenous_cloud.txt', true);
+H_above_cloud = 3;            % km
+atm_prof = read_atm_profile(H_above_cloud, 'atm_profile_with_homogenous_cloud.txt', true);
 
 T = atm_prof.temperature;                % K - temperature of gas
 P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole atmosphere
 
-% Partial pressure of carbon monoxide from values listed at:
-% https://scied.ucar.edu/learning-zone/air-quality/carbon-monoxide
-P_self = 100e-9 * P;          % atm - partial pressure of methane
+% because number density is directly proportional to the pressure, the
+% partial pressure is the ratio of number density of Carbon Dioxide to the
+% number density of air.
+P_self = atm_prof.O2_Nc/atm_prof.air_Nc;          % atm - partial pressure of water vapor
 
 % --- Define the solution type ----
 % How should we solve for the absorption cross section?
