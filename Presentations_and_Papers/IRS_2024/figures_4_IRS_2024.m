@@ -125,6 +125,8 @@ legend('EMIT Reflectance', 'Location', 'best', 'Interpreter', 'latex', 'FontSize
 set(gcf, 'Position', [0 0 1250 500])
 
 
+
+
 % --- Second plot shows the spectral bands used in the hyperspectral
 % retireval ---
 
