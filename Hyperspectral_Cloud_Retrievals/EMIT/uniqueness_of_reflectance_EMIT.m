@@ -83,7 +83,7 @@ emitFolder = '17_Jan_2024_coast/';
 % row = 912;
 % col = 929;
 
-% 17_Jan_2024_coast - optical depth of 6.6
+% 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.6
 pixels2use.row = 932;
 pixels2use.col = 960;
 
@@ -135,6 +135,8 @@ inputs.RT.num_streams = 16;
 % source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
 % source_file_resolution = 0.025;         % nm
 
+% these data have 0.1nm sampling resolution, despite what the file name
+% suggests
 inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
 inputs.RT.source_file_resolution = 0.1;         % nm
 
@@ -158,27 +160,29 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % wavelengths from 500 to 2500 nm
 
 % --- Old indexes ---
-% wavelength_idx = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
+% inputs.bands2run = [17, 24, 31, 40, 52, 65, 86, 92, 93, 115, 117, 118, 119, 121,...
 %     158, 159, 164, 165, 166, 167, 168, 174, 175, 221, 222, 226, 232, 234, 238,...
 %     248, 252, 259]';
 
 % --- New indexs - tried to improve avoidance of water vapor ---
-inputs.RT.wavelength_idx = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
-159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
-249, 250, 251, 252, 253, 254]';
+% inputs.bands2run = [17, 24, 32, 40, 53, 67, 86, 89, 90, 117, 118, 119, 120, 121,...
+% 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 227, 236,...
+% 249, 250, 251, 252, 253, 254]';
 
 % --- New New indexs - avoid water vapor and other absorbing gasses! ---
-inputs.bands2run = [17, 20, 24, 32, 38, 66, 67, 68, 86, 89, 90, 92, 115, 116, 117,...
-156, 157, 158, 175, 176, 230, 231, 233, 234, 235, 236, 237,...
-249, 250, 251, 252, 253, 254]';
+% inputs.bands2run = [17, 20, 24, 32, 38, 66, 67, 68, 86, 89, 90, 92, 115, 116, 117,...
+% 156, 157, 158, 175, 176, 230, 231, 233, 234, 235, 236, 237,...
+% 249, 250, 251, 252, 253, 254]';
 
-% Testing discrepancies between measured reflectance and computed
-%wavelength_idx = [53, 119, 120, 121, 227];
+% --- New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! ---
+inputs.bands2run = [8, 12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+    94, 114, 115, 116, 117, 123, 124, 154, 155, 156, 157, 158, 172, 175, 176, 230,...
+    231, 233, 234, 235, 236, 237, 249, 250, 251, 252, 253, 254]';
 
-% wavelength_idx = [38, 235]';
 
 
-Rad_emit = Rad_emit(inputs.RT.wavelength_idx);
+
+Rad_emit = Rad_emit(inputs.bands2run);
 % -------------------------------------------------
 
 
@@ -189,12 +193,12 @@ Rad_emit = Rad_emit(inputs.RT.wavelength_idx);
 % create the spectral response functions
 spec_response = create_EMIT_specResponse(emit, inputs);
 % keep only the response functions for the wavelengths we care about
-spec_response_2run.value = spec_response.value(inputs.RT.wavelength_idx, :);
-spec_response_2run.wavelength = spec_response.wavelength(inputs.RT.wavelength_idx, :);
+spec_response_2run.value = spec_response.value(inputs.bands2run, :);
+spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
 
-wavelength = zeros(length(inputs.RT.wavelength_idx), 2);
+wavelength = zeros(length(inputs.bands2run), 2);
 
-for ww = 1:length(inputs.RT.wavelength_idx)
+for ww = 1:length(inputs.bands2run)
 
     % The wavelength vector for libRadTran is simply the lower and upper
     % bounds
@@ -370,7 +374,6 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 
 
 
-
 %% Convert radiance measurements to TOA reflectance for the desired pixels
 
 
@@ -382,13 +385,50 @@ inputs = define_source_for_EMIT(inputs, emit);
 emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 
 % store the refletance
-Refl_emit = emit.reflectance.value(inputs.RT.wavelength_idx);
+Refl_emit = emit.reflectance.value(inputs.bands2run);
 
 % Compute the reflectance uncertainty
 
 emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
 
-Refl_emit_uncertainty = emit.reflectance.uncertainty(inputs.RT.wavelength_idx);
+Refl_emit_uncertainty = emit.reflectance.uncertainty(inputs.bands2run);
+
+
+
+%% Plot the wavelengths used to make sure they are the ones you want
+% Plot the reflectane spectra along with the chosen wavelengths
+
+
+figure;
+plot(emit.radiance.wavelength, emit.reflectance.value, 'Color', mySavedColors(3, 'fixed'))
+xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
+ylabel('Reflectance ($1/sr$)', Interpreter='latex', FontSize=30)
+grid on; grid minor
+
+% define the color of the filled patch
+C = [0 0.4470 0.7410];
+
+for bb = 1:length(inputs.bands2run)
+
+    hold on
+    % plot the bands used as transparent area
+    x = [spec_response.wavelength(inputs.bands2run(bb), [140,160]),...
+        fliplr(spec_response.wavelength(inputs.bands2run(bb), [140, 160]))];
+    y = [1,1, 0,0];
+    fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
+
+end
+
+% set ylimits
+ylim([0, 0.5])
+
+% Create legend
+legend('EMIT Reflectance', 'Wavelengths used in retrieval', 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', 25, 'Position',[0.690049780273438 0.8386 0.289800439453125 0.129])
+
+% set figure size
+set(gcf, 'Position', [0 0 1250 500])
+
 
 
 %% Write each INP file and Calculate Reflectance for MODIS
@@ -1088,9 +1128,12 @@ min_Refl_model_fine = reshape(Refl_model_fine(r_top_fine==r_top_min(1), r_bot_fi
 
 
 %% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% plot the RMS residual at the minimum optical depth and let the radii at
+% cloud top and bottom varry
 
 
 % define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
 idx_tauC = tau_c_fine == tau_c_min(1);
 
 % Create figure
@@ -1101,12 +1144,12 @@ colormap(jet);
 axes1 = axes;
 hold(axes1,'on');
 
-% plot the whole space?
-T_idx = 250;
+
 % number of levels to plot
 n = 200;
 
-% Create contour
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
 [c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC), n, 'LineWidth',4);
 clabel(c1,h1,'FontSize',20,'FontWeight','bold');
 
@@ -1237,8 +1280,7 @@ colormap(hot);
 axes1 = axes;
 hold(axes1,'on');
 
-% plot the whole space?
-T_idx = 250;
+
 % number of levels to plot
 n = 15;
 
@@ -1295,8 +1337,7 @@ colormap(jet);
 axes1 = axes;
 hold(axes1,'on');
 
-% plot the whole space?
-T_idx = 250;
+
 % number of levels to plot
 n = 200;
 
@@ -1360,8 +1401,7 @@ colormap(jet);
 axes1 = axes;
 hold(axes1,'on');
 
-% plot the whole space?
-T_idx = 250;
+
 % number of levels to plot
 n = 200;
 
@@ -1443,13 +1483,13 @@ set(gcf, 'Position', [0 0 700 700])
 
 figure; 
 
-plot(emit.radiance.wavelength(wavelength_idx), Refl_emit, '.-', 'MarkerSize', 25,...
+plot(emit.radiance.wavelength(inputs.bands2run), Refl_emit, '.-', 'MarkerSize', 25,...
     'LineWidth', 1, 'Color', mySavedColors(1,'fixed'))
 hold on;
-plot(emit.radiance.wavelength(wavelength_idx), min_Refl_model_fine, '.-', 'MarkerSize', 25,...
+plot(emit.radiance.wavelength(inputs.bands2run), min_Refl_model_fine, '.-', 'MarkerSize', 25,...
     'LineWidth', 1, 'Color', mySavedColors(2, 'fixed'))
 xlabel('Wavelength ($nm$)', 'Interpreter', 'latex', 'Fontsize', 35);
-ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 title(['$\tau_c = $', num2str(round(tau_c_min(1), 1)), ', RMS = ', num2str(min_val(1))],...
     'Interpreter', 'latex', 'Fontsize', 35);
 grid on; grid minor

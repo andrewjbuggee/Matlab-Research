@@ -187,7 +187,11 @@ P = (atm_prof.pressure*100)/con.atm;                  % atm - pressure of whole 
 % because number density is directly proportional to the pressure, the
 % partial pressure is the ratio of number density of Carbon Dioxide to the
 % number density of air.
-P_self = atm_prof.CO2_Nc/atm_prof.air_Nc;          % atm - partial pressure of water vapor
+P_self = atm_prof.CO2_Nc/atm_prof.air_Nc;          % atm - partial pressure of carbon dioxide
+
+% manually set the partial pressure to 400 ppm, a more common number for
+% today's atmosphere, even over the ocean because CO2 is fairly well mixed
+P_self = 400e-6;            % atm - partial pressure of carbon dioxide
 
 % --- Define the solution type ----
 % How should we solve for the absorption cross section?
