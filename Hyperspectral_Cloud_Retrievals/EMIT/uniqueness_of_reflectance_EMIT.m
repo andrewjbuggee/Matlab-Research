@@ -175,9 +175,15 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % 249, 250, 251, 252, 253, 254]';
 
 % --- New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! ---
-inputs.bands2run = [8, 12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-    94, 114, 115, 116, 117, 123, 124, 154, 155, 156, 157, 158, 172, 175, 176, 230,...
-    231, 233, 234, 235, 236, 237, 249, 250, 251, 252, 253, 254]';
+% inputs.bands2run = [8, 12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+%     94, 114, 115, 116, 117, 123, 124, 154, 155, 156, 157, 158, 172, 175, 176, 230,...
+%     231, 233, 234, 235, 236, 237, 249, 250, 251, 252, 253, 254]';
+
+% --- New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! ---
+inputs.bands2run = [12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+    94, 114, 115, 116, 117, 155, 156, 157, 158, 172, 175, 176,...
+    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
 
 
 
@@ -892,7 +898,7 @@ tau_c_fine = tau_c(1):d_tau_c:tau_c(end);
 Refl_model_fine = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine), size(Refl_model,4));
 
 
-
+tic
 for wl = 1:size(Refl_model,4)
 
     Refl_model_fine(:,:,:,wl) = interp3(R_bot, R_top, Tau_c, Refl_model(:, :, :, wl),...
@@ -900,7 +906,7 @@ for wl = 1:size(Refl_model,4)
 
 
 end
-
+toc
 
 
 % Using the new fine grid, calculate how many sets of measurements are
@@ -911,14 +917,11 @@ redundant_states = [];
 rms_residual = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine));
 
 
-test = [];
-
+tic
 for rt = 1:size(Refl_model_fine,1)
 
 
     for rb = 1:size(Refl_model_fine,2)
-
-        test = [test; r_top_fine(rt)-r_bot_fine(rb)];
 
 
         parfor tc = 1:size(Refl_model_fine,3)
@@ -933,9 +936,11 @@ for rt = 1:size(Refl_model_fine,1)
         end
     end
 end
+toc
 
-
-
+% Save Refl_model_file and the rms_residual, because these calculations
+% take a while!
+save(filename,"Refl_model_fine", "rms_residual", "-append");
 
 % Find the number states that lead to modeled measurements within the EMIT
 % measurement uncertainty
@@ -1195,7 +1200,7 @@ xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsiz
 
 % Create title
 title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
-    ' between EMIT and LibRadTran'],'Interpreter','latex');
+    ' between EMIT and LibRadTran'],'Interpreter','latex', 'FontSize', 33);
 
 box(axes1,'on');
 grid(axes1,'on');
@@ -1295,7 +1300,8 @@ ylabel('$r_{top}^{min} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','
 xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create title
-title(['RMS Residual between EMIT and LibRadTran at min $r_{top}$'],'Interpreter','latex');
+title(['RMS Residual between EMIT and LibRadTran at min $r_{top}$'],'Interpreter','latex', ...
+    'Fontsize', 33);
 
 box(axes1,'on');
 grid(axes1,'on');
@@ -1363,7 +1369,8 @@ ylabel('$r_{top} - r_{bot}^{min}$ $(\mu m)$','FontWeight','bold','Interpreter','
 xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create title
-title(['RMS Residual between EMIT and LibRadTran at min $r_{bot}$'],'Interpreter','latex');
+title(['RMS Residual between EMIT and LibRadTran at min $r_{bot}$'],'Interpreter','latex', ...
+    'Fontsize', 33);
 
 box(axes1,'on');
 grid(axes1,'on');

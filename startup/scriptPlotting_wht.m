@@ -13,10 +13,10 @@ set(groot,'DefaultAxesYColor','k')
 set(groot,'DefaultAxesZColor','k')
 set(groot,'DefaultAxesGridColor','k')
 set(groot,'DefaultAxesMinorGridColor','k')
-set(groot,'DefaultAxesFontSize',18);
+set(groot,'DefaultAxesFontSize',22);
 set(groot,'DefaultAxesFontWeight','bold');
 set(groot,'DefaultAxesTitleFontSizeMultiplier',1.8);
-set(groot,'DefaultAxesLabelFontSizeMultiplier',1.6);
+set(groot,'DefaultAxesLabelFontSizeMultiplier',2);
 set(groot,'DefaultTextColor','k');
 
 % --- Line Settings ---
