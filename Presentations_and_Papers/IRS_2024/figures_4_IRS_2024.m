@@ -68,12 +68,12 @@ end
 % --- Define the pixels to use for the retrieval ---
 
 % 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = 932;
-% pixels2use.col = 960;
+pixels2use.row = 932;
+pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 8.53
-pixels2use.row = 969;
-pixels2use.col = 991;
+% pixels2use.row = 969;
+% pixels2use.col = 991;
 
 
 % Grab the pixel indices
@@ -142,12 +142,15 @@ grid on; grid minor
 % define the color of the filled patch
 C = [0 0.4470 0.7410];
 
+wl_range = [140, 160];
+wl_range = [100, 200];
+
 for bb = 1:length(inputs.bands2run)
 
     hold on
     % plot the bands used as transparent area
-    x = [emit.spec_response.wavelength(inputs.bands2run(bb), [140,160]),...
-        fliplr(emit.spec_response.wavelength(inputs.bands2run(bb), [140, 160]))];
+    x = [emit.spec_response.wavelength(inputs.bands2run(bb), wl_range),...
+        fliplr(emit.spec_response.wavelength(inputs.bands2run(bb), wl_range))];
     y = [1,1, 0,0];
     fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
 
