@@ -1254,73 +1254,6 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
-
-
-%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
-% --- (r_top - r_bot) versus tau ----
-
-
-% --- Reduce the rms_grid by 1 dimension -----
-% Take the difference between r_top and r_bot
-% reshape stacks columns
-rms_residual_reducedDimension = reshape(rms_residual, [], length(tau_c_fine));
-
-% define the independent vector in the row space
-rTop_minus_rBot = r_top_fine' - r_bot_fine;
-% stack the columns!
-rTop_minus_rBot = reshape(rTop_minus_rBot, [], 1);
-
-
-
-% Create figure
-figure;
-colormap(hot);
-
-% Create axes
-axes1 = axes;
-hold(axes1,'on');
-
-
-% number of levels to plot
-n = 15;
-
-% Create contour
-[c1,h1] = contour(tau_c_fine, 1:length(rTop_minus_rBot), rms_residual_reducedDimension, n,'LineWidth',3);
-
-% round off the level list
-h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
-%clabel(c1,h1,'FontSize',20,'FontWeight','bold');
-
-
-% Create ylabel
-ylabel('$r_{top} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
-
-% Create xlabel
-xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
-
-% Create title
-title(['RMS Residual between EMIT and LibRadTran'],'Interpreter','latex');
-
-box(axes1,'on');
-grid(axes1,'on');
-axis(axes1,'tight');
-hold(axes1,'off');
-% Set the remaining axes properties
-set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
-    'on');
-% Create colorbar
-colorbar(axes1);
-
-
-% set the figure size to be proportional to the length of the r_top and
-% r_bot vectors
-%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
-set(gcf, 'Position', [0 0 900 900])
-
-
-
-
-
 %% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
 % --- (r_top - r_bot) versus tau  for the minimum r_top ----
 
@@ -1470,7 +1403,7 @@ grid on; grid minor
 
 xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
-title(['$\tau_c = $', num2str(round(tau_c_min(1), 1)), ', RMS = ', num2str(min_val(1))],...
+title(['$\tau_c = $', num2str(round(tau_c_min(1), 2)), ', RMS = ', num2str(min_val(1))],...
     'Interpreter', 'latex', 'Fontsize', 35);
 
 % set figure size
@@ -1490,7 +1423,7 @@ plot(emit.radiance.wavelength(inputs.bands2run), min_Refl_model_fine, '.-', 'Mar
     'LineWidth', 1, 'Color', mySavedColors(2, 'fixed'))
 xlabel('Wavelength ($nm$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
-title(['$\tau_c = $', num2str(round(tau_c_min(1), 1)), ', RMS = ', num2str(min_val(1))],...
+title(['$\tau_c = $', num2str(round(tau_c_min(1), 2)), ', RMS = ', num2str(min_val(1))],...
     'Interpreter', 'latex', 'Fontsize', 35);
 grid on; grid minor
 
@@ -1500,6 +1433,77 @@ legend('EMIT', 'Calculated', 'location', 'best', 'Interpreter', 'latex', 'FontSi
 
 % set figure size
 set(gcf, 'Position', [0 0 1200 700])
+
+
+
+
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% --- (r_top - r_bot) versus tau ----
+
+
+% --- Reduce the rms_grid by 1 dimension -----
+% Take the difference between r_top and r_bot
+% reshape stacks columns
+rms_residual_reducedDimension = reshape(rms_residual, [], length(tau_c_fine));
+
+% define the independent vector in the row space
+rTop_minus_rBot = r_top_fine' - r_bot_fine;
+% stack the columns!
+rTop_minus_rBot = reshape(rTop_minus_rBot, [], 1);
+
+
+
+% Create figure
+figure;
+colormap(hot);
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+
+% number of levels to plot
+n = 15;
+
+% Create contour
+[c1,h1] = contour(tau_c_fine, 1:length(rTop_minus_rBot), rms_residual_reducedDimension, n,'LineWidth',3);
+
+% round off the level list
+h1.LevelList = round(h1.LevelList,4);  %rounds levels to 3rd decimal place
+%clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+
+% Create ylabel
+ylabel('$r_{top} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual between EMIT and LibRadTran'],'Interpreter','latex');
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% Create colorbar
+colorbar(axes1);
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+
+
 
 
 
