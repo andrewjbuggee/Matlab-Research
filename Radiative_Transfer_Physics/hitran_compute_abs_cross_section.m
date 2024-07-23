@@ -58,7 +58,7 @@ end
 
 %% Check to see if the hitran file is a .par
 
-if strcmp(hitran_file(end-3:end), 'par')==true
+if strcmp(hitran_file(end-2:end), 'par')==true
 
     % Then we will import the .par file using the function 'importhitran'
     % and save it as a .mat file
