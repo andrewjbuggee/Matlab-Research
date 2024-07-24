@@ -2,7 +2,7 @@
 
 
 % *** Spectral response function not needed because it is already
-% incorporated with the radiance measurements and the solar flux ***
+% incorporated within the radiance measurements and the solar flux ***
 
 
 % By Andrew John Buggee
@@ -28,7 +28,7 @@ solar_flux = solar_flux .* 10^2;        % microW/cm^2/nm
 
 if length(emit.obs.solar.zenith)==1
 
-    % Compute EMIT measurements to reflectance according to eq. 1 from
+    % Convert EMIT measurements to reflectance according to eq. 1 from
     % Thompson et al. 2016
     emit.reflectance.value = (pi*emit.radiance.measurements) ./...
         (cosd(emit.obs.solar.zenith) * solar_flux);             % 1/sr
@@ -41,7 +41,7 @@ else
     % Step through each pixel and compute the reflectance
     for nn = 1:length(emit.obs.solar.zenith)
 
-        % Compute EMIT measurements to reflectance according to eq. 1 from
+        % Convert EMIT measurements to reflectance according to eq. 1 from
         % Thompson et al. 2016
         emit.reflectance.value(:, nn) = pi*emit.radiance.measurements(:,nn) ./...
             (cosd(emit.obs.solar.zenith(nn)) * solar_flux);             % 1/sr

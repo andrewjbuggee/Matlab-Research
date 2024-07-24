@@ -93,6 +93,8 @@ source_file = inputs.RT.source_file;
 
 
 % pick a FWHM from the middle of the spectrum
+% The EMIT spectral response functions are nearly identical over the entire
+% spectral range of EMIT
 % compute the standard deviation from the FWHM
 sigma = emit.radiance.fwhm(136)/(2*sqrt(2*log(2)));      % std
 
@@ -101,7 +103,9 @@ spec_response = pdf('Normal', source.wavelength, median(source.wavelength), sigm
 
 % Convolve each point of the solar flux grid with the spectral response
 % function
-
+% Multiply the matlab convolve function with the resolution, or grid
+% spacing, of the source file. The product is the integral definition of
+% covolution. Without it, the matlab function simply computes the product.
 convolved_solar_flux = conv(source.flux, spec_response, 'same') .* source_file_resolution;
 
 
