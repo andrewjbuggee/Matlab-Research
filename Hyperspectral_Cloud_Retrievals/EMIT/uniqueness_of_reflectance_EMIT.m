@@ -802,12 +802,12 @@ elseif strcmp(whatComputer,'curc')==true
 end
 
 
-filename = [folderpath,'reflectance_calcs_MODIS-data-from-',emitFolder(1:end-1),...
+filename = [folderpath,'reflectance_calcs_EMIT-data-from-',emitFolder(1:end-1),...
     '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 while isfile(filename)
     rev = rev+1;
-    filename = [folderpath,'reflectance_calcs_MODIS-data-from-',emitFolder(1:end-1),...
+    filename = [folderpath,'reflectance_calcs_EMIT-data-from-',emitFolder(1:end-1),...
         '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
