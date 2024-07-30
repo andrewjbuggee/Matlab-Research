@@ -141,6 +141,7 @@ grid on; grid minor
 
 % define the color of the filled patch
 C = [0 0.4470 0.7410];
+C = [0 0 0];
 
 wl_range = [140, 160];
 wl_range = [100, 200];

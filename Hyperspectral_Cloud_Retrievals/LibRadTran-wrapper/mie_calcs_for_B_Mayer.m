@@ -14,7 +14,7 @@ clear variables
 folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
     'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/'];
 
-inputName = 'Mie_calcs_for_B-Mayer_mono_dispersed_MIEV0.INP';
+inputName = 'Mie_calcs_for_B-Mayer_monodispersed_MIEV0.INP';
 
 tic
 runMIE(folderName,inputName,inputName(1:end-4));
@@ -270,7 +270,7 @@ figure;
 
 for nn = 1:length(ds_miev0.wavelength)
 
-    semilogy(ds_miev0.r_eff, ds_miev0.Qext(nn,:), 'LineStyle', ':', 'LineWidth',2,...
+    semilogy(ds_miev0.r_eff, ds_miev0.Qext(nn,:), 'LineStyle', ':', 'LineWidth',3,...
         'Color', mySavedColors(nn, 'fixed'));
     hold on
     semilogy(ds_miev0_gamma.r_eff, ds_miev0_gamma.Qext(nn,:), 'LineStyle', '-', 'LineWidth',2,...
@@ -279,24 +279,24 @@ for nn = 1:length(ds_miev0.wavelength)
     semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.Qext(nn,:), 'LineStyle', '--', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-    legend_str{3*nn -2} = ['Mono; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{3*nn -2} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn -1} = ['Gamma; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn} = ['Log Normal; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
 
 end
 
 grid on; grid minor
-xlabel('Radius ($\mu m$)', 'Interpreter','latex')
+xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex')
 ylabel('$Q_{ext}$', 'Interpreter','latex')
 % legend([append('Gamma; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$'); ...
 %    append('Mono; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$')] , 'Location',...
 %    'best','Interpreter','latex', 'FontSize',15)
 legend(legend_str, 'Location',...
-   'best','Interpreter','latex', 'FontSize',15)
+   'best','Interpreter','latex', 'FontSize',20)
 % define plot title
-title('Extinction Efficiency using MIEV0 - $\alpha=7$', 'Interpreter','latex')
+title('Extinction Efficiency using MIEV0', 'Interpreter','latex')
 % Set general figure settings
-set(gcf, 'Position', [0 0 1250, 600])
+set(gcf, 'Position', [0 0 900, 600])
 
 
 
@@ -308,16 +308,16 @@ figure;
 
 for nn = 1:length(ds_miev0.wavelength)
 
-    semilogy(ds_miev0.r_eff, ds_miev0.ssa(nn,:), 'LineStyle', ':', 'LineWidth',2,...
+    semilogy(ds_miev0.r_eff, ds_miev0.ssa(nn,:), 'LineStyle', ':', 'LineWidth',3,...
         'Color', mySavedColors(nn, 'fixed'));
     hold on
     semilogy(ds_miev0_gamma.r_eff, ds_miev0_gamma.ssa(nn,:), 'LineStyle', '-', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-    semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.ssa(nn,:), 'LineStyle', '-', 'LineWidth',2,...
+    semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.ssa(nn,:), 'LineStyle', '--', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-    legend_str{3*nn -2} = ['Mono; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{3*nn -2} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn -1} = ['Gamma; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn} = ['Log Normal; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
 
@@ -330,11 +330,12 @@ ylabel('$\varpi$', 'Interpreter','latex')
 %    append('Mono; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$')] , 'Location',...
 %    'best','Interpreter','latex', 'FontSize',15)
 legend(legend_str, 'Location',...
-   'best','Interpreter','latex', 'FontSize',15)
+   'best','Interpreter','latex', 'FontSize',20)
 % define plot title
-title('Single Scattering Albedo using MIEV0 - $\alpha=7$', 'Interpreter','latex')
+title('Single Scattering Albedo using MIEV0', 'Interpreter','latex')
 % Set general figure settings
-set(gcf, 'Position', [0 0 1250, 600])
+set(gcf, 'Position', [0 0 900, 600])
+
 
 
 
@@ -345,34 +346,34 @@ figure;
 
 for nn = 1:length(ds_miev0.wavelength)
 
-    semilogy(ds_miev0.r_eff, ds_miev0.asymParam(nn,:), 'LineStyle', ':', 'LineWidth',2,...
+    semilogy(ds_miev0.r_eff, ds_miev0.asymParam(nn,:), 'LineStyle', ':', 'LineWidth',3,...
         'Color', mySavedColors(nn, 'fixed'));
     hold on
     semilogy(ds_miev0_gamma.r_eff, ds_miev0_gamma.asymParam(nn,:), 'LineStyle', '-', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-     semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.asymParam(nn,:), 'LineStyle', '-', 'LineWidth',2,...
+     semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.asymParam(nn,:), 'LineStyle', '--', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-    legend_str{3*nn -2} = ['Mono; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{3*nn -2} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn -1} = ['Gamma; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn} = ['Log Normal; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
 
 end
 
 grid on; grid minor
-xlabel('Radius ($\mu m$)', 'Interpreter','latex')
+xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex')
 ylabel('$g$', 'Interpreter','latex')
 % legend([append('Gamma; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$'); ...
 %    append('Mono; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$')] , 'Location',...
 %    'best','Interpreter','latex', 'FontSize',15)
 legend(legend_str, 'Location',...
-   'best','Interpreter','latex', 'FontSize',15)
+   'best','Interpreter','latex', 'FontSize',20)
 % define plot title
-title('Asymmetry Parameter using MIEV0 - $\alpha=7$', 'Interpreter','latex')
+title('Asymmetry Parameter using MIEV0', 'Interpreter','latex')
 
 % Set general figure settings
-set(gcf, 'Position', [0 0 1250, 600])
+set(gcf, 'Position', [0 0 900, 600])
 
 
 
@@ -384,35 +385,35 @@ figure;
 
 for nn = 1:length(ds_miev0.wavelength)
 
-    semilogy(ds_miev0.r_eff, ds_miev0.Qsca(nn,:), 'LineStyle', ':', 'LineWidth',2,...
+    semilogy(ds_miev0.r_eff, ds_miev0.Qsca(nn,:), 'LineStyle', ':', 'LineWidth',3,...
         'Color', mySavedColors(nn, 'fixed'));
     hold on
     semilogy(ds_miev0_gamma.r_eff, ds_miev0_gamma.Qsca(nn,:), 'LineStyle', '-', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
-    semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.Qsca(nn,:), 'LineStyle', '-', 'LineWidth',2,...
+    semilogy(ds_miev0_lognormal.r_eff, ds_miev0_lognormal.Qsca(nn,:), 'LineStyle', '--', 'LineWidth',2,...
         'Color', mySavedColors(nn, 'fixed'));
 
 
-    legend_str{3*nn -2} = ['Mono; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{3*nn -2} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn -1} = ['Gamma; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
     legend_str{3*nn} = ['Log Normal; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
 
 end
 
 grid on; grid minor
-xlabel('Radius ($\mu m$)', 'Interpreter','latex')
+xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex')
 ylabel('$Q_{sca}$', 'Interpreter','latex')
 % legend([append('Gamma; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$'); ...
 %    append('Mono; $\lambda = $',string(ds_miev0_gamma.wavelength), ' $nm$')] , 'Location',...
 %    'best','Interpreter','latex', 'FontSize',15)
 legend(legend_str, 'Location',...
-   'best','Interpreter','latex', 'FontSize',15)
+   'best','Interpreter','latex', 'FontSize',20)
 % define plot title
-title('Scattering Efficiency using MIEV0 - $\alpha=7$', 'Interpreter','latex')
+title('Scattering Efficiency using MIEV0', 'Interpreter','latex')
 
 % Set general figure settings
-set(gcf, 'Position', [0 0 1250, 600])
+set(gcf, 'Position', [0 0 900, 600])
 
 
 
@@ -448,10 +449,97 @@ ylabel('$Q_{abs}$', 'Interpreter','latex')
 legend(legend_str, 'Location',...
    'best','Interpreter','latex', 'FontSize',15)
 % define plot title
-title('Absorption Efficiency using MIEV0 - $\alpha=7$', 'Interpreter','latex')
+title('Absorption Efficiency using MIEV0', 'Interpreter','latex')
 
 % Set general figure settings
 set(gcf, 'Position', [0 0 1250, 600])
+
+
+
+
+%% Now integrate the monodispersed calculations manually
+
+% I've written a function to do this
+
+r_eff = 1:100;          % microns
+dist_var = linspace(7,7, length(r_eff)); 
+wavelength = [500, 2500, 2000];         % nm
+index_of_refraction = 'water';
+size_distribution = 'gamma';
+index = 1;
+
+
+
+[ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, dist_var, wavelength,...
+    index_of_refraction, size_distribution, index);
+
+
+
+% ----- PLOTS -----
+% Plot the mono dispersed calc, the libRadTran calc using a gamma
+% distribution, and my own calculation 
+
+% plot the scattering efficiency
+legend_str = cell(2*length(ds_miev0.wavelength), 1);
+
+figure;
+
+for nn = 1:length(ds_miev0.wavelength)
+
+    semilogy(ds_miev0.r_eff, ds_miev0.Qsca(nn,:), 'LineStyle', ':', 'LineWidth',3,...
+        'Color', mySavedColors(nn, 'fixed'));
+    hold on
+    semilogy(r_eff, Qs_avg(nn,:), 'LineStyle', '-', 'LineWidth',2,...
+        'Color', mySavedColors(nn, 'fixed'));
+
+
+    legend_str{2*nn -1} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{2*nn} = ['Hansen-Travis Integral; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+
+end
+
+grid on; grid minor
+xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex')
+ylabel('$Q_{sca}$', 'Interpreter','latex')
+legend(legend_str, 'Location',...
+   'best','Interpreter','latex', 'FontSize',23)
+% define plot title
+title('MIEV0 - Monodispersed \& Hansen/Travis Integral', 'Interpreter','latex')
+
+% Set general figure settings
+set(gcf, 'Position', [0 0 900, 600])
+
+
+
+% plot the extinction efficiency
+legend_str = cell(2*length(ds_miev0.wavelength), 1);
+
+figure;
+
+for nn = 1:length(ds_miev0.wavelength)
+
+    semilogy(ds_miev0.r_eff, ds_miev0.Qext(nn,:), 'LineStyle', ':', 'LineWidth',3,...
+        'Color', mySavedColors(nn, 'fixed'));
+    hold on
+    semilogy(r_eff, Qe_avg(nn,:), 'LineStyle', '-', 'LineWidth',2,...
+        'Color', mySavedColors(nn, 'fixed'));
+
+
+    legend_str{2*nn -1} = ['Monodisperse; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+    legend_str{2*nn} = ['Hansen-Travis Integral; $\lambda = $',num2str(ds_miev0_gamma.wavelength(nn)), ' $nm$'];
+
+end
+
+grid on; grid minor
+xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex')
+ylabel('$Q_{e}$', 'Interpreter','latex')
+legend(legend_str, 'Location',...
+   'best','Interpreter','latex', 'FontSize',23)
+% define plot title
+title('MIEV0 - Monodispersed \& Hansen/Travis Integral', 'Interpreter','latex')
+
+% Set general figure settings
+set(gcf, 'Position', [0 0 900, 600])
 
 
 

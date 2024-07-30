@@ -1,6 +1,6 @@
 %% This function will write a .DAT water cloud file for LibRadTran
 
-% This function will read and interpolate precompute Mie calculations for
+% This function will read and interpolate precomputed Mie calculations for
 % water droplets of varrying radii.
 
 % INPUTS:
@@ -54,8 +54,8 @@
 %       *** IMPORTANT *** For now, this function will NOT
 %       use precomputed mie calculations using a gamma droplet
 %       distribution. The values returned by LibRadTran appear erroneously
-%       high. Instead, if one wished to use a gamma droplet distribution,
-%       the homogenous pre-computed mie table will be used to retrieved mie
+%       high. Instead, if one wishes to use a gamma droplet distribution,
+%       the homogenous pre-computed mie table will be used to retrieve mie
 %       properties, and then this code will integrate those values over the
 %       size distribution.
 
@@ -312,7 +312,7 @@ if size(re,1)>1 && size(re,2)>1
                 index_of_refraction = 'water';
 
                 % integrate over a size distribution to get an average
-                [~, Qavg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
+                [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
                     index_of_refraction, distribution_str, index);
 
             elseif strcmp(distribution_str,'mono')==true
@@ -345,7 +345,7 @@ if size(re,1)>1 && size(re,2)>1
                 index_of_refraction = 'water';
 
                 % integrate over a size distribution to get an average
-                [~, Qavg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
+                [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
                     index_of_refraction, distribution_str, index);
 
             elseif strcmp(distribution_str,'mono')==true
@@ -415,7 +415,7 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
             % the cloud.
 
             % integrate over a size distribution to get an average
-            [~, Qavg, ~] = average_mie_over_size_distribution(re, distribution_var,...
+            [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var,...
                 lambda,index_of_refraction, distribution_str, index);
 
         elseif strcmp(distribution_str,'mono')==true
@@ -477,7 +477,7 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
             index_of_refraction = 'water';
 
             % integrate over a size distribution to get an average
-            [~, Qavg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
+            [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
                 index_of_refraction, distribution_str, index);
 
         elseif strcmp(distribution_str,'mono')==true
@@ -508,10 +508,10 @@ end
 
 
 
-% grab the q extinction values
+% grab the extinction efficiency values
 
 if strcmp(distribution_str,'gamma')==true
-    Qext = Qavg;         % Extinction efficiency
+    Qext = Qe_avg;         % Extinction efficiency
 
 elseif strcmp(distribution_str,'mono')==true
     Qext = reshape(yq(:,3),[],num_files_2write);         % convert this back into a matrix corresponging to re
@@ -583,9 +583,21 @@ for nn = 1:num_files_2write
     % we need a number concentration for each file that is created
 
     if nLayers>1
-        Nc = tau_c(nn)./(pi*trapz((z(1:end-1)-z(1))*1e3,Qext(:,nn).*(re(:,nn)*1e-6).^2));                % m^(-3) - number concentration
 
-        % Compute Liquid Water Content
+        % We could just integrate the size distributiion to get the total
+        % number concentration, but we've chosen an arbitrary value for the
+        % effective variance because it doesn't have much effect on
+        % reflectance measurements over the solar spectral region. More
+        % importantly, we want to connect two user defined variables, cloud
+        % optical depth and effective radius, to the number concentration,
+        % and thus the liquid water content.
+        Nc = tau_c(nn)./(pi*trapz((z(1:end-1)-z(1))*1e3, Qext(:,nn).*(re(:,nn)*1e-6).^2));                % m^(-3) - number concentration
+
+        % --- Solve for the total Liquid Water Content over the entire
+        % cloud ---
+        % number concentration is constant with height. We make the
+        % assumption that all droplets can be modeled as the effective
+        % radius. So the LWC simple changes with effective radius
         lwc = 4/3 * pi * rho_liquid_water * (re(:,nn)*1e-6).^3 .* Nc;                    % g/m^3 - grams of water per meter cubed of air
 
         % create the water cloud file name

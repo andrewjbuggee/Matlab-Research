@@ -38,10 +38,13 @@
 % (1) ssa_avg - single scattering albedo averaged over all drop sizes
 % within the distribution defined
 
-% (2) Qe_avg - extinction coefficient averaged over all drop sizes
+% (2) Qe_avg - extinction efficiency averaged over all drop sizes
 % within the distribution defined
 
 % (3) g_avg - asymmetry averaged over all drop sizes
+% within the distribution defined
+
+% (4) Qs_avg - scattering efficiency averaged over all drop sizes
 % within the distribution defined
 
 
@@ -50,7 +53,7 @@
 % By Andrew John Buggee
 %%
 
-function [ssa_avg, Qe_avg, g_avg] = average_mie_over_size_distribution(r_eff, dist_var, wavelength,...
+function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, dist_var, wavelength,...
     index_of_refraction, size_distribution, index)
 
 % ---------------------------
@@ -94,6 +97,7 @@ if strcmp(size_distribution, 'gamma')==true
     ssa_avg = zeros(1,length(r_eff));
     Qe_avg = zeros(1,length(r_eff));
     g_avg = zeros(1, length(r_eff));
+    Qs_avg = zeros(1,length(r_eff));
 
 
 
@@ -130,8 +134,8 @@ if strcmp(size_distribution, 'gamma')==true
 
 
     % The first entry belows describes the type of droplet distribution
-    % that libRadTran uses in its calculation. The second describes the 
-    % distribution width. If running a mono-dispersed calculation, no 
+    % that libRadTran uses in its calculation. The second describes the
+    % distribution width. If running a mono-dispersed calculation, no
     % entry for distribution width is required.
 
     % For now, we run mono-dispersed calculations, and manually integrate
@@ -155,7 +159,7 @@ if strcmp(size_distribution, 'gamma')==true
     % **** This often creates a vector less than the original length ***
     % This happens due to rounding errors. Check to make sure this doesn't
     % happen
-    
+
     radius_step = mean(diff(r));
 
     % check the length
@@ -189,18 +193,18 @@ if strcmp(size_distribution, 'gamma')==true
     for rr = 1:length(r_eff)
 
 
-      % set the total number concentration to be 1
+        % set the total number concentration to be 1
         N0 = 1;
-        
+
         % ---------------- IMPORTANT ASSUMPTION -------------------
         % the modal radius is usually less than the effective radius
         r_modal = 0.95*r_eff(rr);
-        
-        N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
-        
-        n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                            % gamma droplet distribution
 
-  
+        N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
+
+        n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
+
+
 
         %[n_r,r] = gamma_size_distribution_kokhanovsky(r_eff(rr), mu, N0);
 
@@ -214,36 +218,49 @@ if strcmp(size_distribution, 'gamma')==true
             % Average single scattering albedo over a droplet distribution
 
             % ----- Old calculation below -----
-%             ssa_avg(ww,rr) = trapz(r, ds.Qsca(ww,:) .* n_r)./...
-%                 trapz(r, ds.Qext(ww,:) .* n_r);
+            %             ssa_avg(ww,rr) = trapz(r, ds.Qsca(ww,:) .* n_r)./...
+            %                 trapz(r, ds.Qext(ww,:) .* n_r);
 
             % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
             ssa_avg(ww,rr) = trapz(r, r.^2 .* ds.Qsca(ww,:) .* n_r)./...
-                             trapz(r, r.^2 .* ds.Qext(ww,:) .* n_r);
+                trapz(r, r.^2 .* ds.Qext(ww,:) .* n_r);
 
-            
-            
+
+
+
             % Compute the average asymmetry parameter over a size distribution
-            
+
             % ----- Old calculation below -----
-%             g_avg(ww,rr) = trapz(r, ds.asymParam(ww,:) .* n_r)./...
-%                 trapz(r, n_r);
+            %             g_avg(ww,rr) = trapz(r, ds.asymParam(ww,:) .* n_r)./...
+            %                 trapz(r, n_r);
 
             % ----- calculation according to Kokhanovky (Cloud optics, pg 69) -----
             g_avg(ww,rr) = trapz(r, ds.asymParam(ww,:) .* ds.Qsca(ww,:) .* r.^2 .* n_r)./...
                 trapz(r, ds.Qsca(ww,:) .* r.^2 .* n_r);
 
-            
-            
+
+
+
             % Compute the average extinction efficiency over a droplet size
             % distribution
-            
+
             % ----- Old calculation below -----
-%             Qe_avg(ww,rr) = trapz(r, ds.Qext(ww,:) .* n_r)./...
-%                 trapz(r, n_r);
+            %             Qe_avg(ww,rr) = trapz(r, ds.Qext(ww,:) .* n_r)./...
+            %                 trapz(r, n_r);
 
             % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
             Qe_avg(ww,rr) = trapz(r, r.^2 .* ds.Qext(ww,:) .* n_r)./...
+                trapz(r, r.^2 .* n_r);
+
+
+
+            
+            % Compute the average scattering efficiency over a droplet size
+            % distribution
+
+
+            % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
+            Qs_avg(ww,rr) = trapz(r, r.^2 .* ds.Qsca(ww,:) .* n_r)./...
                 trapz(r, r.^2 .* n_r);
 
 
