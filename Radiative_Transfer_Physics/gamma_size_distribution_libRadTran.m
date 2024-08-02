@@ -75,7 +75,7 @@ r = linspace(0.001*r_modal, 7*r_modal, 200);                  % microns - vector
 
 
 
-% ----- This one below seems to work
+% ----- This one below seems to work ------
 % N = alpha^(alpha+1)/(gamma(alpha+1) * r_modal^(alpha+1));  % normalization constant
 % 
 % n_r = N0 * N * r.^(1/alpha -3) .* exp(-r./(r_modal * alpha));      
@@ -92,6 +92,7 @@ b = 1/(alpha + 3);
 N = 1/trapz(r, r.^alpha .* exp(-r./(r_modal * b)));
 
 n_r = N0 * N * r.^alpha .* exp(-r./(r_modal * b));                            % gamma droplet distribution
+
 
 
 
