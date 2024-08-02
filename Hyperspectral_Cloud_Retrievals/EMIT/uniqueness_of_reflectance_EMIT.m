@@ -13,7 +13,7 @@ r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
 %tau_c = [5, 5.5, 6, 6.5, 7];
-tau_c = 4:0.5:8;
+tau_c = 4.5:0.5:7.5;
 
 % r_top = 12.5;
 % r_bot = 2.75;
@@ -104,7 +104,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 Rad_emit = emit.radiance.measurements;      % microW/cm^2/nm/sr
 
 
-%% Compute the radiance measurement uncertainty 
+%% Compute the radiance measurement uncertainty
 
 emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
 
@@ -119,7 +119,7 @@ inputs.RT.num_streams = 16;
 
 % ------------------------------------------------------------------------
 % ------- Define the source file and resolution ------
-    
+
 %source_file = 'kurudz_0.1nm.dat';
 %source_file_resolution = 0.1;         % nm
 
@@ -180,8 +180,13 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     231, 233, 234, 235, 236, 237, 249, 250, 251, 252, 253, 254]';
 
 % --- New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! ---
+% inputs.bands2run = [12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+%     94, 114, 115, 116, 117, 155, 156, 157, 158, 172, 175, 176,...
+%     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
+% --- New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
 inputs.bands2run = [12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-    94, 114, 115, 116, 117, 155, 156, 157, 158, 172, 175, 176,...
+    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
@@ -369,6 +374,15 @@ inputs.RT.waterVapor_column = 30;              % mm - milimeters of water conden
 % ------------------------------------------------------------------------
 
 
+% ------------------------------------------------------------------------
+% ------- Do you want to modify concentration of Carbon dioxide? ---------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_CO2 = true;
+
+inputs.RT.CO2_concentration = 1.0019e23;       % molecules/cm^2 - concentration of CO2
+% ------------------------------------------------------------------------
+
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
@@ -462,7 +476,7 @@ for rt = 1:length(r_top)
 
 
             parfor ww = 1:size(wavelength,1)
-            %for ww = 1:size(wavelength,1)
+                %for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------
@@ -483,6 +497,7 @@ for rt = 1:length(r_top)
                 wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), inputs.RT.z_topBottom,...
                     inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
                     inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, ww);
+                
                 wc_filename{rt,rb,tc,ww} = wc_filename{rt,rb,tc,ww}{1};
 
 
@@ -589,7 +604,7 @@ for rt = 1:length(r_top)
                     fprintf(fileID, formatSpec,'wc_properties', inputs.RT.wc_parameterization, ' ', '# optical properties parameterization technique');
 
                 end
-              
+
 
 
                 % Define the wavelengths for which the equation of radiative transfer will
@@ -621,6 +636,19 @@ for rt = 1:length(r_top)
                     % --------------------------------------------------------------
                     formatSpec = '%s %f %s %5s %s \n\n';
                     fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+
+                end
+
+
+                % Define the concentration of carbon dioxide
+                % --------------------------------------------------------------------
+                if inputs.RT.modify_CO2==true
+
+                    % If true, modify the amount of column water vapor
+                    % --------------------------------------------------------------
+                    formatSpec = '%s %f %s %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'mol_modify CO2 ', inputs.RT.CO2_concentration, ' CM_2', ' ', '# Column water vapor amount');
 
 
                 end
@@ -741,7 +769,7 @@ for rt = 1:length(r_top)
                 % function!
                 Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, spec_response_2run.value(ww, :)' .*(ds.radiance.value./10));        % microW/cm^2/sr
                 %Rad_model(rt, rb, tc, ww) = trapz(ds.wavelength, 1.*(ds.radiance.value./10));
-                
+
                 % Now divide by the wavelength range of the channel to get
                 % units of micro-watts/cm^2/sr/nm
 
@@ -1112,7 +1140,7 @@ rms_residual_placeHolder = rms_residual;
 
 
 for nn = 1:n_states
-    
+
     % find the smallest rms residual value, omitting nans
     [min_val(nn), idx_min(nn)] = min(rms_residual_placeHolder, [], 'all', 'omitnan');
 
@@ -1174,22 +1202,22 @@ clabel(c1,h1)
 % hold on;
 % tau_c_min_idx = find(tau_c_min == tau_c_min(1));
 % num_2Plot = 5;
-% 
+%
 % if length(tau_c_min_idx)<5
-% 
+%
 %     plot(r_bot_min(tau_c_min_idx), r_top_min(tau_c_min_idx), '.', 'MarkerSize', 20, 'Color', 'k')
-% 
+%
 %     % Create legend
 %     legend('', [num2str(length(tau_c_min_idx)), ' smallest RMS differences'], 'location', 'best',...
 %         'Interpreter', 'latex', 'FontSize', 25)
-% 
+%
 % else
-% 
+%
 %     plot(r_bot_min(tau_c_min_idx(1:num_2Plot)), r_top_min(1:num_2Plot), '.', 'MarkerSize', 20, 'Color', 'k')
-% 
+%
 %     legend('', [num2str(num_2Plot), ' smallest RMS differences'], 'location', 'best',...
 %         'Interpreter', 'latex', 'FontSize', 25)
-% 
+%
 % end
 
 % Create ylabel
@@ -1226,24 +1254,24 @@ set(gcf, 'Position', [0 0 900 900])
 % % Create figure
 % figure;
 % colormap(hot);
-% 
+%
 % % Create axes
 % axes1 = axes;
 % hold(axes1,'on');
-% 
+%
 % % Create contour
 % [c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC),'LineWidth',3);
 % clabel(c1,h1,'FontSize',15,'FontWeight','bold');
-% 
+%
 % % Create ylabel
 % ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
-% 
+%
 % % Create xlabel
 % xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex');
-% 
+%
 % % Create title
 % title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC))],'Interpreter','latex');
-% 
+%
 % box(axes1,'on');
 % grid(axes1,'on');
 % axis(axes1,'tight');
@@ -1421,7 +1449,7 @@ set(gcf, 'Position', [0 0 700 700])
 %% Plot the EMIT measured reflectance and the Calculated reflectance associated with the minimum RMS residual
 % do this as a function of wavelength
 
-figure; 
+figure;
 
 plot(emit.radiance.wavelength(inputs.bands2run), Refl_emit, '.-', 'MarkerSize', 25,...
     'LineWidth', 1, 'Color', mySavedColors(1,'fixed'))
