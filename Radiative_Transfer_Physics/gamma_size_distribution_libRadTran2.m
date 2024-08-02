@@ -14,9 +14,9 @@
 %   over r, we get N0.
 
 % OUTPUTS:
-%   (1) n(r) - the number concentration of droplets for a given radius r -
-%   this output is a vector of the same length as r, which is a hard-coded
-%   vector
+%   (1) n(r) - 1/(microns * cm^3) - the number concentration of droplets 
+%   for a given radius r - this output is a vector of the same length as
+%   r, which is a hard-coded vector
 
 %   (2) r - the independent variable to defines our distribution n(r). 
 
@@ -69,7 +69,7 @@ b = gamma(4 + alpha) / (r_eff * gamma(3 + alpha));
 N = 1/(b^(-1 - alpha) * gamma(1 + alpha));
 
 % --- define the full distribution ---
-n_r = N0 * N * r.^alpha .* exp(-b .* r);                            % gamma droplet distribution
+n_r = N0 * N * r.^alpha .* exp(-b .* r);                            % 1/microns/cm^3 - gamma droplet distribution
 
 
 %% Another attempt at the distribution and its normalization
