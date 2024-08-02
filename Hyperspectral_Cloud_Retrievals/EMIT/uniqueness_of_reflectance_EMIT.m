@@ -617,7 +617,7 @@ for rt = 1:length(r_top)
                 % --------------------------------------------------------------------
                 if inputs.RT.modify_waterVapor==true
 
-                    % Turn on default aersol layer, which occupies lower 2km of model
+                    % If true, modify the amount of column water vapor
                     % --------------------------------------------------------------
                     formatSpec = '%s %f %s %5s %s \n\n';
                     fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');

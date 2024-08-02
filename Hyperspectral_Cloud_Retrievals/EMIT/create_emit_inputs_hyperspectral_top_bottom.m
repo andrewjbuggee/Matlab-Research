@@ -59,9 +59,9 @@ inputs.L1B_filename = L1B_fileName{1};
 %     94, 114, 115, 116, 117, 123, 124, 154, 155, 156, 157, 158, 172, 175, 176, 230,...
 %     231, 233, 234, 235, 236, 237, 249, 250, 251, 252, 253, 254]';
 
-% --- New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! ---
+% --- New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
 inputs.bands2run = [12, 17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-    94, 114, 115, 116, 117, 155, 156, 157, 158, 172, 175, 176,...
+    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
@@ -318,6 +318,26 @@ inputs.RT.yesAerosols = true;
 inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
 inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% -------- Do you want to modify the column water vapor amount? ----------
+inputs.RT.modify_waterVapor = false;
+
+inputs.RT.waterVapor_column = 30;       % mm (kg/m^2) - of water condensed in a column
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% ------- Do you want to modify concentration of Carbon dioxide? ---------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_CO2 = true;
+
+inputs.RT.CO2_concentration = 1.0019e23;       % molecules/cm^2 - concentration of CO2
+% ------------------------------------------------------------------------
+
 
 
 %----------------------------------------------------------

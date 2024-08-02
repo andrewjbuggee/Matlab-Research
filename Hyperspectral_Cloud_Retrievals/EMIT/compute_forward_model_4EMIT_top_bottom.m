@@ -21,7 +21,7 @@ tau_c = current_guess(3);
 profile_type = inputs.model.profile.type; % type of water droplet profile
 
 % set the wavelength at which the optical depth is computed to be 500 nm
-wavelength_tau_c = emit.radiance.wavelength(inputs.bands2run(1));    % nm - Wavelength used for cloud optical depth calculation
+wavelength_tau_c = emit.radiance.wavelength(17);    % nm - Wavelength used for cloud optical depth calculation
 % ----------------------------------------------------------
 
 % --------------------------------------------

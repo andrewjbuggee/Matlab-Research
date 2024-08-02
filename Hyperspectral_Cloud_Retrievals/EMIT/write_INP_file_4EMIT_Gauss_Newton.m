@@ -59,18 +59,18 @@ for pp = 1:length(pixels2use.row)
     % Define the solar zenith angle
     % ------------------------------------------------
     sza = emit.obs.solar.zenith(pp);           % degree
-   
+
     % Define the solar azimuth angle
     % -------------------------------------------------------
     % this is how we map EMIT-defined solar azimuth to the LibRadTran
-    % definition. 
-    % LibRadTran defines the solar azimuth clockwise from South. 
+    % definition.
+    % LibRadTran defines the solar azimuth clockwise from South.
     % So at 0deg the Sun is due south, 90deg the Sun is due West,
-    % and so on. EMIT defines the solar azimuth clockwise from due North. 
+    % and so on. EMIT defines the solar azimuth clockwise from due North.
     % So we need to add 180deg to the EMIT values, but modulo 360, since it
     % needs to wrap around.
     saz = mod(emit.obs.solar.azimuth(pp) + 180, 360);         % degree
-    
+
 
 
     % ------ Define the Viewing Geometry ------
@@ -89,11 +89,11 @@ for pp = 1:length(pixels2use.row)
 
     % Define the azimuth viewing angle
     % ------------------------------------------------
-    % LibRadTran defines the viewing azimuth clockwise from North. 
+    % LibRadTran defines the viewing azimuth clockwise from North.
     % So at 0deg the sensor is in the north looking south, at 90deg
     % the sensor is in the east looking West, and so on.
-    % EMIT defines the sensor azimuth clockwise from due North. 
-    % So we don't need to change the emit values 
+    % EMIT defines the sensor azimuth clockwise from due North.
+    % So we don't need to change the emit values
     vaz = emit.obs.sensor.azimuth(pp);
 
 
@@ -266,6 +266,34 @@ for pp = 1:length(pixels2use.row)
             % ----------------------------------------------------------------------
             formatSpec = '%s %f %5s %s \n\n';
             fprintf(fileID, formatSpec,'aerosol_modify tau set', inputs.RT.aerosol_opticalDepth, ' ', '# Optical Depth of aerosol layer');
+
+        end
+
+
+        % Define the column water vapor amount
+        % --------------------------------------------------------------------
+        if inputs.RT.modify_waterVapor==true
+
+            % If true, modify the amount of column water vapor
+            % --------------------------------------------------------------
+            formatSpec = '%s %f %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+
+        end
+
+
+
+
+        % Define the concentration of carbon dioxide
+        % --------------------------------------------------------------------
+        if inputs.RT.modify_CO2==true
+
+            % If true, modify the amount of column water vapor
+            % --------------------------------------------------------------
+            formatSpec = '%s %f %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'mol_modify CO2 ', inputs.RT.CO2_concentration, ' CM_2', ' ', '# Column water vapor amount');
+
 
         end
 

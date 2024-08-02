@@ -252,7 +252,7 @@ end
 % ------------------------------------------------------------
 
 
-rho_liquid_water = 1e6;                 % grams/cm^3 - density of liquid water at 0 C
+rho_liquid_water = 1e6;                 % grams/m^3 - density of liquid water at 0 C
 % --------------------------------------------------
 
 
@@ -591,14 +591,42 @@ for nn = 1:num_files_2write
         % importantly, we want to connect two user defined variables, cloud
         % optical depth and effective radius, to the number concentration,
         % and thus the liquid water content.
-        Nc = tau_c(nn)./(pi*trapz((z(1:end-1)-z(1))*1e3, Qext(:,nn).*(re(:,nn)*1e-6).^2));                % m^(-3) - number concentration
+        z_meters = (z(1:end-1)-z(1))*1e3;       % meters - geometric depth, normalized
+        re_meters = (re(:,nn)*1e-6);            % meters - effective radius converted to meters
 
-        % --- Solve for the total Liquid Water Content over the entire
-        % cloud ---
+        Nc = tau_c(nn)./(pi*trapz(z_meters, Qext(:,nn).* re_meters.^2));                % m^(-3) - number concentration
+
+        % ------------------------------------------------------------------
+        % --- Solve for the total Liquid Water Content over the entire cloud ---
         % number concentration is constant with height. We make the
         % assumption that all droplets can be modeled as the effective
         % radius. So the LWC simple changes with effective radius
-        lwc = 4/3 * pi * rho_liquid_water * (re(:,nn)*1e-6).^3 .* Nc;                    % g/m^3 - grams of water per meter cubed of air
+        % ** LibRadTran requires LWC in units of grams/m^3 **
+        %lwc = 4/3 * pi * rho_liquid_water * re_meters.^3 .* Nc;                    % g/m^3 - grams of water per meter cubed of air
+
+
+        % *** There is another way to solve for the LWC ***
+        % We've made an assumption about the droplet size distribution and
+        % we've computed the total number concentration. We can solve for
+        % the liquid water content by integrating the size distribution
+        % *** IMPORTANT *** We have to play with the distribution width to
+        % get the correct optical depth
+        if strcmp(distribution_str,'gamma')==true
+            
+            alpha = 27;
+            lwc = zeros(size(re));
+
+            for zz = 1:length(re)
+                
+                [nr,r] = gamma_size_distribution_libRadTran2(re(zz), alpha, Nc);             % [#/micron/m^3 , microns] - gamma droplet size distribution
+                lwc(zz) = trapz( r , 4/3 * pi * rho_liquid_water * (r*1e-6).^3 .* nr);      % g/m^3 - grams of water per meter cubed of air
+            
+            end
+
+        end
+        % ------------------------------------------------------------------
+        % ------------------------------------------------------------------
+
 
         % create the water cloud file name
         if index==0
