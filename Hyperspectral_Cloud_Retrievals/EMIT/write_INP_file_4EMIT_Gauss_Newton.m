@@ -289,10 +289,10 @@ for pp = 1:length(pixels2use.row)
         % --------------------------------------------------------------------
         if inputs.RT.modify_CO2==true
 
-            % If true, modify the amount of column water vapor
+            % If true, modify the mixing ratio of carbon dioxide
             % --------------------------------------------------------------
-            formatSpec = '%s %f %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,'mol_modify CO2 ', inputs.RT.CO2_concentration, ' CM_2', ' ', '# Column water vapor amount');
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'mixing_ratio CO2 ', inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
 
 
         end

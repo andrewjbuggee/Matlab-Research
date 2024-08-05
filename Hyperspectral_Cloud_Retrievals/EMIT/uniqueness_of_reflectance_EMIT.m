@@ -15,9 +15,9 @@ r_bot = 2:14;        % microns
 %tau_c = [5, 5.5, 6, 6.5, 7];
 tau_c = 4.5:0.5:7.5;
 
-% r_top = 12.5;
-% r_bot = 2.75;
-% tau_c = 5.5;
+r_top = 11.6;
+r_bot = 2.6;
+tau_c = 6.7;
 
 
 
@@ -380,7 +380,7 @@ inputs.RT.waterVapor_column = 30;              % mm - milimeters of water conden
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_concentration = 1.0019e23;       % molecules/cm^2 - concentration of CO2
+inputs.RT.CO2_mixing_ratio = 410;       % ppm
 % ------------------------------------------------------------------------
 
 
@@ -645,10 +645,10 @@ for rt = 1:length(r_top)
                 % --------------------------------------------------------------------
                 if inputs.RT.modify_CO2==true
 
-                    % If true, modify the amount of column water vapor
+                    % If true, modify the mixing ratio of carbon dioxide
                     % --------------------------------------------------------------
-                    formatSpec = '%s %f %s %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'mol_modify CO2 ', inputs.RT.CO2_concentration, ' CM_2', ' ', '# Column water vapor amount');
+                    formatSpec = '%s %f %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'mixing_ratio CO2 ', inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
 
 
                 end
