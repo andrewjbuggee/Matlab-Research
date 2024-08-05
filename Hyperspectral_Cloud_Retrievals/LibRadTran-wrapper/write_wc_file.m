@@ -613,12 +613,12 @@ for nn = 1:num_files_2write
         % get the correct optical depth
         if strcmp(distribution_str,'gamma')==true
             
-            alpha = 27;
+            %distribution_var = 27;
             lwc = zeros(size(re));
 
             for zz = 1:length(re)
                 
-                [nr,r] = gamma_size_distribution_libRadTran2(re(zz), alpha, Nc);             % [#/micron/m^3 , microns] - gamma droplet size distribution
+                [nr,r] = gamma_size_distribution_libRadTran2(re(zz), distribution_var(zz), Nc);             % [#/micron/m^3 , microns] - gamma droplet size distribution
                 lwc(zz) = trapz( r , 4/3 * pi * rho_liquid_water * (r*1e-6).^3 .* nr);      % g/m^3 - grams of water per meter cubed of air
             
             end

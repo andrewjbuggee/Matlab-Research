@@ -49,8 +49,8 @@ computeReflectivity = false;
 
 
 % --- step through the band dimension ---
-parfor bb = 1:size(inputFileNames, 2)
-%for bb = 1:size(inputFileNames,2)
+%parfor bb = 1:size(inputFileNames, 2)
+for bb = 1:size(inputFileNames,2)
     % --- For now, calculate inputSettings every time ---
 
     % run uvSpec across all wavelengths

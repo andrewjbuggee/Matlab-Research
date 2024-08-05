@@ -81,7 +81,7 @@ end
 
 
 
-% ==============================
+% ================================================
 
 
 % ------------------------------------------------
@@ -101,11 +101,6 @@ if strcmp(size_distribution, 'gamma')==true
 
 
 
-
-    % Lets define the radius vector the spans the full size distribution
-    % By doing this outside the loop, we only have to write and run a
-    % single mie calculation
-    r = linspace(min(r_eff)/100, max(r_eff)*10, 300);
 
     % for each effective radius we create a radius vector that spans the
     % full size distribution. We need to calculate the extinction
@@ -147,6 +142,15 @@ if strcmp(size_distribution, 'gamma')==true
 
     % Do you want a long or short error file?
     err_msg_str = 'verbose';
+
+    
+    % Lets define the radius vector the spans the full size distribution
+    % By doing this outside the loop, we only have to write and run a
+    % single mie calculation
+    % set the total number concentration to be 1
+    N0 = 1;
+    %r = linspace(min(r_eff)/100, max(r_eff)*10, 300);
+    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(1), dist_var(1), N0);
 
 
     % Define the size of the scatterer and its scattering properties
@@ -193,22 +197,20 @@ if strcmp(size_distribution, 'gamma')==true
     for rr = 1:length(r_eff)
 
 
-        % set the total number concentration to be 1
-        N0 = 1;
-
-        % ---------------- IMPORTANT ASSUMPTION -------------------
-        % the modal radius is usually less than the effective radius
-        r_modal = 0.95*r_eff(rr);
-
-        N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
-
-        n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
+%         % ---------------- IMPORTANT ASSUMPTION -------------------
+%         % the modal radius is usually less than the effective radius
+%         r_modal = 0.95*r_eff(rr);
+% 
+%         N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
+% 
+%         n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
 
 
-
-        %[n_r,r] = gamma_size_distribution_kokhanovsky(r_eff(rr), mu, N0);
-
-
+        % Compute the size distribution according to the changing effective
+        % rdaius at each cloud layer
+        if rr~=1
+            [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), dist_var(rr), N0);
+        end
 
         % step through each wavelength. At each wavelength we integrate over
         % the vector r, a range of droplet sizes

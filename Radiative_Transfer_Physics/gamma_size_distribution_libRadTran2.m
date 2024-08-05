@@ -60,7 +60,7 @@ end
 % For some effective radius, we have define a droplet size distribution over a
 % range of radii values
 
-r = linspace(0.001*r_eff, 7*r_eff, 200);                  % microns - vector based on C.Emde (2016)
+r = linspace(0.001*r_eff, 7*r_eff, 300);                  % microns - vector based on C.Emde (2016)
 
 
 % --- first, solve for the constant, b ---
