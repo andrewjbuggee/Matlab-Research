@@ -497,7 +497,7 @@ for rt = 1:length(r_top)
                 wc_filename{rt,rb,tc,ww} = write_wc_file(re, tau_c(tc), inputs.RT.z_topBottom,...
                     inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
                     inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, ww);
-                
+
                 wc_filename{rt,rb,tc,ww} = wc_filename{rt,rb,tc,ww}{1};
 
 
@@ -915,7 +915,7 @@ disp([newline, num2str(100* (num_states/(numel(r_top)*numel(r_bot)*numel(tau_c))
 % define the discrete step length of each variable
 d_r_top = 0.1;      % microns
 d_r_bot = 0.1;      % microns
-d_tau_c = 0.05;
+d_tau_c = 0.1;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
