@@ -180,7 +180,7 @@ if strcmp(size_distribution, 'gamma')==true
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-        mie_radius, wavelength, size_distribution, err_msg_str, index);
+        mie_radius, wavelength, size_distribution, 0, err_msg_str, index);
 
     % run the mie file
     [~] = runMIE(mie_folder,input_filename,output_filename);

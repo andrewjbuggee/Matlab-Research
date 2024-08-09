@@ -53,18 +53,19 @@
 %%
 
 function [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_refraction,...
-            re, wavelength, distribution, err_msg_str, index)
+            re, wavelength, distribution, distribution_width, err_msg_str, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
 % ------------------------------------------------------------
 
-% Check to make sure there are 7 inputs
+% Check to make sure there are 8 inputs
 
 
-if nargin~=7
-    error([newline,'Not enough inputs. Need 7: mie program type, index of refraction, droplet effective radius,',...
-        ' wavelength, droplet distribution info, the error message command and the file number.', newline])
+if nargin~=8
+    error([newline,'Not enough inputs. Need 8: mie program type, index of refraction, droplet effective radius,',...
+        ' wavelength, droplet distribution info, droplet distribution width,'...
+        'the error message command and the file number.', newline])
 end
 
 
@@ -279,11 +280,11 @@ for ff = 1:numFiles
 
     if strcmp(distribution{1},'gamma')==true
 
-        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution, distribution_width, comments{4});
+        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution{1}, distribution_width, comments{4});
 
     elseif strcmp(distribution{1},'lognormal')==true
 
-        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution, distribution_width, comments{4});
+        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution{1}, distribution_width, comments{4});
 
     elseif strcmp(distribution{1},'mono')==true
 
