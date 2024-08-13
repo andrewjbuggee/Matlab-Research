@@ -51,8 +51,12 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [970, 969];
 
 % 17_Jan_2024_coast - optical depth of 3.2
+% pixels2use.row = 932;
+% pixels2use.col = 970;
+
+% 17_Jan_2024_coast - optical depth of 3.8
 pixels2use.row = 932;
-pixels2use.col = 970;
+pixels2use.col = 969;
 
 % 17_Jan_2024_coast - optical depths of 8.7, 9.22, 9.68, 10.3, 11.6, 12.54,
 % 13.61, 14.53, 16.79, 19.8
@@ -127,8 +131,9 @@ emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs
 
 %% Compute the TBLUT retrieval estimate
 
+tic
 tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
-
+disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
 
 %% Create the Model and Measurement prior
  
@@ -142,7 +147,9 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
 % Compute the retrieval variables
+tic
 [retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit ,pixels2use);
+disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
 %[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
 % --- save the output ---
@@ -154,8 +161,8 @@ inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
 
 plot_EMIT_retrieved_vertProf(emit, retrieval, tblut_retrieval)
 
-%% Make plot comparing the estimate of reflectance from the retrieved variables and the true measurements
-
+%% Make one-2-one plot comparing the estimate of reflectance from the retrieved variables and the true measurements
+% plot rms as a function of reflectance
 figure;
 
 % plot a one-to-one line
@@ -179,3 +186,69 @@ title(['RMS = ', num2str(retrieval.rms_residual{1}(end))], 'Interpreter', 'latex
 
 % set figure size
 set(gcf, 'Position', [0 0 700 700])
+
+
+%% Make one-2-one plot comparing the estimate of reflectance from the retrieved variables and the true measurements
+% plot the rms of the percent difference
+
+
+figure;
+
+% plot a one-to-one line
+plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
+hold on
+
+% plot the emit reflectance versus the forward model computed reflectance
+errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.computed_reflectance,...
+    emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
+    'Color', mySavedColors(1, 'fixed'))
+
+xlim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
+ylim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
+grid on; grid minor
+
+xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Retrieved Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+
+% compute the rms percent difference
+rms_percent_diff = sqrt(mean((100*(1 - retrieval.computed_reflectance./emit.reflectance.value(inputs.bands2run))).^2));
+
+
+title(['RMS Percent Difference = ', num2str(round(rms_percent_diff,2)), '\%'],...
+    'Interpreter', 'latex', 'Fontsize', 35);
+
+% set figure size
+set(gcf, 'Position', [0 0 700 700])
+
+
+%% Make spectral plot comparing the estimate of reflectance from the retrieved variables and the true measurements
+
+figure;
+
+% plot the emit reflectance versus wavelength
+errorbar(emit.radiance.wavelength(inputs.bands2run), emit.reflectance.value(inputs.bands2run,1),...
+    emit.reflectance.uncertainty(inputs.bands2run), 'vertical', '.-', 'MarkerSize', 25,...
+    'LineWidth', 1, 'Color', mySavedColors(1,'fixed'))
+
+hold on;
+plot(emit.radiance.wavelength(inputs.bands2run), retrieval.computed_reflectance,...
+    '.-', 'MarkerSize', 25,...
+    'LineWidth', 1, 'Color', mySavedColors(2, 'fixed'))
+
+
+grid on; grid minor
+
+xlabel('Wavelength ($nm$)', 'Interpreter', 'latex', 'Fontsize', 35);
+ylabel('Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
+title(['Comparison between Calculated and EMIT Reflectance'],...
+    'Interpreter', 'latex', 'Fontsize', 35);
+grid on; grid minor
+
+% set legend
+legend('EMIT', 'Retrieved', 'location', 'best', 'Interpreter', 'latex', 'FontSize', 30)
+
+
+% set figure size
+set(gcf, 'Position', [0 0 1200 675])

@@ -104,7 +104,7 @@
 
 %%
 
-function [fileName] = write_wc_file(re,tau_c,z_topBottom, lambda, distribution_str, distribution_var,...
+function [fileName] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type, distribution_var,...
     vert_homogeneous_str, parameterization_str, index)
 
 % ------------------------------------------------------------
@@ -164,7 +164,7 @@ end
 
 % Check to make sure the distribution string is one of two possible values
 
-if strcmp(distribution_str, 'mono')==false && strcmp(distribution_str, 'gamma')==false
+if strcmp(distribution_type, 'mono')==false && strcmp(distribution_type, 'gamma')==false
 
     error([newline,'I dont recognize the droplet distribution. Must be either "mono" or "gamma"', newline])
 end
@@ -301,7 +301,7 @@ if size(re,1)>1 && size(re,2)>1
             % IF GAMMA DISTRIBUTION DESIRED, CODE WILL MANUALLY
             % INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED
 
-            if strcmp(distribution_str,'gamma')==true
+            if strcmp(distribution_type,'gamma')==true
 
                 % If we wish to estimate the mie properties of liquid water
                 % for a distribution of droplets, then we can skip the
@@ -314,9 +314,9 @@ if size(re,1)>1 && size(re,2)>1
 
                 % integrate over a size distribution to get an average
                 [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
-                    index_of_refraction, distribution_str, index);
+                    index_of_refraction, distribution_type, index);
 
-            elseif strcmp(distribution_str,'mono')==true
+            elseif strcmp(distribution_type,'mono')==true
                 yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
 
             else
@@ -334,7 +334,7 @@ if size(re,1)>1 && size(re,2)>1
             % IF GAMMA DISTRIBUTION DESIRED, CODE WILL MANUALLY
             % INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED
 
-            if strcmp(distribution_str,'gamma')==true
+            if strcmp(distribution_type,'gamma')==true
 
                 % If we wish to estimate the mie properties of liquid water
                 % for a distribution of droplets, then we can skip the
@@ -347,9 +347,9 @@ if size(re,1)>1 && size(re,2)>1
 
                 % integrate over a size distribution to get an average
                 [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
-                    index_of_refraction, distribution_str, index);
+                    index_of_refraction, distribution_type, index);
 
-            elseif strcmp(distribution_str,'mono')==true
+            elseif strcmp(distribution_type,'mono')==true
                 yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
 
             else
@@ -374,7 +374,8 @@ if size(re,1)>1 && size(re,2)>1
     % if re is a vector and the vertically homogeneity is defined as
     % 'vert-non-homogeneous' then the the code assumes the vector defines a
     % single cloud with a droplet profile
-elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
+elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&...
+        strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
 
     num_files_2write = 1;
 
@@ -399,12 +400,11 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
         % ********************************************************
 
 
-        if strcmp(distribution_str,'gamma')==true
+        if strcmp(distribution_type,'gamma')==true
 
-            % -------------------------------------------------------
-            % IF GAMMA DISTRIBUTION DESIRED, CODE WILL MANUALLY
-            % INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED
-            % -------------------------------------------------------
+            % -------------------------------------------------------------
+            % --- MANUALLY INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED ---
+            % -------------------------------------------------------------
             % If we wish to estimate the mie properties of liquid water
             % for a distribution of droplets, then we can skip the
             % pre-computed mie tables and estimate the values using the
@@ -412,19 +412,19 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
 
             % This function only deals with liquid water clouds
             % define the index of refraction
-%             index_of_refraction = 'water';
+            %             index_of_refraction = 'water';
 
             % this loop applies to a vertical droplet profile. For now we
             % will apply the same distribution variance to each level in
             % the cloud.
 
             % integrate over a size distribution to get an average
-%             [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var,...
-%                 lambda,index_of_refraction, distribution_str, index);
+            %             [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var,...
+            %                 lambda,index_of_refraction, distribution_type, index);
 
 
             % -------------------------------------------------------
-            % --------- USING LIBRADTRAN MIE CALCULATIONS -----------
+            % ----------- USE LIBRADTRAN MIE CALCULATIONS -----------
             % -------------------------------------------------------
             % Libradtran doesn't compute the efficieny when a distribution
             % is specified. It computes the bulk coefficient per unit
@@ -440,23 +440,10 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
             % define the index of refraction
             index_of_refraction = 'water';
 
-            size_distribution = {'gamma', []};           % droplet distribution
+            size_distribution = {'gamma', distribution_var(1)};           % droplet distribution
 
             % Do you want a long or short error file?
             err_msg_str = 'verbose';
-
-            % define the wavelength
-            % The wavelength input is defined as follows:
-            % [wavelength_start, wavelength_end, wavelength_step].
-            if length(lambda)==1
-                % monochromatic calculation
-                lambda = [lambda, lambda, 0];          % nanometers
-
-            elseif length(lambda)==3
-                % broadband calculation
-                lambda = [lambda(1), lambda(2), lambda(3)];          % nanometers
-
-            end
 
 
 
@@ -464,24 +451,24 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
             % where r_step is the interval between radii values (used only for
             % vectors of radii). A 0 tells the code there is no step. Finally, the
             % radius values have to be in increasing order.
-            ext_bluk_coeff_per_LWC = zeros(length(re), 1);
+            ext_bulk_coeff_per_LWC = zeros(length(re), 1);
 
             for rr = 1:length(re)
 
                 mie_radius = [re(rr), re(rr), 0];    % microns
-    
-    
+
+
                 % Create a mie file
                 [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, distribution_var(1), err_msg_str, index);
-    
+                    mie_radius, lambda, size_distribution, err_msg_str, index);
+
                 % run the mie file
                 [~] = runMIE(mie_folder,input_filename,output_filename);
-    
+
                 % Read the output of the mie file
                 [ds,~,~] = readMIE(mie_folder,output_filename);
-                
-                ext_bluk_coeff_per_LWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
+
+                ext_bulk_coeff_per_LWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
 
             end
             % --------------------------------------------------------------
@@ -489,7 +476,7 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-no
 
 
 
-        elseif strcmp(distribution_str,'mono')==true
+        elseif strcmp(distribution_type,'mono')==true
             yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
 
         else
@@ -531,12 +518,13 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
     if strcmp(parameterization_str,'mie')==true
 
 
-        % **** ONLY INTERPOLATING HOMOGENOUS MIE COMPUTATIONS ****
-        % ********************************************************
-        % IF GAMMA DISTRIBUTION DESIRED, CODE WILL MANUALLY
-        % INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED
 
-        if strcmp(distribution_str,'gamma')==true
+
+        if strcmp(distribution_type,'gamma')==true
+
+            % -------------------------------------------------------------
+            % --- MANUALLY INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED ---
+            % -------------------------------------------------------------
 
             % If we wish to estimate the mie properties of liquid water
             % for a distribution of droplets, then we can skip the
@@ -545,13 +533,68 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
             % This function only deals with liquid water clouds
             % define the index of refraction
+            %             index_of_refraction = 'water';
+            %
+            %             % integrate over a size distribution to get an average
+            %             [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
+            %                 index_of_refraction, distribution_type, index);
+            % -------------------------------------------------------------
+
+
+            % -------------------------------------------------------
+            % ----------- USE LIBRADTRAN MIE CALCULATIONS -----------
+            % -------------------------------------------------------
+            % Libradtran doesn't compute the efficieny when a distribution
+            % is specified. It computes the bulk coefficient per unit
+            % concentration. For water, since the density is 1 g/m^3, we
+            % can somply multiply the output with the liquid water content
+            % and integrate over the path to get the optical depth.
+
+
+            % What mie code should we use to compute the scattering properties?
+            mie_program = 'MIEV0';               % type of mie algorithm to run
+
+            % This function only deals with liquid water clouds
+            % define the index of refraction
             index_of_refraction = 'water';
 
-            % integrate over a size distribution to get an average
-            [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
-                index_of_refraction, distribution_str, index);
+            size_distribution = {'gamma', distribution_var(1)};           % droplet distribution
 
-        elseif strcmp(distribution_str,'mono')==true
+            % Do you want a long or short error file?
+            err_msg_str = 'verbose';
+
+
+            % The radius input is defined as [r_start, r_end, r_step].
+            % where r_step is the interval between radii values (used only for
+            % vectors of radii). A 0 tells the code there is no step. Finally, the
+            % radius values have to be in increasing order.
+            ext_bulk_coeff_per_LWC = zeros(length(re), 1);
+
+            for rr = 1:length(re)
+
+                mie_radius = [re(rr), re(rr), 0];    % microns
+
+
+                % Create a mie file
+                [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
+                    mie_radius, lambda, size_distribution, err_msg_str, index);
+
+                % run the mie file
+                [~] = runMIE(mie_folder,input_filename,output_filename);
+
+                % Read the output of the mie file
+                [ds,~,~] = readMIE(mie_folder,output_filename);
+
+                ext_bulk_coeff_per_LWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
+
+            end
+            % --------------------------------------------------------------
+
+
+
+
+
+        elseif strcmp(distribution_type,'mono')==true
             yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
 
         else
@@ -581,11 +624,11 @@ end
 
 % grab the extinction efficiency values
 
-if strcmp(distribution_str,'gamma')==true
-    %Qext = Qe_avg';         % Extinction efficiency
+if strcmp(distribution_type,'gamma')==true
+%     Qext = Qe_avg';         % Extinction efficiency
     %Qext = linspace(2.0816, 2.0816, length(re))';        % value to match libRadTran
 
-elseif strcmp(distribution_str,'mono')==true
+elseif strcmp(distribution_type,'mono')==true
     Qext = reshape(yq(:,3),[],num_files_2write);         % convert this back into a matrix corresponging to re
 
 end
@@ -654,7 +697,7 @@ for nn = 1:num_files_2write
 
     % we need a number concentration for each file that is created
 
-    if nLayers>1
+    if nLayers>1 && strcmp(distribution_type, 'gamma')==true
 
         % We could just integrate the size distributiion to get the total
         % number concentration, but we've chosen an arbitrary value for the
@@ -663,35 +706,35 @@ for nn = 1:num_files_2write
         % importantly, we want to connect two user defined variables, cloud
         % optical depth and effective radius, to the number concentration,
         % and thus the liquid water content.
-%         z_meters = (z(1:end-1)-z(1))*1e3;       % meters - geometric depth, normalized
-%         re_meters = (re(:,nn)*1e-6);            % meters - effective radius converted to meters
-% 
-%         Nc = tau_c(nn)./(pi*trapz(z_meters, Qext(:,nn).* re_meters.^2));                % m^(-3) - number concentration
-% 
-%         % ------------------------------------------------------------------
-%         % --- Solve for the total Liquid Water Content over the entire cloud ---
-%         % number concentration is constant with height. We make the
-%         % assumption that all droplets can be modeled as the effective
-%         % radius. So the LWC simple changes with effective radius
-%         % ** LibRadTran requires LWC in units of grams/m^3 **
-%         lwc = 4/3 * pi * rho_liquid_water * re_meters.^3 .* Nc;                    % g/m^3 - grams of water per meter cubed of air
+        %         z_meters = (z(1:end-1)-z(1))*1e3;       % meters - geometric depth, normalized
+        %         re_meters = (re(:,nn)*1e-6);            % meters - effective radius converted to meters
+        %
+        %         Nc = tau_c(nn)./(pi*trapz(z_meters, Qext(:,nn).* re_meters.^2));                % m^(-3) - number concentration
+        %
+        %         % ------------------------------------------------------------------
+        %         % --- Solve for the total Liquid Water Content over the entire cloud ---
+        %         % number concentration is constant with height. We make the
+        %         % assumption that all droplets can be modeled as the effective
+        %         % radius. So the LWC simple changes with effective radius
+        %         % ** LibRadTran requires LWC in units of grams/m^3 **
+        %         lwc = 4/3 * pi * rho_liquid_water * re_meters.^3 .* Nc;                    % g/m^3 - grams of water per meter cubed of air
         % -----------------------------------------------------------------
-        
+
 
 
         % ----------------------------------------------------------------
         % ******** Integrating over monodispersed mie caluclation ********
         % ----------------------------------------------------------------
         % -- Assuming liquid water content increases linearly with depth -
-%         re_meters = (re(:,nn)*1e-6);            % meters - effective radius converted to meters
-%         z_meters_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2)*1e3;       % meters - geometric depth, normalized
-%         dz = z_meters_midpoint(2)-z_meters_midpoint(1);           % meters
-% 
-% 
-%         slope = (4*rho_liquid_water * tau_c) /(3*dz * sum(Qext .* z_meters_midpoint ./re_meters));     % g/m^3/m - slope of the lwc profile
-%         
-%         % solve for the linear liquid water content profile
-%         lwc = slope * z_meters_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+        %         re_meters = (re(:,nn)*1e-6);            % meters - effective radius converted to meters
+        %         z_meters_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2)*1e3;       % meters - geometric depth, normalized
+        %         dz = z_meters_midpoint(2)-z_meters_midpoint(1);           % meters
+        %
+        %
+        %         slope = (4*rho_liquid_water * tau_c) /(3*dz * sum(Qext .* z_meters_midpoint ./re_meters));     % g/m^3/m - slope of the lwc profile
+        %
+        %         % solve for the linear liquid water content profile
+        %         lwc = slope * z_meters_midpoint;                     % g/m^3 - grams of water per meter cubed of air
         % ----------------------------------------------------------------
 
 
@@ -700,35 +743,42 @@ for nn = 1:num_files_2write
         % ** Using libRadTran mie calculations with a size distribution ***
         % -----------------------------------------------------------------
         % -- Assuming liquid water content increases linearly with depth -
-        z_kilometers_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2);       % meters - geometric depth, normalized
-        dz_km = z_kilometers_midpoint(2)-z_kilometers_midpoint(1);           % meters
+        %z_kilometers_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2);       % kilometers - geometric depth at midpoint of each layer
+        z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
+        dz_km = z(2) - z(1);           % kilometers
 
-        slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
-        
+        %slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
+        slope = tau_c(nn) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/m - slope of the lwc profile
+
         % solve for the linear liquid water content profile
-        lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+        %lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+        lwc = slope * z_kilometers_upper_boundary;                     % g/m^3 - grams of water per meter cubed of air
         % ----------------------------------------------------------------
 
 
+
+        % -----------------------------------------------------------------
+        % ******** compute LWC by integrated the size distribution ********
+        % -----------------------------------------------------------------
         % *** There is another way to solve for the LWC ***
         % We've made an assumption about the droplet size distribution and
         % we've computed the total number concentration. We can solve for
         % the liquid water content by integrating the size distribution
         % *** IMPORTANT *** We have to play with the distribution width to
         % get the correct optical depth
-%         if strcmp(distribution_str,'gamma')==true
-%             
-%             %distribution_var = 27;
-%             lwc = zeros(size(re));
-% 
-%             for zz = 1:length(re)
-%                 
-%                 [nr,r] = gamma_size_distribution_libRadTran2(re(zz), distribution_var(zz), Nc);       % [#/micron/m^3 , microns] - gamma droplet size distribution
-%                 lwc(zz) = trapz( r , 4/3 * pi * rho_liquid_water * (r*1e-6).^3 .* nr);                % g/m^3 - grams of water per meter cubed of air
-%             
-%             end
-% 
-%         end
+        %         if strcmp(distribution_str,'gamma')==true
+        %
+        %             %distribution_var = 27;
+        %             lwc = zeros(size(re));
+        %
+        %             for zz = 1:length(re)
+        %
+        %                 [nr,r] = gamma_size_distribution_libRadTran2(re(zz), distribution_var(zz), Nc);       % [#/micron/m^3 , microns] - gamma droplet size distribution
+        %                 lwc(zz) = trapz( r , 4/3 * pi * rho_liquid_water * (r*1e-6).^3 .* nr);                % g/m^3 - grams of water per meter cubed of air
+        %
+        %             end
+        %
+        %         end
         % ------------------------------------------------------------------
         % ------------------------------------------------------------------
 
@@ -736,13 +786,47 @@ for nn = 1:num_files_2write
         % create the water cloud file name
         if index==0
             fileName{nn} = ['WC_rtop',num2str(round(re(end,nn))),'_rbot',num2str(round(re(1,nn))),'_T',num2str(round(tau_c(nn))),...
-            '_', distribution_str,'_nn',num2str(nn), '.DAT'];
+                '_', distribution_type,'_nn',num2str(nn), '.DAT'];
         elseif index>0
             fileName{nn} = ['WC_rtop',num2str(round(re(end,nn))),'_rbot',num2str(round(re(1,nn))),'_T',num2str(round(tau_c(nn))),...
-                '_', distribution_str,'_nn',num2str(index), '.DAT'];
+                '_', distribution_type,'_nn',num2str(index), '.DAT'];
         end
 
-    else
+
+
+    elseif nLayers==1 && strcmp(distribution_type, 'gamma')==true
+
+        % ----------------------------------------------------------------
+        % --- If there is one cloud layer, this is a homogensous cloud ---
+        % ----------------------------------------------------------------
+
+        %Nc = tau_c(nn)./(pi*(H(nn)*1e3)*Qext(nn).*(re(nn)*1e-6).^2);                 % m^(-3) - number concentration
+
+        % Compute Liquid Water Content
+        %lwc = 4/3 * pi * rho_liquid_water * (re(nn)*1e-6).^3 .* Nc;                  % g/m^3 - grams of water per meter cubed of air
+
+        % Compute Liquid Water Content
+        lwc = tau_c(nn)./(ext_bulk_coeff_per_LWC(nn) .* H(nn));                           % g/m^3 - grams of water per meter cubed of air
+
+
+        % create the water cloud file name
+        if index==0
+            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+                '_nn',num2str(nn), '.DAT'];
+        elseif index>0
+
+            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+                '_nn',num2str(index), '.DAT'];
+        end
+
+
+
+
+    elseif nLayers==1 && strcmp(distribution_type, 'mono')==true
+
+        % ----------------------------------------------------------------
+        % --- If there is one cloud layer, this is a homogensous cloud ---
+        % ----------------------------------------------------------------
 
         %Nc = tau_c(nn)./(pi*(H(nn)*1e3)*Qext(nn).*(re(nn)*1e-6).^2);                 % m^(-3) - number concentration
 
@@ -753,15 +837,20 @@ for nn = 1:num_files_2write
         lwc = 4/3 * (re(nn)*1e-6) * rho_liquid_water * tau_c(nn)./...
             (Qext(nn) * (H(nn)*1e3));                                                % g/m^3 - grams of water per meter cubed of air
 
+        % when assuming a di
         % create the water cloud file name
         if index==0
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_str,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
                 '_nn',num2str(nn), '.DAT'];
         elseif index>0
 
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_str,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
                 '_nn',num2str(index), '.DAT'];
         end
+
+
+
+
 
     end
 
@@ -780,7 +869,7 @@ for nn = 1:num_files_2write
 
     if (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
 
-        if z_topBottom(2)==0
+        if z(1)==0
             % If true, then the cloud starts at the surface and we only append
             % zeros above the cloud
             re_2write = [re; 0];
@@ -798,7 +887,7 @@ for nn = 1:num_files_2write
 
     elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-homogeneous')==true
 
-        if z_topBottom(2)==0
+        if z(1)==0
             % If true, then the cloud starts at the surface and we only append
             % zeros above the cloud
             re_2write = [re(nn); 0];
@@ -819,7 +908,7 @@ for nn = 1:num_files_2write
         % Cloud top height defines the altitude where there is no cloud.
 
         % if the minimum z value is 0 then the cloud is at the surface
-        if z_topBottom(2)==0
+        if z(1)==0
             % then we only append zeros above the cloud
             re_2write = [re(:,nn); 0];
             lwc_2write = [lwc; 0];

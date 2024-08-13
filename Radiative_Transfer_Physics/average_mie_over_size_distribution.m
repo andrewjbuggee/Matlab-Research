@@ -14,8 +14,8 @@
 %   (3) wavelength - (nanometers) this is the wavelength range used to calculate
 %   the mie properties across the size distribution. If wavelength is a
 %   single value, then a monochromatic calculation is performed. If
-%   wavelength is a vector with 3 entries, then the first two are the boundaries
-%   and the 3rd value is the discrete step between the two boundaries.
+%   wavelength is a vector the write_mie_file will determine if it's evenly
+%   spaced or not
 
 %   (4) index_of_refraction - this is the index of refraction used in the
 %       scattering calculations, effectively telling the code which substance
@@ -53,8 +53,8 @@
 % By Andrew John Buggee
 %%
 
-function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, dist_var, wavelength,...
-    index_of_refraction, size_distribution, index)
+function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, distribution_var, wavelength,...
+    index_of_refraction, distribution_type, index)
 
 % ---------------------------
 % ----- CHECK INPUTS --------
@@ -67,17 +67,17 @@ function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r
 
 % For the remaining entries, make sure they all have the same length as the
 % length of the effective radius vector
-if length(r_eff)~=length(dist_var)
+if length(r_eff)~=length(distribution_var)
     error([newline, 'The first two inputs must be the same length',newline])
 end
 
 
-% Check the wavelength input. This can only be a single value, or a vector
-% with three values
-if length(wavelength)~=1 && length(wavelength)~=3
-    error([newline, 'The wavelength input can only be a single value, implying a monochromatic calculation',...
-        newline, ', or have 3 values: the starting value, the end value, and the sampling interval',newline])
-end
+% % Check the wavelength input. This can only be a single value, or a vector
+% % with three values
+% if length(wavelength)~=1 && length(wavelength)~=3
+%     error([newline, 'The wavelength input can only be a single value, implying a monochromatic calculation',...
+%         newline, ', or have 3 values: the starting value, the end value, and the sampling interval',newline])
+% end
 
 
 
@@ -88,7 +88,7 @@ end
 % ------------ for a gamma distribution ----------
 % ------------------------------------------------
 
-if strcmp(size_distribution, 'gamma')==true
+if strcmp(distribution_type, 'gamma')==true
 
 
     % For some effective radius, we have defined a droplet size distribution
@@ -112,20 +112,20 @@ if strcmp(size_distribution, 'gamma')==true
     % ---------------     RUN MIE CALCULATIONS    -------------------
     % ---------------------------------------------------------------
 
-    % define the wavelength
-    % The wavelength input is defined as follows:
-    % [wavelength_start, wavelength_end, wavelength_step].
-    if length(wavelength)==1
-        % monochromatic calculation
-        wavelength = [wavelength, wavelength, 0];          % nanometers
-        % define the wavelength vector
-        wl_vector = wavelength(1);               % nanometers
-    elseif length(wavelength)==3
-        % broadband calculation
-        wavelength = [wavelength(1), wavelength(2), wavelength(3)];          % nanometers
-        % define the wavelength vector
-        wl_vector = wavelength(1):wavelength(3):wavelength(2);               % nanometers
-    end
+%     % define the wavelength
+%     % The wavelength input is defined as follows:
+%     % [wavelength_start, wavelength_end, wavelength_step].
+%     if length(wavelength)==1
+%         % monochromatic calculation
+%         wavelength = [wavelength, wavelength, 0];          % nanometers
+%         % define the wavelength vector
+%         wl_vector = wavelength(1);               % nanometers
+%     elseif length(wavelength)==3
+%         % broadband calculation
+%         wavelength = [wavelength(1), wavelength(2), wavelength(3)];          % nanometers
+%         % define the wavelength vector
+%         wl_vector = wavelength(1):wavelength(3):wavelength(2);               % nanometers
+%     end
 
 
     % The first entry belows describes the type of droplet distribution
@@ -135,6 +135,8 @@ if strcmp(size_distribution, 'gamma')==true
 
     % For now, we run mono-dispersed calculations, and manually integrate
     % over the size distribution of choice
+    % *** the second entry is the width parameter, which isn't needed for a
+    % monodispersed distribution ***
     size_distribution = {'mono', []};           % droplet distribution
 
     % What mie code should we use to compute the scattering properties?
@@ -150,7 +152,7 @@ if strcmp(size_distribution, 'gamma')==true
     % set the total number concentration to be 1
     N0 = 1;
     %r = linspace(min(r_eff)/100, max(r_eff)*10, 300);
-    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(1), dist_var(1), N0);
+    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(1), distribution_var(1), N0);
 
 
     % Define the size of the scatterer and its scattering properties
@@ -180,7 +182,7 @@ if strcmp(size_distribution, 'gamma')==true
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-        mie_radius, wavelength, size_distribution, 0, err_msg_str, index);
+        mie_radius, wavelength, size_distribution, err_msg_str, index);
 
     % run the mie file
     [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -209,13 +211,13 @@ if strcmp(size_distribution, 'gamma')==true
         % Compute the size distribution according to the changing effective
         % rdaius at each cloud layer
         if rr~=1
-            [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), dist_var(rr), N0);
+            [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
         end
 
         % step through each wavelength. At each wavelength we integrate over
         % the vector r, a range of droplet sizes
 
-        for ww = 1:length(wl_vector)
+        for ww = 1:length(wavelength)
 
             % Average single scattering albedo over a droplet distribution
 

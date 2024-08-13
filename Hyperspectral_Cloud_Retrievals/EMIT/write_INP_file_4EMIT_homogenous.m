@@ -130,7 +130,7 @@ wavelength_forTau = emit.radiance.wavelength(inputs.bands2run(1));              
 % For now lets hard code the cloud height
 % ---------------------------------------
 % cloud top height and thickness is set to 9km and 1km respectively,
-% the same values described in: "Overview of the MODIS Collection 6 
+% the same values described in: "Overview of the MODIS Collection 6
 % Cloud Optical Property (MOD06) Retrieval Look-up Tables" Amarasinghe
 % et. al 2017
 %z_topBottom = [9, 8];                     % km - altitude above surface for the cloud top and cloud bottom
@@ -163,8 +163,10 @@ parameterization_str = inputs.RT.parameterization_str;
 % --------------------VERY IMPORTANT ------------------
 % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
 % ------------------------------------------------------
+tic
 wc_filename = write_wc_file(re_vec,tau_vec,z_topBottom, wavelength_forTau, dist_str,...
     dist_var, vert_homogeneous_str, parameterization_str, 0);
+disp([newline, 'wc-filename took ', num2str(toc), ' seconds long to run', newline])
 % rehape so we can step through values for r and tau
 wc_filename = reshape(wc_filename, length(re),length(tau_c));
 
@@ -200,18 +202,18 @@ for pp = 1:length(pixel_row)
     % Define the solar zenith angle
     % ------------------------------------------------
     sza = emit.obs.solar.zenith(pp);           % degree
-   
+
     % Define the solar azimuth angle
     % -------------------------------------------------------
     % this is how we map EMIT-defined solar azimuth to the LibRadTran
-    % definition. 
-    % LibRadTran defines the solar azimuth clockwise from South. 
+    % definition.
+    % LibRadTran defines the solar azimuth clockwise from South.
     % So at 0deg the Sun is due south, 90deg the Sun is due West,
-    % and so on. EMIT defines the solar azimuth clockwise from due North. 
+    % and so on. EMIT defines the solar azimuth clockwise from due North.
     % So we need to add 180deg to the EMIT values, but modulo 360, since it
     % needs to wrap around.
     saz = mod(emit.obs.solar.azimuth(pp) + 180, 360);         % degree
-    
+
 
 
     % ------ Define the Viewing Geometry ------
@@ -230,13 +232,13 @@ for pp = 1:length(pixel_row)
 
     % Define the azimuth viewing angle
     % ------------------------------------------------
-    % LibRadTran defines the viewing azimuth clockwise from North. 
+    % LibRadTran defines the viewing azimuth clockwise from North.
     % So at 0deg the sensor is in the north looking south, at 90deg
     % the sensor is in the east looking West, and so on.
-    % EMIT defines the sensor azimuth clockwise from due North. 
-    % So we don't need to change the emit values 
+    % EMIT defines the sensor azimuth clockwise from due North.
+    % So we don't need to change the emit values
     vaz = emit.obs.sensor.azimuth(pp);
-    
+
 
 
 
@@ -246,7 +248,7 @@ for pp = 1:length(pixel_row)
 
     % create the begining of the file name string
     fileBegin = ['pixel_',num2str(pixel_row(pp)),'r_',num2str(pixel_col(pp)),'c_sza_',...
-                 num2str(round(sza)),'_vza_',num2str(round(vza)),'_band_'];
+        num2str(round(sza)),'_vza_',num2str(round(vza)),'_band_'];
 
     for bb = 1:length(inputs.bands2run)
 
@@ -272,25 +274,25 @@ for pp = 1:length(pixel_row)
                 % ----- TESTING IMPORTANCE OF CLOUD TOP HEIGHT --------
                 % ------------------------------------------------------
 
-%                 % define the geometric location of the cloud top and cloud bottom
-%                 if inputs.RT.use_MODIS_cloudTopHeight==false
-%                     z_topBottom = [9,8];          % km above surface
-%             
-%                 else
-%             
-%                     % if the cloud top height is below 1 km, make the lower altitude 0
-%                     cloudTopHeight = modis.cloud.topHeight(pixel_row(pp),pixel_col(pp));
-%             
-%                     if cloudTopHeight>=1000
-%                         z_topBottom = [cloudTopHeight, cloudTopHeight - 1000]./1000;      % km above surface
-%                     elseif cloudTopHeight<1000
-%                         z_topBottom = [cloudTopHeight, 0]./1000;      % km above surface
-%                     end
-%             
-%                 end
-% 
-%                 wc_filename = write_wc_file(re(rr),tau_c(tt),z_topBottom, wavelength_forTau, dist_str,...
-%                                 inputs.RT.drop_distribution_var, vert_homogeneous_str, parameterization_str, 0);
+                %                 % define the geometric location of the cloud top and cloud bottom
+                %                 if inputs.RT.use_MODIS_cloudTopHeight==false
+                %                     z_topBottom = [9,8];          % km above surface
+                %
+                %                 else
+                %
+                %                     % if the cloud top height is below 1 km, make the lower altitude 0
+                %                     cloudTopHeight = modis.cloud.topHeight(pixel_row(pp),pixel_col(pp));
+                %
+                %                     if cloudTopHeight>=1000
+                %                         z_topBottom = [cloudTopHeight, cloudTopHeight - 1000]./1000;      % km above surface
+                %                     elseif cloudTopHeight<1000
+                %                         z_topBottom = [cloudTopHeight, 0]./1000;      % km above surface
+                %                     end
+                %
+                %                 end
+                %
+                %                 wc_filename = write_wc_file(re(rr),tau_c(tt),z_topBottom, wavelength_forTau, dist_str,...
+                %                                 inputs.RT.drop_distribution_var, vert_homogeneous_str, parameterization_str, 0);
                 % ------------------------------------------------------
                 % ------------------------------------------------------
 
@@ -378,7 +380,7 @@ for pp = 1:length(pixel_row)
                 % Define override of total precipitable water. This will force the total
                 % column of water vapor to be whatever value you define.
                 % If you don't wish to change the default, define the variable with nan
-               
+
                 if inputs.RT.use_MODIS_aboveCloudWaterVapor==true
 
                     total_h2O_column = inputs.RT.effectiveWaterThickness.vapor(pp) * 10;    % mm of precipitable water
@@ -436,6 +438,33 @@ for pp = 1:length(pixel_row)
                 formatSpec = '%s %f %f %5s %s \n\n';
                 fprintf(fileID, formatSpec,'wavelength', wavelengths(bb,1),...
                     wavelengths(bb,end), ' ', '# Wavelength range');
+
+
+                % Define the column water vapor amount
+                % --------------------------------------------------------------------
+                if inputs.RT.modify_waterVapor==true
+
+                    % If true, modify the amount of column water vapor
+                    % --------------------------------------------------------------
+                    formatSpec = '%s %f %s %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+
+                end
+
+
+
+                % Define the concentration of carbon dioxide
+                % --------------------------------------------------------------------
+                if inputs.RT.modify_CO2==true
+
+                    % If true, modify the mixing ratio of carbon dioxide
+                    % --------------------------------------------------------------
+                    formatSpec = '%s %f %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'mixing_ratio CO2 ', inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
+
+
+                end
 
 
 
@@ -541,107 +570,107 @@ for pp = 1:length(pixel_row)
 
 
 
-%                 % Create the water cloud file
-%                 fileID = fopen([newFolder,inpNames{pp,rr,tt,bb}], 'w');
-% 
-%                 % fprintf writes lines in our text file from top to botom
-%                 % wc.DAT files are written with the higher altitudes at the top, and the
-%                 % surface at the bottom
-% 
-%                 % to write column vectors in a text file, we have to store them as row
-%                 % vectors
-% 
-%                 % The first argument is the format specification
-%                 % The designates what type of characters to print, such as floating point
-%                 % arithmetic or string. The number before the character designates the
-%                 % MINIMUM number of characters to print
-% 
-% 
-%                 % Define which RTE solver to use
-%                 formatSpec = '%s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'rte_solver','disort',' ', '# Radiative transfer equation solver');
-% 
-% 
-%                 % Define the number of streams to keep track of when solving the equation
-%                 % of radiative transfer
-%                 formatSpec = '%s %s %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'number_of_streams','6',' ', '# Number of streams');
-% 
-% 
-%                 % Define the location and filename of the US standard
-%                 % atmosphere that will be used for this analysis
-%                 formatSpec = '%s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'atmosphere_file','../data/atmmod/afglus.dat',' ', '# Location of atmospheric profile to use');
-% 
-%                 % Define the location and filename of the extraterrestrial solar source
-%                 formatSpec = '%s %s %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'source solar',['../data/solar_flux/',solarFlux_file], ' ', '# Bounds between 250 and 10000 nm');
-% 
-%                 % Define the location and filename of the extraterrestrial solar source
-%                 formatSpec = '%s %f %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'day_of_year', day_of_year, ' ', '# accounts for changing Earth-Sun distance');
-% 
-%                 % Define the ozone column
-%                 %                 formatSpec = '%s %s %s %s %5s %s \n';
-%                 %                 fprintf(fileID, formatSpec,'mol_modify','O3', '300.','DU', ' ', '# Set ozone column');
-% 
-%                 % Define the water vapor column
-%                 formatSpec = '%s %s %s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'mol_modify','H2O', num2str(column_vapor), 'MM', ' ', '# Total Precipitable Water');
-% 
-%                 % Define the surface albedo
-%                 formatSpec = '%s %s %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'albedo','0.0600', ' ', '# Surface albedo of the ocean');
-% 
-% 
-%                 % Define the water cloud file
-%                 formatSpec = '%s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{rr,tt}], ' ', '# Location of water cloud file');
-% 
-% 
-%                 % Define the percentage of horizontal cloud cover
-%                 % This is a number between 0 and 1
-%                 formatSpec = '%s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'cloudcover wc', num2str(cloud_cover), ' ', '# Cloud cover percentage');
-% 
-%                 % Define the technique or parameterization used to convert liquid cloud
-%                 % properties of r_eff and LWC to optical depth
-%                 formatSpec = '%s %s %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'wc_properties', wc_parameterization, ' ', '# optical properties parameterization technique');
-% 
-%                 % Define the wavelengths for which the equation of radiative transfer will
-%                 % be solve
-%                 formatSpec = '%s %f %f %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'wavelength', wavelength(bb,1), wavelength(bb,2), ' ', '# Wavelength range');
-% 
-% 
-%                 % Define the sensor altitude
-%                 formatSpec = '%s %s %5s %s \n';
-%                 fprintf(fileID, formatSpec,'zout', 'toa', ' ', '# Sensor Altitude');
-% 
-%                 % Define the solar zenith angle
-%                 formatSpec = '%s %f %5s %s \n';
-%                 fprintf(fileID, formatSpec,'sza', sza, ' ', '# Solar zenith angle');
-% 
-%                 % Define the solar azimuth angle
-%                 formatSpec = '%s %f %5s %s \n';
-%                 fprintf(fileID, formatSpec,'phi0', saz, ' ', '# Solar azimuth angle');
-% 
-%                 % Define the cosine of the zenith viewing angle
-%                 formatSpec = '%s %f %5s %s \n';
-%                 fprintf(fileID, formatSpec,'umu', umu, ' ', '# Cosine of the zenith viewing angle');
-% 
-%                 % Define the azimuth viewing angle
-%                 formatSpec = '%s %f %5s %s \n\n';
-%                 fprintf(fileID, formatSpec,'phi', phi, ' ', '# Azimuthal viewing angle');
-% 
-% 
-%                 % Set the error message to quiet of verbose
-%                 formatSpec = '%s';
-%                 fprintf(fileID, formatSpec,'quiet');
-% 
-% 
-%                 fclose(fileID);
+                %                 % Create the water cloud file
+                %                 fileID = fopen([newFolder,inpNames{pp,rr,tt,bb}], 'w');
+                %
+                %                 % fprintf writes lines in our text file from top to botom
+                %                 % wc.DAT files are written with the higher altitudes at the top, and the
+                %                 % surface at the bottom
+                %
+                %                 % to write column vectors in a text file, we have to store them as row
+                %                 % vectors
+                %
+                %                 % The first argument is the format specification
+                %                 % The designates what type of characters to print, such as floating point
+                %                 % arithmetic or string. The number before the character designates the
+                %                 % MINIMUM number of characters to print
+                %
+                %
+                %                 % Define which RTE solver to use
+                %                 formatSpec = '%s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'rte_solver','disort',' ', '# Radiative transfer equation solver');
+                %
+                %
+                %                 % Define the number of streams to keep track of when solving the equation
+                %                 % of radiative transfer
+                %                 formatSpec = '%s %s %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'number_of_streams','6',' ', '# Number of streams');
+                %
+                %
+                %                 % Define the location and filename of the US standard
+                %                 % atmosphere that will be used for this analysis
+                %                 formatSpec = '%s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'atmosphere_file','../data/atmmod/afglus.dat',' ', '# Location of atmospheric profile to use');
+                %
+                %                 % Define the location and filename of the extraterrestrial solar source
+                %                 formatSpec = '%s %s %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'source solar',['../data/solar_flux/',solarFlux_file], ' ', '# Bounds between 250 and 10000 nm');
+                %
+                %                 % Define the location and filename of the extraterrestrial solar source
+                %                 formatSpec = '%s %f %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'day_of_year', day_of_year, ' ', '# accounts for changing Earth-Sun distance');
+                %
+                %                 % Define the ozone column
+                %                 %                 formatSpec = '%s %s %s %s %5s %s \n';
+                %                 %                 fprintf(fileID, formatSpec,'mol_modify','O3', '300.','DU', ' ', '# Set ozone column');
+                %
+                %                 % Define the water vapor column
+                %                 formatSpec = '%s %s %s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'mol_modify','H2O', num2str(column_vapor), 'MM', ' ', '# Total Precipitable Water');
+                %
+                %                 % Define the surface albedo
+                %                 formatSpec = '%s %s %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'albedo','0.0600', ' ', '# Surface albedo of the ocean');
+                %
+                %
+                %                 % Define the water cloud file
+                %                 formatSpec = '%s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{rr,tt}], ' ', '# Location of water cloud file');
+                %
+                %
+                %                 % Define the percentage of horizontal cloud cover
+                %                 % This is a number between 0 and 1
+                %                 formatSpec = '%s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'cloudcover wc', num2str(cloud_cover), ' ', '# Cloud cover percentage');
+                %
+                %                 % Define the technique or parameterization used to convert liquid cloud
+                %                 % properties of r_eff and LWC to optical depth
+                %                 formatSpec = '%s %s %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'wc_properties', wc_parameterization, ' ', '# optical properties parameterization technique');
+                %
+                %                 % Define the wavelengths for which the equation of radiative transfer will
+                %                 % be solve
+                %                 formatSpec = '%s %f %f %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'wavelength', wavelength(bb,1), wavelength(bb,2), ' ', '# Wavelength range');
+                %
+                %
+                %                 % Define the sensor altitude
+                %                 formatSpec = '%s %s %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'zout', 'toa', ' ', '# Sensor Altitude');
+                %
+                %                 % Define the solar zenith angle
+                %                 formatSpec = '%s %f %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'sza', sza, ' ', '# Solar zenith angle');
+                %
+                %                 % Define the solar azimuth angle
+                %                 formatSpec = '%s %f %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'phi0', saz, ' ', '# Solar azimuth angle');
+                %
+                %                 % Define the cosine of the zenith viewing angle
+                %                 formatSpec = '%s %f %5s %s \n';
+                %                 fprintf(fileID, formatSpec,'umu', umu, ' ', '# Cosine of the zenith viewing angle');
+                %
+                %                 % Define the azimuth viewing angle
+                %                 formatSpec = '%s %f %5s %s \n\n';
+                %                 fprintf(fileID, formatSpec,'phi', phi, ' ', '# Azimuthal viewing angle');
+                %
+                %
+                %                 % Set the error message to quiet of verbose
+                %                 formatSpec = '%s';
+                %                 fprintf(fileID, formatSpec,'quiet');
+                %
+                %
+                %                 fclose(fileID);
 
 
 

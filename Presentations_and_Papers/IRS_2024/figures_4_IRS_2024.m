@@ -144,7 +144,7 @@ C = [0 0.4470 0.7410];
 C = [0 0 0];
 
 wl_range = [140, 160];
-wl_range = [100, 200];
+%wl_range = [100, 200];
 
 for bb = 1:length(inputs.bands2run)
 
@@ -152,7 +152,8 @@ for bb = 1:length(inputs.bands2run)
     % plot the bands used as transparent area
     x = [emit.spec_response.wavelength(inputs.bands2run(bb), wl_range),...
         fliplr(emit.spec_response.wavelength(inputs.bands2run(bb), wl_range))];
-    y = [1,1, 0,0];
+    %y = [1,1, 0,0];
+    y = [1e5,1e5, 1e-15,1e-15];
     fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
 
 end

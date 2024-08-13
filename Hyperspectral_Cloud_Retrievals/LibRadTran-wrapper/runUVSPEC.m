@@ -66,7 +66,7 @@ else
 end
 
 if numFiles2Run==1
-    
+
     if iscell(inputName)==true
         textFile = fileread([folderName,inputName{:}]);
     elseif ischar(inputName)==true
@@ -208,7 +208,7 @@ if numFiles2Run==1
                 source = [];
 
             else
-                
+
                 %fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
                 fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
                 % Read the solar flux file over the wavelength range specified
@@ -375,7 +375,7 @@ elseif numFiles2Run>1
             fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
 
             % Read the solar flux file over the wavelength range specified
-            [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar); % - (W/nm/m^2) - 
+            [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar); % - (W/nm/m^2) -
 
         end
 
@@ -447,14 +447,25 @@ cmnd1 = ['cd ', folderName];
 
 if numFiles2Run==1
 
+    if ischar(inputName)==true
+        % cmnd2 = [uvspec_folderName,'uvspec ',...
+        %            '< ',inputName,' > ', outputName];
 
-    % cmnd2 = [uvspec_folderName,'uvspec ',...
-    %            '< ',inputName,' > ', outputName];
+        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
+            '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
+        % a successful command will return a status of 0
+        % an unsuccessful command will return a status of 1
 
-    cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-        '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
-    % a successful command will return a status of 0
-    % an unsuccessful command will return a status of 1
+    elseif iscell(inputName)==true
+
+        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
+            '< ',inputName{1},' > ', outputName{1},'.OUT',')>& errMsg.txt'];
+
+    else
+
+        error([newline, 'I dont understand the INP filename structure', newline])
+
+    end
 
 
 

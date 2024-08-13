@@ -222,6 +222,26 @@ inputs.RT.parameterization_str = 'mie';     % This string is used to compute the
 
 
 
+% ------------------------------------------------------------------------
+% -------- Do you want to modify the column water vapor amount? ----------
+inputs.RT.modify_waterVapor = false;
+
+inputs.RT.waterVapor_column = 30;       % mm (kg/m^2) - of water condensed in a column
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% ------- Do you want to modify concentration of Carbon dioxide? ---------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_CO2 = true;
+
+inputs.RT.CO2_mixing_ratio = 410;       % ppm - concentration of CO2
+% ------------------------------------------------------------------------
+
+
+
 % --------------------------------------------------------------
 % --- Do you want to use the Cox-Munk Ocean Surface Model? -----
 inputs.RT.use_coxMunk = true;
@@ -241,7 +261,7 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.err_msg = 'quiet';
+inputs.RT.err_msg = 'verbose';
 
 
 
