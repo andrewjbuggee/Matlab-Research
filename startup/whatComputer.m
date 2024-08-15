@@ -17,7 +17,7 @@ if strcmp(username, 'anbu8374')==true && strcmp(matlabroot, '/Applications/MATLA
     % Then we're using my Mac desktop at LASP
     % Keep this username!
 
-elseif strcmp(username, 'anbu8374')==true && strcmp(matlabroot, '/scratch/local/MATLAB')==true
+elseif strcmp(username, 'anbu8374')==true && strcmp(matlabroot, '/scratch/local/MATLAB/R2021b')==true
 
     % Then were on the super computer! Change the username to reflect this
     username = 'curc';

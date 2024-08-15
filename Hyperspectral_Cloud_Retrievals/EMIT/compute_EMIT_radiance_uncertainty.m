@@ -24,6 +24,12 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/';
 
+elseif strcmp(whatComputer, 'curc')==true
+
+    % ----- Folders on the CU super computer -----
+
+    emitDataPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/';
+
 
 end
 

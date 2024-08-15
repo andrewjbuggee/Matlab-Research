@@ -241,6 +241,10 @@ elseif strcmp('andrewbuggee',usrName)
     mie_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
                     'Hyperspectral-Cloud-Droplet-Retrieval/',...
                     'LibRadTran/libRadtran-2.0.4/bin/'];
+
+elseif strcmp('curc', usrName)
+
+    mie_folderName = 'projects/libRadtran-2.0.5/bin/';
     
 else 
     

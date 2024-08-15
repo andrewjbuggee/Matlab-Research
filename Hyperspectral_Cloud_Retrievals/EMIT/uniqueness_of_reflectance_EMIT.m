@@ -57,6 +57,26 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
+elseif strcmp(whatComputer,'curc')==true
+
+    % ------ Folders on the CU Supercomputer /projects folder --------
+
+    % Define the EMIT data folder path
+
+    emitPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = '/scratch/alpine/anbu8374/EMIT_reflectance_uniqueness/';
+
+    if ~exist(folder2save, 'dir')
+
+            mkdir(folder2save)
+    end
+
+
+
+
 
 end
 
@@ -475,8 +495,8 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            parfor ww = 1:size(wavelength,1)
-                %for ww = 1:size(wavelength,1)
+            %parfor ww = 1:size(wavelength,1)
+                for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------
