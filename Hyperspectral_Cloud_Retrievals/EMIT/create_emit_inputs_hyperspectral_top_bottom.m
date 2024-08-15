@@ -361,7 +361,7 @@ inputs.RT.cloud_layers = 10;
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.err_msg = 'quiet';
+inputs.RT.err_msg = 'verbose';
 
 
 
