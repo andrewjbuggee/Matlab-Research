@@ -95,10 +95,13 @@ headers{8} = 'Qsca';
 % and now we'll create the structure
 % we'll start by creating the wavelength vector
 
+% for the 'data' array, the number of rows is equal to the number of radii
+% times the number of wavelengths
+
 % Lets make sure we know how many different radii have been calculated
 index = data(1,1)==data(:,1); % how many repeats of the first wavelength are there?
 
-num_radii = sum(index); % this is the number of different radii computed by the mie cod
+num_radii = sum(index); % this is the number of different radii computed by the mie code
 
 
 % parse through the data

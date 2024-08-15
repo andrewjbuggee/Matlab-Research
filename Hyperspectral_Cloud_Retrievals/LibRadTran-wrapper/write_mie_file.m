@@ -25,8 +25,11 @@
 
 %   (4) wavelength - (nanometers) - wavelength of light to use in the
 %   calculation. The total number of calculations per file are (number of
-%   radii * number of wavelengths). The input here is similar to the input
-%   for radii: [wavelength_start, wavelength_end, wavelength_step].
+%   radii * number of wavelengths). This input is a vector of wavelengths,
+%   with equal grid spacing or not. LibRadTran requires the input to be in 
+%   the same format as the effective radius:[wavelength_start, 
+%   wavelength_end, wavelength_step]. This is only true if the wavelength
+%   spacing is constant. If not, you can specify a wavelength file.
 %   Wavelength step happens to be a separate input in libRadTran, and is
 %   not required if you're running a calculation at a single wavelength,
 %   but a starting and ending wavelength is always required.
@@ -41,11 +44,15 @@
 %       (c) 'lognormal' - a log normal distribution. The second input is
 %       the sigma value which describes the spread
 
+
 %   (6) err_msg_str - this describes how long the error message should be.
 %   There are two possible inputs:
 %       (a) 'quiet' - this only prints the essential information
 %       (b) 'verbose' - this prints a very long and detailed message about
 %       the calculation.
+
+%   (7) index - a value to append at the end of the file name so that no
+%   two filenames are the same while parallel computing is going on
 
 
 % By Andrew John Buggee
@@ -63,8 +70,8 @@ function [input_filename, output_filename, mie_folder] = write_mie_file(mie_prog
 
 
 if nargin~=7
-    error([newline,'Not enough inputs. Need 6: mie program type, index of refraction, droplet effective radius',...
-        ' wavelength, droplet distribution info, the error message command and the file number.', newline])
+    error([newline,'Not enough inputs. Need 8: mie program type, index of refraction, droplet effective radius,',...
+        ' wavelength, droplet distribution info the error message command and the file number.', newline])
 end
 
 
@@ -279,11 +286,11 @@ for ff = 1:numFiles
 
     if strcmp(distribution{1},'gamma')==true
 
-        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution, distribution_width, comments{4});
+        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution{1}, distribution{2}, comments{4});
 
     elseif strcmp(distribution{1},'lognormal')==true
 
-        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution, distribution_width, comments{4});
+        fprintf(fileID,'%12s %5s %f         %s \n', 'distribution', distribution{1}, distribution{2}, comments{4});
 
     elseif strcmp(distribution{1},'mono')==true
 
@@ -298,23 +305,39 @@ for ff = 1:numFiles
 
 
 
-    % ---------------------------
-    % define the wavelength range
-    % ---------------------------
-    wavelength_start = wavelength(1);
-    wavelength_end = wavelength(2);
-    wavelength_jump = wavelength(3);
+    % ---------------------------------------
+    % ----- define the wavelength range -----
+    % ---------------------------------------
+    
+    % if wavelength has only a single entry, then this is a monochromatic
+    % calcualtion
+    if length(wavelength)==1
 
-    if wavelength_start~=wavelength_end && wavelength_jump~=0
+        wavelength_start = wavelength(1);           % nm
+        wavelength_end = wavelength(1);             % nm
 
         fprintf(fileID,'%10s  %5.2f %5.2f          %s \n', 'wavelength', wavelength_start, wavelength_end, comments{5});
-        fprintf(fileID,'%15s  %5.2f          %s \n', 'wavelength_step', wavelength_jump, comments{6});
 
-    elseif wavelength_start==wavelength_end && wavelength_jump==0
+    % determine if wavelength is a vector and if the vector is evenly spaced    
+    elseif length(wavelength)>1 && isuniform(wavelength)==true
+        
+        % define the starting and ending wavelength
+        wavelength_start = wavelength(1);           % nm
+        wavelength_end = wavelength(end);             % nm
+        % compute the grid spacing
+        wavelength_step = wavelength(2) - wavelength(1);        % nm
 
-        % there is only a single value for wavelength but we still need to tell
-        % the code a start and end wavelength, so we give the same value
         fprintf(fileID,'%10s  %5.2f %5.2f          %s \n', 'wavelength', wavelength_start, wavelength_end, comments{5});
+        fprintf(fileID,'%15s  %5.2f          %s \n', 'wavelength_step', wavelength_step, comments{6});
+
+    elseif length(wavelength)>1 && isuniform(wavelength)==false
+
+        % If the wavelength vector doesn't have uniform spacing, write a
+        % .txt file where the second column is the wavelength vector
+        wl_filename = write_nonuniformly_spaced_wavelength_file(wavelength, index);
+
+
+        fprintf(fileID,'%10s  %s          %s \n', 'wavelength', wl_filename, comments{5});
 
     else
 

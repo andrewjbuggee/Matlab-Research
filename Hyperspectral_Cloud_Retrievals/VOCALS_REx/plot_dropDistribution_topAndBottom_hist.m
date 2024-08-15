@@ -1,4 +1,4 @@
-%% Plot the droplet distribution as a histogram for multiple any number of heights within a cloud
+%% Plot the droplet distribution as a histogram for multiple vert profiles at cloud top and bottom
 
 % INPUTS:
 % -------
@@ -9,7 +9,8 @@
 %       profiles you wish to plot
 
 %       (3) radius_limits - the range of radii you wish to display on this
-%       histrogram. This will trim the x-axis. Input as [r_min, r_max]
+%       histrogram. This will trim the x-axis. Input as [r_min, r_max] in
+%       units of microns
 
 
 % By Andrew John Buggee

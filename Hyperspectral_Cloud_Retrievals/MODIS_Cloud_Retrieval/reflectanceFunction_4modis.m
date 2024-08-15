@@ -1,6 +1,6 @@
 %% ----- CALCULATE THE REFLECTANCE FUNCTION FOR MODIS-LIKE Retrievals-----
 
-% *** IMPORTANT ***  MODIS defines reflectance differently
+% *** IMPORTANT ***  MODIS defines reflectance differently than the ATBD.
 % MODIS does not define reflectance with a cosine of the solar zenith
 % angle in the denominator, which is how the MODIS cloud retrieval ATBD
 % defines reflectance. To properly compare reflectances with MODIS, do 
@@ -35,11 +35,11 @@ mu = inputSettings{2}; % cosine of the viewing zenith angle
 phi = inputSettings{3}; % sensor aziumuth angle
 phi0 = inputSettings{5}; % solar azimuth angle
 sensorAlt = inputSettings{6}; % sensor altitude in km
-source = inputSettings{7}; % - mW/(m^2 nm) - source irradiance
+source = inputSettings{7}; % - W/(m^2 nm) - source irradiance
 
 % radiative transfer solutions
 wavelength = ds.wavelength;     % nm
-irrad0 = source(:,2); % - mW/(m^2 nm) -  source irradiance
+irrad0 = source(:,2).*1e3; % - mW/(m^2 nm) -  source irradiance
 
 
 % a few other constants calculated from the inputs

@@ -30,7 +30,7 @@
 
 %%
 
-function [n_r,r] = lognormal_size_distribution(radius_modal,std_dev, N0)
+function [n_r,r] = lognormal_size_distribution(radius_modal, std_dev, N0)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -63,35 +63,55 @@ end
 
 %%
 
-% For some modal radius, we have define a droplet size distribution over a
-% range of radii values
-
-if radius_modal==0
-    r = linspace(0.001,10,100);
-elseif radius_modal>0
-    r = linspace(0.01*radius_modal, 17*radius_modal, 300);              % microns - vector based on C.Emde (2016)
-    %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
-elseif radius_modal<0
-    error([newline, 'I dont think r_modal can be less than 0...',newline])
-end
 
 
 % Compute the distribution
 
 % -------------------------------------------------------------------------------------
 % formula according to https://www.itl.nist.gov/div898/handbook/eda/section3/eda3669.htm
-% in this formulation below, r_modal is the mean of the log of the
+% in this formulation, r_modal is the mean of the log of the
 % distribution and must be atleast 0. So if you want the mode to be x, then
 % the input to this distribution should be r_modal = log(x)
 
-N = 1/(std_dev * sqrt(2*pi));                              % normalization constant
-n_r = N0* N./r .* exp(-(log(r) - radius_modal).^2 ./(2*std_dev.^2));                            % gamma droplet distribution
+% For some modal radius, we have define a droplet size distribution over a
+% range of radii values
+
+% if radius_modal==0
+%     r = linspace(0.001,10,1000);
+% elseif radius_modal>0
+%     range_factor = 172.7*exp(-4.5*std_dev);         % factor that defines the total range
+%     num_points = 23540*exp(-4.28*std_dev);
+%     r = linspace(0.001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
+%     %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
+% elseif radius_modal<0
+%     error([newline, 'I dont think r_modal can be less than 0...',newline])
+% end
+
+
+% N = 1/(std_dev * sqrt(2*pi));                              % normalization constant
+% n_r = N0* N./r .* exp(-(log(r) - radius_modal).^2 ./(2*std_dev.^2));                            % gamma droplet distribution
 % -------------------------------------------------------------------------------------
 
 
 % -------------------------------------------------------------------------------------
 %N = 1/(sigma * sqrt(2*pi));                              % normalization constant
 % formula according to Cloud Optics by Kokhanovsky
+
+% For some modal radius, we have define a droplet size distribution over a
+% range of radii values
+
+% if radius_modal==0
+%     r = linspace(0.001,10,1000);
+% elseif radius_modal>0
+%     range_factor = 172.7*exp(-4.5*std_dev);         % factor that defines the total range
+%     num_points = 23540*exp(-4.28*std_dev);
+%     r = linspace(0.001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
+%     %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
+% elseif radius_modal<0
+%     error([newline, 'I dont think r_modal can be less than 0...',newline])
+% end
+
+
 %n_r = N0* N./r .* exp(-log(r./r_modal).^2 ./(2*sigma.^2));                            % gamma droplet distribution
 % -------------------------------------------------------------------------------------
 
@@ -102,9 +122,27 @@ n_r = N0* N./r .* exp(-(log(r) - radius_modal).^2 ./(2*std_dev.^2));            
 % in this case, r_modal cannot be less than 1
 % sigma is>0 and <1 ?
 % ***** I still don't understand this version well *****
+% The modal radius I select doesn't line up with the peak of the
+% distribution. Should it?
 
-%N = 1/(-log(sigma) * sqrt(2*pi));                              % normalization constant
-%n_r = N0* N./r .* exp(-(1/2) * ((log(r) - log(r_modal))./log(sigma)).^2);                            % gamma droplet distribution
+% For some modal radius, we have define a droplet size distribution over a
+% range of radii values
+
+if radius_modal==0
+    r = linspace(0.001,10,1000);
+elseif radius_modal>0
+    range_factor = 172.7*exp(-4.5*std_dev);         % factor that defines the total range
+    num_points = 23540*exp(-4.28*std_dev);
+    r = linspace(0.001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
+    %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
+elseif radius_modal<0
+    error([newline, 'I dont think r_modal can be less than 0...',newline])
+end
+
+
+
+N = N0 * (sqrt(1/log(std_dev)^2)/sqrt(2*pi));                              % normalization constant
+n_r = N./r .* exp(-(1/2) * ((log(r) - log(radius_modal))./log(std_dev)).^2);                            % gamma droplet distribution
 % -------------------------------------------------------------------------------------
 
 

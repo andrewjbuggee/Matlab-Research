@@ -18,17 +18,18 @@ clear variables
 tau = @(x) -log(1 - x);
 
 tau_lower_limit = 0;
-tau_upper_limit = 7;
+tau_upper_limit = 10;
 
 
 % We start by injecting a single photon into our medium.
 
 % define the number of photons that will run through our simulation
-N_photons = 1000;
+N_photons = 10000;
 
 % define the wavelength
-wavelength = 1950;           % nanometers - ssa ~ 0.9
-%wavelength = 500;            % nanometers - conservative scattering
+%wavelength = 1950;            % nanometers - ssa ~ 0.9
+wavelength = 500;            % nanometers - conservative scattering
+
 % -----------------------------------------------------------
 % ************* Define Scattering Properties ****************
 % -----------------------------------------------------------
@@ -40,6 +41,11 @@ r = 10;                     % microns
 mie_properties_water = interp_mie_computed_tables([wavelength, r],'mono',false);
 ssa = mie_properties_water(6);
 g = mie_properties_water(7);
+
+% ***** Custom ssa and g *****
+ssa = 0.9;                % between 0 and 1
+g = 0.85;               % between -1 and 1
+% ----------------------------
 
 % reset the random number generator
 rng('default');
@@ -71,7 +77,7 @@ for nn = 1:N_photons
 
 
 
-    % Each photon inject has a probability of travelling a certain distance
+    % Each photon injected has a probability of travelling a certain distance
     % before some event occurs. This event can be either scattering or
     % absorption.
 
@@ -82,7 +88,7 @@ for nn = 1:N_photons
     % travelling upwards is defined as a negative increase in tau
 
     % Start with two values, the first 1 tells us the photon was moving
-    % down at t = 0, the second says it was movng down at until the tau
+    % down at t = 0, the second says it was moving down until the tau
     % that is sampled
     direction{nn} = [1,1];
 
@@ -334,6 +340,7 @@ text(bar_label_xLocation,bar_label_yLocation,bar_labels,'HorizontalAlignment','c
     'VerticalAlignment','bottom','FontSize',20,'FontWeight','bold','Interpreter','latex')
 grid on; grid minor
 ylabel('Counts','Interpreter','latex')
+ylim([0, N_photons])
 title([num2str(N_photons),' photons,   ',...
     '$\lambda$ = ',num2str(wavelength), ' $nm$',...
     ', $\tilde{\omega}$ = ', num2str(ssa), ...
@@ -391,7 +398,7 @@ for nn=1:N_photons
 
 
             % If the photon is moving down and was already heading
-            % down, we don't need to account for an additional bin
+            % down, we don't want to additionally count that bin
 
             % If the photon is moving down, then when it cross bin-edge 3,
             % its in bucket 3.
@@ -518,6 +525,7 @@ ylim([10^(-3), 10^(5)])
 
 %% How does this compare with the analytical solutions?
 
+
 % Check to see if there is absorption
 
 if ssa<1
@@ -591,7 +599,7 @@ if ssa<1
         photon_fraction_down = @(tau) A*R_inf*exp(K*tau) + B*exp(-K*tau);
 
 
-                % lets plot some range of tau
+        % lets plot some range of tau
         tau = linspace(tau_lower_limit,tau_upper_limit,100);
 
         C1 = [8.492724501845559e-01     5.437108503990062e-02     9.681090252965144e-01];

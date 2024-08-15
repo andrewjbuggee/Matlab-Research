@@ -125,7 +125,7 @@ if inputs.flags.runUVSPEC == true
     % 1st output - R is the reflectance integrated over a bandwidth
     % 2nd output - Rl is the reflectance at each spectral bin
     tic
-    [R,~] = runReflectanceFunction(inputs,names, inputs.spec_response);
+    [R,~] = runReflectanceFunction_4modis(inputs,names, inputs.spec_response);
     toc
     
 elseif inputs.flags.runUVSPEC == false
@@ -143,7 +143,7 @@ end
 modisR = grab_modis_reflectance(modis,inputs, pixels2use);
 
 
-%% ----- Compare Reflectance Fucntion of MODIS with Theoretical Calculations (Grid Search) -----
+%% ----- Compare Reflectance Function of MODIS with Theoretical Calculations (Grid Search) -----
 
 % first grid search is on a coarse grid
 % we want to minimize two the reflectance for two wavelengths

@@ -27,8 +27,8 @@ effective_radius = 10;                        % microns - effective droplet radi
 
 % --- wavelength limits are between [100,3000] nanometers ---
 %wavelength = 100:10:3000;                      % nm - wavelength
-%wavelength = 350:10:2300;                       % nm - wavelength range of the HySICS spectrometer
-wavelength = [1000, 1100, 1200];                               % nm - wavelength
+wavelength = 350:100:2300;                       % nm - wavelength range of the HySICS spectrometer
+%wavelength = [1000, 1100, 1200];                               % nm - wavelength
 
 mie_properties = zeros(length(wavelength),8,length(effective_radius));
 legend_str = cell(1,length(effective_radius));

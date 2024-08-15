@@ -552,16 +552,16 @@ if strcmp(whatComputer, 'anbu8374')==true
 elseif strcmp(whatComputer, 'andrewbuggee')==true
 
     % --- non-precip profiles only, LWC>0.005, Nc>1 ----
-    load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
-        '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.005_Nc-threshold_1_17-Sep-2023'])
+%     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
+%         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.005_Nc-threshold_1_17-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
     %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
     %         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_stopAtMaxLWC_Nc-threshold_1_19-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
-    %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
-    %         '/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+        load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+          'vocals_rex_data/SPS_1/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023'])
 
     % --- all profiles, LWC>0.005, Nc>1 ----
     %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
@@ -1130,18 +1130,32 @@ plot_probability_scat_top_maxDepth_with_changing_variable(filenames, probability
 clear variables
 
 
-wavelength = [555, 1240, 1640, 2000, 2130];
+%wavelength = [555, 1240, 1640, 2000, 2130];
 
 % filenames = {'2D_MC_04-Dec-2022_Wavelength_578_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
 %     '2D_MC_04-Dec-2022_Wavelength_1650_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
 %     '2D_MC_04-Dec-2022_Wavelength_2155_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat',...
 %     '2D_MC_04-Dec-2022_Wavelength_3700_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_0.mat'};
 
-filenames = {'2D_MC_07-Dec-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
-            '2D_MC_07-Dec-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
-            '2D_MC_07-Dec-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
-            '2D_MC_07-Dec-2023_Wavelength_2000_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
-            '2D_MC_07-Dec-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat'};
+% filenames = {'2D_MC_07-Dec-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
+%             '2D_MC_07-Dec-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
+%             '2D_MC_07-Dec-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
+%             '2D_MC_07-Dec-2023_Wavelength_2000_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat',...
+%             '2D_MC_07-Dec-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_0.mat'};
+
+
+% ---------------------------------------------------------------------------------------
+filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_645_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_858.5_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
+
+% define the wavelengths as the changing variables
+wavelength = modisBands(1:7);
+% ---------------------------------------------------------------------------------------
 
 % Do you want to plot the probability of a set of PDF's?
 probability_str = 'pdf';
@@ -1372,7 +1386,75 @@ legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
 set(gcf, 'Position',[0 0 1000 630])
 
 
-clear variables
+%clear variables
+
+%% Compute the effective radius retrieval using a single NIR wavelength and the median droplet profile found above
+
+
+% ----- Load a weighting function -----
+
+filenames = {'2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
+
+% define the wavelengths as the changing variables
+wavelength = modisBands(7);
+
+% Load a simulation
+load(filenames{1})
+
+
+% Do you want to plot the probability of a set of PDF's?
+probability_str = 'pdf';
+
+
+% First select those photons that were scattered out the top
+
+index_scatter_out_top = final_state.scatter_out_top_INDEX;
+
+[scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_tau_edges] = ...
+    histcounts(photon_tracking.maxDepth(index_scatter_out_top),'Normalization',probability_str);
+
+normalized_tau = scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2;
+normalized_tau = normalized_tau./normalized_tau(end);
+
+%normalized_tau = scatter_out_top_maxDepth_PDF_tau_edges./max(scatter_out_top_maxDepth_PDF_tau_edges);
+
+% Create smooth spline function
+f=fit(normalized_tau',scatter_out_top_maxDepth_PDF', 'smoothingspline','SmoothingParam',0.95);
+
+tau_vector = scatter_out_top_maxDepth_PDF_tau_edges(1:end-1) + diff(scatter_out_top_maxDepth_PDF_tau_edges)/2;
+f=fit(tau_vector',scatter_out_top_maxDepth_PDF', 'smoothingspline','SmoothingParam',0.95);
+
+
+% -------------------------------------------------------------
+% Integrate the drolet profile with the weighting function to
+% get an average effective radius measured, and thus an average
+% optical depth.
+% -------------------------------------------------------------
+
+
+% re_logNormal_median is normalized, so simply multiply the bin_center
+% values by the optical depth of scatter_out_top and integrate over this
+% region
+
+tau_2_integrate = bin_center * max(scatter_out_top_maxDepth_PDF_tau_edges);
+
+re_retrieved = trapz(tau_2_integrate, f(tau_2_integrate) .* re_logNormal_meidan);
+
+if nn~=0
+    % create an re vector that is the same length as our weighting
+    % function
+    new_tau = linspace(inputs.dropletProfile.tau_layer_mid_points(1), inputs.dropletProfile.tau_layer_mid_points(end), length(scatter_out_top_maxDepth_PDF));
+    re = interp1(inputs.dropletProfile.tau_layer_mid_points, inputs.dropletProfile.re, new_tau);
+    re_avg = trapz(new_tau, re .* scatter_out_top_maxDepth_PDF);
+    tau_avg(nn) = interp1(re, new_tau,re_avg);
+
+
+end
+% -------------------------------------------------------------
+% -------------------------------------------------------------
+
+
+
 
 
 

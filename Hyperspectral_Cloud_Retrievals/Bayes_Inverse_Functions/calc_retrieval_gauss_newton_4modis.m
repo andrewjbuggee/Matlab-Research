@@ -35,8 +35,7 @@ measurements(6,idx_above30) = nan;
 
 % -----------------------------------------------------------------------
 % --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
-
-jacobian_barPlot_flag = true;
+jacobian_barPlot_flag = false;
 % -----------------------------------------------------------------------
 
 
@@ -438,9 +437,11 @@ for pp = 1:num_pixels
     %measurement_estimate = compute_forward_model_4modis(modis, retrieval{pp}(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
     
     % we need to compute the jacobian using the solution state
-    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), new_measurement_estimate, GN_inputs, modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag);
+    Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), new_measurement_estimate, GN_inputs,...
+                    modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag, idx_not_nan);
 
-    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) * Jacobian + model_cov(:,:,pp)^(-1))^(-1);
+    posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *...
+                        Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 
 
     
