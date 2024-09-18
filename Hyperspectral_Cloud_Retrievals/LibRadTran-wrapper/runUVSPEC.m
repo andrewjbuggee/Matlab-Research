@@ -12,7 +12,7 @@
 % --- By Andrew J. Buggee ---
 %% Creating the .INP file
 
-function [inputSettings] = runUVSPEC(folderName,inputName,outputName)
+function [inputSettings] = runUVSPEC(folderName_INP_OUT,inputName,outputName)
 %% ---- A Few Checks are Needed ----
 
 if iscell(inputName)==true && iscell(outputName)==false
@@ -68,9 +68,9 @@ end
 if numFiles2Run==1
 
     if iscell(inputName)==true
-        textFile = fileread([folderName,inputName{:}]);
+        textFile = fileread([folderName_INP_OUT,inputName{:}]);
     elseif ischar(inputName)==true
-        textFile = fileread([folderName,inputName]);
+        textFile = fileread([folderName_INP_OUT,inputName]);
     end
 
     expr1 = '[^\n]*rte_solver [^\n]*';
@@ -206,6 +206,8 @@ if numFiles2Run==1
                 % specified file
                 fileSolar = 'internal';
                 source = [];
+                source_flux = [];
+                source_wavelength = [];
 
             else
 
@@ -256,7 +258,7 @@ elseif numFiles2Run>1
 
     for jj=1:numFiles2Run
 
-        textFile = fileread([folderName,inputName{jj}]);
+        textFile = fileread([folderName_INP_OUT,inputName{jj}]);
 
         expr1 = '[^\n]*rte_solver [^\n]*';
         expr2 = '[^\n]*umu [^\n]*';
@@ -433,15 +435,27 @@ elseif strcmp('andrewbuggee',usrName)
         'Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/bin/'];
 
-else
+elseif strcmp('curc', usrName)
+    % location of the mie program
+    uvspec_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
 
-    error('I dont know where the uvspec function is! Tell me what folder its in, please')
+    % if running on the CURC supercomputer, you need to load the modules
+    % everytime you run a job. That's because each time you run the
+    % function 'system', a new unique terminal window is open. Each time a
+    % new terminal window is open, the modules need to be loaded.
+    cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline, 'ml gsl/2.7', newline,...
+        'ml netcdf/4.8.1', newline, 'ml perl/5.36.0', newline, 'ml texlive/2021',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/src/:$PATH',...
+        newline, 'export PATH=', folderName_INP_OUT,':$PATH'];
 
 end
 
 
 % using the function 'system' runs commans in the terminal window
-cmnd1 = ['cd ', folderName];
+cmnd1 = ['cd ', uvspec_folderName];
 
 
 
@@ -452,14 +466,16 @@ if numFiles2Run==1
         %            '< ',inputName,' > ', outputName];
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
+            '< ',folderName_INP_OUT,inputName,' > ', folderName_INP_OUT, outputName,'.OUT',...
+            ')>& ', folderName_INP_OUT,'errMsg.txt'];
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
     elseif iscell(inputName)==true
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName{1},' > ', outputName{1},'.OUT',')>& errMsg.txt'];
+            '< ', folderName_INP_OUT, inputName{1},' > ', folderName_INP_OUT, outputName{1},'.OUT',...
+            ')>&', folderName_INP_OUT, 'errMsg.txt'];
 
     else
 
@@ -468,11 +484,21 @@ if numFiles2Run==1
     end
 
 
+    % run all commands in the terminal window
+    if strcmp('curc', usrName)
 
-    [status] = system([cmnd1, ' ; ', cmnd2]);
+        [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+        %[status] = system([cmnd_modules, ' ; ', cmnd2]);
+
+    else
+        [status] = system([cmnd1, ' ; ', cmnd2]);
+    end
+
     if status ~= 0
         error(['Status returned value of ',num2str(status)])
     end
+
+
 
 elseif numFiles2Run>1
 
@@ -484,11 +510,20 @@ elseif numFiles2Run>1
         %            '< ',inputName,' > ', outputName];
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName{ii},' > ', outputName{ii},'.OUT',')>& errMsg.txt'];
+            '< ', folderName_INP_OUT, inputName{ii},' > ', folderName_INP_OUT,...
+            outputName{ii},'.OUT',')>& errMsg.txt'];
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
-        [status] = system([cmnd1, ' ; ', cmnd2]);
+        if strcmp('curc', usrName)
+
+            [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+
+        else
+            [status] = system([cmnd1, ' ; ', cmnd2]);
+        end
+
+
         if status ~= 0
             error(['Status returned value of ',num2str(status)])
         end
