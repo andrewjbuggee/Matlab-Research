@@ -15,7 +15,7 @@ covariance_type = inputs.measurement.covariance_type;
 num_bands_2run = length(inputs.bands2run);
 
 % define the number of pixels to run
-num_pixels = length(pixels2use.idx);
+num_pixels = length(pixels2use);
 
 
 % --------------------------------------------------------

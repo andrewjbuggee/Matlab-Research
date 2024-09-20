@@ -32,8 +32,16 @@ wavelength_tau_c = emit.radiance.wavelength(17);    % nm - Wavelength used for c
 H = inputs.RT.cloudDepth;                                % km - geometric thickness of cloud
 n_layers = inputs.RT.cloud_layers;                          % number of layers to model within cloud
 
-% Cloud top
-z_top = inputs.RT.cloudTop_height(pp);        % km -  cloud top height
+% --- Geometric cloud top height ---
+if length(inputs.RT.cloudTop_height)>1
+
+    z_top = inputs.RT.cloudTop_height(pp);        % km -  cloud top height
+
+elseif length(inputs.RT.cloudTop_height)==1
+    z_top = inputs.RT.cloudTop_height;        % km -  cloud top height
+
+end
+
 
 z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
 
@@ -96,7 +104,8 @@ wc_filename = write_wc_file(re,tau_c,z_topBottom, wavelength_tau_c(1,1), dist_st
 
 
 % ----- Write an INP file --------
-GN_names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use, emit, wc_filename);
+
+GN_names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use(pp), emit, wc_filename);
     
 % now lets write the output names
     

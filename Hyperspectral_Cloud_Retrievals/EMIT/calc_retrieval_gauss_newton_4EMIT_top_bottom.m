@@ -36,7 +36,7 @@ num_parameters = inputs.num_model_parameters; % number of parameters to solve fo
 
 % The number of pixels to solve for using the Gauss-Newton method comes
 % from the Gauss-Newton input structure
-num_pixels = length(pixels2use.idx);
+num_pixels = length(pixels2use);
 
 
 

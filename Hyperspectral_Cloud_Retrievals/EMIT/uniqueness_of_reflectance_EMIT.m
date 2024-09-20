@@ -12,12 +12,12 @@ clear variables
 r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
-%tau_c = [5, 5.5, 6, 6.5, 7];
-tau_c = 4.5:0.5:7.5;
+tau_c = [5.5, 6, 6.5, 7];
 
-r_top = 11.6;
-r_bot = 2.6;
-tau_c = 6.7;
+
+% r_top = 8:14;
+% r_bot = 4:12;
+% tau_c = [5.5, 6, 6.5, 7];
 
 
 
@@ -495,8 +495,8 @@ for rt = 1:length(r_top)
             disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
 
 
-            %parfor ww = 1:size(wavelength,1)
-                for ww = 1:size(wavelength,1)
+            parfor ww = 1:size(wavelength,1)
+                %for ww = 1:size(wavelength,1)
 
 
                 % -----------------------------------

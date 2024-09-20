@@ -115,7 +115,7 @@ if numFiles2Run==1
     else
         index7_space1 = regexp(match7{1},'\s[a-z]'); % find the spaces
         index7_space2 = regexp(match7{1},'[a-z]\s'); % Brackets treat the symbol literally. number of decimals tells us how many values there are in the vector
-        %index7_file1 = regexp(match7{1},'flux[/][a-z]'); % find the locaition a letter follows two dots and a forward slash
+        index7_file1 = regexp(match7{1},'[/][a-z]'); % find the locaition a letter follows two dots and a forward slash
         index7_file2 = regexp(match7{1},'[.]dat');
     end
 
@@ -199,9 +199,9 @@ if numFiles2Run==1
     % all thermal source files will be located in the foler:
 
     if isempty(match7)==false
-        if strcmp('solar',match7{1}(index7_space1(1)+1:index7_space2(2)))
+        if strcmp('solar', match7{1}(index7_space1(1)+1:index7_space2(2)))
 
-            if length(match7{1})<=54
+            if isempty(index7_file2)==true
                 % This happens when the input is simple 'source solar' with no
                 % specified file
                 fileSolar = 'internal';
@@ -212,7 +212,7 @@ if numFiles2Run==1
             else
 
                 %fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
-                fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
+                fileSolar = match7{1}(index7_file1(end)+1:index7_file2(1)+3);
                 % Read the solar flux file over the wavelength range specified
                 [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar);   % W/nm/m^2
             end
