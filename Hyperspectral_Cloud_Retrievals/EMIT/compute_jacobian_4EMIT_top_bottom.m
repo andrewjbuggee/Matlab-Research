@@ -96,7 +96,7 @@ for xx = 1:num_model_parameters
     
     
     % ----- Write an INP file --------
-    names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use, emit, wc_filename);
+    names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use(pp), emit, wc_filename);
     
     % now lets write the output names
     

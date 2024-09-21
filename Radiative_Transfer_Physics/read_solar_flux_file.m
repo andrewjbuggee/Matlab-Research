@@ -106,6 +106,11 @@ elseif strcmp(computer_name,'anbu8374')==true
     %error('You havent stored the mie calculations on you laptop yet!')
     solar_source_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/solar_flux/';
 
+elseif strcmp(computer_name, 'curc')==true
+
+    % --- super computer ---
+    solar_source_folder = '/projects/anbu8374/software/libRadtran-2.0.5/data/solar_flux/';
+
 end
 
 

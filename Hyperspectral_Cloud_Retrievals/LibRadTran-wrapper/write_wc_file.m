@@ -243,6 +243,12 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     mie_calc_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
     water_cloud_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/';
 
+elseif strcmp(computer_name,'curc')==true
+
+    mie_calc_folder_path = '/scratch/alpine/anbu8374/Mie_Calculations/';
+    water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+
+
 end
 
 %%

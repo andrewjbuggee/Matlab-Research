@@ -12,7 +12,7 @@
 % --- By Andrew J. Buggee ---
 %% Creating the .INP file
 
-function [inputSettings] = runUVSPEC(folderName,inputName,outputName)
+function [inputSettings] = runUVSPEC(folderName_INP_OUT,inputName,outputName)
 %% ---- A Few Checks are Needed ----
 
 if iscell(inputName)==true && iscell(outputName)==false
@@ -68,9 +68,9 @@ end
 if numFiles2Run==1
 
     if iscell(inputName)==true
-        textFile = fileread([folderName,inputName{:}]);
+        textFile = fileread([folderName_INP_OUT,inputName{:}]);
     elseif ischar(inputName)==true
-        textFile = fileread([folderName,inputName]);
+        textFile = fileread([folderName_INP_OUT,inputName]);
     end
 
     expr1 = '[^\n]*rte_solver [^\n]*';
@@ -115,7 +115,7 @@ if numFiles2Run==1
     else
         index7_space1 = regexp(match7{1},'\s[a-z]'); % find the spaces
         index7_space2 = regexp(match7{1},'[a-z]\s'); % Brackets treat the symbol literally. number of decimals tells us how many values there are in the vector
-        %index7_file1 = regexp(match7{1},'flux[/][a-z]'); % find the locaition a letter follows two dots and a forward slash
+        index7_file1 = regexp(match7{1},'[/][a-z]'); % find the locaition a letter follows two dots and a forward slash
         index7_file2 = regexp(match7{1},'[.]dat');
     end
 
@@ -199,18 +199,29 @@ if numFiles2Run==1
     % all thermal source files will be located in the foler:
 
     if isempty(match7)==false
-        if strcmp('solar',match7{1}(index7_space1(1)+1:index7_space2(2)))
+        if strcmp('solar', match7{1}(index7_space1(1)+1:index7_space2(2)))
 
-            if length(match7{1})<=54
+            if isempty(index7_file2)==true
                 % This happens when the input is simple 'source solar' with no
                 % specified file
                 fileSolar = 'internal';
                 source = [];
+                source_flux = [];
+                source_wavelength = [];
 
             else
+                % we have defined a specfifc solar file. Figure out which
+                % one it is
 
-                %fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
-                fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
+                if isempty(index7_file1)==false
+                    % then we have a file extension with backslashes
+                    fileSolar = match7{1}(index7_file1(end)+1:index7_file2(1)+3);
+
+                else
+                    % Then we have just a file name
+                    fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
+
+                end
                 % Read the solar flux file over the wavelength range specified
                 [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar);   % W/nm/m^2
             end
@@ -256,7 +267,7 @@ elseif numFiles2Run>1
 
     for jj=1:numFiles2Run
 
-        textFile = fileread([folderName,inputName{jj}]);
+        textFile = fileread([folderName_INP_OUT,inputName{jj}]);
 
         expr1 = '[^\n]*rte_solver [^\n]*';
         expr2 = '[^\n]*umu [^\n]*';
@@ -433,15 +444,27 @@ elseif strcmp('andrewbuggee',usrName)
         'Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/bin/'];
 
-else
+elseif strcmp('curc', usrName)
+    % location of the mie program
+    uvspec_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
 
-    error('I dont know where the uvspec function is! Tell me what folder its in, please')
+    % if running on the CURC supercomputer, you need to load the modules
+    % everytime you run a job. That's because each time you run the
+    % function 'system', a new unique terminal window is open. Each time a
+    % new terminal window is open, the modules need to be loaded.
+    cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline, 'ml gsl/2.7', newline,...
+        'ml netcdf/4.8.1', newline, 'ml perl/5.36.0', newline, 'ml texlive/2021',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/src/:$PATH',...
+        newline, 'export PATH=', folderName_INP_OUT,':$PATH'];
 
 end
 
 
 % using the function 'system' runs commans in the terminal window
-cmnd1 = ['cd ', folderName];
+cmnd1 = ['cd ', uvspec_folderName];
 
 
 
@@ -452,14 +475,16 @@ if numFiles2Run==1
         %            '< ',inputName,' > ', outputName];
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
+            '< ',folderName_INP_OUT,inputName,' > ', folderName_INP_OUT, outputName,'.OUT',...
+            ')>& ', folderName_INP_OUT,'errMsg.txt'];
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
     elseif iscell(inputName)==true
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName{1},' > ', outputName{1},'.OUT',')>& errMsg.txt'];
+            '< ', folderName_INP_OUT, inputName{1},' > ', folderName_INP_OUT, outputName{1},'.OUT',...
+            ')>&', folderName_INP_OUT, 'errMsg.txt'];
 
     else
 
@@ -468,11 +493,21 @@ if numFiles2Run==1
     end
 
 
+    % run all commands in the terminal window
+    if strcmp('curc', usrName)
 
-    [status] = system([cmnd1, ' ; ', cmnd2]);
+        [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+        %[status] = system([cmnd_modules, ' ; ', cmnd2]);
+
+    else
+        [status] = system([cmnd1, ' ; ', cmnd2]);
+    end
+
     if status ~= 0
         error(['Status returned value of ',num2str(status)])
     end
+
+
 
 elseif numFiles2Run>1
 
@@ -484,11 +519,20 @@ elseif numFiles2Run>1
         %            '< ',inputName,' > ', outputName];
 
         cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',inputName{ii},' > ', outputName{ii},'.OUT',')>& errMsg.txt'];
+            '< ', folderName_INP_OUT, inputName{ii},' > ', folderName_INP_OUT,...
+            outputName{ii},'.OUT',')>& errMsg.txt'];
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
-        [status] = system([cmnd1, ' ; ', cmnd2]);
+        if strcmp('curc', usrName)
+
+            [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+
+        else
+            [status] = system([cmnd1, ' ; ', cmnd2]);
+        end
+
+
         if status ~= 0
             error(['Status returned value of ',num2str(status)])
         end

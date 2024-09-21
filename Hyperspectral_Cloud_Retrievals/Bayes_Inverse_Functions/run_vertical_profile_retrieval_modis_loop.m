@@ -221,7 +221,7 @@ if use_MODIS_estimates==true
     truth_estimate_table = [];
 end
 
-GN_inputs = create_model_prior_covariance_andCloudHeight(GN_inputs, pixels2use, truth_estimate_table, use_MODIS_estimates, modis, vocalsRex);
+GN_inputs = create_model_prior_covariance_andCloudHeight_MODIS(GN_inputs, pixels2use, truth_estimate_table, use_MODIS_estimates, modis, vocalsRex);
 GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, pixels2use);
 
 
@@ -322,7 +322,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             % We need the values before for the filenaming system...
             r_top_apriori_percentage = modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
-            r_bot_apriori_percentage = 0.25;
+            r_bot_apriori_percentage = 3 * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
             tau_c_apriori_percentage = modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(1))/100;
 
 

@@ -16,7 +16,7 @@ function [inputs] = create_model_prior_covariance_EMIT_top_bottom(inputs, pixels
 
 
 % Define the number of pixels to run
-num_pixels_2run = length(pixels2use.idx);
+num_pixels_2run = length(pixels2use);
 
 
 

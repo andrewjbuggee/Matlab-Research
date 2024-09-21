@@ -43,8 +43,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = [929, 929];
 
 % 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = [932];
-% pixels2use.col = [960];
+% pixels2use.row = 932;
+% pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -55,8 +55,20 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = 970;
 
 % 17_Jan_2024_coast - optical depth of 3.8
-pixels2use.row = 932;
-pixels2use.col = 969;
+% pixels2use.row = 932;
+% pixels2use.col = 969;
+
+% 17_Jan_2024_coast - optical depth of 8.7
+% pixels2use.row = 969;
+% pixels2use.col = 991;
+
+% 17_Jan_2024_coast - optical depths of 6.6, 11.6
+pixels2use(1).row = 932; pixels2use(1).col = 960;
+pixels2use(2).row = 969; pixels2use(2).col = 984;
+
+% 17_Jan_2024_coast - optical depths of 9.22, 11.6, 14.53 19.8
+% pixels2use.row = [969, 969, 969, 969];
+% pixels2use.col = [989, 984, 980, 957];
 
 % 17_Jan_2024_coast - optical depths of 8.7, 9.22, 9.68, 10.3, 11.6, 12.54,
 % 13.61, 14.53, 16.79, 19.8
@@ -74,7 +86,8 @@ pixels2use.col = 969;
 
 
 % Grab the pixel indices
-pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
+pixels2use = grab_pixel_indices(pixels2use, [size(emit.radiance.measurements,1),...
+    size(emit.radiance.measurements, 2)]);
 
 
 

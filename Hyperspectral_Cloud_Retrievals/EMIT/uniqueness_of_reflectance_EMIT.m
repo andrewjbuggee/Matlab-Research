@@ -12,12 +12,12 @@ clear variables
 r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
-%tau_c = [5, 5.5, 6, 6.5, 7];
-tau_c = 4.5:0.5:7.5;
+tau_c = [5.5, 6, 6.5, 7];
 
-r_top = 11.6;
-r_bot = 2.6;
-tau_c = 6.7;
+
+% r_top = 8:14;
+% r_bot = 4:12;
+% tau_c = [5.5, 6, 6.5, 7];
 
 
 
@@ -56,6 +56,26 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % Define the folder path where all .INP files will be saved
     folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+
+elseif strcmp(whatComputer,'curc')==true
+
+    % ------ Folders on the CU Supercomputer /projects folder --------
+
+    % Define the EMIT data folder path
+
+    emitPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = '/scratch/alpine/anbu8374/EMIT_reflectance_uniqueness/';
+
+    if ~exist(folder2save, 'dir')
+
+            mkdir(folder2save)
+    end
+
+
+
 
 
 end

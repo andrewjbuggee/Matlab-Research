@@ -105,7 +105,13 @@ elseif strcmp(computer_name,'andrewbuggee')==true
 
 elseif strcmp(computer_name,'curc')==true
 
-    mie_folder = '/projects/anbu8374/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+    mie_folder = '/projects/anbu8374/libRadtran-2.0.5/bin/';
+    
+    if ~exist(mie_folder, 'dir')
+
+        mkdir(mie_folder)
+    end
+
 
 
 end
