@@ -210,9 +210,18 @@ if numFiles2Run==1
                 source_wavelength = [];
 
             else
+                % we have defined a specfifc solar file. Figure out which
+                % one it is
 
-                %fileSolar = match7{1}(index7_file1(1)+5:index7_file2(1)+3);
-                fileSolar = match7{1}(index7_file1(end)+1:index7_file2(1)+3);
+                if isempty(index7_file1)==false
+                    % then we have a file extension with backslashes
+                    fileSolar = match7{1}(index7_file1(end)+1:index7_file2(1)+3);
+
+                else
+                    % Then we have just a file name
+                    fileSolar = match7{1}(index7_space1(2)+1:index7_file2(1)+3);
+
+                end
                 % Read the solar flux file over the wavelength range specified
                 [source_flux, source_wavelength] = read_solar_flux_file(wavelength, fileSolar);   % W/nm/m^2
             end
