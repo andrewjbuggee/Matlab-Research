@@ -48,6 +48,23 @@ eta_1 = repmat(noise_model.data(:,2), 1, num_pixels);
 eta_2 = repmat(noise_model.data(:,3), 1, num_pixels);
 eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 
-radiance_uncertainty = real( eta_1 .* sqrt(eta_2 .* emit.radiance.measurements) + eta_3 );      % microW/cm^2/nm/sr
+% -------------------------------------------------------
+% --- Compute the noise-equivelant change in radiance ---
+% -------------------------------------------------------
+
+% This is the minimum detectable change in radiance. Any change in the
+% signal that is smaller than this value will go undetected. Essentially it
+% is the system noise. It has units of radiance
+
+% occasionally the emit radiance measurements are less than 0. How can this
+% be? There are no photons in some wavelengths, but the measurement
+% dependent uncertainty, like shot noise, causes the recorded signal to be
+% negative?
+
+% take the real part of the equation below to ignore the cases where some
+% radiance measurements are less than 0
+radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 .* emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
+%radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 + emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
+
 
 end
