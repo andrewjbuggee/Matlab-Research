@@ -12,7 +12,22 @@ function plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, pixel_2Plot)
 % ---------------- Compute Liquid Water Path -----------------------
 % ------------------------------------------------------------------
 
-LWP_vocals = trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
+% if measured profile occured while the plane is decreasing, multiply the
+% integral with a minus sign
+if mean(diff(vocalsRex.altitude))<0 && mean(diff(vocalsRex.re))<0
+
+    LWP_vocals = -trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
+
+elseif mean(diff(vocalsRex.altitude))>0 && mean(diff(vocalsRex.re))>0
+
+    LWP_vocals = trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
+
+else
+
+    error([newline, 'The in-situ measurement is confusing me. Check the altitude and effective radius',...
+        newline])
+
+end
 
 % ----- Compute the CDP uncertainty -----
 re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
@@ -24,9 +39,31 @@ re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
 nice_blue = [0 0.4470 0.741];
 nice_orange = [0.8500, 0.3250, 0.0980];
 
+% Make sure the optical depth increases as the effective radius decreases
+optical_depth = vocalsRex.tau';
+
+
 figure;
-errorbar(flipud(vocalsRex.re), vocalsRex.tau', flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
-    'MarkerFaceColor','black','LineWidth',1);
+
+% check if tau is increasing and re is decreasing
+if mean(diff(optical_depth))>0 && mean(diff(vocalsRex.re))<0
+
+    errorbar(vocalsRex.re, optical_depth, re_uncertainty, 'horizontal','-o','Color','black', 'MarkerSize',10,...
+        'MarkerFaceColor','black','LineWidth',1);
+
+elseif mean(diff(optical_depth))>0 && mean(diff(vocalsRex.re))>0
+
+
+    errorbar(flipud(vocalsRex.re), optical_depth, flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
+        'MarkerFaceColor','black','LineWidth',1);
+
+else
+
+    error([newline, 'Somethings up with the optical depth vector. Check this against the altitude and effective radius',...
+        newline])
+
+end
+
 set(gca,'YDir','reverse')
 ylabel('$\tau$','interpreter','latex','FontSize',35);
 xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
@@ -45,7 +82,7 @@ grid on; grid minor; hold on;
 
 % Plot the z-space in meters on the right axis
 yyaxis right
-ylim([0, vocalsRex.altitude(end) - vocalsRex.altitude(1)])
+ylim([0, abs(vocalsRex.altitude(end) - vocalsRex.altitude(1))])
 set(gca,'YColor','black')
 ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',30);
 yyaxis left

@@ -8,7 +8,7 @@
 
 %%
 
-function [R,Rl] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName, spectral_response)
+function [R,Rl] = runReflectanceFunction_4modis_gaussNewton(names,INP_folderName,saveCalculations_fileName, spectral_response)
 
 % what computer are we using?
 
@@ -51,8 +51,8 @@ Rl = cell(size(inputFileNames)); % each value here is the spectral reflectance o
 
 
 % step through the band dimension
-%parfor bb = 1:length(inputFileNames)
-for bb = 1:length(inputFileNames)    
+parfor bb = 1:length(inputFileNames)
+%for bb = 1:length(inputFileNames)    
     % --- For now, calculate inputSettings every time ---
     
     % start by running uvspec

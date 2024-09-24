@@ -402,9 +402,6 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
 
     if strcmp(parameterization_str,'mie')==true
 
-        % **** ONLY INTERPOLATING HOMOGENOUS MIE COMPUTATIONS ****
-        % ********************************************************
-
 
         if strcmp(distribution_type,'gamma')==true
 
@@ -748,7 +745,8 @@ for nn = 1:num_files_2write
         % -----------------------------------------------------------------
         % ** Using libRadTran mie calculations with a size distribution ***
         % -----------------------------------------------------------------
-        % -- Assuming liquid water content increases linearly with depth -
+        % ** Assuming liquid water content increases linearly with depth **
+        
         %z_kilometers_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2);       % kilometers - geometric depth at midpoint of each layer
         z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
         dz_km = z(2) - z(1);           % kilometers

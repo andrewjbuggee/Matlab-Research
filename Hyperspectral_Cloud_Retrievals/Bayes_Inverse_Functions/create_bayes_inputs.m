@@ -150,11 +150,19 @@ bayes_inputs.RT.band_parameterization = 'reptran coarse';
 % ---------------------------------------------------------
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
-% resolution should match the value listed in the file name
-bayes_inputs.RT.sourceFile_resolution = 1;                  % nm
+
 % Define the source file
 %bayes_inputs.RT.source_file = '../data/solar_flux/kurudz_1.0nm.dat';
-bayes_inputs.RT.source.file = '../data/solar_flux/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% resolution should match the value listed in the file name
+% bayes_inputs.RT.sourceFile_resolution = 1;                  % nm
+
+% this is a hybrind reference spectrum downloaded from LASP's
+% LISIRD tool (https://lasp.colorado.edu/lisird/data/tsis1_hsrs_p1nm)
+% These data range from 202 to 2730 nm
+% These data have 0.1 sampling resolution
+bayes_inputs.RT.sourceFile = '../data/solar_flux/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% resolution should match the value listed in the file name
+bayes_inputs.RT.sourceFile_resolution = 0.1;                  % nm
 
 % define the atmospheric data file
 bayes_inputs.RT.atm_file = 'afglus.dat';
@@ -190,7 +198,7 @@ bayes_inputs.RT.use_VOCALS_cloudTopHeight = true;
 
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS above cloud water vapor? ---------
-bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
+bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = true;
 % ------------------------------------------------------------------------
 
 % ------------------------------------------------------------------------

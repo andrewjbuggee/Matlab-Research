@@ -79,6 +79,9 @@ wavelength = data.("Wavelength (nm)");
 % define an empty cell aray 
 spec_response = cell(1, length(band_number));
 
+% define a place holder cell aray 
+spec_response_temporary = cell(1, length(band_number));
+
 
 for nn = 1:length(band_number)
 
@@ -92,22 +95,30 @@ for nn = 1:length(band_number)
             % only keep the non-zero values
             index_nonZero = find(data2keep);
 
-            spec_response{nn}(:,1) = wavelength(index_nonZero);
-            spec_response{nn}(:,2) = data2keep(index_nonZero);
+            spec_response_temporary{nn}(:,1) = wavelength(index_nonZero);
+            spec_response_temporary{nn}(:,2) = data2keep(index_nonZero);
 
 
             % ------ Check the wavelength resolution desired -------
-            native_resolution = spec_response{1}(2,1) - spec_response{1}(1,1);
+            native_resolution = spec_response_temporary{nn}(2,1) - spec_response_temporary{nn}(1,1);
             
             if native_resolution~=wavelength_resolution
                 % then we linear interpolate!
-                new_wavelength = spec_response{1}(1,1):wavelength_resolution:spec_response{1}(end,1);
-                new_spec_response = interp1(spec_response{1}(:,1), spec_response{1}(:,2), new_wavelength);
+                new_wavelength = spec_response_temporary{nn}(1,1):wavelength_resolution:spec_response_temporary{nn}(end,1);
+                new_spec_response = interp1(spec_response_temporary{nn}(:,1), spec_response_temporary{nn}(:,2), new_wavelength);
 
-                clear spec_response
+                
                 spec_response{nn}(:,1) = new_wavelength;
                 spec_response{nn}(:,2) = new_spec_response;
 
+            else
+
+                % if the resolution of the spectral response functions are
+                % equal to the resolution of the source file, keep the
+                % temporary spectral response function
+
+                spec_response{nn}(:,1) = spec_response_temporary{nn}(:,1);
+                spec_response{nn}(:,2) = spec_response_temporary{nn}(:,2);
             end
 
 

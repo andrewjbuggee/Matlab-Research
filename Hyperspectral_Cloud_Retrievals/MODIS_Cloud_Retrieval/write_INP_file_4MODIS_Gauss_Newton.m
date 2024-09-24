@@ -191,7 +191,7 @@ for pp = 1:length(pixel_row)
         % Define the location and filename of the extraterrestrial solar source
         % ---------------------------------------------------------------------
         formatSpec = '%s %s %5s %s \n\n';
-        fprintf(fileID, formatSpec,'source solar', GN_inputs.RT.source_file, ' ', '# Bounds between 250 and 10000 nm');
+        fprintf(fileID, formatSpec,'source solar', GN_inputs.RT.sourceFile, ' ', '# Bounds between 250 and 10000 nm');
 
 
         % Define the location and filename of the extraterrestrial solar source

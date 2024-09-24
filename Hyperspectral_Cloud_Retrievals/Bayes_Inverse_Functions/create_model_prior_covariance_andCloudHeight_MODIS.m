@@ -1,4 +1,4 @@
-function [GN_inputs] = create_model_prior_covariance_andCloudHeight(GN_inputs, pixels2use, truthTable, use_MODIS_estimates, modis, vocalsRex)
+function [GN_inputs] = create_model_prior_covariance_andCloudHeight_MODIS(GN_inputs, pixels2use, truthTable, use_MODIS_estimates, modis, vocalsRex)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------

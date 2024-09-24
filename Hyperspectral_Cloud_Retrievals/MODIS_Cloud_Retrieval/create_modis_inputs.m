@@ -166,11 +166,18 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ---------------------------------------------------------
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
-% resolution should match the value listed in the file name
-inputs.RT.sourceFile_resolution = 1;                  % nm
+
 % Define the source file
 %inputs.RT.source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+% resolution should match the value listed in the file name
+%inputs.RT.sourceFile_resolution = 1;                  % nm
+
+% hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc has 0.1nm
+% sampling resolution
 inputs.RT.source.file = '../data/solar_flux/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% resolution should match the value listed in the file name
+inputs.RT.sourceFile_resolution = 0.1;                  % nm
+
 
 % define the atmospheric data file
 inputs.RT.atm_file = 'afglus.dat';

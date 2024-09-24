@@ -62,7 +62,7 @@ jacobian_diff_guess_prior = cell(1, num_pixels);
 posterior_cov = zeros(num_parameters,num_parameters,num_pixels); % my posterior covariance matrix
 
 for pp = 1:num_pixels
-    
+
     % ----- define number of spectral bands to use -----
     % If a measurement vector has a nan value, ignore this spectral channel
     num_bands = sum(~isnan(measurements(:,pp)));
@@ -75,7 +75,7 @@ for pp = 1:num_pixels
     % We will define the spectral response functions for every pixel incase
     % there are any measurements with unreasonably high uncertainty
     idx_not_nan = ~isnan(measurements(:,pp));
-    
+
     % check to see if the MODIS instrument is aboard Terra or Aqua
     if strcmp(modisInputs.L1B_filename(1:3), 'MOD')==true
         % Then read in the spectral response functions for the terra instrument
@@ -97,7 +97,7 @@ for pp = 1:num_pixels
 
     % define the residual matrix
     residual{pp} = zeros(num_bands,num_iterations); % we include the starting point, which is outside the number of iterations
-    
+
     % define the rms residual vector between the true measurements and the
     % measurement estimate
     rms_residual{pp} = zeros(1, num_iterations);      % RMS of the residual across all bands
@@ -148,8 +148,8 @@ for pp = 1:num_pixels
 
 
         if ii==1
-            
-            % Compute the measurement estimate for the first time. 
+
+            % Compute the measurement estimate for the first time.
             % we compute the forward model at our previous estimate of the state vector
             % Therefore, we ask, 'what is the reflectance of a cloud with our
             % current state vector guess?'
@@ -162,12 +162,12 @@ for pp = 1:num_pixels
             rms_residual{pp}(ii) = sqrt(sum(residual{pp}(:,ii).^2));
 
         else
-            
-            % We've already calculated the measurement estimate! 
+
+            % We've already calculated the measurement estimate!
             measurement_estimate = new_measurement_estimate;
-            
+
         end
-        
+
 
         % compute the jacobian
         Jacobian = compute_jacobian_4modis(modis,current_guess,measurement_estimate,GN_inputs,modisInputs,...
@@ -181,7 +181,7 @@ for pp = 1:num_pixels
 
         % -------------- Compute the new state vector ---------------------
         % -----------------------------------------------------------------
-        
+
         % ----- using constraint -----
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
@@ -204,9 +204,9 @@ for pp = 1:num_pixels
         % is the value of the second row.
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-                                constrained_guesses(1,:)<=30 & ...
-                                constrained_guesses(2,:)>0   & ...
-                                constrained_guesses(3,:)>0));
+            constrained_guesses(1,:)<=30 & ...
+            constrained_guesses(2,:)>0   & ...
+            constrained_guesses(3,:)>0));
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
@@ -226,7 +226,7 @@ for pp = 1:num_pixels
 
             disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
                 'Trying a different inital guess...', newline])
-            
+
             new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3)];
 
             disp([newline, 'Initial guess was: r_t = ', num2str(current_guess(1)),...
@@ -249,9 +249,9 @@ for pp = 1:num_pixels
 
             disp([newline, 'The only solution forces r_top<r_bot.',newline, ...
                 'Breaking the loop...', newline])
-            
 
-             % Clear the rest of the zeros that are place holders for later
+
+            % Clear the rest of the zeros that are place holders for later
             % iterations
             retrieval{pp}(:,ii+1:end) = [];
             rms_residual{pp}(ii+1:end) = [];
@@ -263,10 +263,10 @@ for pp = 1:num_pixels
 
 
         else
-            
+
             % We want to make sure the new step is within the feasible
             % range, not at the boundaries. So we only accept a values that
-            % are less than the max a value. 
+            % are less than the max a value.
             percent_of_maxA = 0.95;
             % Set the a vector to values between 0 and some fraction of the max a
             a = linspace(0, percent_of_maxA * max_a, 10);
@@ -281,16 +281,28 @@ for pp = 1:num_pixels
             % measurements is less than the previous guess and the measurements
             constrained_measurement_estimate = zeros(num_bands, length(a));
             for mm = 1:length(a)
-                constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
-                    GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+                % some guesses might be out of the appropriate range for
+                % the Mie Interpolation function. If so, set the
+                % constrained measurement estimates to 0
+                if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
+                        constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
+
+                    constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(modis,constrained_guesses(:,mm),...
+                        GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+
+                else
+
+                    constrained_measurement_estimate(:,mm) = 0;
+                end
+
             end
-            
+
             % compute the rms_residual for the constrained state vector
             rms_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(idx_not_nan,pp), 1, length(a))).^2, 1));
             % find the smallest rms residual that is less than the previus
             % itereates rms residual
             [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual{pp}(ii)));
-            
+
             % Check to see if all rms_residuals are greater than the
             % previous iterate
             if isempty(min_val_lessThanPrevious)
@@ -299,7 +311,7 @@ for pp = 1:num_pixels
                 % find the minimum and move foward. Tha algorithm will flag
                 % this as find the minimum rms_residual
                 [~, min_residual_idx] = min(rms_residual_constrained);
-                
+
 
             else
 
@@ -326,11 +338,11 @@ for pp = 1:num_pixels
 
         % ----- new_guess using the previous iteration -----
         %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
-        
+
 
         % ----- new_guess using the model prior mean value -----
         %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
-        
+
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
@@ -359,7 +371,7 @@ for pp = 1:num_pixels
 
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
-        
+
 
         if rms_residual{pp}(ii+1)<convergence_limit(pp)
 
@@ -428,66 +440,66 @@ for pp = 1:num_pixels
 
     end
 
-        
-        
+
+
     % ----------------- COMPUTE THE POSTERIOR COVARIANCE ------------------
     % once convergence has occured, we can compute the posterior covariance
     % matrix
     % First compute the latest measurement estimate
     %measurement_estimate = compute_forward_model_4modis(modis, retrieval{pp}(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
-    
+
     % we need to compute the jacobian using the solution state
     Jacobian = compute_jacobian_4modis(modis, retrieval{pp}(:,end), new_measurement_estimate, GN_inputs,...
-                    modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag, idx_not_nan);
+        modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag, idx_not_nan);
 
     posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *...
-                        Jacobian + model_cov(:,:,pp)^(-1))^(-1);
+        Jacobian + model_cov(:,:,pp)^(-1))^(-1);
 
 
-    
+
     % ---------------- COMPUTE LIQUID WATER PATH ------------------
     % Compute the retireved Liquid water path with the final profile
 
     % define the altitude vector
     z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth,...
         GN_inputs.RT.cloudTop_height(pp), GN_inputs.RT.cloud_layers)*1e3;        % m - altitude above ground vector
-    
-    
-    
+
+
+
     % --------------- assuming geometric optics limit ------------------
     % For now I'm assuming that the extinction efficiency is equal to 2,
     % which is a good approximation the scattering particle is larger than
-    % the incident wavelength (r > wl). I can make this more exact by 
+    % the incident wavelength (r > wl). I can make this more exact by
     % computing Qe for each r value in my profile later on
 
     density_liquid_water = 10^6;                % g/m^3
     re_profile = create_droplet_profile2([retrieval{pp}(1,end), retrieval{pp}(2,end)],...
-                    z, 'altitude', GN_inputs.model.profile.type);                               % microns          
+        z, 'altitude', GN_inputs.model.profile.type);                               % microns
 
     GN_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,end) * trapz(z, (re_profile*1e-6).^3)/...
-                                                                          trapz(z, (re_profile*1e-6).^2);           %g/m^2
+        trapz(z, (re_profile*1e-6).^2);           %g/m^2
     % -------------------------------------------------------------------
 
 
-    
+
     % -------------------------------------------------------------------
     % Get rid of the Nan values and create droplet profiles with the
     % retrieval
     idx_nans = find(isnan(retrieval{pp}(3,:)));
-    
+
     if isempty(idx_nans)~=true
-       
+
         GN_output.tau_vector(:, pp) = linspace(0, retrieval{pp}(3,idx_nans(1)-1), 100);
-        
+
         GN_output.re_profile(:, pp) = create_droplet_profile2([retrieval{pp}(1,idx_nans(1)-1), retrieval{pp}(2,idx_nans(1)-1)],...
-                                    GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
+            GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
 
     else
-        
+
         GN_output.tau_vector(:, pp) = linspace(0, retrieval{pp}(3, end), 100);
-        
+
         GN_output.re_profile(:, pp) = create_droplet_profile2([retrieval{pp}(1, end), retrieval{pp}(2, end)],...
-                                    GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
+            GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
 
 
     end

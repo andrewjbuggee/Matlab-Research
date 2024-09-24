@@ -105,7 +105,7 @@ GN_names.inp = write_INP_file_4MODIS_Gauss_Newton(GN_inputs, modisInputs, pixel_
 GN_names.out = writeOutputNames(GN_names.inp);
 
 % ---- Run uvspec for the files created -----
-[measurement_estimate,~] = runReflectanceFunction_4gaussNewton(GN_names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
+[measurement_estimate,~] = runReflectanceFunction_4modis_gaussNewton(GN_names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
 
 
 

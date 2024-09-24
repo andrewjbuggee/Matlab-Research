@@ -373,7 +373,7 @@ vocalsRex.modis_minDist = modis_minDist;            % meters
 
 
 
-% ---- Check to see if all 3 indices are unique. If not, delete the
+% ---- Check to see if all indices are unique. If not, delete the
 % redundancy
 
 [~, idx_unique] = unique(vocalsRex.modisIndex_minDist);

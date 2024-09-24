@@ -131,7 +131,7 @@ for xx = 1:num_model_parameters
     names.out = writeOutputNames(names.inp);
     
     % ---- Run uvspec for the files created -----
-    [new_measurement_estimate,~] = runReflectanceFunction_4gaussNewton(names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
+    [new_measurement_estimate,~] = runReflectanceFunction_4modis_gaussNewton(names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
     
     change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
 

@@ -95,11 +95,11 @@ end
 
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisData = '2008_11_09/';
+%modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-%modisData = '2008_11_11_1430/';
+modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
@@ -117,11 +117,11 @@ modisInputs = create_modis_inputs([modisFolder, modisData], L1B_fileName);
 
 
 % ----- November 9 data -----
-vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+%vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 % ----- November 11 data -----
-%vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -173,7 +173,6 @@ modisInputs.flags.useAdvection = true;
 tic
 vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
 toc
-
 
 %% PLOT VOCALS REX DATA WITH MODIS RETRIEVALS
 
@@ -314,7 +313,7 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 %             end
 
 
-            % ------- USE MODIS RETRIEVAL UNCERTAINTY ------
+            % ----------- USE MODIS RETRIEVAL UNCERTAINTY ----------------
             % use the retrieval uncertainty of re as the uncertianty in r_top
             % use 45% as the uncertainty of r_bot
             % use the retrieval uncertainty of tau_c as the apriori
@@ -322,8 +321,11 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
             % We need the values before for the filenaming system...
             r_top_apriori_percentage = modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
-            r_bot_apriori_percentage = 3 * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
+            r_bot_apriori_percentage = 6 * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
             tau_c_apriori_percentage = modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(1))/100;
+
+            % -----------------------------------------------------------------
+            % -----------------------------------------------------------------
 
 
 %             for nn = 1:length(pixels2use.res1km.linearIndex)
@@ -343,6 +345,8 @@ for rt = 1:length(r_top_apriori_percentage_vector)
             [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
 
 
+            
+            
             % Save the Outputs!
             rev = 1;
             if modisInputs.flags.useAdvection == true
