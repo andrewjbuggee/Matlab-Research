@@ -12,7 +12,7 @@ clear variables
 r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
-tau_c = [5, 5.5, 6, 6.5];
+tau_c = [5.5, 6, 6.5, 7];
 
 % r_top = 6:2:12;       % microns
 % r_bot = 4:2:10;        % microns
