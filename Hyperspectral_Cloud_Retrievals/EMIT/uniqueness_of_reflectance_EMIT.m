@@ -933,9 +933,9 @@ disp([newline, num2str(100* (num_states/(numel(r_top)*numel(r_bot)*numel(tau_c))
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.5;      % microns
-d_r_bot = 0.5;      % microns
-d_tau_c = 0.5;
+d_r_top = 0.1;      % microns
+d_r_bot = 0.1;      % microns
+d_tau_c = 0.1;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
@@ -973,6 +973,10 @@ for rt = 1:size(Refl_model_fine,1)
 
 
         parfor tc = 1:size(Refl_model_fine,3)
+
+            disp(['Iterations: [r_top = ', num2str(rt),'/',num2str(size(Refl_model_fine,1)),...
+                ',   r_bot = ', num2str(rb),'/',num2str(size(Refl_model_fine,2)),...
+                ',   tau_c = ', num2str(tc),'/',num2str(size(Refl_model_fine,3)), newline])
 
             % Check to see if the radiance computed by the model is
             % within the listed uncertainty for EMIT
