@@ -731,9 +731,9 @@ idx_unique_logical = ismember((1:size(R_model_round_states,1)), idx_original);
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.25;      % microns
-d_r_bot = 0.25;      % microns
-d_tau_c = 0.05;
+d_r_top = 0.1;      % microns
+d_r_bot = 0.1;      % microns
+d_tau_c = 0.1;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
