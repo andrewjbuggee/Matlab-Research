@@ -350,3 +350,87 @@ end
 
 
 %% Plot 
+
+%%  Segment re, LWC, Nc into N bins along optical depth
+
+% In order to compute a median horizontal profile, we have to first normalize
+% the horizontal extent so that all profiles lie between values [0,1]. Then
+% we break up the horizontal component in n discrete bins. Within each bin we
+% can compute the mean, median and standard deviation
+
+n_bins = 30; % number of segments the noramlized vertical component is broken up into
+
+bin_edges = 0:1/n_bins:1;
+
+% set up an empty cell array for all the values of each variable of interest
+% within each segment boundaries. Let's do this for droplet size, total
+% number concentration and liquid water content
+horizontally_segmented_attributes = cell(n_bins, 3);
+
+
+normalized_tau = cell(1, length(ensemble_profiles.altitude));
+
+
+for nn = 1:length(ensemble_profiles.altitude)
+
+    % first we need to normalize the vertical component of all profiles
+    normalized_tau{nn} = ensemble_profiles.tau{nn}./ensemble_profiles.tau{nn}(end);
+
+    % the data is stored in altitude space. If we wish to have the data
+    % oriented in optical depth space, we need to reverse the order,
+    % because optical depth is meausred from cloud top to cloud bottom
+    % so we need to check if the plane is ascending or descending so we
+    % know whether the data starts at cloud top or cloud bottom
+    % We want all data oriented in tau space. So look for ascending
+    % profiles, and flip the vector. If the plane is descending, we don't
+    % need to do anything
+    if mean(diff(ensemble_profiles.altitude{nn})./diff(ensemble_profiles.time{nn}))>0
+        % if true, then the plane is ascending, grab and flip the variables
+        % of interest
+        re = flipud(ensemble_profiles.re{nn});
+        lwc = flipud(ensemble_profiles.lwc{nn});
+        Nc = flipud(ensemble_profiles.Nc{nn});
+
+    else
+        % if false, then the plane is descending, just grab the variables
+        % of interest
+        re = ensemble_profiles.re{nn};
+        lwc = ensemble_profiles.lwc{nn};
+        Nc = ensemble_profiles.Nc{nn};
+
+    end
+
+
+
+
+
+    % for each profile, we need to segment the variables of interest into n
+    % bins.
+
+    for bb = 1:length(bin_edges)-1
+
+        % grab all re, LWC, and Nc values within each bin. Segment them
+        % accordingly
+        if bb==1
+            index_segment = normalized_tau{nn}>=bin_edges(bb) & normalized_tau{nn}<=bin_edges(bb+1);
+
+        else
+            index_segment = normalized_tau{nn}>bin_edges(bb) & normalized_tau{nn}<=bin_edges(bb+1);
+        end
+
+        % store the effective radius values
+        vertically_segmented_attributes{bb, 1} = [vertically_segmented_attributes{bb, 1}; re(index_segment)];
+
+        % store the liquid water content values
+        vertically_segmented_attributes{bb, 2} = [vertically_segmented_attributes{bb, 2}; lwc(index_segment)];
+
+        % store the total droplet number concentration values
+        vertically_segmented_attributes{bb, 3} = [vertically_segmented_attributes{bb, 3}; Nc(index_segment)];
+
+
+
+    end
+
+
+
+end
