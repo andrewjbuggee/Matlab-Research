@@ -33,8 +33,8 @@ figure;
 errorbar(flipud(vocalsRex.re), vocalsRex.tau', flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
     'MarkerFaceColor','black','LineWidth',1);
 set(gca,'YDir','reverse')
-ylabel('$\tau$','interpreter','latex','FontSize',35);
-xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
+ylabel('Optical Depth','interpreter','latex','FontSize',35);
+xlabel('Effective Radius $$(\mu m)$$','Interpreter','latex', 'Fontsize', 35)
 grid on; grid minor; hold on;
 
 if modisInputs.flags.useAdvection==true
@@ -109,7 +109,7 @@ end
 yyaxis right
 ylim([0, vocalsRex.altitude(end) - vocalsRex.altitude(1)])
 set(gca,'YColor','black')
-ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',30);
+ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',35);
 yyaxis left
 ylim([-0.25, vocalsRex.tau(end)*1.15])
 
@@ -169,12 +169,12 @@ str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newli
     '$LWP_{MODIS} = \,$',num2str(round(modis_lwp_2plot,1)),' $g/m^{2}$', newline,...
     '$LWP_{retrieved} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
-annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',20,'FontWeight','bold');
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])
 
 % Create a Legend with only the two black curves
 %legend('Vocals Rex In-situ Measurement', 'Desired Retrieval Profile', 'Interpreter','latex', 'Location','best')
-legend(['Vocals Rex In-situ Measurement', legend_str], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+legend(['Vocals Rex In-situ Measurement', legend_str], 'Interpreter','latex', 'Location','northwest', 'FontSize', 25)
 
 
 % Include a text box stating the percentage of the TBLUT guess that is used

@@ -198,7 +198,7 @@ bayes_inputs.RT.use_VOCALS_cloudTopHeight = true;
 
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS above cloud water vapor? ---------
-bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = true;
+bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
 % ------------------------------------------------------------------------
 
 % ------------------------------------------------------------------------

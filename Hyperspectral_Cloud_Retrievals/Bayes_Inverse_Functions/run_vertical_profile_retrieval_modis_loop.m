@@ -95,11 +95,11 @@ end
 
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-%modisData = '2008_11_09/';
+modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisData = '2008_11_11_1430/';
+%modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
@@ -403,7 +403,7 @@ end
 toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-modis_pixel_2_plot = 2;
+modis_pixel_2_plot = 4;
 plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
 
 
