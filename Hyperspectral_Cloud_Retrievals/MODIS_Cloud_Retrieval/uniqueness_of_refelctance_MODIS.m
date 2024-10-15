@@ -89,15 +89,15 @@ modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with V
 
 %% Grab the MODIS reflectances for the pixel used
 [r,c] = ind2sub(size(modis.EV1km.reflectance), modis_idx);
-R_modis = zeros(1, size(modis.EV1km.reflectance,3));
-R_uncert_modis = zeros(1, size(modis.EV1km.reflectance, 3));
+Refl_modis = zeros(1, size(modis.EV1km.reflectance,3));
+Refl_uncert_modis = zeros(1, size(modis.EV1km.reflectance, 3));
 
 for bb = 1:size(modis.EV1km.reflectance, 3)
 
     % ****** DID YOU USE REFLECTANCE_4MODIS? ******
     % If not you need to divide the MODIS reflectance by cos(sza)
-    R_modis(bb) = modis.EV1km.reflectance(r,c,bb);
-    R_uncert_modis(bb) = R_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
+    Refl_modis(bb) = modis.EV1km.reflectance(r,c,bb);
+    Refl_uncert_modis(bb) = Refl_modis(bb) * 0.01*double(modis.EV1km.reflectanceUncert(r,c,bb)); % converted from percentage to reflectance
 end
 
 
@@ -633,7 +633,9 @@ while isfile(filename)
     '_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "modisFolder", 'modis_idx');
+save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "Refl_model", "modisFolder",...
+    'modis_idx', 'pixels2use', 'Refl_uncert_modis', 'Refl_modis');
+
 
 toc
 
@@ -701,7 +703,7 @@ for rt = 1:length(r_top)
 
             % Check to see if the reflectance computed by the model is
             % within the listed uncertainty for MODIS
-            redundant_states = [redundant_states, all(abs(R_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= R_uncert_modis)];
+            redundant_states = [redundant_states, all(abs(Refl_modis - reshape(R_model(rt,rb,tc,:), 1, [])) <= Refl_uncert_modis)];
             
 
 
@@ -801,13 +803,17 @@ for rt = 1:size(R_model_fine,1)
                 ',   tau_c = ', num2str(tc),'/',num2str(size(R_model_fine,3)), newline])
             % Check to see if the reflectance computed by the model is
             % within the listed uncertainty for MODIS
-            redundant_states(rt,rb,tc) = all(abs(R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_uncert_modis);
-            rms_residual(rt, rb, tc) = sqrt(mean( (R_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])).^2) );
+            redundant_states(rt,rb,tc) = all(abs(Refl_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= Refl_uncert_modis);
+            rms_residual(rt, rb, tc) = sqrt(mean( (Refl_modis - reshape(R_model_fine(rt,rb,tc,:), 1, [])).^2) );
 
 
         end
     end
 end
+
+% Save Refl_model_file and the rms_residual, because these calculations
+% take a while!
+save(filename,"Refl_model_fine", "redundant_states", "rms_residual", "r_top_fine", "r_bot_fine", "tau_c_fine", "-append");
 
 % print the percentage of redundant states
 % Find the number states that lead to modeled measurements within the EMIT
@@ -884,7 +890,7 @@ n = 200;
 clabel(c1,h1,'FontSize',20,'FontWeight','bold');
 
 % round off the level list and only keep a fraction of them!
-h1.LevelList = round(h1.LevelList(1:10:end),4);  %rounds levels to 3rd decimal place
+h1.LevelList = round(h1.LevelList(1:15:end),4);  %rounds levels to 3rd decimal place
 clabel(c1,h1, 'FontSize',20,'FontWeight','bold')
 
 % % Overlay the 5 state vectors with the smallest rms_residual for this
@@ -928,7 +934,9 @@ hold(axes1,'off');
 set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
     'on');
 % Create colorbar
-colorbar(axes1);
+cb = colorbar(axes1);
+% create colorbar label
+ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
 
 
 % set the figure size to be proportional to the length of the r_top and
@@ -1074,15 +1082,15 @@ set(gcf, 'Position', [0 0 900 900])
 figure; 
 
 % plot a one-to-one line
-plot(linspace(0.95 * min([R_modis'; min_Refl_model_fine]), max(1.05 * [R_modis'; min_Refl_model_fine]), 100), ...
-    linspace(min(0.95 * [R_modis'; min_Refl_model_fine]), max(1.05 * [R_modis'; min_Refl_model_fine]), 100),...
+plot(linspace(0.95 * min([Refl_modis'; min_Refl_model_fine]), max(1.05 * [Refl_modis'; min_Refl_model_fine]), 100), ...
+    linspace(min(0.95 * [Refl_modis'; min_Refl_model_fine]), max(1.05 * [Refl_modis'; min_Refl_model_fine]), 100),...
     'k', 'linewidth', 1)
 
 hold on
 
 % plot the MODIs reflectance against the forward model estimate of
 % reflectance
-errorbar(R_modis, min_Refl_model_fine, R_uncert_modis, 'horizontal', '.',...
+errorbar(Refl_modis, min_Refl_model_fine, Refl_uncert_modis, 'horizontal', '.',...
     'markersize', 30, 'Color', mySavedColors(1, 'fixed'))
 xlabel('MODIS Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);

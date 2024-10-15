@@ -14,11 +14,11 @@ function plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, pixel_2Plot)
 
 % if measured profile occured while the plane is decreasing, multiply the
 % integral with a minus sign
-if mean(diff(vocalsRex.altitude))<0 && mean(diff(vocalsRex.re))<0
+if mean(diff(vocalsRex.altitude))<0 && median(diff(vocalsRex.re))<0
 
     LWP_vocals = -trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
 
-elseif mean(diff(vocalsRex.altitude))>0 && mean(diff(vocalsRex.re))>0
+elseif mean(diff(vocalsRex.altitude))>0 && median(diff(vocalsRex.re))>0
 
     LWP_vocals = trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
 
@@ -46,12 +46,12 @@ optical_depth = vocalsRex.tau';
 figure;
 
 % check if tau is increasing and re is decreasing
-if mean(diff(optical_depth))>0 && mean(diff(vocalsRex.re))<0
+if mean(diff(optical_depth))>0 && median(diff(vocalsRex.re))<0
 
     errorbar(vocalsRex.re, optical_depth, re_uncertainty, 'horizontal','-o','Color','black', 'MarkerSize',10,...
         'MarkerFaceColor','black','LineWidth',1);
 
-elseif mean(diff(optical_depth))>0 && mean(diff(vocalsRex.re))>0
+elseif mean(diff(optical_depth))>0 && median(diff(vocalsRex.re))>0
 
 
     errorbar(flipud(vocalsRex.re), optical_depth, flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...

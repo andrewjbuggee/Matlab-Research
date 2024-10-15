@@ -365,6 +365,9 @@ for pp = 1:num_pixels
         % store the latest guess
         retrieval{pp}(:,ii+1) = new_guess;
 
+        % -------------------------------------------------------------
+        % -------------------- Convergence checks ---------------------
+        % -------------------------------------------------------------
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
         

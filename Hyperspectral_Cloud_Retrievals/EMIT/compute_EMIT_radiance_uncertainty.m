@@ -70,7 +70,14 @@ eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 % take the real part of the equation below to ignore the cases where some
 % radiance measurements are less than 0
 %radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 .* emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
-radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 + emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
+%radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 + emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
+
+
+%% ---- The above equations describe a noise model for the instrument ----
+
+% Peter thinks I should set the EMIT radiance at uncertainty at 5% 
+radiance_uncertainty = 0.05 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
+
 
 
 end
