@@ -136,6 +136,16 @@ title('EMIT Spectral Shape Parameter','Interpreter','latex', 'FontSize', 40)
 
 
 
+%% Plot an EMIT spectrum
+
+figure;
+plot(emit.radiance.wavelength, emit.reflectance.value(:, 1000))
+xlabel('Wavelength (nm)'); 
+ylabel('Reflectance (1/sr)')
+grid on;
+grid minor
+
+
 %%
 
 
@@ -172,6 +182,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % -------------------------------------
 
     % Define the MODIS folder name
+    modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2024_01_27/';
 
 end
 
