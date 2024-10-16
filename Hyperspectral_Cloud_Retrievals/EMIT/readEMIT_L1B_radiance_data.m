@@ -41,8 +41,8 @@ ds.wavelength = ncread(fileName, 'sensor_band_parameters/wavelengths');     % nm
 ds.fwhm = ncread(fileName, 'sensor_band_parameters/fwhm');     % nm
 
 % read the lat and long position of each pixel
-ds.geo.lat = ncread(fileName, 'location/lat');      % degrees north
-ds.geo.long = ncread(fileName, 'location/lon');    % degrees east from the Greenwich meridian
+ds.geo.lat = ncread(fileName, 'location/lat');      % degrees north - ranges from -90 to 90
+ds.geo.long = ncread(fileName, 'location/lon');    % degrees east from the Greenwich meridian ranging from -180 to 180
 
 
 

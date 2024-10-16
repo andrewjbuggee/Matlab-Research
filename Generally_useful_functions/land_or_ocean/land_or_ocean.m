@@ -35,7 +35,7 @@
 %------------- BEGIN CODE --------------
 
 
-function [isOcean] = land_or_ocean(lat,lon,coastal_res,make_plot)
+function [isOcean] = land_or_ocean(lat,lon,coastal_res, make_plot)
 
 % tic
 
