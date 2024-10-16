@@ -432,7 +432,7 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
             % Libradtran doesn't compute the efficieny when a distribution
             % is specified. It computes the bulk coefficient per unit
             % concentration. For water, since the density is 1 g/m^3, we
-            % can somply multiply the output with the liquid water content
+            % can simply multiply the output with the liquid water content
             % and integrate over the path to get the optical depth.
 
 
@@ -571,6 +571,12 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
             % where r_step is the interval between radii values (used only for
             % vectors of radii). A 0 tells the code there is no step. Finally, the
             % radius values have to be in increasing order.
+
+            % Libradtran doesn't compute the efficieny when a distribution
+            % is specified. It computes the bulk coefficient per unit
+            % concentration. For water, since the density is 1 g/m^3, we
+            % can somply multiply the output with the liquid water content
+            % and integrate over the path to get the optical depth.
             ext_bulk_coeff_per_LWC = zeros(length(re), 1);
 
             for rr = 1:length(re)
