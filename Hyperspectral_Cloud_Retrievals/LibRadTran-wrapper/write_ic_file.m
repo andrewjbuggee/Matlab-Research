@@ -200,8 +200,8 @@ if strcmp(computer_name,'anbu8374')==true
 
 elseif strcmp(computer_name,'andrewbuggee')==true
 
-    mie_calc_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-particle-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
-    ice_cloud_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-particle-Retrieval/LibRadTran/libRadtran-2.0.4/data/ic/';
+    mie_calc_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+    ice_cloud_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/ic/';
 
 elseif strcmp(computer_name,'curc')==true
 

@@ -40,8 +40,8 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/'];
+    folderpath_reflectance = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/Thermodynamic_phase/'];
 
 
     % Define the folder path where all .INP files will be saved
