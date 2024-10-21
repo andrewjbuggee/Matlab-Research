@@ -142,8 +142,8 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.RT.wavelength = [1400, 1800];  % nm
 
 % define the wavelength channels that cover the range between 1550 and 1750
-% microns
-inputs.RT.wavelength = [1550, 1750];
+% microns. Leave room for the spectral channel width (~30nm)
+inputs.RT.wavelength = [1550 - 15, 1750 + 15];
 
 
 % create the spectral response functions
@@ -154,6 +154,13 @@ spec_response = create_EMIT_specResponse(emit, inputs);
 spec_response_2run.value = spec_response.value(inputs.bands2run, :);
 spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
 
+% % compute indices for each spectral channel
+% for ww = 1:length(inputs.bands2run)
+%
+% end
+%
+% % clear the full spec_response
+% clear spec_response
 
 
 
@@ -609,13 +616,33 @@ for rr = 1:length(inputs.RT.re)
         [ds,~,~] = readUVSPEC(folderpath_inp,outputName,inputSettings(2,:),...
             inputs.RT.compute_reflectivity_uvSpec);
 
-
+        % define the inputSettings used to run in the reflectance
+        % calculation
+        inputSettings_2run = inputSettings(2,:);
+        
+        % grab the source function
+        source = inputSettings_2run{7};
 
 
         parfor ww = 1:size(inputs.bands2run, 1)
 
+            ds2run = struct();
+            % create a data structure for each spectral channel
+            ds2run.wavelength = ds.wavelength(ds.wavelength>=spec_response_2run.wavelength(ww,1) & ...
+                ds.wavelength<=spec_response_2run.wavelength(ww,end));
+
+            ds2run.radiance.value = ds.radiance.value(ds.wavelength>=spec_response_2run.wavelength(ww,1) & ...
+                ds.wavelength<=spec_response_2run.wavelength(ww,end));
+            
+
+            % change the source function so that it matches the spectral
+            % channel
+            inputSettings_2run{7} = source(1:100, :);
+
+
+
             % compute the reflectance
-            Refl_model(rr, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
+            Refl_model(rr, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds2run,...
                 spec_response_2run.value(ww, :)');
 
 
