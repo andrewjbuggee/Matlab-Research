@@ -779,9 +779,16 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.RT.wavelength = [1400, 1800];  % nm
 
 % define the wavelength channels that cover the range between 1550 and 1750
-% microns
+% nm
 % inputs.bands2run = find(emit.radiance.wavelength>=1550 & emit.radiance.wavelength<=1750)';
-inputs.bands2run = find(emit.radiance.wavelength>=1646 & emit.radiance.wavelength<=1654)';
+
+% define the wavelength channels that cover the range between 1550 and 1750
+% nm and 2100 to 2300 nm
+inputs.bands2run = [find(emit.radiance.wavelength>=1550 & emit.radiance.wavelength<=1750)',...
+    find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+
+% test just a single wavelength channel
+%inputs.bands2run = find(emit.radiance.wavelength>=1646 & emit.radiance.wavelength<=1654)';
 
 % create the spectral response functions
 spec_response = create_EMIT_specResponse(emit, inputs);
@@ -852,12 +859,6 @@ inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);              
 % ------------------------------------------------------------------------
 
 
-
-% ------------------------------------------------------------------------
-% ---------- Do you want use your custom mie calculation file? -----------
-inputs.RT.use_custom_mie_calcs = false;
-% ------------------------------------------------------------------------
-
 % define the type of droplet distribution
 inputs.RT.distribution_str = 'gamma';
 
@@ -870,23 +871,23 @@ inputs.RT.dist_var = 1;              % distribution variance
 inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 
 % define how ice water content will be computed in the write_ic_file
-inputs.RT.parameterization_str = 'mie';
+inputs.RT.parameterization_str = 'interp';
 
 % define the wavelength used for the optical depth as the 650 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
-inputs.RT.lambda_forTau = 1650;            % nm
+inputs.RT.lambda_forTau = 500;            % nm
 
 
 % ------------------------------------------------------------------------
 % -------------------- Cloud optical properties --------------------------
 % ------------------------------------------------------------------------
 
-% inputs.RT.re = 5:5:25;      % microns
-% inputs.RT.tau_c = [1, 2, 3, 4, 5:5:100];
+inputs.RT.re = 5:10:55;      % microns
+inputs.RT.tau_c = [1, 2, 3, 4, 5:5:100];
 
-inputs.RT.re = 10;      % microns
-inputs.RT.tau_c = 20;
+% inputs.RT.re = 60;      % microns
+% inputs.RT.tau_c = 24.75;
 % ------------------------------------------------------------------------
 
 
@@ -894,16 +895,18 @@ inputs.RT.tau_c = 20;
 % Define the parameterization scheme used to comptue the optical quantities
 % for the INP files, i.e. how should libRadtran compute scattering and
 % optical properties of ice particles
-if inputs.RT.use_custom_mie_calcs==false
-    
-    inputs.RT.ic_parameterization = 'yang2013 interpolate';
 
-    inputs.RT.ic_habit_roughness = 'column_8elements moderate';
+inputs.RT.ic_parameterization = 'yang2013';
 
-else
-    %wc_parameterization = '../data/wc/mie/wc.mie_test.cdf interpolate';
-    inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
-end
+inputs.RT.ic_parameterization_interpolate = true;
+
+% ice habit for yang2013
+inputs.RT.ic_habit = 'column_8elements';     % shape of the ice particles
+
+% ice surface roughness for yang2013
+inputs.RT.ic_habit_roughness = 'moderate';     % roughness can be 'smooth', 'moderate', or 'severe'
+
+
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -987,16 +990,25 @@ lgnd_str = cell(1, length(inputs.RT.re));
 % store the reflectances 
 Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
 
+% compute the middle wavelength of each spectral channel
+wl_mean = mean(inputs.RT.wavelength, 2);      % nm
+
 % Use a moving mean to store smoothed reflectances
-smooth_Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
+% first store the values for the 1600 micron grouping
+idx_1600_group = find(wl_mean<2000);
+smooth_Refl_model_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(idx_1600_group));
+
+% next store the values for the 2100 micron grouping
+idx_2100_group = find(wl_mean>2000);
+smooth_Refl_model_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(idx_2100_group));
 
 % find the wavelength index for the channels closest to 1.7 microns and
 % 1.64 microns
-[~, idx_1700] = min(abs(mean(inputs.RT.wavelength, 2) - 1700));
-[~, idx_1640] = min(abs(mean(inputs.RT.wavelength, 2) - 1640));
+[~, idx_1700] = min(abs(wl_mean(idx_1600_group) - 1700));
+[~, idx_1640] = min(abs( wl_mean(idx_1600_group) - 1640));
 
-% store the spectral shape parameter values
-S = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
+% store the spectral shape parameter values for the 1600 micron grouping
+S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 
 idx = 0;
 
@@ -1022,7 +1034,8 @@ for rr = 1:length(inputs.RT.re)
         % ------------------------------------------------------
         ic_filename = write_ic_file(inputs.RT.re(rr), inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
             inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
-            inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, idx);
+            inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, inputs.RT.ic_parameterization,...
+            inputs.RT.ic_habit, inputs.RT.ic_habit_roughness,idx);
 
         ic_filename = ic_filename{1};
 
@@ -1130,15 +1143,25 @@ for rr = 1:length(inputs.RT.re)
                 % Define the technique or parameterization used to convert ice cloud
                 % properties of r_eff and LWC to optical depth
                 % ----------------------------------------------------------------------
-                formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'ic_properties', inputs.RT.ic_parameterization, ' ', '# optical properties parameterization technique');
+                formatSpec = '%s %s %s %5s %s \n\n';
+                % if interpolating to be exactly on the wavelength grid,
+                % specify 'interpolate'
+                if inputs.RT.ic_parameterization_interpolate==true
+
+                    fprintf(fileID, formatSpec,'ic_properties', inputs.RT.ic_parameterization, 'interpolate', ' ', '# optical properties parameterization technique');
+
+                else
+
+                    fprintf(fileID, formatSpec,'ic_properties', inputs.RT.ic_parameterization, ' ', '# optical properties parameterization technique');
+
+                end
 
 
                 % Define the ice habit and surface roughness according to
                 % Yand et al. (2013)
                 % ----------------------------------------------------------------------
-                formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'ic_habit_yang2013', inputs.RT.ic_habit_roughness, ' ', '# ice habit and roughness');
+                formatSpec = '%s %s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'ic_habit_yang2013', inputs.RT.ic_habit, inputs.RT.ic_habit_roughness, ' ', '# ice habit and roughness');
 
             end
 
@@ -1304,12 +1327,14 @@ for rr = 1:length(inputs.RT.re)
         end
         
         % 4 point running average to smooth the spectra
-        smooth_Refl_model(rr, tc, :) = movmean(Refl_model(rr, tc, :), 4);
+        % smooth each wavelength group seperately
+        smooth_Refl_model_1600(rr, tc, :) = movmean(Refl_model(rr, tc, idx_1600_group), 4);
+        smooth_Refl_model_2100(rr, tc, :) = movmean(Refl_model(rr, tc, idx_2100_group), 4);
 
 
         % compute the spectral shape parameter (Knap et al., 2002; eq 2)
-        S(rr, tc) = 100* (smooth_Refl_model(rr, tc, idx_1700) - smooth_Refl_model(rr, tc, idx_1640))/...
-                            smooth_Refl_model(rr, tc, idx_1640);
+        S_1600(rr, tc) = 100* (smooth_Refl_model_1600(rr, tc, idx_1700) - smooth_Refl_model_1600(rr, tc, idx_1640))/...
+                            smooth_Refl_model_1600(rr, tc, idx_1640);
 
 
     end

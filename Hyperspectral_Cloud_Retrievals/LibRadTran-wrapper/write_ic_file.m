@@ -82,8 +82,10 @@
 %   (8) parameterization_str - a string telling the code which
 %   parameterization to use for computing the mie scattering properties and
 %   optical depth from ice ice content and effective particle radius:
-%       (a) 'mie'
-%       (b)
+%       (a) 'mie' - compute the bulk extinction coeffifient per unit
+%       concentration using mie calcualtions
+%       (b) 'interp' - interpolate the same precomputed table defined by
+%       the ic_properties parameterization
 
 %   (9) index - this is the unique identifier that ensures files are not
 %   written over one another. If one file is created, the index will be 1.
@@ -102,7 +104,7 @@
 %%
 
 function [fileName] = write_ic_file(re, tau_c, z_topBottom, lambda, distribution_type, distribution_var,...
-    vert_homogeneous_str, parameterization_str, index)
+    vert_homogeneous_str, parameterization_str, ic_properties_parameterization, ic_habit, ic_roughness, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -112,10 +114,11 @@ function [fileName] = write_ic_file(re, tau_c, z_topBottom, lambda, distribution
 % depth, and the altitude vector associated with this cloud
 
 
-if nargin~=9
-    error([newline,'Not enough inputs. Need 8: particle effective radius, optical depth, altitude,',...
+if nargin~=12
+    error([newline,'Not enough inputs. Need 12: particle effective radius, optical depth, altitude,',...
         [' wavelength, particle distribution type, variance of the particle distribution,' ...
-        ' homogeneity type, the parameterization used to compute IWC, and the unique file index.'], newline])
+        ' homogeneity type, how to compute IWC, the ic properties parameterization,',...
+        'ice habit, ice habit surface roughness, and the unique file index.'], newline])
 end
 
 % Check to make sure re is the same length as the altitude vector
@@ -236,16 +239,6 @@ if size(re,1)>1 && size(re,2)>1
 
 
 
-    % -------------------------------------------------------------------
-    % ------ open the precomputed mie table and interpolate! ------------
-    % -------------------------------------------------------------------
-
-    % for writing ice cloud files, we only need the extinction efficiency
-    % Since this function is used often, we've created a file with just Q_ext
-
-    justQ = true;                       % Load the precomputed mie table of only Q_ext values
-
-
 
     if strcmp(parameterization_str, 'mie')==true
 
@@ -325,9 +318,179 @@ if size(re,1)>1 && size(re,2)>1
 
         end
 
-    elseif strcmp(parameterization_str,'2limit')==true
-        % set the value to be 2 for all calculations
-        yq = 2*ones(length(re),5);
+    elseif strcmp(parameterization_str,'interp')==true
+
+
+        error([newline, 'This section has never been run before. Check to see if droplet profile is being implemented',...
+            newline])
+
+        % interpolate pre-computed tables based on the ic_properties
+        % parameterization
+
+        % -------------------------------------------------------------------
+        % ------ open the precomputed mie table and interpolate! ------------
+        % -------------------------------------------------------------------
+
+
+
+        % check which ic_properties parameterization was used
+
+        if strcmp(ic_properties_parameterization,'yang2013')==true
+
+            % read in the yang2013 netCDF file for the appropriate
+            % first read in the bulk extinction coefficient per IWC for the
+            % appropriate habit and roughness
+
+            if strcmp(ic_roughness, 'smooth')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'wavelen');                  % microns
+
+                end
+
+            elseif strcmp(ic_roughness, 'moderate')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'wavelen');                   % microns
+
+                end
+
+
+
+            elseif strcmp(ic_roughness, 'severe')==true
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'wavelen');                   % microns
+
+
+                end
+
+
+
+            else
+
+                error([newline, 'I dont understand the input for ice habit surface roughness', newline])
+
+
+
+            end
+
+
+            % interpolate the table to obtain the value of the bulk
+            % extinction coefficient per IWC using the input effective
+            % radius and the wavelength at which the optical depth is
+            % defined
+            ext_bulk_coeff_per_IWC = zeros(size(re));
+
+            [W, R] = meshgrid(wavelen, reff);
+
+            for rr = 1:length(re)
+
+                % convert this to
+                ext_bulk_coeff_per_IWC(rr) = interp2(W, R, bulk_ext_per_iwc, lambda/1000, re(rr), 'linear');        % km^-1 / (g / m^3)
+
+            end
+
+
+
+
+        else
+
+            error([newline, 'I cant find the parameterization files youre looking for!', newline])
+
+        end
+
+
+
+    else
+
+        error([newline, 'How should I compute the bulk extinction coefficient?', newline])
 
     end
 
@@ -350,106 +513,254 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
     % the distribution variance should be a column vector
     distribution_var = reshape(distribution_var, [], 1);
 
-    % -------------------------------------------------------------------
-    % ------ open the precomputed mie table and interpolate! ------------
-    % -------------------------------------------------------------------
 
-    % for writing ice cloud files, we only need the extinction efficiency
-    % Since this function is used often, we've created a file with just Q_ext
-
-    justQ = true;                       % Load the precomputed mie table of only Q_ext values
 
     if strcmp(parameterization_str,'mie')==true
 
 
+
+
+
+        % -------------------------------------------------------
+        % ----------- USE LIBRADTRAN MIE CALCULATIONS -----------
+        % -------------------------------------------------------
+        % Libradtran doesn't compute the efficieny when a distribution
+        % is specified. It computes the bulk coefficient per unit
+        % concentration. For ice, we have to divide by the density,
+        % and then multiply the output with the ice water content
+        % and integrate over the path to get the optical depth.
+
+
+        % What mie code should we use to compute the scattering properties?
+        mie_program = 'MIEV0';               % type of mie algorithm to run
+
+        % This function only deals with  ice clouds
+        % define the index of refraction
+        index_of_refraction = 'ice';
+
         if strcmp(distribution_type,'gamma')==true
-
-            % -------------------------------------------------------------
-            % --- MANUALLY INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED ---
-            % -------------------------------------------------------------
-            % If we wish to estimate the mie properties of  ice
-            % for a distribution of particles, then we can skip the
-            % pre-computed mie tables and estimate the values using the
-            % average_mie_over_size_distribution directly
-
-            % This function only deals with  ice clouds
-            % define the index of refraction
-            %             index_of_refraction = 'ice';
-
-            % this loop applies to a vertical particle profile. For now we
-            % will apply the same distribution variance to each level in
-            % the cloud.
-
-            % integrate over a size distribution to get an average
-            %             [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var,...
-            %                 lambda,index_of_refraction, distribution_type, index);
-
-
-            % -------------------------------------------------------
-            % ----------- USE LIBRADTRAN MIE CALCULATIONS -----------
-            % -------------------------------------------------------
-            % Libradtran doesn't compute the efficieny when a distribution
-            % is specified. It computes the bulk coefficient per unit
-            % concentration. For ice, since the density is 1 g/m^3, we
-            % can simply multiply the output with the  ice content
-            % and integrate over the path to get the optical depth.
-
-
-            % What mie code should we use to compute the scattering properties?
-            mie_program = 'MIEV0';               % type of mie algorithm to run
-
-            % This function only deals with  ice clouds
-            % define the index of refraction
-            index_of_refraction = 'ice';
 
             size_distribution = {'gamma', distribution_var(1)};           % particle distribution
 
-            % Do you want a long or short error file?
-            err_msg_str = 'verbose';
-
-
-
-            % The radius input is defined as [r_start, r_end, r_step].
-            % where r_step is the interval between radii values (used only for
-            % vectors of radii). A 0 tells the code there is no step. Finally, the
-            % radius values have to be in increasing order.
             ext_bulk_coeff_per_IWC = zeros(length(re), 1);
 
-            for rr = 1:length(re)
-
-                mie_radius = [re(rr), re(rr), 0];    % microns
-
-
-                % Create a mie file
-                [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, index);
-
-                % run the mie file
-                [~] = runMIE(mie_folder,input_filename,output_filename);
-
-                % Read the output of the mie file
-                [ds,~,~] = readMIE(mie_folder,output_filename);
-
-                ext_bulk_coeff_per_IWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
-
-            end
-            % --------------------------------------------------------------
-
-
-
-
         elseif strcmp(distribution_type,'mono')==true
-            yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
 
-        else
+            size_distribution = {'mono'};           % particle distribution
 
-            error([newline,'Invaled distribution type',newline])
+            Qext = zeros(length(re), 1);
 
         end
 
-    elseif strcmp(parameterization_str, '2limit')==true
 
-        yq = 2*ones(length(re),5);
+        % Do you want a long or short error file?
+        err_msg_str = 'verbose';
+
+
+
+        % The radius input is defined as [r_start, r_end, r_step].
+        % where r_step is the interval between radii values (used only for
+        % vectors of radii). A 0 tells the code there is no step. Finally, the
+        % radius values have to be in increasing order.
+
+
+        for rr = 1:length(re)
+
+            mie_radius = [re(rr), re(rr), 0];    % microns
+
+
+            % Create a mie file
+            [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
+                mie_radius, lambda, size_distribution, err_msg_str, index);
+
+            % run the mie file
+            [~] = runMIE(mie_folder,input_filename,output_filename);
+
+            % Read the output of the mie file
+            [ds,~,~] = readMIE(mie_folder,output_filename);
+
+
+            if strcmp(distribution_type,'gamma')==true
+
+                ext_bulk_coeff_per_IWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
+
+            elseif strcmp(distribution_type,'mono')==true
+
+                Qext(rr) = ds.Qext;                         % extinction efficiency (unitless)
+
+            end
+
+        end
+        % --------------------------------------------------------------
+
+
+
+    elseif strcmp(parameterization_str,'interp')==true
+
+        error([newline, 'This section has never been run before. Check to see if droplet profile is being implemented',...
+            newline])
+
+        % interpolate pre-computed tables based on the ic_properties
+        % parameterization
+
+        % -------------------------------------------------------------------
+        % ------ open the precomputed mie table and interpolate! ------------
+        % -------------------------------------------------------------------
+
+
+
+        % check which ic_properties parameterization was used
+
+        if strcmp(ic_properties_parameterization,'yang2013')==true
+
+            % read in the yang2013 netCDF file for the appropriate
+            % first read in the bulk extinction coefficient per IWC for the
+            % appropriate habit and roughness
+
+            if strcmp(ic_roughness, 'smooth')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'wavelen');                  % microns
+
+                end
+
+            elseif strcmp(ic_roughness, 'moderate')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'wavelen');                   % microns
+
+                end
+
+
+
+            elseif strcmp(ic_roughness, 'severe')==true
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'wavelen');                   % microns
+
+
+                end
+
+
+
+            else
+
+                error([newline, 'I dont understand the input for ice habit surface roughness', newline])
+
+
+
+            end
+
+
+            % interpolate the table to obtain the value of the bulk
+            % extinction coefficient per IWC using the input effective
+            % radius and the wavelength at which the optical depth is
+            % defined
+            ext_bulk_coeff_per_IWC = zeros(size(re));
+
+            [W, R] = meshgrid(wavelen, reff);
+
+            for rr = 1:length(re)
+
+                % convert this to
+                ext_bulk_coeff_per_IWC(rr) = interp2(W, R, bulk_ext_per_iwc, lambda/1000, re(rr), 'linear');        % km^-1 / (g / m^3)
+
+            end
+
+
+
+
+        else
+
+            error([newline, 'I cant find the parameterization files youre looking for!', newline])
+
+        end
 
     end
 
@@ -468,17 +779,12 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
     % the distribution variance should be a column vector
     distribution_var = reshape(distribution_var, [], 1);
 
-    % -------------------------------------------------------------------
-    % ------ open the precomputed mie table and interpolate! ------------
-    % -------------------------------------------------------------------
 
-    % for writing ice cloud files, we only need the extinction efficiency
-    % Since this function is used often, we've created a file with just Q_ext
 
-    justQ = true;                       % Load the precomputed mie table of only Q_ext values
 
     if strcmp(parameterization_str,'mie')==true
-
+        % compute the bulk extinction coefficients, or the extinction
+        % efficiency, using the libRadtran mie program
 
 
 
@@ -534,22 +840,191 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
                 % Read the output of the mie file
                 [ds,~,~] = readMIE(mie_folder,output_filename);
-                
+
                 % bulk extinction coefficient per unit concentration of ice
-                % particles
+                % particles. More explicitly, it is the bulk extinction
+                % efficiency per unit density of the scattering material
+                % per unit IWC
                 ext_bulk_coeff_per_IWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
 
+
             end
+
+            % convert this to the bulk extinction coefficient per unit
+            % IWC by dividing by the density of ice
+            ext_bulk_coeff_per_IWC = ext_bulk_coeff_per_IWC./rho_ice;   % km^(-1) / (g / m^3)
             % --------------------------------------------------------------
 
 
 
-
-
-        
         else
 
             error([newline,'Invaled distribution type',newline])
+
+        end
+
+
+    elseif strcmp(parameterization_str,'interp')==true
+
+        % interpolate pre-computed tables based on the ic_properties
+        % parameterization
+
+        % -------------------------------------------------------------------
+        % ------ open the precomputed mie table and interpolate! ------------
+        % -------------------------------------------------------------------
+
+
+
+        % check which ic_properties parameterization was used
+
+        if strcmp(ic_properties_parameterization,'yang2013')==true
+
+            % read in the yang2013 netCDF file for the appropriate
+            % first read in the bulk extinction coefficient per IWC for the
+            % appropriate habit and roughness
+
+            if strcmp(ic_roughness, 'smooth')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.000.2.cdf'], 'wavelen');                  % microns
+
+                end
+
+            elseif strcmp(ic_roughness, 'moderate')==true
+
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.003.2.cdf'], 'wavelen');                   % microns
+
+                end
+
+
+
+            elseif strcmp(ic_roughness, 'severe')==true
+
+                % check to see if the wavelength of the defined optical
+                % depth is less than 15.25 microns
+
+                if lambda<15250
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'reff');                     % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.1.cdf'], 'wavelen');                  % microns
+
+                else
+
+                    % read in the bulk extinction coefficient/IWC
+                    bulk_ext_per_iwc = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'ext');                      % km^(-1)/(g/m^3)
+
+                    % read in the effective radius vector
+                    reff = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'reff');                      % microns
+
+                    % read in the wavelength vector
+                    wavelen = ncread([ice_cloud_folder_path, 'yang2013/ic.', ic_habit, ...
+                        '.050.2.cdf'], 'wavelen');                   % microns
+
+
+                end
+
+
+
+            else
+
+                error([newline, 'I dont understand the input for ice habit surface roughness', newline])
+
+
+
+            end
+
+
+            % interpolate the table to obtain the value of the bulk
+            % extinction coefficient per IWC using the input effective
+            % radius and the wavelength at which the optical depth is
+            % defined
+            ext_bulk_coeff_per_IWC = zeros(size(re));
+
+            [W, R] = meshgrid(wavelen, reff);
+
+            for rr = 1:length(re)
+
+                % convert this to
+                ext_bulk_coeff_per_IWC(rr) = interp2(W, R, bulk_ext_per_iwc, lambda/1000, re(rr), 'linear');        % km^-1 / (g / m^3)
+
+            end
+
+
+
+
+        else
+
+            error([newline, 'I cant find the parameterization files youre looking for!', newline])
 
         end
 
@@ -573,13 +1048,10 @@ end
 
 
 
-% grab the extinction efficiency values
+% If we aren't modelling a distribution, we need to grab the extinction efficiency values
 
-if strcmp(distribution_type,'gamma')==true
-%     Qext = Qe_avg';         % Extinction efficiency
-    %Qext = linspace(2.0816, 2.0816, length(re))';        % value to match libRadTran
+if strcmp(distribution_type,'mono')==true
 
-elseif strcmp(distribution_type,'mono')==true
     Qext = reshape(yq(:,3),[],num_files_2write);         % convert this back into a matrix corresponging to re
 
 end
@@ -694,7 +1166,7 @@ for nn = 1:num_files_2write
         % ** Using libRadTran mie calculations with a size distribution ***
         % -----------------------------------------------------------------
         % ** Assuming  ice content increases linearly with depth **
-        
+
         %z_kilometers_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2);       % kilometers - geometric depth at midpoint of each layer
         z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
         dz_km = z(2) - z(1);           % kilometers
@@ -752,13 +1224,8 @@ for nn = 1:num_files_2write
         % --- If there is one cloud layer, this is a homogensous cloud ---
         % ----------------------------------------------------------------
 
-        %Nc = tau_c(nn)./(pi*(H(nn)*1e3)*Qext(nn).*(re(nn)*1e-6).^2);                 % m^(-3) - number concentration
-
         % Compute  ice Content
-        %lic = 4/3 * pi * rho_ice * (re(nn)*1e-6).^3 .* Nc;                  % g/m^3 - grams of ice per meter cubed of air
-
-        % Compute  ice Content
-        iwc = (tau_c(nn) *rho_ice)./(ext_bulk_coeff_per_IWC(nn) .* H(nn));                           % g/m^3 - grams of ice per meter cubed of air
+        iwc = tau_c(nn)./(ext_bulk_coeff_per_IWC(nn) .* H(nn));                           % g/m^3 - grams of ice per meter cubed of air
 
 
         % create the ice cloud file name
@@ -786,7 +1253,7 @@ for nn = 1:num_files_2write
         %iwc = 4/3 * pi * rho_ice * (re(nn)*1e-6).^3 .* Nc;                  % g/m^3 - grams of ice per meter cubed of air
 
         % Compute  ice Content
-        iwc = 4/3 * (re(nn)*1e-6) * rho_ice * tau_c(nn)./...
+        iwc = 4/3 * (re(nn)*1e-6) * tau_c(nn)./...
             (Qext(nn) * (H(nn)*1e3));                                                % g/m^3 - grams of ice per meter cubed of air
 
         % when assuming a di
