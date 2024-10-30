@@ -30,6 +30,10 @@ if strcmp(whatComputer,'anbu8374')==true
     % Define the folder path where all .INP files will be saved
     folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Thermodynamic_phase/'];
 
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
 
     % Define the EMIT data folder path
     emitPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
@@ -48,6 +52,12 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
+     % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/data/'];
+
+
     % Define the EMIT data folder path
     emitPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
@@ -61,6 +71,10 @@ elseif strcmp(whatComputer,'curc')==true
 
     % Define the folder path where all .INP files will be saved
     folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+
+     % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 
     % Define the EMIT data folder path
@@ -501,6 +515,11 @@ for rr = 1:length(inputs.RT.re)
                 formatSpec = '%s %5s %s \n\n';
                 fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
             end
+
+            % Define location of the data files
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,', inputs.RT.band_parameterization,' ', '# Band model');
 
 
             % Define the band model to use
