@@ -147,10 +147,31 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % microns
 %inputs.bands2run = find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)';
 
+
 % define the wavelength channels that cover the range between 1615 and 1730
 % nm and 2140 to 2260 nm
-inputs.bands2run = [find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)',...
-    find(emit.radiance.wavelength>=2140 & emit.radiance.wavelength<=2260)'];
+% inputs.bands2run = [find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)',...
+%     find(emit.radiance.wavelength>=2140 & emit.radiance.wavelength<=2260)'];
+
+
+% define the wavelength channels that cover the range between 1600 and 1750
+% nm and 2100 to 2300 nm
+% inputs.bands2run = [find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+
+
+% define the wavelength channels that cover the range between100 and 1100, 1600 and 1750
+% nm and 2100 to 2300 nm
+% inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
+%     find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+
+
+% Compute all wavelengths above 900 nm
+% inputs.bands2run = find(emit.radiance.wavelength>=900)';
+
+% plot all EMIT wavelengths
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
@@ -247,18 +268,19 @@ inputs.RT.parameterization_str = 'mie';
 % define the wavelength used for the optical depth as the 650 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
-inputs.RT.lambda_forTau = 1650;            % nm
+inputs.RT.lambda_forTau = 500;            % nm
 
 
 % ------------------------------------------------------------------------
 % -------------------- Cloud optical properties --------------------------
 % ------------------------------------------------------------------------
 
-inputs.RT.re = 5:5:25;      % microns
-inputs.RT.tau_c = [1, 2, 3, 4, 5:5:100];
+% inputs.RT.re = 5:5:25;      % microns
+% inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
-% inputs.RT.re = 10;      % microns
-% inputs.RT.tau_c = 20;
+inputs.RT.re = 15;      % microns
+inputs.RT.tau_c = [10];
+
 
 % ------------------------------------------------------------------------
 
@@ -360,9 +382,15 @@ Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT
 % compute the middle wavelength of each spectral channel
 wl_mean = mean(inputs.RT.wavelength, 2);      % nm
 
+
+% Use a moving mean to store smoothed reflectances
+% first store the values for the 1000 micron grouping
+inputs.idx_1000_group = find(wl_mean<=1100);
+smooth_Refl_model_1000 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(inputs.idx_1000_group));
+
 % Use a moving mean to store smoothed reflectances
 % first store the values for the 1600 micron grouping
-inputs.idx_1600_group = find(wl_mean<2000);
+inputs.idx_1600_group = find(wl_mean>1600 & wl_mean<1800);
 smooth_Refl_model_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(inputs.idx_1600_group));
 
 % next store the values for the 2100 micron grouping
@@ -373,8 +401,9 @@ smooth_Refl_model_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), le
 
 % find the wavelength index for the channels closest to 1.7 microns and
 % 1.64 microns
-[~, inputs.idx_1714] = min(abs(wl_mean - 1714));
-[~, inputs.idx_1625] = min(abs(wl_mean - 1625));
+[~, inputs.idx_1714] = min(abs(wl_mean(inputs.idx_1600_group) - 1714));
+[~, inputs.idx_1625] = min(abs(wl_mean(inputs.idx_1600_group) - 1625));
+
 
 % store the spectral shape parameter values for the 1600 micron grouping
 S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
@@ -383,13 +412,9 @@ S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 
 % find the wavelength index for the channels closest to 2.2 microns and
 % 2.15 microns
-[~, inputs.idx_2240] = min(abs(wl_mean - 2240));
-[~, inputs.idx_2160] = min(abs(wl_mean - 2160));
+[~, inputs.idx_2240] = min(abs(wl_mean(inputs.idx_2100_group) - 2240));
+[~, inputs.idx_2160] = min(abs(wl_mean(inputs.idx_2100_group) - 2160));
 
-% need to subtract the number of spectral channels associated with the
-% first group
-inputs.idx_2240 = inputs.idx_2240 - length(inputs.idx_1600_group);
-inputs.idx_2160 = inputs.idx_2160 - length(inputs.idx_1600_group);
 
 % store the spectral shape parameter values for the 2100 micron grouping
 S_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
@@ -692,6 +717,7 @@ for rr = 1:length(inputs.RT.re)
 
         % 4 point running average to smooth the spectra
         % smooth each wavelength group seperately
+        smooth_Refl_model_1000(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1000_group), 4);
         smooth_Refl_model_1600(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1600_group), 4);
         smooth_Refl_model_2100(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_2100_group), 4);
 
@@ -735,8 +761,8 @@ end
 
 % save(filename,"inputs", "Refl_model", "smooth_Refl_model", "S");
 % save(filename,"inputs", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100", "S_1600");
-save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100",...
-    "S_1600", "S_2100");
+save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
+    "smooth_Refl_model_2100", "S_1600", "S_2100");
 
 
 
@@ -776,18 +802,18 @@ set(gcf, 'Position', [0 0 1000 1000])
 legend(lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 title('Vertically homogenous liquid water clouds','Interpreter', 'latex')
 
-% plot the L2 norm of the two spectral shapes
+% plot the sum of the two spectral shapes
 
 figure;
 for rr = 1:length(inputs.RT.re)
 
-    plot(inputs.RT.tau_c, sqrt(S_1600(rr,:).^2 + S_2100(rr,:).^2), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
+    plot(inputs.RT.tau_c, S_1600(rr,:) + S_2100(rr,:), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
     hold on;
 end
 
 grid on; grid minor
 xlabel('Optical Depth','Interpreter', 'latex')
-ylabel('L2 norm of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
+ylabel('Sum of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
 legend(lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 title('Vertically homogenous liquid water clouds','Interpreter', 'latex')
@@ -795,18 +821,18 @@ title('Vertically homogenous liquid water clouds','Interpreter', 'latex')
 
 %% Plot a spectrum of reflectance and overlay the smoothed spectrum on top
 
-re_2plot = 10; % microns
-tau_2plot = 20;
+re_2plot = 15; % microns
+tau_2plot = 10;
 
 % check to see if there are two wavelength groups
 if size(inputs.RT.wavelength, 1)<=27
 
     figure;
-    plot(wl_mean, reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean, reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
     grid on; grid minor
     hold on
-    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
     xlabel('Wavelength (nm)','Interpreter', 'latex')
     ylabel('Reflectance (1/sr)','Interpreter', 'latex')
@@ -816,40 +842,82 @@ if size(inputs.RT.wavelength, 1)<=27
         num2str(tau_2plot)], 'Interpreter', 'latex')
 
 
-else
+elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength, 1)<285
 
     % plot the two wavelength groups
     figure;
-    plot(wl_mean(inputs.idx_1600_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, inputs.idx_1600_group), [], 1),...
+
+    plot(wl_mean(inputs.idx_1000_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_1000_group), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
 
     hold on
 
-    plot(wl_mean(inputs.idx_2100_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, inputs.idx_2100_group), [], 1),...
+    plot(wl_mean(inputs.idx_1600_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_1600_group), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
 
-    grid on; grid minor
+
+
+    plot(wl_mean(inputs.idx_2100_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_2100_group), [], 1),...
+        '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
+
+    
 
     % plot the smoothed reflectance
-    plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :),[], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
 
-    hold on
-
-    plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :),[], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
 
 
 
+    plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :), [], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+    grid on; grid minor
     xlabel('Wavelength (nm)','Interpreter', 'latex')
     ylabel('Reflectance (1/sr)','Interpreter', 'latex')
     set(gcf, 'Position', [0 0 1000 1000])
-    legend('Reflectance', '', '4-point moving average', 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+    legend('Reflectance', '', '', '4-point moving average', 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+    title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
+    num2str(tau_2plot)], 'Interpreter', 'latex')
+
+
+elseif size(inputs.RT.wavelength,1)==285
+
+    figure;
+
+    plot(wl_mean, reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
+        '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
+
+    hold on
+
+    plot(wl_mean, movmean(reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
+        4), '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+
+    grid on; grid minor
+    xlabel('Wavelength (nm)','Interpreter', 'latex')
+    ylabel('Reflectance (1/sr)','Interpreter', 'latex')
+    set(gcf, 'Position', [0 0 1000 1000])
+    legend('Reflectance', '', '', '4-point moving average', 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
     title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
         num2str(tau_2plot)], 'Interpreter', 'latex')
 
 
+
 end
+
+
+
+
+
 
 
 %%
@@ -922,8 +990,27 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % define the wavelength channels that cover the range between 1615 and 1730
 % nm and 2140 to 2260 nm
-inputs.bands2run = [find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)',...
-    find(emit.radiance.wavelength>=2140 & emit.radiance.wavelength<=2260)'];
+% inputs.bands2run = [find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)',...
+%     find(emit.radiance.wavelength>=2140 & emit.radiance.wavelength<=2260)'];
+
+
+% define the wavelength channels that cover the range between 1600 and 1750
+% nm and 2100 to 2300 nm
+% inputs.bands2run = [find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+
+
+% define the wavelength channels that cover the range between100 and 1100, 1600 and 1750
+% nm and 2100 to 2300 nm
+% inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
+%     find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+
+
+
+% plot all EMIT wavelengths
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+% ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
 % test just a single wavelength channel
@@ -1022,11 +1109,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % -------------------- Cloud optical properties --------------------------
 % ------------------------------------------------------------------------
 
-inputs.RT.re = 5:10:55;      % microns
-inputs.RT.tau_c = [1, 2, 3, 4, 5:5:100];
+% inputs.RT.re = 5:10:55;      % microns
+% inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
-% inputs.RT.re = 60;      % microns
-% inputs.RT.tau_c = 24.75;
+inputs.RT.re = 5;      % microns
+inputs.RT.tau_c = [3];
 % ------------------------------------------------------------------------
 
 
@@ -1133,13 +1220,20 @@ Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT
 wl_mean = mean(inputs.RT.wavelength, 2);      % nm
 
 % Use a moving mean to store smoothed reflectances
+% first store the values for the 1000 micron grouping
+inputs.idx_1000_group = find(wl_mean<=1100);
+smooth_Refl_model_1000 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(inputs.idx_1000_group));
+
+% Use a moving mean to store smoothed reflectances
 % first store the values for the 1600 micron grouping
-inputs.idx_1600_group = find(wl_mean<2000);
+inputs.idx_1600_group = find(wl_mean>1600 & wl_mean<1800);
 smooth_Refl_model_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(inputs.idx_1600_group));
 
 % next store the values for the 2100 micron grouping
 inputs.idx_2100_group = find(wl_mean>2000);
 smooth_Refl_model_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), length(inputs.idx_2100_group));
+
+
 
 % find the wavelength index for the channels closest to 1.7 microns and
 % 1.64 microns
@@ -1151,13 +1245,10 @@ S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 
 % find the wavelength index for the channels closest to 2.2 microns and
 % 2.15 microns
-[~, inputs.idx_2240] = min(abs(wl_mean - 2240));
-[~, inputs.idx_2160] = min(abs(wl_mean - 2160));
+[~, inputs.idx_2240] = min(abs(wl_mean(inputs.idx_2100_group) - 2240));
+[~, inputs.idx_2160] = min(abs(wl_mean(inputs.idx_2100_group) - 2160));
 
-% need to subtract the number of spectral channels associated with the
-% first group
-inputs.idx_2240 = inputs.idx_2240 - length(inputs.idx_1600_group);
-inputs.idx_2160 = inputs.idx_2160 - length(inputs.idx_1600_group);
+
 
 % store the spectral shape parameter values for the 2100 micron grouping
 S_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
@@ -1480,6 +1571,7 @@ for rr = 1:length(inputs.RT.re)
 
         % 4 point running average to smooth the spectra
         % smooth each wavelength group seperately
+        smooth_Refl_model_1000(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1000_group), 4);
         smooth_Refl_model_1600(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1600_group), 4);
         smooth_Refl_model_2100(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_2100_group), 4);
 
@@ -1522,8 +1614,9 @@ while isfile(filename)
         '_rev', num2str(rev),'.mat'];
 end
 
-save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100",...
-    "S_1600", "S_2100");
+save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
+    "smooth_Refl_model_2100", "S_1600", "S_2100");
+
 
 toc
 
@@ -1579,8 +1672,8 @@ title('Vertically homogenous Ice clouds','Interpreter', 'latex')
 
 %% Plot a spectrum of reflectance and overlay the smoothed spectrum on top
 
-re_2plot = 15; % microns
-tau_2plot = 20;
+re_2plot = 5; % microns
+tau_2plot = 3;
 
 wl_mean = mean(inputs.RT.wavelength,2);
 
@@ -1588,11 +1681,11 @@ wl_mean = mean(inputs.RT.wavelength,2);
 if length(wl_mean)<=27
 
     figure;
-    plot(wl_mean, reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean, reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
     grid on; grid minor
     hold on
-    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
     xlabel('Wavelength (nm)','Interpreter', 'latex')
     ylabel('Reflectance (1/sr)','Interpreter', 'latex')
@@ -1606,23 +1699,39 @@ else
 
     % plot the two wavelength groups
     figure;
-    plot(wl_mean(inputs.idx_1600_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, inputs.idx_1600_group), [], 1),...
+
+    plot(wl_mean(inputs.idx_1000_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_1000_group), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
 
     hold on
 
-    plot(wl_mean(inputs.idx_2100_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, inputs.idx_2100_group), [], 1),...
+    plot(wl_mean(inputs.idx_1600_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_1600_group), [], 1),...
+        '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
+
+
+    plot(wl_mean(inputs.idx_2100_group), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot,...
+        inputs.idx_2100_group), [], 1),...
         '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'))
 
     grid on; grid minor
 
+
     % plot the smoothed reflectance
-    plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :),[], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
 
     hold on
 
-    plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(inputs.RT.re==re_2plot, inputs.RT.tau_c==20, :), [], 1),...
+    plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :),[], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+
+    plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :), [], 1),...
         '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
 
 
@@ -1646,20 +1755,38 @@ end
 
 
 
-%% Plot both the spectral shapes for ice and liquid water clouds
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Plot the 1600 micron group spectral shapes for ice and liquid water clouds
 
 
 clear variables
 
 % load water spectral shape parameter
 load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
-    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-23-Oct-2024_rev6.mat'])
+    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-25-Oct-2024_rev8.mat'])
 
 % plot the combined spectral shape for water
 figure;
 for rr = 1:length(inputs.RT.re)
 
-    semilogx(inputs.RT.tau_c, (S_1600(rr,:) + S_2100(rr,:)), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
+    semilogx(inputs.RT.tau_c, (S_1600(rr,:)), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
     hold on;
 
     % add 'liquid' to the legend string
@@ -1674,12 +1801,12 @@ hold on;
 
 % load Ice spectral shape parameter
 load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
-    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-23-Oct-2024_rev1.mat'])
+    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-25-Oct-2024_rev2.mat'])
 
 % plot the combined spectral shape for water
 for rr = 1:length(inputs.RT.re)
 
-    semilogx(inputs.RT.tau_c, (S_1600(rr,:) + S_2100(rr,:)), '*-', 'linewidth', 2, 'markersize', 17, 'Color', mySavedColors(rr, 'fixed'))
+    semilogx(inputs.RT.tau_c, (S_1600(rr,:)), '*-', 'linewidth', 2, 'markersize', 17, 'Color', mySavedColors(rr, 'fixed'))
     hold on;
 
     % add 'liquid' to the legend string
@@ -1688,19 +1815,103 @@ end
 
 grid on; grid minor
 xlabel('Optical Depth','Interpreter', 'latex')
-ylabel('Sum of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
+ylabel('Spectral Shape Parameter around 1650 $nm$ (\%)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
 legend(new_lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 
-
-%% Plot reflectances of ice and water clouds at both spectral regions on the same plot
+%% Plot the combined spectral shapes for ice and liquid water clouds
 
 
 clear variables
 
 % load water spectral shape parameter
 load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
-    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-23-Oct-2024_rev6.mat'])
+    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-25-Oct-2024_rev8.mat'])
+
+S_sum_liquid = (S_1600 + S_2100);
+
+S_liquid_max = max(S_sum_liquid, [], 'all');
+S_liquid_min = min(S_sum_liquid, [], 'all');
+
+
+
+% plot the combined spectral shape for water
+figure;
+
+
+% Overlay a transparent box bounded in the y-axis by the max and min
+% Spectral shape parameter values for liquid water
+
+% define a vector of x and y coordinates based on the min and max values of
+% the liquid water cloud
+x = [inputs.RT.tau_c(1), inputs.RT.tau_c(1), inputs.RT.tau_c(end), inputs.RT.tau_c(end), inputs.RT.tau_c(1)];
+y = [S_liquid_max, S_liquid_min, S_liquid_min, S_liquid_max, S_liquid_max];
+
+liquid_region = polyshape(x,y);
+
+hold on;
+pg = plot(liquid_region);
+pg.FaceAlpha = 0.25;
+pg.FaceColor = mySavedColors(15, 'fixed');
+pg.EdgeAlpha = 0;
+
+
+new_lgnd_str{1} = '';
+
+for rr = 1:length(inputs.RT.re)
+
+    semilogx(inputs.RT.tau_c, S_sum_liquid(rr,:), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
+    hold on;
+
+    % add 'liquid' to the legend string
+    new_lgnd_str{rr+1} = ['Liquid - ', lgnd_str{rr}];
+end
+
+
+
+
+hold on;
+
+
+% load Ice spectral shape parameter
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-25-Oct-2024_rev2.mat'])
+
+S_sum_ice = (S_1600 + S_2100);
+
+S_ice_max = max(S_sum_ice, [], 'all');
+S_ice_min = max(S_sum_ice, [], 'all');
+
+
+% plot the combined spectral shape for water
+for rr = 1:length(inputs.RT.re)
+
+    semilogx(inputs.RT.tau_c, S_sum_ice(rr, :), '*-', 'linewidth', 2, 'markersize', 17, 'Color', mySavedColors(rr, 'fixed'))
+    hold on;
+
+    % add 'liquid' to the legend string
+    new_lgnd_str{rr +6} = ['Ice - ', lgnd_str{rr}];
+end
+
+grid on; grid minor
+xlabel('Optical Depth','Interpreter', 'latex')
+ylabel('Sum of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
+set(gcf, 'Position', [0 0 1000 1000])
+legend(new_lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+set(gca, 'XScale', 'log')
+
+
+
+
+
+%% Plot reflectances of ice and water clouds at both spectral regions on the same plot for a single cloud
+
+
+clear variables
+
+% load water spectral shape parameter
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-23-Oct-2024_rev7.mat'])
 
 
 
@@ -1735,7 +1946,7 @@ end
 
 % load Ice cloud reflectances
 load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
-    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-23-Oct-2024_rev1.mat'])
+    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-23-Oct-2024_rev2.mat'])
 
 
 re_2plot_ice = 15; % microns
@@ -1771,6 +1982,185 @@ set(gcf, 'Position', [0 0 1000 1000])
 legend(['Liquid - $r_e = $', num2str(re_2plot_liquid), ' $\mu m$, $\tau_c = $',...
     num2str(tau_2plot_liquid)], '', ['Ice - $r_e = $', num2str(re_2plot_ice), ' $\mu m$, $\tau_c = $',...
     num2str(tau_2plot_ice)], 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+title(['Simulated EMIT Reflectance for Cloudy Scenes'], 'Interpreter', 'latex')
+
+
+
+
+
+%% Plot the ratio of reflectance at 1000 microns between an ice cloud and a liquid water cloud
+
+
+% Do this for optical depths in the overlap area. Tau_c = 1:4
+
+
+
+
+
+
+%% Plot reflectances of ice and water clouds at both spectral regions on the same plot for multiple clouds
+
+
+clear variables
+
+% ***---*** LIQUID WATER CLOUDS ***---***
+% load water spectral shape parameter
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-30-Oct-2024_rev1.mat'])
+
+
+clear lgnd_str
+
+num_tau = length(inputs.RT.tau_c);
+
+new_lgnd_str = {};
+    
+figure;
+
+% re_2plot_liquid = 10; % microns
+% tau_2plot_liquid = 20;
+
+% plot the smoothed reflectances for water
+% check to see if there are two wavelength groups
+if size(inputs.RT.wavelength, 1)<=27
+
+
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot_liquid, inputs.RT.tau_c==tau_2plot_liquid, :), [], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(3, 'fixed'))
+
+
+elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength,1)<285
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+        % plot the smoothed reflectance
+        plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+        hold on
+
+        plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+        new_lgnd_str{end+1} = ['Liquid - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+        % skip the next two legend entry
+        new_lgnd_str{end+1} = '';
+        new_lgnd_str{end+1} = '';
+
+    end
+
+
+elseif size(inputs.RT.wavelength,1)==285
+
+    % This means all of the EMIT spectral channels were used. Plot the
+    % entire spectrum
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+        % plot the smoothed reflectance
+        plot(wl_mean, movmean(reshape(Refl_model(:, tt, :), [], 1), 4),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+        
+        hold on
+
+        new_lgnd_str{tt} = ['Liquid - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+
+
+    end
+
+end
+
+
+
+% ***---*** ICE CLOUDS ***---***
+% load Ice cloud reflectances
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-30-Oct-2024_rev2.mat'])
+
+
+
+% % skip n spaces in the new_lgnd_str
+% for nn = 1:num_tau
+% 
+%     new_lgnd_str{end+1} = '';
+% 
+% end
+
+% re_2plot_ice = 15; % microns
+% tau_2plot_ice = 20;
+
+if size(inputs.RT.wavelength,1)<=27
+
+
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot_ice, inputs.RT.tau_c==tau_2plot_ice, :), [], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(4, 'fixed'))
+
+
+elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength,1)<285
+
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+
+        % plot the smoothed reflectance
+        plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        hold on
+
+
+        plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+        new_lgnd_str{end +1} = ['Ice (Columns) - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+        % skip the next two legend entry
+        new_lgnd_str{end+1} = '';
+        new_lgnd_str{end+1} = '';
+
+    end
+
+
+    elseif size(inputs.RT.wavelength,1)==285
+
+    % This means all of the EMIT spectral channels were used. Plot the
+    % entire spectrum
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+        % plot the smoothed reflectance
+        plot(wl_mean, movmean(reshape(Refl_model(:, tt, :), [], 1), 4),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(1, 'fixed'))
+        
+        hold on
+
+        new_lgnd_str{tt + num_tau} = ['Ice (Columns) - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+
+
+    end
+
+end
+
+grid on; grid minor
+xlabel('Wavelength (nm)','Interpreter', 'latex')
+ylabel('Reflectance (1/sr)','Interpreter', 'latex')
+set(gcf, 'Position', [0 0 1000 1000])
+legend(new_lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 title(['Simulated EMIT Reflectance for Cloudy Scenes'], 'Interpreter', 'latex')
 
 
