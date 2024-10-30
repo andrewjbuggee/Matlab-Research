@@ -56,12 +56,11 @@ elseif strcmp(whatComputer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/EMIT/thermodynamic_phase/'];
+    folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = '/scratch/alpine/anbu8374/EMIT_reflectance_uniqueness/';
+    folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
 
 
     % Define the EMIT data folder path
