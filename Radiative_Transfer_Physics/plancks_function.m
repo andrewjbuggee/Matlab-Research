@@ -36,6 +36,7 @@
 % The units of the output depends on the defined independent variable units
 
 % (1) radiance - units are in watts/m^2/nm/sr
+% or             units are in watts/m^2/micron/sr
 % or             units are in watts/m^2/Hz/sr
 % or             units are in watts/m^2/cm^{-1}/sr
                     
