@@ -7,7 +7,16 @@
 
 function [username] = whatComputer()
 
+% check the username of the computer
 [status,username] = system('whoami');
+
+% check the current working directory
+[~,test] = system('pwd');
+
+% Check the kernal name and version. This will help determine if you're on
+% the supercomputer or not
+[~, OS] = system('uname -sr');
+
 
 username = username(1:end-1);
 
@@ -21,6 +30,27 @@ elseif strcmp(username, 'anbu8374')==true && strcmp(matlabroot, '/scratch/local/
 
     % Then were on the super computer! Change the username to reflect this
     username = 'curc';
+
+
+elseif strcmp(username, 'anbu8374')==true && strcmp(matlabroot, '/curc/sw/matlab/R2021b')==true
+
+    % Then were on the super computer! Change the username to reflect this
+    username = 'curc';
+
+
+
+elseif strcmp(username, 'andrewbuggee')==true && strcmp(matlabroot, '/scratch/local/MATLAB/R2021b')==true
+
+    % Then were on the super computer! Change the username to reflect this
+    username = 'curc';
+
+
+elseif strcmp(username, 'andrewbuggee')==true && strcmp(matlabroot, '/curc/sw/matlab/R2021b')==true
+
+    % Then were on the super computer! Change the username to reflect this
+    username = 'curc';
+
+    
 
 end
 
