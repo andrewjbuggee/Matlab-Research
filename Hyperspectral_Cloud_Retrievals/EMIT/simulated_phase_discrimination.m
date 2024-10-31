@@ -67,12 +67,19 @@ elseif strcmp(whatComputer,'curc')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    
 
 
     % Define the folder path where all .INP files will be saved
     folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    % If the folder path doesn't exit, create a new directory
+    if ~exist(folderpath_inp, 'dir')
 
-     % Define the libRadtran data files path. All paths must be absolute in
+        mkdir(folderpath_inp)
+        
+    end
+
+    % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
     libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
@@ -80,10 +87,7 @@ elseif strcmp(whatComputer,'curc')==true
     % Define the EMIT data folder path
     emitPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
-    if ~exist(folderpath_inp, 'dir')
-
-        mkdir(folderpath_inp)
-    end
+    
 
 
 
