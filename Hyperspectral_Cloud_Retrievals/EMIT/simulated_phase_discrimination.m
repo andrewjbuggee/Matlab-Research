@@ -519,7 +519,7 @@ for rr = 1:length(inputs.RT.re)
             % Define location of the data files
             % ------------------------------------------------
             formatSpec = '%s %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,', inputs.RT.band_parameterization,' ', '# Band model');
+            fprintf(fileID, formatSpec,'data_files_path', libRadtran_data_path, ' ', '# Location of libRadtran data files');
 
 
             % Define the band model to use
@@ -531,8 +531,8 @@ for rr = 1:length(inputs.RT.re)
 
             % Define the location and filename of the atmopsheric profile to use
             % ------------------------------------------------
-            formatSpec = '%s %5s %s \n';
-            fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/', inputs.RT.atm_file],...
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'atmosphere_file ', [libRadtran_data_path, 'atmmod/', inputs.RT.atm_file],...
                 ' ', '# Location of atmospheric profile');
 
             % Define the location and filename of the extraterrestrial solar source
@@ -555,7 +555,7 @@ for rr = 1:length(inputs.RT.re)
                 % Define the water cloud file
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n';
-                fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename], ' ', '# Location of water cloud file');
+                fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/',wc_filename], ' ', '# Location of water cloud file');
 
                 % Define the percentage of horizontal cloud cover
                 % This is a number between 0 and 1
