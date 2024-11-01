@@ -307,7 +307,10 @@ inputs.RT.tau_c = [10];
 % within the INP file, i.e. what function call that tells libRadtran how to
 % compute scattering and optical quantities
 if inputs.RT.use_custom_mie_calcs==false
-    inputs.RT.wc_parameterization = 'mie interpolate';
+
+    %inputs.RT.wc_parameterization = 'mie interpolate';
+    inputs.RT.wc_parameterization = 'hu';
+
 else
     %wc_parameterization = '../data/wc/mie/wc.mie_test.cdf interpolate';
     inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
