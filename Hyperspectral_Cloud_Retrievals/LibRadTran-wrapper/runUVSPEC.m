@@ -454,10 +454,16 @@ elseif strcmp('curc', usrName)
     % new terminal window is open, the modules need to be loaded.
     cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline,...
         'ml netcdf/4.8.1', newline, 'ml perl/5.36.0', newline, 'ml texlive/2021',...
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...
-        newline, 'export PATH=', folderName_INP_OUT,':$PATH'];
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...         % add libRadtran to the path
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...    % add libRadtran data files to the path
+        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...     % add uvspec location to the path
+        newline, 'export PATH=', folderName_INP_OUT,':$PATH',...                            % add inp/out file locations to the path
+        newline, 'export GSL_BIN=/projects/$USER/software/gsl-2.6/bin',...                  % define the binary file location for the GSL pacakge for libRadtran to find
+        newline, 'export GSL_LIB=/projects/$USER/software/gsl-2.6/lib',...                  % define the library folder for the GSL package for libRadtran to fine
+        newline, 'export GSL_INC=/projects/$USER/software/gsl-2.6/include',...              % define pointer for libRadtran to find the GSL pacakge
+        newline, 'export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH',...                     % define the install library path for libRadtran
+        newline, 'export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5',...         % define the install directory
+        newline, 'export PATH=$GSL_BIN:$PATH'];                                             % add the GSL binary files location to the path
 
 end
 
