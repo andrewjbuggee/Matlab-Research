@@ -911,7 +911,7 @@ elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength, 1)<285
     set(gcf, 'Position', [0 0 1000 1000])
     legend('Reflectance', '', '', '4-point moving average', 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
     title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
-    num2str(tau_2plot)], 'Interpreter', 'latex')
+        num2str(tau_2plot)], 'Interpreter', 'latex')
 
 
 elseif size(inputs.RT.wavelength,1)==285

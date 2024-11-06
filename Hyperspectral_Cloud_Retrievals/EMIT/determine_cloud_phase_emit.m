@@ -9,6 +9,12 @@
 function [cloud_phase] = determine_cloud_phase_emit(emit, pixels2use)
 
 
+% set a reflectance threshold at 500nm, below which we will consider the
+% cloud to thin to decisively determine cloud phase
+R_500nm_limit = 0.3;        % 1/sr
+
+        
+
 % define the number of pixels (independent spetra) being analysed
 n_pix = length(pixels2use.idx);
 
@@ -81,7 +87,7 @@ R_2240 = zeros(length(pixels2use.idx));
 %% Step through each pixel and compute the smoothed reflectance, and spectral shape parameter
 
 % compute the n-point moving average of the reflectance
-n = 4;
+n_avg = 4;
 
 
 % step through each pixel
@@ -90,8 +96,8 @@ for pp = 1:length(pixels2use.idx)
 
 % Compute the smoothed reflectance over 1700 and 2200 nm
 % By smoothing, we remove small extinction features
-smooth_Refl_model_1700(:, pp) = movmean(emit.radiance.measurement(idx_1700_group, pp), n);
-smooth_Refl_model_2200(:, pp) = movmean(emit.radiacen.measurement(idx_2200_group, pp), n);
+smooth_Refl_model_1700(:, pp) = movmean(emit.radiance.measurement(idx_1700_group, pp), n_avg);
+smooth_Refl_model_2200(:, pp) = movmean(emit.radiacen.measurement(idx_2200_group, pp), n_avg);
 
 
 % store the reflectance at the higher points of the spectral shape
@@ -115,12 +121,43 @@ S_2200(pp) = 100* (smooth_Refl_model_2200(idx_2240, pp) - smooth_Refl_model_2200
 end
 
 
+% Sum the two shape parameters together
+S = S_1700 + S_2200;
+
+
 %% Use stored look-up tables to discern the thermodynamic phase
 
 % Let's compute the L2 norm difference between the two spectral shape
 % parameters and the two reflectances. 
 
 % With each 
+
+
+
+%% Let's use a very simply metric to determine if the cloud is composed of liquid droplets or solid particles
+
+% phase identifier:
+%   0 - cloud may be too thin for phase discrimination
+%   1 - cloud is composed of liquid water droplets
+%   2 - cloud is composed of ice particles
+
+
+% if S is below 3.5, it is likely composed of liquid water droplets
+% if S is greater than 3.5, it is likely composed of ice particles
+liquid_solid_threshold = 3.5;
+
+cloud_phase = zeros(1, length(pixels2use.idx));
+
+% define the pixels that are associated with liquid water clouds
+cloud_phase(S <= liquid_solid_threshold) = 1;
+
+% define the pixels that are associated with iceclouds
+cloud_phase(S > liquid_solid_threshold) = 1;
+
+% All remaining values are undefined becase of a small reflectance at
+% 500nm, indicating an optically thin cloud
+
+
 
 
 end
