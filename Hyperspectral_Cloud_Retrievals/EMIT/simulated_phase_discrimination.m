@@ -219,7 +219,7 @@ inputs.RT.use_nakajima_phaseCorrection = true;
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-inputs.RT.band_parameterization = 'reptran coarse';
+inputs.RT.band_parameterization = 'reptran fine';
 % ------------------------------------------------------------------------
 
 
