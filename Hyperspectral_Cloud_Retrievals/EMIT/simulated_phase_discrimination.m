@@ -50,7 +50,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the folder path where all .INP files will be saved
     folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+        'LibRadTran/libRadtran-2.0.4/Thermodynamic_phase/'];
 
      % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -102,7 +102,7 @@ end
 % Pick any emit data set and pixel. We don't care about the data
 
 % -------------------------------------
-% ------- PICK EMIT DATA SET  --------
+% ------- PICK EMIT DATA SET  ---------
 % -------------------------------------
 
 emitFolder = '17_Jan_2024_coast/';
@@ -177,18 +177,18 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
 
-% define the wavelength channels that cover the range between100 and 1100, 1600 and 1750
+% define the wavelength channels that cover the range between 1000 and 1100, 1600 and 1750
 % nm and 2100 to 2300 nm
-% inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
-%     find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
-%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
+    find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+    find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
 
 % Compute all wavelengths above 900 nm
 % inputs.bands2run = find(emit.radiance.wavelength>=900)';
 
 % plot all EMIT wavelengths
-inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+% inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
@@ -308,8 +308,8 @@ inputs.RT.tau_c = [10];
 % compute scattering and optical quantities
 if inputs.RT.use_custom_mie_calcs==false
 
-    %inputs.RT.wc_parameterization = 'mie interpolate';
-    inputs.RT.wc_parameterization = 'hu';
+    inputs.RT.wc_parameterization = 'mie interpolate';
+    %inputs.RT.wc_parameterization = 'hu';
 
 else
     %wc_parameterization = '../data/wc/mie/wc.mie_test.cdf interpolate';
@@ -467,7 +467,7 @@ for rr = 1:length(inputs.RT.re)
         wc_filename = wc_filename{1};
 
 
-        parfor ww = 1:size(inputs.RT.wavelength, 1)
+        for ww = 1:size(inputs.RT.wavelength, 1)
 
 
             disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...

@@ -54,6 +54,14 @@ else
     
 end
 
+% Check to see if the data structure is empty
+if isempty(data)==true
+    
+    error([newline, 'Data structure is empty! Check the .OUT file.', newline])
+
+end
+
+
 %% ----- Unpack the Input Settings -----
 
 if numFiles2Read>1
