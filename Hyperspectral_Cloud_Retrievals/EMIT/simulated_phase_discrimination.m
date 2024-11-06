@@ -179,10 +179,12 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % define the wavelength channels that cover the range between 1000 and 1100, 1600 and 1750
 % nm and 2100 to 2300 nm
-inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
-    find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
-    find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
+% inputs.bands2run = [find(emit.radiance.wavelength>=1000 & emit.radiance.wavelength<=1100)',...
+%     find(emit.radiance.wavelength>=1600 & emit.radiance.wavelength<=1750)',...
+%     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
+% Only compute reflectance at 500 nm
+inputs.banes2run = min(abs(emit.radiance.wavelength - 500));
 
 % Compute all wavelengths above 900 nm
 % inputs.bands2run = find(emit.radiance.wavelength>=900)';
