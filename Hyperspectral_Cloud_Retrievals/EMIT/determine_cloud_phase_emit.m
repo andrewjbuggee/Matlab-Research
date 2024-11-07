@@ -11,9 +11,9 @@ function [cloud_phase] = determine_cloud_phase_emit(emit, pixels2use)
 
 % set a reflectance threshold at 500nm, below which we will consider the
 % cloud to thin to decisively determine cloud phase
-R_500nm_limit = 0.3;        % 1/sr
+R_500nm_limit = 0.28;        % 1/sr
 
-        
+
 
 % define the number of pixels (independent spetra) being analysed
 n_pix = length(pixels2use.idx);
@@ -94,27 +94,27 @@ n_avg = 4;
 
 for pp = 1:length(pixels2use.idx)
 
-% Compute the smoothed reflectance over 1700 and 2200 nm
-% By smoothing, we remove small extinction features
-smooth_Refl_model_1700(:, pp) = movmean(emit.radiance.measurement(idx_1700_group, pp), n_avg);
-smooth_Refl_model_2200(:, pp) = movmean(emit.radiacen.measurement(idx_2200_group, pp), n_avg);
+    % Compute the smoothed reflectance over 1700 and 2200 nm
+    % By smoothing, we remove small extinction features
+    smooth_Refl_model_1700(:, pp) = movmean(emit.radiance.measurements(idx_1700_group, pp), n_avg);
+    smooth_Refl_model_2200(:, pp) = movmean(emit.radiance.measurements(idx_2200_group, pp), n_avg);
 
 
-% store the reflectance at the higher points of the spectral shape
-% parameter equations for each spectral group
-R_1714(pp) = smooth_Refl_model_1700(idx_1714, pp);
-R_2240(pp) = smooth_Refl_model_2200(idx_2240, pp);
+    % store the reflectance at the higher points of the spectral shape
+    % parameter equations for each spectral group
+    R_1714(pp) = smooth_Refl_model_1700(idx_1714, pp);
+    R_2240(pp) = smooth_Refl_model_2200(idx_2240, pp);
 
 
 
-% compute the spectral shape parameter (Knap et al., 2002; eq 2)
-S_1700(pp) = 100* (smooth_Refl_model_1700(idx_1714, pp) - smooth_Refl_model_1700(idx_1625, pp))/...
-    smooth_Refl_model_1700(idx_1625, pp);
+    % compute the spectral shape parameter (Knap et al., 2002; eq 2)
+    S_1700(pp) = 100 * (smooth_Refl_model_1700(idx_1714, pp) - smooth_Refl_model_1700(idx_1625, pp))/...
+        smooth_Refl_model_1700(idx_1625, pp);
 
 
-% compute the spectral shape parameter (Knap et al., 2002; eq 2)
-S_2200(pp) = 100* (smooth_Refl_model_2200(idx_2240, pp) - smooth_Refl_model_2200(idx_2160, pp))/...
-    smooth_Refl_model_2200(idx_2160, pp);
+    % compute the spectral shape parameter (Knap et al., 2002; eq 2)
+    S_2200(pp) = 100* (smooth_Refl_model_2200(idx_2240, pp) - smooth_Refl_model_2200(idx_2160, pp))/...
+        smooth_Refl_model_2200(idx_2160, pp);
 
 
 
@@ -128,9 +128,9 @@ S = S_1700 + S_2200;
 %% Use stored look-up tables to discern the thermodynamic phase
 
 % Let's compute the L2 norm difference between the two spectral shape
-% parameters and the two reflectances. 
+% parameters and the two reflectances.
 
-% With each 
+% With each
 
 
 

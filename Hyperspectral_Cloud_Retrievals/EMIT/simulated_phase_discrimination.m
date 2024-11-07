@@ -184,13 +184,13 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
 % Only compute reflectance at 500 nm
-inputs.banes2run = min(abs(emit.radiance.wavelength - 500));
+%[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
 
 % Compute all wavelengths above 900 nm
 % inputs.bands2run = find(emit.radiance.wavelength>=900)';
 
 % plot all EMIT wavelengths
-% inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
@@ -225,7 +225,7 @@ inputs.RT.use_nakajima_phaseCorrection = true;
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-inputs.RT.band_parameterization = 'reptran fine';
+inputs.RT.band_parameterization = 'reptran coarse';
 % ------------------------------------------------------------------------
 
 
@@ -296,6 +296,10 @@ inputs.RT.lambda_forTau = 500;            % nm
 
 % inputs.RT.re = 5:5:25;      % microns
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
+
+
+% inputs.RT.re = 5:5:25;      % microns
+% inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
 
 inputs.RT.re = 15;      % microns
 inputs.RT.tau_c = [10];
@@ -369,9 +373,9 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_waterVapor = true;
 
-inputs.RT.waterVapor_column = 30;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -444,11 +448,15 @@ S_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 idx = 0;
 
 
+
+
 tic
 for rr = 1:length(inputs.RT.re)
 
     lgnd_str{rr} = ['$r_e = $', num2str(inputs.RT.re(rr)), ' $\mu m$'];
 
+
+ 
 
     for tc = 1:length(inputs.RT.tau_c)
 
@@ -469,7 +477,7 @@ for rr = 1:length(inputs.RT.re)
         wc_filename = wc_filename{1};
 
 
-        for ww = 1:size(inputs.RT.wavelength, 1)
+        parfor ww = 1:size(inputs.RT.wavelength, 1)
 
 
             disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
@@ -565,6 +573,8 @@ for rr = 1:length(inputs.RT.re)
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n';
                 fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/',wc_filename], ' ', '# Location of water cloud file');
+                %fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename{rr,tc}{1}], ' ', '# Location of water cloud file');
+
 
                 % Define the percentage of horizontal cloud cover
                 % This is a number between 0 and 1
@@ -742,6 +752,7 @@ for rr = 1:length(inputs.RT.re)
 
         end
 
+
         % 4 point running average to smooth the spectra
         % smooth each wavelength group seperately
         smooth_Refl_model_1000(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1000_group), 4);
@@ -757,6 +768,7 @@ for rr = 1:length(inputs.RT.re)
         % compute the spectral shape parameter (Knap et al., 2002; eq 2)
         S_2100(rr, tc) = 100* (smooth_Refl_model_2100(rr, tc, inputs.idx_2240) - smooth_Refl_model_2100(rr, tc, inputs.idx_2160))/...
             smooth_Refl_model_2100(rr, tc, inputs.idx_2160);
+
 
 
     end
@@ -1034,9 +1046,12 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
 
+% Only compute reflectance at 500 nm
+[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
+
 
 % plot all EMIT wavelengths
-inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+%inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
@@ -1139,8 +1154,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.re = 5:10:55;      % microns
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
-inputs.RT.re = 5;      % microns
-inputs.RT.tau_c = [3];
+inputs.RT.re = 5:10:55;      % microns
+inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
+
+% inputs.RT.re = 5;      % microns
+% inputs.RT.tau_c = [3];
 % ------------------------------------------------------------------------
 
 

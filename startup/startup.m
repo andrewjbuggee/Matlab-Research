@@ -59,8 +59,8 @@ end
 % add generally useful functions folder and the startup folder
 if strcmp(username, 'andrewbuggee')==true
 
-    addpath('/Users/andrewbuggee/Documents/MATLAB/Generally_Useful_Functions')
-    addpath('/Users/andrewbuggee/Documents/MATLAB/startup')
+    addpath('/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Generally_useful_functions/')
+    addpath('/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/startup/')
 
 elseif strcmp(username,'anbu8374')==true
 % ----- MACBOOK ------
