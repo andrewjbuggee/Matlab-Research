@@ -371,9 +371,13 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % --------------------------------------------------------
 % --------- What is column water vapor amount? -----------
 
+% Use a custom H2O profile
+inputs.RT.H2O_profile = 'afglus_H2O_none_inside_ cloud.dat';
+
+
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = true;
+inputs.RT.modify_waterVapor = false;
 
 inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
@@ -2189,6 +2193,186 @@ elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength,1)<285
 
         % plot the smoothed reflectance
         plot(wl_mean, movmean(reshape(Refl_model(:, tt, :), [], 1), 4),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(1, 'fixed'))
+        
+        hold on
+
+        new_lgnd_str{tt + num_tau} = ['Ice (Columns) - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+
+
+    end
+
+end
+
+grid on; grid minor
+xlabel('Wavelength (nm)','Interpreter', 'latex')
+ylabel('Reflectance (1/sr)','Interpreter', 'latex')
+set(gcf, 'Position', [0 0 1000 1000])
+legend(new_lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+title(['Simulated EMIT Reflectance for Cloudy Scenes'], 'Interpreter', 'latex')
+
+
+
+
+
+%% Plot Normalaized reflectances of ice and water clouds at both spectral regions on the same plot for multiple clouds
+
+
+clear variables
+
+% ***---*** LIQUID WATER CLOUDS ***---***
+% load water spectral shape parameter
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_water_cloud_sim-ran-on-30-Oct-2024_rev1.mat'])
+
+
+clear lgnd_str
+
+num_tau = length(inputs.RT.tau_c);
+
+new_lgnd_str = {};
+    
+figure;
+
+% re_2plot_liquid = 10; % microns
+% tau_2plot_liquid = 20;
+
+% plot the smoothed reflectances for water
+% check to see if there are two wavelength groups
+if size(inputs.RT.wavelength, 1)<=27
+
+
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot_liquid, inputs.RT.tau_c==tau_2plot_liquid, :), [], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(3, 'fixed'))
+
+
+elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength,1)<285
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+        % plot the smoothed reflectance
+        plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+        hold on
+
+        plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(:, tt, :), [], 1),...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(tt, 'fixed'))
+
+        new_lgnd_str{end+1} = ['Liquid - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+        % skip the next two legend entry
+        new_lgnd_str{end+1} = '';
+        new_lgnd_str{end+1} = '';
+
+    end
+
+
+elseif size(inputs.RT.wavelength,1)==285
+
+    % This means all of the EMIT spectral channels were used. Plot the
+    % entire spectrum
+
+    for tt = 1:length(inputs.RT.tau_c)
+        
+        % normalize the reflectance to the peak value with a wavelength
+        % greater than 1000 nm
+
+        smooth_Refl = movmean(reshape(Refl_model(:, tt, :), [], 1), 4);
+
+       [max_val, ~] = max(smooth_Refl(wl_mean>=1000));
+
+        % plot the smoothed reflectance
+        plot(wl_mean, smooth_Refl./max_val,...
+            '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+        
+        hold on
+
+        new_lgnd_str{tt} = ['Liquid - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+
+
+    end
+
+end
+
+
+
+% ***---*** ICE CLOUDS ***---***
+% load Ice cloud reflectances
+load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/',...
+    'reflectance_calcs_EMIT_ice_cloud_sim-ran-on-30-Oct-2024_rev2.mat'])
+
+
+
+% % skip n spaces in the new_lgnd_str
+% for nn = 1:num_tau
+% 
+%     new_lgnd_str{end+1} = '';
+% 
+% end
+
+% re_2plot_ice = 15; % microns
+% tau_2plot_ice = 20;
+
+if size(inputs.RT.wavelength,1)<=27
+
+
+    plot(wl_mean, reshape(smooth_Refl_model(inputs.RT.re==re_2plot_ice, inputs.RT.tau_c==tau_2plot_ice, :), [], 1),...
+        '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(4, 'fixed'))
+
+
+elseif size(inputs.RT.wavelength,1)>27 && size(inputs.RT.wavelength,1)<285
+
+
+    for tt = 1:length(inputs.RT.tau_c)
+
+
+        % plot the smoothed reflectance
+        plot(wl_mean(inputs.idx_1000_group), reshape(smooth_Refl_model_1000(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        hold on
+
+
+        plot(wl_mean(inputs.idx_1600_group), reshape(smooth_Refl_model_1600(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+
+        plot(wl_mean(inputs.idx_2100_group), reshape(smooth_Refl_model_2100(:,...
+            tt, :), [], 1),...
+            '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(tt, 'fixed'))
+
+        new_lgnd_str{end +1} = ['Ice (Columns) - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $', num2str(inputs.RT.tau_c(tt))];
+
+        % skip the next two legend entry
+        new_lgnd_str{end+1} = '';
+        new_lgnd_str{end+1} = '';
+
+    end
+
+
+    elseif size(inputs.RT.wavelength,1)==285
+
+    % This means all of the EMIT spectral channels were used. Plot the
+    % entire spectrum
+
+    for tt = 1:length(inputs.RT.tau_c)
+        
+        smooth_Refl = movmean(reshape(Refl_model(:, tt, :), [], 1), 4);
+
+       [max_val, ~] = max(smooth_Refl(wl_mean>=1000));
+
+        % plot the smoothed reflectance
+        plot(wl_mean, smooth_Refl./max_val,...
             '.', 'linewidth', 5, 'markersize', 17, 'Color', mySavedColors(1, 'fixed'))
         
         hold on

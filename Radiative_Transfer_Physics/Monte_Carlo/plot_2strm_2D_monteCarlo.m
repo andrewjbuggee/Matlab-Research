@@ -45,8 +45,11 @@ if inputs.N_layers==1
 
 
     % Check to see if there is absorption
+    
+    % if the absorption is less than 0.9999, then we will use the 2-stream
+    % equations for absoprtion
 
-    if ssa<1
+    if ssa <= 0.9999
 
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
@@ -166,7 +169,7 @@ if inputs.N_layers==1
         end
 
 
-    elseif ssa==1
+    elseif ssa > 0.9999
 
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
@@ -194,8 +197,8 @@ if inputs.N_layers==1
             figure; xline(R_atTop,'Color',C1,'LineWidth',4)
             hold on;
             xline(T_atBottom,'Color',C2,'LineWidth',4)
-            plot(F_norm.up,binEdges(1:end-1)+diff(binEdges)/2,'Color',C1,'LineStyle','--')
-            plot(F_norm.down,binEdges(1:end-1)+diff(binEdges)/2, 'Color',C2,'LineStyle','--')
+            plot(F_norm.up,binEdges(1:end-1)+diff(binEdges)/2,'Color',C1,'LineStyle',':')
+            plot(F_norm.down,binEdges(1:end-1)+diff(binEdges)/2, 'Color',C2,'LineStyle',':')
             grid on; grid minor
             xlabel('$F/F_0$','Interpreter','latex');
             ylabel('$\tau$','Interpreter','latex');
@@ -217,7 +220,7 @@ if inputs.N_layers==1
             t.EdgeColor = 'black';
             t.FitBoxToText = 'on';
 
-            legend('$R_{\infty}$ 2-stream analytical','$T(\bar{\tau})$ 2-stream analytical',...
+            legend('$R{\tau = 0}$ 2-stream analytical','$T(\tau = \bar{\tau})$ 2-stream analytical',...
                 '$F_{\uparrow}/F_0$ 2D Monte Carlo','$F_{\downarrow}/F_0$ 2D Monte Carlo','Interpreter','latex',...
                 'Location','best','FontSize',20)
 

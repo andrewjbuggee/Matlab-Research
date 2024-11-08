@@ -70,8 +70,8 @@ function [input_filename, output_filename, mie_folder] = write_mie_file(mie_prog
 
 
 if nargin~=7
-    error([newline,'Not enough inputs. Need 8: mie program type, index of refraction, droplet effective radius,',...
-        ' wavelength, droplet distribution info the error message command and the file number.', newline])
+    error([newline,'Not enough inputs. Need 7: mie program type, index of refraction, droplet effective radius,',...
+        ' wavelength, droplet distribution width, the error message command, and the file number.', newline])
 end
 
 
@@ -327,13 +327,17 @@ for ff = 1:numFiles
         fprintf(fileID,'%10s  %5.2f %5.2f          %s \n', 'wavelength', wavelength_start, wavelength_end, comments{5});
 
     % determine if wavelength is a vector and if the vector is evenly spaced    
-    elseif length(wavelength)>1 && isuniform(wavelength)==true
+    elseif length(wavelength)==3 && isuniform(wavelength)==false
         
+        % if true, the first entry is the starting wavelength, the second
+        % entry is the final wavelength, and the 3rd entry is the sampling
+        % rate.
+
         % define the starting and ending wavelength
         wavelength_start = wavelength(1);           % nm
-        wavelength_end = wavelength(end);             % nm
+        wavelength_end = wavelength(2);             % nm
         % compute the grid spacing
-        wavelength_step = wavelength(2) - wavelength(1);        % nm
+        wavelength_step = wavelength(3);        % nm
 
         fprintf(fileID,'%10s  %5.2f %5.2f          %s \n', 'wavelength', wavelength_start, wavelength_end, comments{5});
         fprintf(fileID,'%15s  %5.2f          %s \n', 'wavelength_step', wavelength_step, comments{6});

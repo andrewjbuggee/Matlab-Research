@@ -13,7 +13,7 @@ function atm = read_atmos_prof_data(filename)
 
 if strcmp('anbu8374',whatComputer)
     
-        error('I dont know where the atmospheric profiles are located on the Mac desktop')
+        foldername = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/'];
     
 elseif strcmp('andrewbuggee',whatComputer)
     
