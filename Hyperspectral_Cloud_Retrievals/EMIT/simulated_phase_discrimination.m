@@ -111,7 +111,8 @@ emitFolder = '17_Jan_2024_coast/';
 
 [emit,L1B_fileName] = retrieveEMIT_data([emitPath, emitFolder]);
 
-% 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.6
+% 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.57 and
+% an effective radius of 10.79
 pixels2use.row = 932;
 pixels2use.col = 960;
 
@@ -186,11 +187,11 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % Only compute reflectance at 500 nm
 %[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
 
-% Compute all wavelengths above 900 nm
-% inputs.bands2run = find(emit.radiance.wavelength>=900)';
+% Compute all wavelengths above 1000 nm
+inputs.bands2run = find(emit.radiance.wavelength>=1000)';
 
 % plot all EMIT wavelengths
-inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+% inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
@@ -210,6 +211,38 @@ for ww = 1:length(inputs.bands2run)
         spec_response_2run.wavelength(ww, end)];
 
 end
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
+
+
+
+% ------------------------------------------------------------------------
+% ----**** Using custom spectral response and wavelength sampling ****----
+% inputs.RT.wavelength_center = 1000:(emit.radiance.wavelength(2) - emit.radiance.wavelength(1))/2:...
+%                               emit.radiance.wavelength(end);     % nm
+% inputs.RT.fwhm = linspace(emit.radiance.fwhm(1), emit.radiance.fwhm(1), length(inputs.RT.wavelength_center));
+% 
+% spec_response_2run = create_gaussian_specResponse(inputs.RT.wavelength_center, inputs.RT.fwhm, inputs);
+% 
+% 
+% % now define the wavelength range of each spectral channel
+% inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+% 
+% for ww = 1:length(inputs.RT.wavelength_center)
+% 
+%     % The wavelength vector for libRadTran is simply the lower and upper
+%     % bounds
+%     inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+%         spec_response_2run.wavelength(ww, end)];
+% 
+% end
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
+
 
 
 
@@ -298,11 +331,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
 
-% inputs.RT.re = 5:5:25;      % microns
-% inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
+inputs.RT.re = 10;      % microns
+inputs.RT.tau_c = 2.25;
 
-inputs.RT.re = 15;      % microns
-inputs.RT.tau_c = [10];
+% inputs.RT.re = 10.79;      % microns
+% inputs.RT.tau_c = 6.57;
 
 
 % ------------------------------------------------------------------------
@@ -399,6 +432,22 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
+
+% ********* IMPORTANT *************
+% The source flux is integrated with the EMIT spectral response function
+
+% define the source file using the input resolution
+inputs = define_source_for_EMIT(inputs, emit);
+
+
+% Convert radiance measurements to TOA reflectance for the desired pixels
+
+emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
+
+
+
+
+
 %% Write each INP file and Calculate Reflectance
 
 
@@ -409,8 +458,9 @@ lgnd_str = cell(1, length(inputs.RT.re));
 Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
 
 
-% compute the middle wavelength of each spectral channel
+% find channel closest to 1 micron
 wl_mean = mean(inputs.RT.wavelength, 2);      % nm
+
 
 
 % Use a moving mean to store smoothed reflectances
@@ -448,6 +498,20 @@ S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 
 % store the spectral shape parameter values for the 2100 micron grouping
 S_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
+
+
+
+
+% store the normalized reflectances as well
+% compute the middle wavelength of each spectral channel
+[~, inputs.idx_1000] = min(abs(wl_mean - 1000));
+
+Refl_model_norm = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
+
+
+
+
+
 
 idx = 0;
 
@@ -775,6 +839,12 @@ for rr = 1:length(inputs.RT.re)
 
 
 
+        % normalize reflectance to 1 micron
+        Refl_model_norm(rr, tc, :) = Refl_model(rr,tc, :)./Refl_model(rr, tc, inputs.idx_1000);
+
+
+
+
     end
 
 end
@@ -805,7 +875,7 @@ end
 % save(filename,"inputs", "Refl_model", "smooth_Refl_model", "S");
 % save(filename,"inputs", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100", "S_1600");
 save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
-    "smooth_Refl_model_2100", "S_1600", "S_2100");
+    "smooth_Refl_model_2100", "S_1600", "S_2100", "Refl_model_norm");
 
 
 
@@ -864,8 +934,8 @@ title('Vertically homogenous liquid water clouds','Interpreter', 'latex')
 
 %% Plot a spectrum of reflectance and overlay the smoothed spectrum on top
 
-re_2plot = 15; % microns
-tau_2plot = 10;
+re_2plot = 10; % microns
+tau_2plot = 7;
 
 % check to see if there are two wavelength groups
 if size(inputs.RT.wavelength, 1)<=27
@@ -1050,12 +1120,17 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     find(emit.radiance.wavelength>=2100 & emit.radiance.wavelength<=2300)'];
 
 
+% Compute all wavelengths above 1000 nm
+inputs.bands2run = find(emit.radiance.wavelength>=1000)';
+
+
 % Only compute reflectance at 500 nm
-[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
+%[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
 
 
 % plot all EMIT wavelengths
 %inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
@@ -1158,11 +1233,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.re = 5:10:55;      % microns
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
-inputs.RT.re = 5:10:55;      % microns
-inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
+% inputs.RT.re = 5:10:55;      % microns
+% inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
 
-% inputs.RT.re = 5;      % microns
-% inputs.RT.tau_c = [3];
+inputs.RT.re = 5;      % microns
+inputs.RT.tau_c = 2.25;
 % ------------------------------------------------------------------------
 
 
@@ -1301,6 +1376,19 @@ S_1600 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
 
 % store the spectral shape parameter values for the 2100 micron grouping
 S_2100 = zeros(length(inputs.RT.re), length(inputs.RT.tau_c));
+
+
+
+% store the normalized reflectances as well
+% compute the middle wavelength of each spectral channel
+[~, inputs.idx_1000] = min(abs(wl_mean - 1000));
+
+Refl_model_norm = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
+
+
+
+
+
 
 idx = 0;
 
@@ -1637,6 +1725,11 @@ for rr = 1:length(inputs.RT.re)
             smooth_Refl_model_2100(rr, tc, inputs.idx_2160);
 
 
+        % normalize reflectance to 1 micron
+        Refl_model_norm(rr, tc, :) = Refl_model(rr,tc, :)./Refl_model(rr, tc, inputs.idx_1000);
+
+
+
     end
 
 end
@@ -1664,7 +1757,7 @@ while isfile(filename)
 end
 
 save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
-    "smooth_Refl_model_2100", "S_1600", "S_2100");
+    "smooth_Refl_model_2100", "S_1600", "S_2100", "Refl_model_norm");
 
 
 toc
@@ -1702,18 +1795,18 @@ set(gcf, 'Position', [0 0 1000 1000])
 legend(lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 title('Vertically homogenous Ice clouds','Interpreter', 'latex')
 
-% plot the L2 norm of the two spectral shapes
+% plot the sum of the two spectral shapes
 
 figure;
 for rr = 1:length(inputs.RT.re)
 
-    plot(inputs.RT.tau_c, sqrt(S_1600(rr,:).^2 + S_2100(rr,:).^2), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
+    plot(inputs.RT.tau_c, S_1600(rr,:) + S_2100(rr,:), '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(rr, 'fixed'))
     hold on;
 end
 
 grid on; grid minor
 xlabel('Optical Depth','Interpreter', 'latex')
-ylabel('L2 norm of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
+ylabel('Sum of both Spectral Shape Parameters (\%)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
 legend(lgnd_str, 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 title('Vertically homogenous Ice clouds','Interpreter', 'latex')
