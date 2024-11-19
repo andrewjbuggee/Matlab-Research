@@ -188,10 +188,10 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %[~, inputs.bands2run] = min(abs(emit.radiance.wavelength - 500));
 
 % Compute all wavelengths above 1000 nm
-inputs.bands2run = find(emit.radiance.wavelength>=1000)';
+%inputs.bands2run = find(emit.radiance.wavelength>=1000)';
 
 % plot all EMIT wavelengths
-% inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
