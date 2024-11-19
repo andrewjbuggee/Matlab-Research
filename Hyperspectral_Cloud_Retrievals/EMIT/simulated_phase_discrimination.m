@@ -280,9 +280,9 @@ inputs.RT.albedo = 0.05;
 inputs.RT.yesCloud = true;
 
 % ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
+%inputs.RT.linear_cloudFraction = false;
 % if false, define the cloud cover percentage
-inputs.RT.percent_cloud_cover = 1;
+%inputs.RT.percent_cloud_cover = 1;
 
 inputs.RT.cloud_depth = 1000;                % meters
 
@@ -643,12 +643,6 @@ for rr = 1:length(inputs.RT.re)
                 fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/',wc_filename], ' ', '# Location of water cloud file');
                 %fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename{rr,tc}{1}], ' ', '# Location of water cloud file');
 
-
-                % Define the percentage of horizontal cloud cover
-                % This is a number between 0 and 1
-                % ------------------------------------------------
-                formatSpec = '%s %f %5s %s \n';
-                fprintf(fileID, formatSpec,'cloudcover wc', inputs.RT.percent_cloud_cover, ' ', '# Cloud cover percentage');
 
 
                 % Define the technique or parameterization used to convert liquid cloud
@@ -1190,9 +1184,9 @@ inputs.RT.albedo = 0.05;
 inputs.RT.yesCloud = true;
 
 % ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
+%inputs.RT.linear_cloudFraction = false;
 % if false, define the cloud cover percentage
-inputs.RT.percent_cloud_cover = 1;
+%inputs.RT.percent_cloud_cover = 1;
 
 inputs.RT.cloud_depth = 1000;                % meters
 
@@ -1513,11 +1507,6 @@ for rr = 1:length(inputs.RT.re)
                 formatSpec = '%s %s %5s %s \n';
                 fprintf(fileID, formatSpec,'ic_file 1D', ['../data/ic/',ic_filename], ' ', '# Location of water cloud file');
 
-                % Define the percentage of horizontal cloud cover
-                % This is a number between 0 and 1
-                % ------------------------------------------------
-                formatSpec = '%s %f %5s %s \n';
-                fprintf(fileID, formatSpec,'cloudcover ic', inputs.RT.percent_cloud_cover, ' ', '# Cloud cover percentage');
 
 
                 % Define the technique or parameterization used to convert ice cloud
