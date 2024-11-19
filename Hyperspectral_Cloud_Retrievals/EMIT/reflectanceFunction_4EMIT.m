@@ -21,7 +21,7 @@
 % By Andrew J. Buggee
 %% ------ Read input settings and output data from uv_spec -----
 
-function [R,R_lambda] = reflectanceFunction_4EMIT(inputSettings,ds, spec_response)
+function [R, R_lambda] = reflectanceFunction_4EMIT(inputSettings,ds, spec_response)
 
 % Geometry values from input Settings -
 mu = inputSettings{2}; % cosine of the viewing zenith angle
@@ -57,7 +57,7 @@ if length(wavelength)==1
     
     for ii = 1:geomSets
         
-        R_lambda(ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr - reflectance function for monochromatic calculation
+        R(ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr - reflectance function for monochromatic calculation
         
     end
     

@@ -35,8 +35,8 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/column_water_vapor_retrieval/'];
+    folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'EMIT/column_water_vapor_retrieval/'];
 
 
     % Define the folder path where all .INP files will be saved
@@ -99,16 +99,23 @@ end
 inputs.RT.num_streams = 16;
 % ------------------------------------------------------------------------
 
+
+
 % ------------------------------------------------------------------------
-% ------- Define the source file and resolution ------
+% -------------- Define the source file and resolution -------------------
 
 % source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
 % source_file_resolution = 0.025;         % nm
 
 % these data have 0.1nm sampling resolution, despite what the file name
 % suggests
-inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-inputs.RT.source_file_resolution = 0.1;         % nm
+% inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% inputs.RT.source_file_resolution = 0.1;         % nm
+
+% these data have 0.1nm sampling resolution, despite what the file name
+% suggests
+inputs.RT.source_file = 'kurudz_1.0nm.dat';
+inputs.RT.source_file_resolution = 1;         % nm
 
 % ------------------------------------------------------------------------
 
@@ -214,8 +221,8 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.re = 5:5:25;      % microns
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
 
-inputs.RT.re = 15;      % microns
-inputs.RT.tau_c = [10];
+inputs.RT.re = 10;      % microns
+inputs.RT.tau_c = [50];
 
 
 % ------------------------------------------------------------------------
@@ -285,7 +292,7 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % --------- What is column water vapor amount? -----------
 
 % Use a custom H2O profile
-inputs.RT.H2O_profile = 'afglus_H2O_none_inside_ cloud.dat';
+inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 
 
 % Using measurements from the AMSR2 instrument, a passive microwave
@@ -349,7 +356,7 @@ wc_filename = write_wc_file(inputs.RT.re, inputs.RT.tau_c, inputs.RT.z_topBottom
 wc_filename = wc_filename{1};
 
 
-parfor ww = 1:length(inputs.RT.wavelength)
+for ww = 1:length(inputs.RT.wavelength)
 
 
     disp(['Iteration: [re, tc] = [ww = ', num2str(ww), '/', num2str(num_wl),']...', newline])
@@ -425,7 +432,8 @@ parfor ww = 1:length(inputs.RT.wavelength)
     % Define the location and filename of the extraterrestrial solar source
     % ---------------------------------------------------------------------
     formatSpec = '%s %s %5s %s \n\n';
-    fprintf(fileID, formatSpec,'source solar', inputs.RT.source_file, ' ', '# Bounds between 250 and 10000 nm');
+    fprintf(fileID, formatSpec,'source solar', [libRadtran_data_path, 'solar_flux/', inputs.RT.source_file],...
+        ' ', '# Bounds between 250 and 10000 nm');
 
 
 
@@ -612,7 +620,7 @@ parfor ww = 1:length(inputs.RT.wavelength)
         inputs.RT.compute_reflectivity_uvSpec);
 
     % compute the reflectance
-    Refl_model(ww, 1) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
+    Refl_model(ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
         0);
 
 
