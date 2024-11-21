@@ -331,11 +331,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
 
-inputs.RT.re = 10;      % microns
-inputs.RT.tau_c = 2.25;
+% inputs.RT.re = 10;      % microns
+% inputs.RT.tau_c = 2.25;
 
-% inputs.RT.re = 10.79;      % microns
-% inputs.RT.tau_c = 6.57;
+inputs.RT.re = 10.79;      % microns
+inputs.RT.tau_c = 6.57;
 
 
 % ------------------------------------------------------------------------
@@ -405,7 +405,7 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % --------- What is column water vapor amount? -----------
 
 % Use a custom H2O profile
-inputs.RT.H2O_profile = 'afglus_H2O_none_inside_ cloud.dat';
+inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 
 
 % Using measurements from the AMSR2 instrument, a passive microwave
@@ -928,8 +928,8 @@ title('Vertically homogenous liquid water clouds','Interpreter', 'latex')
 
 %% Plot a spectrum of reflectance and overlay the smoothed spectrum on top
 
-re_2plot = 10; % microns
-tau_2plot = 7;
+re_2plot = inputs.RT.re(1); % microns
+tau_2plot = inputs.RT.tau_c(1);
 
 % check to see if there are two wavelength groups
 if size(inputs.RT.wavelength, 1)<=27
@@ -1803,8 +1803,8 @@ title('Vertically homogenous Ice clouds','Interpreter', 'latex')
 
 %% Plot a spectrum of reflectance and overlay the smoothed spectrum on top
 
-re_2plot = 5; % microns
-tau_2plot = 3;
+re_2plot = inputs.RT.re(1); % microns
+tau_2plot = inputs.RT.tau_c(1);
 
 wl_mean = mean(inputs.RT.wavelength,2);
 
