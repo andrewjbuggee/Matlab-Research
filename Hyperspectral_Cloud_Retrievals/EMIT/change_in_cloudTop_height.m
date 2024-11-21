@@ -19,11 +19,11 @@ if strcmp(whatComputer,'anbu8374')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/EMIT/Thermodynamic_phase/'];
+        'Hyperspectral_Cloud_Retrievals/EMIT/column_water_vapor/'];
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Thermodynamic_phase/'];
+    folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/column_water_vapor/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -39,20 +39,14 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/column_water_vapor/'];
+    folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'EMIT/column_water_vapor/'];
 
 
     % Define the folder path where all .INP files will be saved
     folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/column_water_vapor/'];
 
-        % If the folder path doesn't exit, create a new directory
-    if ~exist(folderpath_inp, 'dir')
-
-        mkdir(folderpath_inp)
-
-    end
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -69,18 +63,10 @@ elseif strcmp(whatComputer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
-
-
+    folderpath_reflectance = '/scratch/alpine/anbu8374/column_water_vapor/';
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
-    % If the folder path doesn't exit, create a new directory
-    if ~exist(folderpath_inp, 'dir')
-
-        mkdir(folderpath_inp)
-
-    end
+    folderpath_inp = '/scratch/alpine/anbu8374/column_water_vapor/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -92,11 +78,23 @@ elseif strcmp(whatComputer,'curc')==true
 
 
 
-
-
-
-
 end
+
+
+     % If the folder path doesn't exit, create a new directory
+    if ~exist(folderpath_inp, 'dir')
+
+        mkdir(folderpath_inp)
+
+    end
+
+
+         % If the folder path doesn't exit, create a new directory
+    if ~exist(folderpath_reflectance, 'dir')
+
+        mkdir(folderpath_reflectance)
+
+    end
 
 
 
