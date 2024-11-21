@@ -765,3 +765,33 @@ save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model");
 
 
 toc
+
+%% Plot the change in reflectance due to a shift of cloud top height for each wavelength
+
+figure; 
+imagesc(wl_mean, inputs.RT.z_topBottom(:,1), Refl_model)
+xlabel('Wavelength (nm)','Interpreter', 'latex')
+ylabel('Cloud Top Height (km)','Interpreter', 'latex')
+title(['Estimated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $',...
+        num2str(inputs.RT.tau_c)], 'Interpreter', 'latex')
+set(gca, 'YDir','normal')
+cb = colorbar(); 
+ylabel(cb,'Reflectance ($1/sr$)','FontSize', 30, 'Interpreter', 'latex')
+
+set(gcf, 'Position', [0 0 1100 650])
+
+
+% Plot the derivative of Reflectace with the respect to cloud top height
+figure; 
+imagesc(wl_mean, inputs.RT.z_topBottom(:,1), diff(Refl_model, 1)./diff(inputs.RT.z_topBottom(:,1)))
+xlabel('Wavelength (nm)','Interpreter', 'latex')
+ylabel('Cloud Top Height (km)','Interpreter', 'latex')
+title([' $\triangle R_\lambda / \triangle Z_{cloud top}$ - liquid water cloud - $r_e = $', num2str(inputs.RT.re), ' $\mu m$, $\tau_c = $',...
+        num2str(inputs.RT.tau_c)], 'Interpreter', 'latex')
+set(gca, 'YDir','normal')
+cb = colorbar(); 
+ylabel(cb,' ($km^{-1} \, sr^{-1}$)','FontSize', 30, 'Interpreter', 'latex')
+
+set(gcf, 'Position', [0 0 1100 650])
+
+
