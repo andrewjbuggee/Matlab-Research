@@ -166,12 +166,8 @@ inputs.RT.albedo = 0.05;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-inputs.RT.percent_cloud_cover = 1;
-
-inputs.RT.cloud_depth = 1000;                % meters
+% define the cloud geometric depth
+inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
 inputs.RT.z_topBottom = [3, 2];          % km above surface
