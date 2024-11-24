@@ -24,15 +24,19 @@ emitDataFolder = '27_Jan_2024/';
 
 %% Plot the EMIT data on a geo scatter plot
 
-figure; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, reshape(emit.radiance.measurements(:,:,17),[],1),'.');
+lat_lon_buffer = 0.01;
+[~, wl_2plot] = min(abs(emit.radiance.wavelength - 469));
+
+figure; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, reshape(emit.radiance.measurements(:,:,wl_2plot),[],1),'.');
 cb = colorbar;
-set(get(cb, 'label'), 'string', 'Radiance $(\mu W/nm/cm^{2}/sr)$','Interpreter','latex', 'Fontsize',22)
+set(get(cb, 'label'), 'string', 'Radiance $(\mu W/nm/cm^{2}/sr)$','Interpreter','latex', 'Fontsize',35)
 set(gca, 'FontSize',25)
 set(gca, 'FontWeight', 'bold')
 set(gcf, 'Position', [0 0 800 800])
-title('Radiance $500 \; nm$ band','Interpreter','latex', 'FontSize', 40)
+title(['Radiance ', num2str(round(emit.radiance.wavelength(wl_2plot))),' $nm$ band'],'Interpreter','latex', 'FontSize', 40)
 hold on
-
+geolimits([min(emit.radiance.geo.lat, [], 'all')-lat_lon_buffer max(emit.radiance.geo.lat, [], 'all')+lat_lon_buffer],...
+    [min(emit.radiance.geo.long, [], 'all')-lat_lon_buffer max(emit.radiance.geo.long, [], 'all')+lat_lon_buffer])
 
 
 
@@ -128,7 +132,7 @@ S = 100* (emit.reflectance.value(wl_1670,:) - emit.reflectance.value(wl_1640,:))
 figure; geoscatter(emit.radiance.geo.lat, emit.radiance.geo.long,...
     60, reshape(S,[],1),'.');
 cb = colorbar;
-set(get(cb, 'label'), 'string', 'Spectral Shape Parameter','Interpreter','latex', 'Fontsize',22)
+set(get(cb, 'label'), 'string', 'Spectral Shape Parameter','Interpreter','latex', 'Fontsize',35)
 set(gca, 'FontSize',25)
 set(gca, 'FontWeight', 'bold')
 set(gcf, 'Position', [0 0 1000 700])

@@ -113,6 +113,11 @@ emitFolder = '17_Jan_2024_coast/';
 
 % 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.57 and
 % an effective radius of 10.79
+% Good spectral agreement with:
+%   r_e = 10.79
+%   tau_c = 7
+%   CWV = 40mm
+%   CO_2 = 416ppm
 pixels2use.row = 932;
 pixels2use.col = 960;
 
@@ -220,7 +225,7 @@ end
 
 % ------------------------------------------------------------------------
 % ----**** Using custom spectral response and wavelength sampling ****----
-% inputs.RT.wavelength_center = 1000:(emit.radiance.wavelength(2) - emit.radiance.wavelength(1))/2:...
+% inputs.RT.wavelength_center = 350:(emit.radiance.wavelength(2) - emit.radiance.wavelength(1))/3:...
 %                               emit.radiance.wavelength(end);     % nm
 % inputs.RT.fwhm = linspace(emit.radiance.fwhm(1), emit.radiance.fwhm(1), length(inputs.RT.wavelength_center));
 % 
@@ -228,7 +233,7 @@ end
 % 
 % 
 % % now define the wavelength range of each spectral channel
-% inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+% inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
 % 
 % for ww = 1:length(inputs.RT.wavelength_center)
 % 
@@ -335,7 +340,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = 2.25;
 
 inputs.RT.re = 10.79;      % microns
-inputs.RT.tau_c = 6.57;
+inputs.RT.tau_c = 7;
 
 
 % ------------------------------------------------------------------------
@@ -410,9 +415,10 @@ inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_waterVapor = true;
 
-inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
+% default value is 14.295 mm
+inputs.RT.waterVapor_column = 40;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -422,7 +428,7 @@ inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condens
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 410;       % ppm
+inputs.RT.CO2_mixing_ratio = 416;       % ppm
 % ------------------------------------------------------------------------
 
 
