@@ -42,9 +42,10 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.row = [912, 913];
 % pixels2use.col = [929, 929];
 
-% 17_Jan_2024_coast - optical depth of 6.6
-% pixels2use.row = 932;
-% pixels2use.col = 960;
+% 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.57 and
+% an effective radius of 10.79
+pixels2use.row = 932;
+pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -63,8 +64,8 @@ emitDataFolder = '17_Jan_2024_coast/';
 % pixels2use.col = 991;
 
 % 17_Jan_2024_coast - optical depths of 6.6, 11.6
-pixels2use(1).row = 932; pixels2use(1).col = 960;
-pixels2use(2).row = 969; pixels2use(2).col = 984;
+% pixels2use(1).row = 932; pixels2use(1).col = 960;
+% pixels2use(2).row = 969; pixels2use(2).col = 984;
 
 % 17_Jan_2024_coast - optical depths of 9.22, 11.6, 14.53 19.8
 % pixels2use.row = [969, 969, 969, 969];
@@ -136,11 +137,7 @@ emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs
 
 %% Check the thermodynamic phase of the defined pixels
 
-% tic
-% inputs = check_EMIT_therodynamic_phase(emit, inputs);
-% toc
-
-
+inputs = determine_cloud_phase_emit(emit, pixels2use);
 
 %% Compute the TBLUT retrieval estimate
 

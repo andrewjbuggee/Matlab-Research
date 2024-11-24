@@ -1,6 +1,15 @@
 %% Determine the cloud thermodynamic phase
 
 
+
+% OUTPUTS:
+
+%   (1) cloud_phase:
+%           0 - cloud may be too thin for phase discrimination
+%           1 - cloud is composed of liquid water droplets
+%           2 - cloud is composed of ice particles
+
+
 % By Andrew John Buggee
 
 %%
@@ -13,7 +22,17 @@ function [cloud_phase] = determine_cloud_phase_emit(emit, pixels2use)
 % cloud to thin to decisively determine cloud phase
 R_500nm_limit = 0.28;        % 1/sr
 
+[~, idx_500] = min(abs(emit.radiance.wavelength - 500));
 
+if emit.reflectance.value(idx_500)<R_500nm_limit
+
+    cloud_phase = 0;
+
+    warning([newline, 'Cloud is too thin to confidently determine phase.', newline])
+
+    return
+
+end
 
 % define the number of pixels (independent spetra) being analysed
 n_pix = length(pixels2use.idx);
@@ -38,8 +57,8 @@ smooth_Refl_model_1700 = zeros(length(idx_1700_group), n_pix);
 % parameter, which is the percent difference of reflectance over some
 % region
 
-% find the wavelength index for the channels closest to 1.7 microns and
-% 1.64 microns
+% find the wavelength index for the channels closest to 1.714 microns and
+% 1.625 microns
 [~, idx_1714] = min(abs(wl_1700 - 1714));
 [~, idx_1625] = min(abs(wl_1700 - 1625));
 

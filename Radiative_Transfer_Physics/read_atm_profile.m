@@ -72,12 +72,12 @@ function atm_prof = read_atm_profile(altitude_boundaries, file_name, interp_opti
 % ---------------------- CHECK INPUTS ------------------------
 % ------------------------------------------------------------
 
-% Check to make sure there are 2 inputs, altitude bounds and a file_name
+% Check to make sure there are 3 inputs, altitude bounds and a file_name
 % to read
 
 
 if nargin~=3
-    error([newline,'Not enough inputs. Need 2: altitude bounds and a filename', newline])
+    error([newline,'Not enough inputs. Need 3: altitude bounds and a filename', newline])
 end
 
 % Check to make sure altitude has a length of 2

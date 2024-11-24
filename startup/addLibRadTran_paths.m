@@ -1,8 +1,7 @@
 % --- Add Folders to Path specific to this computer -----
 
-computer_name = whatComputer;
 
-if strcmp(computer_name,'anbu8374')==true
+if strcmp(whatComputer,'anbu8374')==true
     % ----- LASP MAC ------
     % LibRadTran Data Folders
     addpath('/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/solar_flux/');
@@ -15,7 +14,7 @@ if strcmp(computer_name,'anbu8374')==true
     % LibRadTran Bin folder
     addpath('/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/bin/');
 
-elseif strcmp(computer_name,'andrewbuggee')==true
+elseif strcmp(whatComputer,'andrewbuggee')==true
     % ----- MACBOOK ------
 
 
@@ -30,7 +29,7 @@ elseif strcmp(computer_name,'andrewbuggee')==true
     addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/bin/');
 
 
-elseif strcmp(computer_name,'curc')==true
+elseif strcmp(whatComputer,'curc')==true
     % ----- CU SUPERCOMPUTER ------
 
     % Add paths to all functions needed

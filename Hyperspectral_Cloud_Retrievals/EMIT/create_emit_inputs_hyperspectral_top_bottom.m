@@ -101,26 +101,36 @@ inputs.convergence_limit = 0.005;  % generic convergence limit
 inputs.model.prior = 'gaussian';
 
 
+
+
 % define the number of model parameters to solve for
-inputs.num_model_parameters = 3;
-
-
+inputs.num_model_parameters = 4;
 
 
 % -------------------------------------------
 % --- Stuff for the Model Parameter Prior ---
 % -------------------------------------------
 
-% Using the King and Vaughn (2012) method, we retireve 3 parameters
+% Using the King and Vaughn (2012) method, we retireve 3 or 4 parameters
 %   (1) r_top = effective droplet size at the cloud top
 %   (2) r_bottom = effective droplet size at the cloud bottom
 %   (3) tau_c = cloud optical depth
+%   (4) cwv = above-cloud column water vapor
 % a good starting place is to assume the droplet size at cloud top and
 % bottom are the same value
 
+if inputs.num_model_parameters==3
 
-inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
-    'Cloud Optical Depth'};
+    inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
+        'Cloud Optical Depth'};
+
+elseif inputs.num_model_parameters==4
+
+    inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
+        'Cloud Optical Depth', 'Above Cloud Columnn Water Vapor'};
+
+end
+
 
 
 
@@ -263,10 +273,6 @@ inputs.RT.day_of_year = emit.day_of_year;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-inputs.RT.cloud_cover = 1;
 % ------------------------------------------------------------------------
 
 
@@ -284,6 +290,7 @@ inputs.RT.use_phaseRetrieval_columnWaterVapor = false;
 % ---------- Do you want use your custom mie calculation file? -----------
 inputs.RT.use_custom_mie_calcs = false;
 % ------------------------------------------------------------------------
+
 % This string is used to compute the LWC from optical depth and effective radius
 % can be 'hu' or 'mie interpolate'
 inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and stamnes parameterization for converting cloud properties to optical properties
@@ -323,9 +330,9 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_waterVapor = true;
 
-inputs.RT.waterVapor_column = 30;       % mm (kg/m^2) - of water condensed in a column
+inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -336,7 +343,7 @@ inputs.RT.waterVapor_column = 30;       % mm (kg/m^2) - of water condensed in a 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 410;       % ppm - concentration of CO2
+inputs.RT.CO2_mixing_ratio = 416;       % ppm - concentration of CO2
 % ------------------------------------------------------------------------
 
 

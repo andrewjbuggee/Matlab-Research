@@ -56,6 +56,8 @@ end
 
 
 % Define which EMIT bands to run
+% band 38 has a center wavelength of 656 nm
+% band 235 has a center wavelength of 2123 nm
 inputs.bands2run = [38, 235]; % these are the bands that we will run uvspec with
 inputs.bands2plot = [38, 235]; % these are the EMIT bands that will be plotted, both the modis calcualted stuff and the stuff I calcualte
 
