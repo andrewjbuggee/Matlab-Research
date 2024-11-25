@@ -118,8 +118,12 @@ emitFolder = '17_Jan_2024_coast/';
 %   tau_c = 7
 %   CWV = 40mm
 %   CO_2 = 416ppm
-pixels2use.row = 932;
-pixels2use.col = 960;
+% pixels2use.row = 932;
+% pixels2use.col = 960;
+
+% 17_Jan_2024_coast - TBLUT algorithm found optical depths of 6.79 9.22, 11.6, 14.53 19.8
+pixels2use.row = [932, 969, 969, 969, 969];
+pixels2use.col = [960, 989, 984, 980, 957];
 
 
 % Grab the pixel indices
@@ -195,8 +199,11 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % Compute all wavelengths above 1000 nm
 %inputs.bands2run = find(emit.radiance.wavelength>=1000)';
 
+% Compute all wavelengths below 650 nm
+inputs.bands2run = find(emit.radiance.wavelength<=650)';
+
 % plot all EMIT wavelengths
-inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+%inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
 % create the spectral response functions
@@ -340,7 +347,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = 2.25;
 
 inputs.RT.re = 10.79;      % microns
-inputs.RT.tau_c = 7;
+inputs.RT.tau_c = [6.79, 9.22, 11.6, 14.53, 19.8];
 
 
 % ------------------------------------------------------------------------
@@ -821,26 +828,26 @@ for rr = 1:length(inputs.RT.re)
         end
 
 
-        % 4 point running average to smooth the spectra
-        % smooth each wavelength group seperately
-        smooth_Refl_model_1000(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1000_group), 4);
-        smooth_Refl_model_1600(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1600_group), 4);
-        smooth_Refl_model_2100(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_2100_group), 4);
-
-
-        % compute the spectral shape parameter (Knap et al., 2002; eq 2)
-        S_1600(rr, tc) = 100* (smooth_Refl_model_1600(rr, tc, inputs.idx_1714) - smooth_Refl_model_1600(rr, tc, inputs.idx_1625))/...
-            smooth_Refl_model_1600(rr, tc, inputs.idx_1625);
-
-
-        % compute the spectral shape parameter (Knap et al., 2002; eq 2)
-        S_2100(rr, tc) = 100* (smooth_Refl_model_2100(rr, tc, inputs.idx_2240) - smooth_Refl_model_2100(rr, tc, inputs.idx_2160))/...
-            smooth_Refl_model_2100(rr, tc, inputs.idx_2160);
-
-
-
-        % normalize reflectance to 1 micron
-        Refl_model_norm(rr, tc, :) = Refl_model(rr,tc, :)./Refl_model(rr, tc, inputs.idx_1000);
+%         % 4 point running average to smooth the spectra
+%         % smooth each wavelength group seperately
+%         smooth_Refl_model_1000(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1000_group), 4);
+%         smooth_Refl_model_1600(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_1600_group), 4);
+%         smooth_Refl_model_2100(rr, tc, :) = movmean(Refl_model(rr, tc, inputs.idx_2100_group), 4);
+% 
+% 
+%         % compute the spectral shape parameter (Knap et al., 2002; eq 2)
+%         S_1600(rr, tc) = 100* (smooth_Refl_model_1600(rr, tc, inputs.idx_1714) - smooth_Refl_model_1600(rr, tc, inputs.idx_1625))/...
+%             smooth_Refl_model_1600(rr, tc, inputs.idx_1625);
+% 
+% 
+%         % compute the spectral shape parameter (Knap et al., 2002; eq 2)
+%         S_2100(rr, tc) = 100* (smooth_Refl_model_2100(rr, tc, inputs.idx_2240) - smooth_Refl_model_2100(rr, tc, inputs.idx_2160))/...
+%             smooth_Refl_model_2100(rr, tc, inputs.idx_2160);
+% 
+% 
+% 
+%         % normalize reflectance to 1 micron
+%         Refl_model_norm(rr, tc, :) = Refl_model(rr,tc, :)./Refl_model(rr, tc, inputs.idx_1000);
 
 
 
