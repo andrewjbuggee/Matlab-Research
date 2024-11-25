@@ -19,7 +19,7 @@ scriptPlotting_wht;
 emitDataFolder = '17_Jan_2024_coast/';
 
 % 27 january has overlap with MODIS observations
-emitDataFolder = '27_Jan_2024/';
+%emitDataFolder = '27_Jan_2024/';
 
 % -------------------------------------
 
@@ -45,10 +45,14 @@ emitDataFolder = '27_Jan_2024/';
 % pixels2use.row = [912, 913];
 % pixels2use.col = [929, 929];
 
+% 17_Jan_2024_coast - clear sky over ocean
+% pixels2use.row = 1021;
+% pixels2use.col = 536;
+
 % 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.57 and
 % an effective radius of 10.79
-pixels2use.row = 932;
-pixels2use.col = 960;
+% pixels2use.row = 932;
+% pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -87,6 +91,11 @@ pixels2use.col = 960;
 % 17_Jan_2024_coast - optical depths of 10.3
 % pixels2use.row = 969;
 % pixels2use.col = 986;
+
+
+% 17_Jan_2024_coast - optical depths of 0(clear sky), 6.6, 9.22, 11.6, 14.53 19.8
+pixels2use.row = [1021, 932, 969, 969, 969, 969];
+pixels2use.col = [536, 960, 989, 984, 980, 957];
 
 
 % Grab the pixel indices
