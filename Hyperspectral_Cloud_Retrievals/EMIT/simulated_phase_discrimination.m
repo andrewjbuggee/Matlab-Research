@@ -118,12 +118,12 @@ emitFolder = '17_Jan_2024_coast/';
 %   tau_c = 7
 %   CWV = 40mm
 %   CO_2 = 416ppm
-% pixels2use.row = 932;
-% pixels2use.col = 960;
+pixels2use.row = 932;
+pixels2use.col = 960;
 
 % 17_Jan_2024_coast - TBLUT algorithm found optical depths of 6.79 9.22, 11.6, 14.53 19.8
-pixels2use.row = [932, 969, 969, 969, 969];
-pixels2use.col = [960, 989, 984, 980, 957];
+% pixels2use.row = [932, 969, 969, 969, 969];
+% pixels2use.col = [960, 989, 984, 980, 957];
 
 
 % Grab the pixel indices
@@ -200,29 +200,29 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.bands2run = find(emit.radiance.wavelength>=1000)';
 
 % Compute all wavelengths below 650 nm
-inputs.bands2run = find(emit.radiance.wavelength<=650)';
+%inputs.bands2run = find(emit.radiance.wavelength<=650)';
 
 % plot all EMIT wavelengths
 %inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
-% create the spectral response functions
-spec_response = create_EMIT_specResponse(emit, inputs);
-% keep only the response functions for the wavelengths we care about
-spec_response_2run.value = spec_response.value(inputs.bands2run, :);
-spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
-
-% now define the wavelength range of each spectral channel
-inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
-
-for ww = 1:length(inputs.bands2run)
-
-    % The wavelength vector for libRadTran is simply the lower and upper
-    % bounds
-    inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
-        spec_response_2run.wavelength(ww, end)];
-
-end
+% % create the spectral response functions
+% spec_response = create_EMIT_specResponse(emit, inputs);
+% % keep only the response functions for the wavelengths we care about
+% spec_response_2run.value = spec_response.value(inputs.bands2run, :);
+% spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
+% 
+% % now define the wavelength range of each spectral channel
+% inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+% 
+% for ww = 1:length(inputs.bands2run)
+% 
+%     % The wavelength vector for libRadTran is simply the lower and upper
+%     % bounds
+%     inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+%         spec_response_2run.wavelength(ww, end)];
+% 
+% end
 
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
@@ -234,6 +234,7 @@ end
 % ----**** Using custom spectral response and wavelength sampling ****----
 % inputs.RT.wavelength_center = 350:(emit.radiance.wavelength(2) - emit.radiance.wavelength(1))/3:...
 %                               emit.radiance.wavelength(end);     % nm
+
 % inputs.RT.fwhm = linspace(emit.radiance.fwhm(1), emit.radiance.fwhm(1), length(inputs.RT.wavelength_center));
 % 
 % spec_response_2run = create_gaussian_specResponse(inputs.RT.wavelength_center, inputs.RT.fwhm, inputs);
@@ -256,6 +257,23 @@ end
 
 
 
+% ------------------------------------------------------------------------
+% ----**** Computing radiance at 0.1 nm resolution ****----
+inputs.RT.wavelength_center = 350:inputs.RT.source_file_resolution:2500;     % nm
+
+% now define each monochromatic calculation as a seperate file
+inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
+
+for ww = 1:length(inputs.RT.wavelength_center)
+
+    % The wavelength vector for libRadTran is simply the lower and upper
+    % bounds
+    inputs.RT.wavelength(ww,:) = [inputs.RT.wavelength_center(ww), inputs.RT.wavelength_center(ww)];
+
+end
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
 
 
 % ------------------------------------------------------------------------
@@ -270,7 +288,7 @@ inputs.RT.use_nakajima_phaseCorrection = true;
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-inputs.RT.band_parameterization = 'reptran coarse';
+inputs.RT.band_parameterization = 'reptran medium';
 % ------------------------------------------------------------------------
 
 
@@ -343,11 +361,11 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:100];
 
 
-% inputs.RT.re = 10;      % microns
-% inputs.RT.tau_c = 2.25;
-
 inputs.RT.re = 10.79;      % microns
-inputs.RT.tau_c = [6.79, 9.22, 11.6, 14.53, 19.8];
+inputs.RT.tau_c = 7;
+% 
+% inputs.RT.re = 10.79;      % microns
+% inputs.RT.tau_c = [6.79, 9.22, 11.6, 14.53, 19.8];
 
 
 % ------------------------------------------------------------------------
@@ -464,6 +482,10 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 %% Write each INP file and Calculate Reflectance
 
 
+% % store the Radiances
+% Rad_model = zeros(1, size(inputs.RT.wavelength, 1));
+
+
 % create a legend string
 lgnd_str = cell(1, length(inputs.RT.re));
 
@@ -534,7 +556,7 @@ idx = 0;
 tic
 for rr = 1:length(inputs.RT.re)
 
-    lgnd_str{rr} = ['$r_e = $', num2str(inputs.RT.re(rr)), ' $\mu m$'];
+    %lgnd_str{rr} = ['$r_e = $', num2str(inputs.RT.re(rr)), ' $\mu m$'];
 
 
  
@@ -624,7 +646,7 @@ for rr = 1:length(inputs.RT.re)
             % of radiative transfer
             % ------------------------------------------------
             formatSpec = '%s %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,'mol_abs_param', inputs.RT.band_parameterization,' ', '# Band model');
+            fprintf(fileID, formatSpec,'mol_abs_param', inputs.RT.band_parameterization,' ', '# Band parameterization');
 
 
             % Define the location and filename of the atmopsheric profile to use
@@ -820,6 +842,8 @@ for rr = 1:length(inputs.RT.re)
             Refl_model(rr, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
                 spec_response_2run.value(ww, :)');
 
+%             Rad_model(1, ww) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+
 
 
 
@@ -883,7 +907,7 @@ end
 % save(filename,"inputs", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100", "S_1600");
 save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
     "smooth_Refl_model_2100", "S_1600", "S_2100", "Refl_model_norm");
-
+%save([folderpath_reflectance, 'radiance_at_sensor_', inputs.RT.band_parameterization,'.mat'],"inputs", "Rad_model");
 
 
 toc
