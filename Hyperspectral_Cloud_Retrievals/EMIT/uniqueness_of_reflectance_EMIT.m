@@ -12,7 +12,7 @@ clear variables
 r_top = 3:20;       % microns
 r_bot = 2:14;        % microns
 
-tau_c = [5.5, 6, 6.5, 7];
+tau_c = [5.5, 6, 6.5, 7, 7.5];
 
 
 % r_top = 8:14;
@@ -214,7 +214,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-inputs.bands2run = [17, 22, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
@@ -295,10 +295,6 @@ inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);              
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-inputs.RT.percent_cloud_cover = 1;
 % ------------------------------------------------------------------------
 
 
@@ -397,9 +393,9 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_waterVapor = true;
 
-inputs.RT.waterVapor_column = 30;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 40;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -409,7 +405,7 @@ inputs.RT.waterVapor_column = 30;              % mm - milimeters of water conden
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 410;       % ppm
+inputs.RT.CO2_mixing_ratio = 416;       % ppm
 % ------------------------------------------------------------------------
 
 
@@ -480,7 +476,7 @@ set(gcf, 'Position', [0 0 1250 500])
 
 
 
-%% Write each INP file and Calculate Reflectance for MODIS
+%% Write each INP file and Calculate Reflectance for EMIT
 
 inputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
 outputName = cell(length(r_top), length(r_bot), length(tau_c), size(wavelength,1));
@@ -619,11 +615,6 @@ for rt = 1:length(r_top)
                     formatSpec = '%s %s %5s %s \n';
                     fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{rt,rb,tc,ww}], ' ', '# Location of water cloud file');
 
-                    % Define the percentage of horizontal cloud cover
-                    % This is a number between 0 and 1
-                    % ------------------------------------------------
-                    formatSpec = '%s %f %5s %s \n';
-                    fprintf(fileID, formatSpec,'cloudcover wc', inputs.RT.percent_cloud_cover, ' ', '# Cloud cover percentage');
 
 
                     % Define the technique or parameterization used to convert liquid cloud
@@ -760,7 +751,7 @@ for rt = 1:length(r_top)
                 % Set the error message to quiet of verbose
                 % ------------------------------------------------
                 formatSpec = '%s';
-                fprintf(fileID, formatSpec,'verbose');
+                fprintf(fileID, formatSpec,'quiet');
 
 
                 % Close the file!
