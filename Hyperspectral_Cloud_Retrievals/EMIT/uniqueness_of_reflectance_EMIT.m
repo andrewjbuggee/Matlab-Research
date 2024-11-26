@@ -415,6 +415,11 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
+% --------------------------------------------------------------
+% Do you want to print an error message?
+inputs.RT.errMsg = 'quiet';
+% --------------------------------------------------------------
+
 
 
 
@@ -751,7 +756,7 @@ for rt = 1:length(r_top)
                 % Set the error message to quiet of verbose
                 % ------------------------------------------------
                 formatSpec = '%s';
-                fprintf(fileID, formatSpec,'quiet');
+                fprintf(fileID, formatSpec, inputs.RT.errMsg);
 
 
                 % Close the file!
