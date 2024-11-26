@@ -203,26 +203,26 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.bands2run = find(emit.radiance.wavelength<=650)';
 
 % plot all EMIT wavelengths
-%inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
-% % create the spectral response functions
-% spec_response = create_EMIT_specResponse(emit, inputs);
-% % keep only the response functions for the wavelengths we care about
-% spec_response_2run.value = spec_response.value(inputs.bands2run, :);
-% spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
-% 
-% % now define the wavelength range of each spectral channel
-% inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
-% 
-% for ww = 1:length(inputs.bands2run)
-% 
-%     % The wavelength vector for libRadTran is simply the lower and upper
-%     % bounds
-%     inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
-%         spec_response_2run.wavelength(ww, end)];
-% 
-% end
+% create the spectral response functions
+spec_response = create_EMIT_specResponse(emit, inputs);
+% keep only the response functions for the wavelengths we care about
+spec_response_2run.value = spec_response.value(inputs.bands2run, :);
+spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
+
+% now define the wavelength range of each spectral channel
+inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+
+for ww = 1:length(inputs.bands2run)
+
+    % The wavelength vector for libRadTran is simply the lower and upper
+    % bounds
+    inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+        spec_response_2run.wavelength(ww, end)];
+
+end
 
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
@@ -259,18 +259,18 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ------------------------------------------------------------------------
 % ----**** Computing radiance at 0.1 nm resolution ****----
-inputs.RT.wavelength_center = 350:inputs.RT.source_file_resolution:2500;     % nm
-
-% now define each monochromatic calculation as a seperate file
-inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
-
-for ww = 1:length(inputs.RT.wavelength_center)
-
-    % The wavelength vector for libRadTran is simply the lower and upper
-    % bounds
-    inputs.RT.wavelength(ww,:) = [inputs.RT.wavelength_center(ww), inputs.RT.wavelength_center(ww)];
-
-end
+% inputs.RT.wavelength_center = 350:inputs.RT.source_file_resolution:2500;     % nm
+% 
+% % now define each monochromatic calculation as a seperate file
+% inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
+% 
+% for ww = 1:length(inputs.RT.wavelength_center)
+% 
+%     % The wavelength vector for libRadTran is simply the lower and upper
+%     % bounds
+%     inputs.RT.wavelength(ww,:) = [inputs.RT.wavelength_center(ww), inputs.RT.wavelength_center(ww)];
+% 
+% end
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
