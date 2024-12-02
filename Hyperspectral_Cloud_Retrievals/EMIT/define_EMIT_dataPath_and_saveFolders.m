@@ -69,11 +69,11 @@ elseif strcmp(whatComputer,'curc')==true
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+    folder2save.libRadTran_INP_OUT = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
     % If the folder path doesn't exit, create a new directory
-    if ~exist(folderpath_inp, 'dir')
+    if ~exist(folder2save.libRadTran_INP_OUT, 'dir')
 
-        mkdir(folderpath_inp)
+        mkdir(folder2save.libRadTran_INP_OUT)
 
     end
 
