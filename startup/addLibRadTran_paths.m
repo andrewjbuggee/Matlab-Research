@@ -33,13 +33,9 @@ elseif strcmp(whatComputer,'curc')==true
     % ----- CU SUPERCOMPUTER ------
 
     % Add paths to all functions needed
-    addpath('/projects/anbu8374/Hyperspectral_Cloud_Retrieval/')
-    addpath('/projects/anbu8374/Hyperspectral_Cloud_Retrieval/Bayes_Inverse_Functions/')
-    addpath('/projects/anbu8374/LibRadTran-wrapper/')
-    addpath('/projects/anbu8374/MODIS-Cloud-Retrieval/')
-    addpath('/projects/anbu8374/MODIS_data/')
-    addpath('/projects/anbu8374/VOCALS_REx/')
-    addpath('/projects/anbu8374/Radiative_Transfer_Physics/')
+    addpath('/projects/anbu8374/Matlab-Research/')
+    addpath('/projects/anbu8374/software/gsl-2.6/')
+    addpath('/projects/anbu8374/libRadtran-2.0.5/')
 
 end
 
