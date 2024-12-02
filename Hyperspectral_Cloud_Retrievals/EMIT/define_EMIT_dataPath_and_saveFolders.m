@@ -22,6 +22,12 @@ if strcmp(whatComputer,'anbu8374')==true
     % Define the folder path where all .INP files will be saved
     folder2save.libRadTran_INP_OUT = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/';
 
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+    
+
     % Define the folder path where the mat files of reflectances will be
     % saved
     folder2save.reflectance_calcs = emitDataPath;
@@ -40,9 +46,44 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     folder2save.libRadTran_INP_OUT = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/'];
 
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/data/'];
+
+
     % Define the folder path where the mat files of reflectances will be
     % saved
     folder2save.reflectance_calcs = emitDataPath;
+
+
+elseif strcmp(whatComputer,'curc')==true
+
+
+    % ------ Folders on the CU Supercomputer /projects folder --------
+
+    % Define the folder path where .mat files of relfectance will be stored
+    folder2save.reflectance_calcs = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+
+
+
+    % Define the folder path where all .INP files will be saved
+    folderpath_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+    % If the folder path doesn't exit, create a new directory
+    if ~exist(folderpath_inp, 'dir')
+
+        mkdir(folderpath_inp)
+
+    end
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+
+
+    % Define the EMIT data folder path
+    emitDataPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
 
 end
