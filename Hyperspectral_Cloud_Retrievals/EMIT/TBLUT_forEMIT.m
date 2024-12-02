@@ -5,10 +5,12 @@
 % ---------------------------------------
 % (1) emit - EMIT data structure
 
-% (2) emitDataFolder - this is the data folder where the EMIT data is
+% (2) emitDataPath - folder path where the EMIT data is located
+
+% (3) emitDataFolder - this is the data folder where the EMIT data is
 % located
 
-% (3) pixels2use - these are the pixels to use for the retrieval
+% (4) pixels2use - these are the pixels to use for the retrieval
 
 
 
@@ -16,14 +18,14 @@
 
 %%
 
-function tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use)
+function tblut_retrieval = TBLUT_forEMIT(emit, emitDataPath, emitDataFolder, folder2save, pixels2use)
 
 
 
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, emit);
+inputs = create_emit_inputs_TBLUT(emitDataPath, emitDataFolder, folder2save, emit);
 
 
 %% Define the solar source file name and read in the solar source data

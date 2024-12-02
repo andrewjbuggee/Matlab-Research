@@ -154,7 +154,7 @@ inputs.cloudPhase = determine_cloud_phase_emit(emit, pixels2use);
 %% Compute the TBLUT retrieval estimate
 
 tic
-tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folder2save, pixels2use);
+tblut_retrieval = TBLUT_forEMIT(emit, emitDataPath, emitDataFolder, folder2save, pixels2use);
 disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
 
 %% Create the Model and Measurement prior

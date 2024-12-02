@@ -4,7 +4,9 @@
 % INPUTS:
 %   (1) folderName - 
 
-%   (2) L1B_fileName - 
+%   (2) emitDataPath - folder path where the EMIT data is located
+
+%   (3) emitDataFolder - 
 
 
 % OUTPUTS:
@@ -14,25 +16,8 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, emit)
+function inputs = create_emit_inputs_TBLUT(emitDataPath, emitDataFolder, folder2save, emit)
 
-
-%% Which computer are we using?
-
-
-
-if strcmp(whatComputer,'anbu8374')
-
-    EMIT_dataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
-
-elseif strcmp(whatComputer,'andrewbuggee')
-
-    EMIT_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'EMIT/EMIT_data/'];
-
-else
-    error('I dont recognize this computer user name')
-end
 
 %%
 
@@ -40,7 +25,7 @@ end
 inputs.emitDataFolder = emitDataFolder;
 
 % read the contents of the EMIT data folder
-folder_contents = dir([EMIT_dataPath, emitDataFolder]);
+folder_contents = dir([emitDataPath, emitDataFolder]);
 
 % ----- Save the L1B file name -----
 for nn = 1:length(folder_contents)
