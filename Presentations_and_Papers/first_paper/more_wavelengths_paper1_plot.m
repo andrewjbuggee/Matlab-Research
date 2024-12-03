@@ -239,20 +239,29 @@ Refl_emit_uncertainty = 0.05 .* Refl_emit;
 rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % rms residual values to plot
-lvls = [0, 0.3, 1:7];
+lvls = [0, 0.25, 0.5:0.25:4];
 
 % define the slices along the tau dimension to plot
-tau_slice = [6, 6.4, 7];
+tau_slice = [6, 6.2, 6.4, 6.6];
 
-f = figure; 
+% Create figure
+figure2 = figure;
+
+% Create axes
+axes1 = axes('Parent',figure2,'Position',[0.11068 0.11 0.7254 0.815]);
+hold(axes1,'on');
+
+
 s = contourslice(R_bot_fine, R_top_fine, Tau_c_fine, rms_residual./rms_uncert, [], [], tau_slice, lvls);
 view(3)
 grid on; grid minor
 
+hold on; plot3(r_bot_min(1), r_top_min(1), tau_c_min(1), 'r.', 'markersize', 20)
+
 % Create colorbar
-cb = colorbar;
+cb = colorbar(axes1,'Position',[0.89108 0.11 0.016 0.815]);
 % create colorbar label
-ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
+ylabel(cb, '$RMS(R(\vec{x}) - \vec{m})/RMS(\delta \vec{m})$', 'FontSize', 30, 'Interpreter', 'latex')
 
 % set all contour lines to a certain thickness
 for nn = 1:length(s)
@@ -269,20 +278,30 @@ xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsiz
 % Create xlabel
 zlabel('$\tau_{c}$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
+% Create title
+title('Using 35 EMIT Spectral Measurements','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
 % Set position and size of figure
-set(gcf, 'Position', [0 0 900 900])
+set(gcf, 'Position', [0 0 1000 1000])
+
+% set 3D point of view and grid lines
+view(axes1,[-56.6186981596273 23.687116207586]);
+grid(axes1,'on');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'XMinorGrid','on','YMinorGrid','on','ZMinorGrid','on');
 
 
 
-%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+%% Create filled Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
 % plot the RMS residual at the minimum optical depth and let the radii at
 % cloud top and bottom varry
 
 
 % define the optical depth slice you'd like to plot
 % plot the mimimum rms residual
-%idx_tauC = tau_c_fine == tau_c_min(1);
-idx_tauC = tau_c_fine == 7;
+idx_tauC = tau_c_fine == tau_c_min(1);
+%idx_tauC = tau_c_fine == 6.2;
 
 % Create figure
 figure;
@@ -294,7 +313,8 @@ hold(axes1,'on');
 
 
 % rms residual values to plot
-lvls = [0, 0.3, 1:7];
+lvls = [0, 0.25, 0.5, 1:3];
+%lvls = [0, 0.3, 0.5, 1:2];
 
 % compute the rms of the EMIT reflectance uncertainty
 Refl_emit_uncertainty = 0.05 .* Refl_emit;
@@ -335,3 +355,134 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
 % r_bot vectors
 %set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
 set(gcf, 'Position', [0 0 900 900])
+
+%%
+
+
+
+% -------------------------------------
+% ----------- MODIS PLOTS -------------
+% -------------------------------------
+
+
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% ***  USING JUST FIRST 7 MODIS SPECTRAL CHANNELS ***   
+% plot the RMS residual at the minimum optical depth and let the radii at
+% cloud top and bottom varry
+
+
+% define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
+idx_tauC = tau_c_fine == tau_c_min_MODIS7(1);
+
+% Create figure
+figure;
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+
+% rms residual values to plot
+lvls = [0, 0.25, 0.5, 1:3];
+%lvls = [0, 0.3, 0.5, 1:2];
+
+% compute the rms of the EMIT reflectance uncertainty using frist 7 MODIS
+% wavelenghts
+rms_uncert_MODIS7 = sqrt(mean(Refl_emit_uncertainty_MODIS7.^2));
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual_MODIS7(:,:, idx_tauC)./rms_uncert_MODIS7, lvls, 'LineWidth',4,...
+    'EdgeColor', 'k');
+clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+    ' between EMIT and LibRadTran using first 7 MODIS wavelengths'],'Interpreter','latex', 'FontSize', 20);
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+%% Make 3D plot of contour slices along the tau dimension
+
+
+
+
+% rms residual values to plot
+lvls = [0, 0.25, 0.5:0.25:4];
+
+% define the slices along the tau dimension to plot
+tau_slice = [6, 6.2, 6.4, 6.6];
+
+% Create figure
+figure1 = figure;
+
+% Create axes
+axes1 = axes('Parent',figure1,'Position',[0.11068 0.11 0.7254 0.815]);
+hold(axes1,'on');
+
+s = contourslice(R_bot_fine, R_top_fine, Tau_c_fine, rms_residual_MODIS7./rms_uncert_MODIS7, [], [], tau_slice, lvls);
+view(3)
+
+hold on; plot3(r_bot_min_MODIS7(1), r_top_min_MODIS7(1), tau_c_min_MODIS7(1), 'r.', 'markersize', 20)
+
+% Create colorbar
+cb = colorbar(axes1,'Position',[0.89108 0.11 0.016 0.815]);
+% create colorbar label
+ylabel(cb, '$RMS(R(\vec{x}) - \vec{m})/RMS(\delta \vec{m})$', 'FontSize', 30, 'Interpreter', 'latex')
+
+% set all contour lines to a certain thickness
+for nn = 1:length(s)
+    s(nn).LineWidth = 4;
+end
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$\tau_{c}$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title('Using 7 MODIS Spectral Measurements','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Set position and size of figure
+set(gcf, 'Position', [0 0 1000 1000])
+
+% set 3D point of view and grid lines
+view(axes1,[-56.6186981596273 23.687116207586]);
+grid(axes1,'on');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'XMinorGrid','on','YMinorGrid','on','ZMinorGrid','on');
+
+
