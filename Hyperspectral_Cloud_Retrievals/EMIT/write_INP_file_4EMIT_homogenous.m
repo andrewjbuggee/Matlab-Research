@@ -402,19 +402,28 @@ for pp = 1:length(pixel_row)
 
                     total_h2O_column = inputs.RT.effectiveWaterThickness.vapor(pp) * 10;    % mm of precipitable water
 
+                    % tell libRadtran the total column water vapor amount
+                    % --------------------------------------------------------------------
+                    if isnan(total_h2O_column)==false
+                        formatSpec = '%s %s %f %s %5s %s \n';
+                        fprintf(fileID, formatSpec,'mol_modify','H2O', total_h2O_column,' MM', ' ', '# Total Precipitable Water');
+                    end
+
 
                 elseif inputs.RT.modify_waterVapor==true
 
-                    total_h2O_column = inputs.RT.waterVapor_column;     % mm of precipitable water
+
+                    % tell libRadtran the total column water vapor amount
+                    % --------------------------------------------------------------------
+                    if isnan(total_h2O_column)==false
+                        formatSpec = '%s %s %f %s %5s %s \n';
+                        fprintf(fileID, formatSpec,'mol_modify','H2O', inputs.RT.waterVapor_column,' MM', ' ', '# Total Precipitable Water');
+                    end
 
 
                 end
 
-                % tell libRadtran the total column water vapor amount
-                if isnan(total_h2O_column)==false
-                    formatSpec = '%s %s %f %s %5s %s \n';
-                    fprintf(fileID, formatSpec,'mol_modify','H2O', total_h2O_column,' MM', ' ', '# Total Precipitable Water');
-                end
+
 
 
                 
