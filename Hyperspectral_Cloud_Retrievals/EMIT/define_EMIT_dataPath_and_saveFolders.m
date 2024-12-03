@@ -26,7 +26,7 @@ if strcmp(whatComputer,'anbu8374')==true
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
     folderpaths.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
-    
+
 
     % Define the folder path where the mat files of reflectances will be
     % saved
@@ -70,12 +70,7 @@ elseif strcmp(whatComputer,'curc')==true
 
     % Define the folder path where all .INP files will be saved
     folderpaths.libRadTran_INP_OUT = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
-    % If the folder path doesn't exit, create a new directory
-    if ~exist(folderpaths.libRadTran_INP_OUT, 'dir')
 
-        mkdir(folderpaths.libRadTran_INP_OUT)
-
-    end
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -85,6 +80,23 @@ elseif strcmp(whatComputer,'curc')==true
     % Define the EMIT data folder path
     folderpaths.emitDataPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folderpaths.reflectance_calcs, 'dir')
+
+    mkdir(folderpaths.reflectance_calcs)
+
+end
+
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folderpaths.libRadTran_INP_OUT, 'dir')
+
+    mkdir(folderpaths.libRadTran_INP_OUT)
 
 end
 
