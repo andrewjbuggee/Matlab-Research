@@ -87,7 +87,7 @@ end
 % If the folder path doesn't exit, create a new directory
 if ~exist(folderpaths.reflectance_calcs, 'dir')
 
-    mkdir(folderpaths.reflectance_calcs)
+    mkdir(folderpaths.reflectance_calcs);
 
 end
 
@@ -96,7 +96,7 @@ end
 % If the folder path doesn't exit, create a new directory
 if ~exist(folderpaths.libRadTran_INP_OUT, 'dir')
 
-    mkdir(folderpaths.libRadTran_INP_OUT)
+    mkdir(folderpaths.libRadTran_INP_OUT);
 
 end
 

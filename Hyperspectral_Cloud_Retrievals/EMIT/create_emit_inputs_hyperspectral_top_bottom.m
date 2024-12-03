@@ -402,7 +402,7 @@ inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataF
 % If the folder path doesn't exit, create a new directory
 if ~exist(inputs.folder2save.reflectance_calcs, 'dir')
 
-    mkdir(inputs.folder2save.reflectance_calcs)
+    mkdir(inputs.folder2save.reflectance_calcs);
 
 end
 
