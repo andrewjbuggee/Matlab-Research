@@ -4,7 +4,7 @@
 
 %%
 
-function [inpNames, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit)
+function [inpNames, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit, folderpaths)
 
 % ------------------------------------------------
 % ---------- INPUTS AND FUNCTION SET UP ----------
@@ -320,12 +320,13 @@ for pp = 1:length(pixel_row)
                 fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
 
 
-                % Define the location and filename of the atmopsheric profile to use
+                % Define location of the data files
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'atmosphere_file ', [libRadtran_data_path, 'atmmod/', inputs.RT.atm_file],...
-                    ' ', '# Location of atmospheric profile');
+                fprintf(fileID, formatSpec,'data_files_path', folderpaths.libRadtran_data_path, ' ', '# Location of libRadtran data files');
 
+
+            
 
                 % Use phase function correction?
                 % ------------------------------------------------
@@ -346,8 +347,10 @@ for pp = 1:length(pixel_row)
 
                 % Define the location and filename of the atmopsheric profile to use
                 % ------------------------------------------------
-                formatSpec = '%s %5s %s \n';
-                fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/', inputs.RT.atm_file],' ', '# Location of atmospheric profile');
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'atmosphere_file ', [folderpaths.libRadtran_data_path, 'atmmod/', inputs.RT.atm_file],...
+                    ' ', '# Location of atmospheric profile');
+
 
                 % Define the location and filename of the extraterrestrial solar source
                 % ---------------------------------------------------------------------
@@ -376,7 +379,8 @@ for pp = 1:length(pixel_row)
                     % Define the water cloud file
                     % ------------------------------------------------
                     formatSpec = '%s %s %5s %s \n';
-                    fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{rr,tt}], ' ', '# Location of water cloud file');
+                    fprintf(fileID, formatSpec,'wc_file 1D', [folderpaths.libRadtran_data_path,'wc/',wc_filename{rr,tt}],...
+                        ' ', '# Location of water cloud file');
                     %fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{1}(1)], ' ', '# Location of water cloud file');
 
 

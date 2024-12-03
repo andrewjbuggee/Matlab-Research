@@ -43,7 +43,7 @@ inputs = define_source_for_EMIT(inputs, emit);
 
 if inputs.flags.writeINPfiles == true
 
-    [names.inp, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit);
+    [names.inp, inputs] = write_INP_file_4EMIT_homogenous(inputs, pixels2use, emit, folderpaths);
 
     % now lets write the output names
 

@@ -627,6 +627,14 @@ for rr = 1:length(inputs.RT.re)
             fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
 
 
+            % Define location of the data files
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'data_files_path', libRadtran_data_path, ' ', '# Location of libRadtran data files');
+
+
+
+
             % Use phase function correction?
             % ------------------------------------------------
             if inputs.RT.use_nakajima_phaseCorrection==true
@@ -636,11 +644,7 @@ for rr = 1:length(inputs.RT.re)
                 fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
             end
 
-            % Define location of the data files
-            % ------------------------------------------------
-            formatSpec = '%s %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,'data_files_path', libRadtran_data_path, ' ', '# Location of libRadtran data files');
-
+            
 
             % Define the band model to use
             % of radiative transfer
