@@ -26,9 +26,9 @@ emitDataFolder = '17_Jan_2024_coast/';
 
 %% Load EMIT data and define folders 
 
-[emitDataPath, folder2save] = define_EMIT_dataPath_and_saveFolders();
+folderpaths = define_EMIT_dataPath_and_saveFolders();
 
-[emit,L1B_fileName] = retrieveEMIT_data([emitDataPath, emitDataFolder]);
+[emit,L1B_fileName] = retrieveEMIT_data([folderpaths.emitDataPath, emitDataFolder]);
 
 
 %% Define the pixels to use for the retrieval
@@ -112,7 +112,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit);
+inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folderpaths, L1B_fileName, emit);
 %inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
@@ -154,7 +154,7 @@ inputs.cloudPhase = determine_cloud_phase_emit(emit, pixels2use);
 %% Compute the TBLUT retrieval estimate
 
 tic
-tblut_retrieval = TBLUT_forEMIT(emit, emitDataPath, emitDataFolder, folder2save, pixels2use);
+tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folderpaths, pixels2use);
 disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
 
 %% Create the Model and Measurement prior

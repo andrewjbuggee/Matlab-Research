@@ -18,7 +18,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folder2save, L1B_fileName, emit)
+function inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folderpaths, L1B_fileName, emit)
 
 
 % --- SAVE THE EMIT FILE NAME ----
@@ -392,12 +392,12 @@ data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', 
     'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
-inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
+inputs.folder2save.libRadTran_INP_OUT = [folderpaths.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
     '_time_', L1B_fileName{1}(27:30), '/'];
 
 
 % This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
+inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataFolder]; 
 
 % This is the name of the .mat file with the reflectance calcs
 inputs.reflectance_calculations_fileName = ['hyperspectral_reflectance_calculations_', char(datetime("today")),'.mat'];

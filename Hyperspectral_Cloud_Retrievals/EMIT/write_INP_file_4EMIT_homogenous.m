@@ -320,6 +320,13 @@ for pp = 1:length(pixel_row)
                 fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
 
 
+                % Define the location and filename of the atmopsheric profile to use
+                % ------------------------------------------------
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'atmosphere_file ', [libRadtran_data_path, 'atmmod/', inputs.RT.atm_file],...
+                    ' ', '# Location of atmospheric profile');
+
+
                 % Use phase function correction?
                 % ------------------------------------------------
                 if inputs.RT.use_nakajima_phaseCorrection==true

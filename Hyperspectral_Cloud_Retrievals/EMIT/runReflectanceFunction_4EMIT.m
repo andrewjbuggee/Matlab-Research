@@ -10,25 +10,7 @@
 
 function [R,Rl, inputs] = runReflectanceFunction_4EMIT(inputs, names, spectral_response)
 
-% what computer are we using?
 
-userName = whatComputer;
-
-if strcmp(userName,'anbu8374')
-
-    libRadTran_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4'];
-
-elseif strcmp(userName,'andrewbuggee')
-
-    libRadTran_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4'];
-
-else
-    error('I dont recognize this computer user name')
-end
-
-
-addpath(libRadTran_path);
 
 % ----- extract inputs -----
 
