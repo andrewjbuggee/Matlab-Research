@@ -415,10 +415,8 @@ for pp = 1:length(pixel_row)
 
                     % tell libRadtran the total column water vapor amount
                     % --------------------------------------------------------------------
-                    if isnan(total_h2O_column)==false
-                        formatSpec = '%s %s %f %s %5s %s \n';
-                        fprintf(fileID, formatSpec,'mol_modify','H2O', inputs.RT.waterVapor_column,' MM', ' ', '# Total Precipitable Water');
-                    end
+                    formatSpec = '%s %s %f %s %5s %s \n';
+                    fprintf(fileID, formatSpec,'mol_modify','H2O', inputs.RT.waterVapor_column,' MM', ' ', '# Total Precipitable Water');
 
 
                 end
@@ -426,7 +424,7 @@ for pp = 1:length(pixel_row)
 
 
 
-                
+
 
                 % Define the concentration of carbon dioxide
                 % --------------------------------------------------------------------
