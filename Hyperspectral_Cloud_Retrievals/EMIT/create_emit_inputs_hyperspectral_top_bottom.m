@@ -399,6 +399,13 @@ inputs.folder2save.libRadTran_INP_OUT = [folderpaths.libRadTran_INP_OUT, 'EMIT_'
 % This is the folder where the reflectance calculations will be stored
 inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataFolder]; 
 
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folder2save.reflectance_calcs, 'dir')
+
+    mkdir(inputs.folder2save.reflectance_calcs)
+
+end
+
 % This is the name of the .mat file with the reflectance calcs
 inputs.reflectance_calculations_fileName = ['hyperspectral_reflectance_calculations_', char(datetime("today")),'.mat'];
 
