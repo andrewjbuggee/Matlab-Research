@@ -1,5 +1,32 @@
 % Contour plot for paper 1
 
+% I can't think of a better way to look at this. Peter wants me to include
+% all three variables. His view of using all three variables by taking the
+% difference between r_top and r_bot didn't have the same effect as when I
+% a 2D slice of the rms at the minimum tau value. 
+
+% What is it I'm trying to show? That when the number of wavelengths used
+% in the retrieval are increased, the space of possible solutions shrinks,
+% especially along the r_bot dimension. How do I define the space of
+% possible solutions? It should be the region where the rms difference
+% between the measurements and the forward model calculations are less than
+% the rms of the measurement uncertainty. 
+
+% But let's rethink the solution space. How is it defined? Yes, I could set
+% the threshold defined above in my iterative solver, but I haven't. How I
+% currently defined convergence? 
+
+% To Peter's point, you can't expect to do that much better than the
+% uncertainty of the measurements. It doesn't make sense to do so because
+% within the uncertainty range, you don't know what is true and what isn't.
+
+% Do I need the number values on my contour plot? Isn't it more important
+% to show there is a bullseye? This only works if there isn't a bullseye
+% when using 7 MODIS wavelengths. But there will be. What is the slope of
+% the bullseye is steeper when using more wavelengths? Look at the rms
+% surface as a 3D plot where z is the rms value, x and y are the radii are
+% r-top and r-bot
+
 
 % By Andrew John Buggee
 
@@ -312,20 +339,33 @@ axes1 = axes;
 hold(axes1,'on');
 
 
-% rms residual values to plot
-lvls = [0, 0.25, 0.5, 1:3];
-%lvls = [0, 0.3, 0.5, 1:2];
 
 % compute the rms of the EMIT reflectance uncertainty
 Refl_emit_uncertainty = 0.05 .* Refl_emit;
 rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
+
+% rms residual values to plot
+%lvls = [0, 0.25, 0.5, 1:3];
+%lvls = [0, 0.3, 0.5, 1:2];
+
+
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
-[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
-    'EdgeColor', 'k');
-clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+% [c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
+%     'EdgeColor', 'k');
+% clabel(c1,h1,'FontSize',20,'FontWeight','bold');
 
+
+% rms residual values to plot
+lvls = [0, 0.004, 0.005, 0.01:0.01:1];
+
+[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC), lvls, 'LineWidth',4,...
+    'EdgeColor', 'k');
+% Create colorbar
+cb = colorbar(axes1);
+% create colorbar label
+ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
 
 
 % Create ylabel
@@ -355,6 +395,124 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
 % r_bot vectors
 %set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
 set(gcf, 'Position', [0 0 900 900])
+
+
+%% Create a contour plot that varies with r top and r bottom and shows more than one optical depth
+
+
+
+% define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
+idx_tauC = tau_c_fine == tau_c_min(1);
+%idx_tauC = tau_c_fine == 6.2;
+
+% Create figure
+figure;
+
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+
+% rms residual values to plot
+%lvls = [0, 0.25, 0.5, 1:3];
+lvls = [0, 0.3, 0.5, 1:2];
+
+% compute the rms of the EMIT reflectance uncertainty
+Refl_emit_uncertainty = 0.05 .* Refl_emit;
+rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+[c1,h1] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
+    'EdgeColor', mySavedColors(2, 'fixed'));
+clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+% plot another optical depth
+hold on
+% plot the mimimum rms residual
+idx_tauC = tau_c_fine == 6.3;
+
+[c2,h2] = contour(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
+    'EdgeColor', mySavedColors(3, 'fixed'));
+clabel(c2,h2,'FontSize',20,'FontWeight','bold');
+
+% create a legend
+legend('$\tau_c = 6.4$', '$\tau_c = 6.3$', 'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+    ' between EMIT and LibRadTran'],'Interpreter','latex', 'FontSize', 33);
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% % Create colorbar
+% cb = colorbar(axes1);
+% % create colorbar label
+% ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+%% Create a surface plot that shows the volume of the solution space
+% The set of possible solutions, the volume in (r_top, r_bot, and tau_c)
+% is the space where the rms difference between the measurements and the 
+% estimates are less than the rms of the measurement uncertainty
+
+
+% Lets find all x,y and z values where the rms(R(x) - m)/rms(delta m) is
+% less than 1
+
+% compute the rms of the EMIT reflectance uncertainty
+Refl_emit_uncertainty = 0.05 .* Refl_emit;
+rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+idx = rms_residual./rms_uncert < 0.3;
+
+figure; 
+
+f = fill3(R_bot_fine(idx), R_top_fine(idx), Tau_c_fine(idx), 'r');
+
+f.EdgeAlpha = 1;
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$\tau_{c}$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+grid on; grid minor
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+set(gcf, 'Position', [0 0 900 900])
+
+xlim([r_bot_fine(1) , r_bot_fine(end)])
+ylim([r_top_fine(1) , r_top_fine(end)])
+zlim([tau_c_fine(1) , tau_c_fine(end)])
+
 
 %%
 
