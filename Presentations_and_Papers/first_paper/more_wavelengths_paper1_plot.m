@@ -381,31 +381,31 @@ hold(axes1,'on');
 
 
 % compute the rms of the EMIT reflectance uncertainty
-Refl_emit_uncertainty = 0.05 .* Refl_emit;
+Refl_emit_uncertainty = 0.015 .* Refl_emit;
 rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 
 % rms residual values to plot
-%lvls = [0, 0.25, 0.5, 1:3];
+lvls = [0, 0.25, 0.5, 1:3];
 %lvls = [0, 0.3, 0.5, 1:2];
 
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
-% [c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
-%     'EdgeColor', 'k');
-% clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+[c1,h1] = contourf(r_bot_fine, r_top_fine, rms_residual(:,:, idx_tauC)./rms_uncert, lvls, 'LineWidth',4,...
+    'EdgeColor', 'k');
+clabel(c1,h1,'FontSize',20,'FontWeight','bold');
 
 
 % rms residual values to plot
-lvls = [0, 0.004, 0.005, 0.01:0.01:1];
-
-[c1,h1] = contourf(R_bot_fine(:,:, idx_tauC), R_top_fine(:,:, idx_tauC), rms_residual(:,:, idx_tauC), lvls, 'LineWidth',4,...
-    'EdgeColor', 'k');
-% Create colorbar
-cb = colorbar(axes1);
-% create colorbar label
-ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+% lvls = [0, 0.004, 0.005, 0.01:0.01:1];
+% 
+% [c1,h1] = contourf(R_bot_fine(:,:, idx_tauC), R_top_fine(:,:, idx_tauC), rms_residual(:,:, idx_tauC), lvls, 'LineWidth',4,...
+%     'EdgeColor', 'k');
+% % Create colorbar
+% cb = colorbar(axes1);
+% % create colorbar label
+% ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
 
 
 % Create ylabel
@@ -586,7 +586,7 @@ set(gcf, 'Position', [0 0 900 900])
 % estimates are less than the rms of the measurement uncertainty
 
 
-% Lets find all x,y and z values where the rms(R(x) - m)/rms(delta m) is
+% Lets find all x, y and z values where the rms(R(x) - m)/rms(delta m) is
 % less than 1
 
 % compute the rms of the EMIT reflectance uncertainty

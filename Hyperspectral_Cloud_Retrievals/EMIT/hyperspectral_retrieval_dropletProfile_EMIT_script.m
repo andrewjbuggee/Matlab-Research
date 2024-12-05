@@ -151,6 +151,7 @@ emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs
 
 inputs.cloudPhase = determine_cloud_phase_emit(emit, pixels2use);
 
+
 %% Compute the TBLUT retrieval estimate
 
 tic
