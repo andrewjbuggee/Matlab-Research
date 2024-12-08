@@ -276,7 +276,7 @@ for pp = 1:num_pixels
             if isempty(min_val_lessThanPrevious)
 
                 % If no rms_residual is less than the previous iterate,
-                % find the minimum and move foward. Tha algorithm will flag
+                % find the minimum and move foward. The algorithm will flag
                 % this as find the minimum rms_residual
                 [~, min_residual_idx] = min(rms_residual_constrained);
                 
@@ -416,9 +416,33 @@ for pp = 1:num_pixels
         % You're not going to do any better
         if ii>1 && ii<5
 
-            if abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)<percent_change_limit
+            if abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)==0
 
-                disp([newline, 'RMS residual has plataued. The current value differs from the previous value by less than 1 percent', newline,...
+                if isempty(min_val_lessThanPrevious)==true
+                    disp([newline, 'There is no new direction that reduces the RMS uncertainty.', newline,...
+                        'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
+
+                else
+
+                    disp([newline, 'RMS residual did not change at all from the previous iteration.', newline,...
+                        'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
+
+                end
+
+                % Clear the rest of the zeros that are place holders for later
+                % iterations
+                retrieval{pp}(:,ii+2:end) = [];
+                rms_residual{pp}(ii+2:end) = [];
+                residual{pp}(:,ii+2:end) = [];
+                diff_guess_prior{pp}(:,ii+1:end) = [];
+                jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+
+                break
+
+            elseif abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)<percent_change_limit
+
+                disp([newline, 'RMS residual has plataued. The current value differs from the previous value by ',...
+                    num2str(abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii) * 100), '%', newline,...
                     'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
 
                 % Clear the rest of the zeros that are place holders for later
