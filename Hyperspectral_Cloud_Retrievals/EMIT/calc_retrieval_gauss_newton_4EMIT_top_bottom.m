@@ -12,7 +12,7 @@ measurement_cov = inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Retrieve the convergence limit
-convergence_limit = inputs.convergence_limit;
+absolute_convergence_limit = inputs.convergence_limit;
 
 % retrieve the percent limit change between successive iterations
 percent_change_limit = inputs.percent_change_limit;
@@ -372,7 +372,7 @@ for pp = 1:num_pixels
         % GN_inputs strucute, break the for loop. We've converged
         
 
-        if rms_residual{pp}(ii+1)<convergence_limit
+        if rms_residual{pp}(ii+1)<absolute_convergence_limit
 
             disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
                 'RMS = ', num2str(rms_residual{pp}(ii+1))])

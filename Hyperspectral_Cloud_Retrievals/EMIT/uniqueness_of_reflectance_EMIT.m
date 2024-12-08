@@ -973,46 +973,25 @@ Refl_emit_MODIS7 = Refl_emit(wl_MODIS7_idx);
 Refl_emit_uncertainty_MODIS7 = Refl_emit_uncertainty(wl_MODIS7_idx);
 
 
+% Compute the rms difference between the measurements and the modeled
+% reflectances
+rms_residual = sqrt(mean( (repmat(reshape(Refl_emit, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    - Refl_model_fine).^2, 4));
+
+rms_residual_MODIS7 = sqrt(mean( (repmat(reshape(Refl_emit_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    - Refl_model_fine_MODIS7).^2, 4));
+
 % Using the new fine grid, calculate how many sets of measurements are
 % within the EMIT measurement and it's uncertainty
+redundant_states = all( abs( repmat(reshape(Refl_emit, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine)) -...
+    Refl_model_fine) <= repmat(reshape(Refl_emit_uncertainty, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine)) ,4);
+
+redundant_states_MODIS7 = all( abs( repmat(reshape(Refl_emit_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine)) -...
+    Refl_model_fine_MODIS7) <= repmat(reshape(Refl_emit_uncertainty_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine)) ,4);
 
 
-redundant_states = [];
-rms_residual = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine));
-
-redundant_states_MODIS7 = [];
-rms_residual_MODIS7 = zeros(length(r_top_fine), length(r_bot_fine), length(tau_c_fine));
 
 
-tic
-for rt = 1:size(Refl_model_fine,1)
-
-
-    for rb = 1:size(Refl_model_fine,2)
-
-
-        parfor tc = 1:size(Refl_model_fine,3)
-
-            disp(['Iterations: [r_top = ', num2str(rt),'/',num2str(size(Refl_model_fine,1)),...
-                ',   r_bot = ', num2str(rb),'/',num2str(size(Refl_model_fine,2)),...
-                ',   tau_c = ', num2str(tc),'/',num2str(size(Refl_model_fine,3)), newline])
-
-            % Check to see if the radiance computed by the model is
-            % within the listed uncertainty for EMIT
-            %redundant_states(rt,rb,tc) = all(abs(R_emit - reshape(R_model_fine(rt,rb,tc,:), 1, [])) <= R_emit_uncert);
-            redundant_states = [redundant_states, abs(Refl_emit - reshape(Refl_model_fine(rt,rb,tc,:), [], 1)) <= Refl_emit_uncertainty];
-            rms_residual(rt, rb, tc) = sqrt(mean( (Refl_emit - reshape(Refl_model_fine(rt,rb,tc,:), [], 1)).^2) );
-
-
-            % Do this for just the 7 MODIS Wavelengths
-            redundant_states_MODIS7 = [redundant_states_MODIS7, abs(Refl_emit_MODIS7 - reshape(Refl_model_fine_MODIS7(rt,rb,tc,:), [], 1)) <= Refl_emit_uncertainty_MODIS7];
-            rms_residual_MODIS7(rt, rb, tc) = sqrt(mean( (Refl_emit_MODIS7 - reshape(Refl_model_fine_MODIS7(rt,rb,tc,:), [], 1)).^2) );
-
-
-        end
-    end
-end
-toc
 
 % Save Refl_model_file and the rms_residual, because these calculations
 % take a while!

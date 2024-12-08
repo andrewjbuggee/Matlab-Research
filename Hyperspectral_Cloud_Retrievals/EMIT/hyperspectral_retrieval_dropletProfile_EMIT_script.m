@@ -146,6 +146,9 @@ emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
 
 emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
 
+% Use the reflectance uncertainty to define the convergence limit
+inputs.convergence_limit = 0.25 * sqrt(mean(emit.reflectance.uncertainty.^2));
+
 
 %% Check the thermodynamic phase of the defined pixels
 
@@ -175,9 +178,21 @@ tic
 disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
 %[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
+
 % --- save the output ---
- save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
-        "inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
+rev = 1;
+
+filename = [inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName,...
+    '_rev', num2str(rev),'.mat'];
+
+while isfile(filename)
+    rev = rev+1;
+    filename = [folderpath_reflectance,'reflectance_calcs_EMIT_water_cloud_sim-ran-on-',char(datetime("today")),...
+        '_rev', num2str(rev),'.mat'];
+end
+
+
+save(filename, "inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
 
 
 %% Make plot of the retrieved profile
