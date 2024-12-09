@@ -220,7 +220,9 @@ grid on; grid minor
 
 xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
-title(['RMS = ', num2str(retrieval.rms_residual{1}(end))], 'Interpreter', 'latex', 'Fontsize', 35);
+title(['$RMS(F(\vec{x}) - \vec{m}) / RMS(\delta \vec{m})$ = ', num2str(retrieval.rms_residual{1}(end)/...
+    sqrt(mean(emit.reflectance.uncertainty(inputs.bands2run).^2)))...
+    ], 'Interpreter', 'latex', 'Fontsize', 35);
 
 % set figure size
 set(gcf, 'Position', [0 0 700 700])
