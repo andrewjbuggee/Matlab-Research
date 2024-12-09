@@ -92,12 +92,14 @@ else
     %--------------------------------------------------------------
 
 
-    %----------------------------------------------------
-    % ----------- Set the a priori value ----------------
-    %----------------------------------------------------
+    
 
     for nn = 1:num_pixels_2run
 
+
+        %----------------------------------------------------
+        % ----------- Set the a priori value ----------------
+        %----------------------------------------------------
 
         %inputs.model.apriori = [1.5*truthTable.modisR17(1:n), 0.5*truthTable.modisR17(1:n), truthTable.modisT17(1:n)]; % expected values for the effective radius (microns) and the optical depth
 
@@ -109,6 +111,17 @@ else
         inputs.model.apriori(nn,:) = [tblut_retrieval.minRe(nn), 0.7058*tblut_retrieval.minRe(nn),...
             tblut_retrieval.minTau(nn)];
 
+
+
+        %---------------------------------------------------------------
+        % ------- Set the variable covariance matrix values ------------
+        %---------------------------------------------------------------
+
+        % The main diagonal of the covariance matrix for the retrieved
+        % variables is the variance. That is, if each variable is gaussian
+        % distributed, the squareroot of the main diagonal is the standard
+        % deviation of each variables distribution. So the units for r_top
+        % and r_bot are microns squared.
 
         % lets create the variance and mean for each model parameter
         % Using the same values defined by King and Vaughn (2012)
@@ -127,10 +140,16 @@ else
         % Set the uncertainty of the radius at cloud top to be the
         % retireval uncertainty
 
-        %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];
+        % The standard deviation should be in units of microns for the
+        % first two variables, and unitless for the last variable
+
+        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];       % Values used by King and Vaughan (2012)
+
+%         stdev_variables = [sqrt(3), sqrt(10), sqrt(0.3)];       % Values used by King and Vaughan (2012)
+      
 %         stdev_variables = [inputs.model.apriori(1)*0.1, inputs.model.apriori(2)*0.3,...
 %             inputs.model.apriori(3)*0.05];
-        stdev_variables = [sqrt(0.1), sqrt(1), sqrt(0.1)];
+        %stdev_variables = [sqrt(0.1), sqrt(1), sqrt(0.1)];
 
 
         % variance for the effective radius (microns squared) and optical thickness respectively

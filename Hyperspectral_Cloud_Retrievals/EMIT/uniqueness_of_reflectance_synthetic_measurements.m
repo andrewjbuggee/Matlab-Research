@@ -13,9 +13,9 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_
 %% Define synthetic model data
 
 
-r_top_truth = 10.8;
-r_bot_truth = 8.7;
-tau_c_truth = 7.2;
+r_top_truth = 8.8;
+r_bot_truth = 4.7;
+tau_c_truth = 5.6;
 
 idx_r_top = r_top_fine==r_top_truth;
 idx_r_bot = r_bot_fine==r_bot_truth;
@@ -42,14 +42,11 @@ measurement_uncert = 0.01;
 % uncertainty of 5% implies the true value can lie anywhere between the
 % measured value +/- 5% of the measured value
 % define a 
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/2) .*...
+synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/3) .*...
     randn(length(inputs.bands2run), 1);
 
 % define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert .* Refl_emit;
-
-% Compute the RMS of the synthetic measurement uncertainty
-rms_uncert = sqrt(mean(synthetic_measurement_uncert.^2));
+synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
 
 
 
@@ -102,6 +99,9 @@ if use_l2_norm==false
     rms_residual_MODIS7 = sqrt(mean( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine_MODIS7).^2, 4));
 
+    % Compute the RMS of the synthetic measurement uncertainty
+    rms_uncert = sqrt(mean(synthetic_measurement_uncert.^2));
+
 
 else
 
@@ -109,8 +109,11 @@ else
     rms_residual = sqrt(sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine).^2, 4));
 
-    rms_residual = sqrt(sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    rms_residual_MODIS7 = sqrt(sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine_MODIS7).^2, 4));
+
+    % Compute the RMS of the synthetic measurement uncertainty
+    rms_uncert = sqrt(sum(synthetic_measurement_uncert.^2));
 
 end
 
@@ -301,7 +304,7 @@ set(gca,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMi
 % set the figure size to be proportional to the length of the r_top and
 % r_bot vectors
 %set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
-set(gcf, 'Position', [0 0 1100 1100])
+set(gcf, 'Position', [0 0 1150 1100])
 
 
 %% Create filled Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
@@ -323,11 +326,8 @@ axes1 = axes;
 hold(axes1,'on');
 
 
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
-
-
 % rms residual values to plot
-lvls = [0, 0.25, 0.5, 1:3];
+lvls = [0, 0.25, 0.5, 1:5];
 %lvls = [0, 0.3, 0.5, 1:2];
 
 

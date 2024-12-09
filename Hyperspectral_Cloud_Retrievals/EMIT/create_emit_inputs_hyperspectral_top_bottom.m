@@ -37,7 +37,7 @@ inputs.L1B_filename = L1B_fileName{1};
 
 
 % --- First 7 MODIS spectral channels - 
-inputs.bands2run = [17, 24, 36, 65, 116, 170, 235]';
+% inputs.bands2run = [17, 24, 36, 65, 116, 170, 235]';
 
 % The following indexes are for wavelengths that avoid water vapor
 % absopriton according to figure 5 from King and Vaughan, which shows the
@@ -73,9 +73,9 @@ inputs.bands2run = [17, 24, 36, 65, 116, 170, 235]';
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-%     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
-%     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
 

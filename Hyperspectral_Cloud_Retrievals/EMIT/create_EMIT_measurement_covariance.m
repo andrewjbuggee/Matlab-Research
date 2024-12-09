@@ -48,15 +48,23 @@ elseif strcmp(covariance_type,'independent') == true
 
     % ---------------------------------------------------------------
     % Create the measurement covariance using the radiance uncertainty
-    % product
     % ----------------------------------------------------------------
+
+
+    % Let's assume gaussian measurement uncertainty. An instrument with 1%
+    % measurement uncertainty means that 95% of identical measurements fall
+    % within 1% of the 'true' value. For a normal distribution, 95% of all
+    % measurements fall with [mean - 2*std, mean + 2*std]. 
+
 
     % if each uncertainty represents the standard deviation, the
     % variance is the square of each value.
 
-    % the refelctance uncertanties are listed in units of reflectance
-    % keep only the values used in the retrieval
-    inputs.measurement.variance = emit.reflectance.uncertainty(inputs.bands2run,:).^2;      % variance in reflectance
+    % the main diagonal of the measurement covariance matrix is the
+    % variance of the measurement uncertainty. Since we assume Gaussian
+    % statistics, the uncertainty is assumed to be the standard deviaiton.
+    % The values should be in units of reflectance
+    inputs.measurement.variance = (emit.reflectance.uncertainty(inputs.bands2run,:)).^2;      % variance in reflectance
 
 
     inputs.measurement.covariance = zeros(num_bands_2run, num_bands_2run, num_pixels);
