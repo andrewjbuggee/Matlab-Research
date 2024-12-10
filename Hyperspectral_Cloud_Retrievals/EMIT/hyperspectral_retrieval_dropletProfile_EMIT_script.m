@@ -187,8 +187,8 @@ filename = [inputs.folder2save.reflectance_calcs, inputs.reflectance_calculation
 
 while isfile(filename)
     rev = rev+1;
-    filename = [folderpath_reflectance,'reflectance_calcs_EMIT_water_cloud_sim-ran-on-',char(datetime("today")),...
-        '_rev', num2str(rev),'.mat'];
+    filename = [inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName,...
+    '_rev', num2str(rev),'.mat'];
 end
 
 

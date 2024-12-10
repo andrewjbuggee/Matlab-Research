@@ -143,7 +143,9 @@ else
         % The standard deviation should be in units of microns for the
         % first two variables, and unitless for the last variable
 
-        stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1)];       % Values used by King and Vaughan (2012)
+        % [sigma(r_top), sigma(r_bot), sigma(tau_c)]
+
+        stdev_variables = [(3), (10), (0.1)];       % Values used by King and Vaughan (2012)
 
 %         stdev_variables = [sqrt(3), sqrt(10), sqrt(0.3)];       % Values used by King and Vaughan (2012)
       
