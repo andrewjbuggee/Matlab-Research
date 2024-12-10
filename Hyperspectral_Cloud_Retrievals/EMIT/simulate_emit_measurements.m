@@ -195,26 +195,26 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.bands2run = find(emit.radiance.wavelength<=650)';
 
 % plot all EMIT wavelengths
-%inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 % ------------------------------------------------------------------------
 
-% % Define the EMIT spectral response functions
-% spec_response = create_EMIT_specResponse(emit, inputs);
-% % keep only the response functions for the wavelengths we care about
-% spec_response_2run.value = spec_response.value(inputs.bands2run, :);
-% spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
-% 
-% % now define the wavelength range of each spectral channel
-% inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
-% 
-% for ww = 1:length(inputs.bands2run)
-% 
-%     % The wavelength vector for libRadTran is simply the lower and upper
-%     % bounds
-%     inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
-%         spec_response_2run.wavelength(ww, end)];
-% 
-% end
+% Define the EMIT spectral response functions
+spec_response = create_EMIT_specResponse(emit, inputs);
+% keep only the response functions for the wavelengths we care about
+spec_response_2run.value = spec_response.value(inputs.bands2run, :);
+spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
+
+% now define the wavelength range of each spectral channel
+inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+
+for ww = 1:length(inputs.bands2run)
+
+    % The wavelength vector for libRadTran is simply the lower and upper
+    % bounds
+    inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+        spec_response_2run.wavelength(ww, end)];
+
+end
 
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
@@ -228,24 +228,24 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % inputs.RT.wavelength_center = 350:(emit.radiance.wavelength(2) - emit.radiance.wavelength(1))/3:...
 %                               emit.radiance.wavelength(end);     % nm
 
-inputs.RT.wavelength_center = emit.radiance.wavelength;     % nm
-
-inputs.RT.fwhm = linspace(emit.radiance.fwhm(1), emit.radiance.fwhm(1), length(inputs.RT.wavelength_center));
-
-spec_response_2run = create_gaussian_specResponse(inputs.RT.wavelength_center, inputs.RT.fwhm, inputs);
-
-
-% now define the wavelength range of each spectral channel
-inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
-
-for ww = 1:length(inputs.RT.wavelength_center)
-
-    % The wavelength vector for libRadTran is simply the lower and upper
-    % bounds
-    inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
-        spec_response_2run.wavelength(ww, end)];
-
-end
+% inputs.RT.wavelength_center = emit.radiance.wavelength;     % nm
+% 
+% inputs.RT.fwhm = linspace(emit.radiance.fwhm(1), emit.radiance.fwhm(1), length(inputs.RT.wavelength_center));
+% 
+% spec_response_2run = create_gaussian_specResponse(inputs.RT.wavelength_center, inputs.RT.fwhm, inputs);
+% 
+% 
+% % now define the wavelength range of each spectral channel
+% inputs.RT.wavelength = zeros(length(inputs.RT.wavelength_center), 2);
+% 
+% for ww = 1:length(inputs.RT.wavelength_center)
+% 
+%     % The wavelength vector for libRadTran is simply the lower and upper
+%     % bounds
+%     inputs.RT.wavelength(ww,:) = [spec_response_2run.wavelength(ww, 1),...
+%         spec_response_2run.wavelength(ww, end)];
+% 
+% end
 
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
@@ -830,11 +830,7 @@ while isfile(filename)
 end
 
 
-% save(filename,"inputs", "Refl_model", "smooth_Refl_model", "S");
-% save(filename,"inputs", "Refl_model", "smooth_Refl_model_1600", "smooth_Refl_model_2100", "S_1600");
-save(filename,"inputs", "wl_mean", "lgnd_str", "Refl_model","smooth_Refl_model_1000", "smooth_Refl_model_1600",...
-    "smooth_Refl_model_2100", "S_1600", "S_2100", "Refl_model_norm");
-%save([folderpath_reflectance, 'radiance_at_sensor_', inputs.RT.band_parameterization,'.mat'],"inputs", "Rad_model");
+save(filename,"inputs", "Refl_model");
 
 
 
