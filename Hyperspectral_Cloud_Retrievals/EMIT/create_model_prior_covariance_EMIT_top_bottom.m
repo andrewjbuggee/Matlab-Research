@@ -145,7 +145,9 @@ else
 
         % [sigma(r_top), sigma(r_bot), sigma(tau_c)]
 
-        stdev_variables = [(3), (10), (0.1)];       % Values used by King and Vaughan (2012)
+%         stdev_variables = [3, 10, 0.1];       % Values used by King and Vaughan (2012)
+
+        stdev_variables = [3, 5, 0.25];       % standard deviation of the three retrieved variables
 
 %         stdev_variables = [sqrt(3), sqrt(10), sqrt(0.3)];       % Values used by King and Vaughan (2012)
       
