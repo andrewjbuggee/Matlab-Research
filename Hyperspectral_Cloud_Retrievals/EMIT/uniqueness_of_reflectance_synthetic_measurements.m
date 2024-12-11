@@ -449,10 +449,20 @@ Tau_c_2D = repmat(tau_c_fine, size(R_top_minus_R_bot,1), 1);
 % Create a surface plot
 figure;
 
+% % Create contour plot showing all radii at cloud top and bottom for a
+% % particular optical depth
+% s = surf(R_top_minus_R_bot_sort, Tau_c_2D, rms_residual_2D);
+
+
+% only plot the states where the rms residual is less than the rms of the
+% measurement uncertainty
+
+idx_uncert = rms_residual_2D <= rms_uncert;
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
-s = surf(R_top_minus_R_bot_sort, Tau_c_2D, rms_residual_2D);
+s = surf(R_top_minus_R_bot_sort(idx_uncert), Tau_c_2D(idx_uncert), rms_residual_2D(idx_uncert));
+
 
 s.EdgeAlpha = 0.5;
 
@@ -477,8 +487,7 @@ if use_l2_norm==false
     % Create xlabel
     zlabel('$RMS(R(\vec{x}) - \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
-    title(['RMS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+    title(['RMS Residual between Synthetic Measurements with ', num2str(100*measurement_uncert),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
 
 else
@@ -486,8 +495,7 @@ else
     % Create xlabel
     zlabel('$RSS(R(\vec{x}) - \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
-    title(['RSS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+    title(['RSS Residual between Synthetic Measurements with ', num2str(100*measurement_uncert),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
 
 end
@@ -524,3 +532,87 @@ idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
 percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
 
 percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
+
+
+%% plots from Claude
+
+% RMS Residual Visualization Script
+% Visualization of RMS residual across r_top_fine, r_bot_fine, and tau_c_fine
+
+% Note: Replace this with your actual data loading method
+% Assuming you have a 3D matrix of RMS residuals pre-calculated
+% If not, you'll need to add nested loops to calculate rms_residual for each combination
+
+% Load or generate data (MODIFY THIS SECTION)
+% Example: load('your_data_file.mat', 'r_top_fine', 'r_bot_fine', 'tau_c_fine', 'rms_residual');
+
+% Visualization Option 1: Comprehensive 3D Visualization
+figure('Position', [100, 100, 1500, 1500]);
+
+% Slice Plot
+subplot(1,3,1);
+slice(r_bot_fine, r_top_fine, tau_c_fine, rms_residual, ...
+    mean(r_bot_fine), mean(r_top_fine), mean(tau_c_fine));
+title('RMS Residual Slice Plot');
+xlabel('r_{bot}');
+ylabel('r_{top}');
+zlabel('\tau_{c}');
+colorbar;
+colormap('jet');
+
+% Isosurface Plot
+subplot(1,3,2);
+p = patch(isosurface(r_bot_fine, r_top_fine, tau_c_fine, rms_residual, median(rms_residual(:))));
+title('RMS Residual Isosurface');
+xlabel('r_{bot}');
+ylabel('r_{top}');
+zlabel('\tau_{c}');
+isonormals(r_bot_fine, r_top_fine, tau_c_fine, rms_residual, p);
+p.FaceColor = 'red';
+p.EdgeColor = 'none';
+p.FaceAlpha = 0.7;
+lighting gouraud;
+camlight;
+
+% 2D Contour Plot (Projection at median tau_c_fine)
+subplot(1,3,3);
+median_tau_index = round(length(tau_c_fine)/2);
+rms_2d = squeeze(rms_residual(:,:,median_tau_index));
+contourf(r_bot_fine, r_top_fine, rms_2d);
+title(['RMS Residual Contour (at \tau_{c,fine} = ' num2str(tau_c_fine(median_tau_index)) ')']);
+xlabel('r_{bot}');
+ylabel('r_{top}');
+colorbar;
+colormap('jet');
+
+% Additional Visualization: Heatmap across different tau_c_fine values
+figure;
+tiledlayout(2,2);
+
+% Create multiple heatmaps for different tau_c_fine values
+tau_indices = [1, round(length(tau_c_fine)/4), round(length(tau_c_fine)/2), length(tau_c_fine)];
+
+for i = 1:length(tau_indices)
+    nexttile;
+    current_rms_2d = squeeze(rms_residual(:,:,tau_indices(i)));
+    heatmap(r_bot_fine, r_top_fine, current_rms_2d, ...
+        'Title', ['\tau_{c,fine} = ' num2str(tau_c_fine(tau_indices(i)))], ...
+        'XLabel', 'r_{bot,fine}', ...
+        'YLabel', 'r_{top,fine}');
+end
+
+% Statistical Analysis
+fprintf('RMS Residual Statistics:\n');
+fprintf('Minimum RMS Residual: %f\n', min(rms_residual(:)));
+fprintf('Maximum RMS Residual: %f\n', max(rms_residual(:)));
+fprintf('Mean RMS Residual: %f\n', mean(rms_residual(:)));
+fprintf('Median RMS Residual: %f\n', median(rms_residual(:)));
+
+% Optional: Find the combination with minimum RMS residual
+[min_rms, linear_index] = min(rms_residual(:));
+[i, j, k] = ind2sub(size(rms_residual), linear_index);
+fprintf('\nLowest RMS Residual Details:\n');
+fprintf('r_{top,fine} = %f\n', r_top_fine(i));
+fprintf('r_{bot,fine} = %f\n', r_bot_fine(j));
+fprintf('tau_{c,fine} = %f\n', tau_c_fine(k));
+fprintf('Minimum RMS Residual = %f\n', min_rms);
