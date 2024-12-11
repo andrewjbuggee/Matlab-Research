@@ -35,8 +35,8 @@ clear variables
 
 %% LOAD DATA SET
 
- load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-26-Nov-2024_rev1.mat')
-%load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
+%load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-26-Nov-2024_rev1.mat')
+load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
 
 
 %% Want to use real EMIT geometry inputs?
@@ -136,6 +136,16 @@ pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
 
 emit = remove_unwanted_emit_data(emit, pixels2use);
 
+%% compute the rms of the EMIT reflectance uncertainty
+
+Refl_emit_uncertainty = 0.05 .* Refl_emit;
+rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
+
+% compute the rms of the EMIT reflectance uncertainty using frist 7 MODIS
+% wavelenghts
+wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
+rms_uncert_MODIS7 = sqrt(mean(Refl_emit_uncertainty(wl_MODIS7_idx).^2));
+
 %% Find the states with the lowest rms residul
 
 [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
@@ -184,7 +194,7 @@ min_Refl_model_fine = reshape(Refl_model_fine(r_top_fine==r_top_min(1), r_bot_fi
 
 % Let's now seperate out the interpolated relfectance at the seven MODIS
 % wavelengths
-wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
+
 Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
 
 
@@ -229,6 +239,23 @@ min_Refl_model_fine_MODIS7 = reshape(Refl_model_fine_MODIS7(r_top_fine==r_top_mi
 
 
 
+%%
+
+
+
+
+
+% -------------------------------------
+% ----------- EMIT PLOTS -------------
+% -------------------------------------
+
+
+
+
+
+
+
+
 %% Plot 50 points with the lowest rms value
 
 figure; plot3(r_bot_min, r_top_min, tau_c_min, '.');
@@ -258,30 +285,31 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
-Refl_emit_uncertainty = 0.03 .* Refl_emit;
-
-
-% compute the rms of the EMIT reflectance uncertainty
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
+% plot the boundaries of the data cube
+% r_bot_slice = [max(r_bot_fine), r_bot_min(1)];
+r_bot_slice = [max(r_bot_fine), ceil(r_bot_fine(end)/2)];
+r_top_slice = [max(r_top_fine)];
 
 % define the slices along the tau dimension to plot
-tau_slice = [6, 6.4, 7];
+tau_slice = [min(tau_c_fine), tau_c_min(1)];
 
 f = figure; 
 
-s = slice(R_bot_fine, R_top_fine, Tau_c_fine, rms_residual./rms_uncert, [], [], tau_slice);
+s = slice(R_bot_fine, R_top_fine, Tau_c_fine, rms_residual./rms_uncert, r_bot_slice, r_top_slice, tau_slice);
 
-% Create colorbar
-cb = colorbar;
+cb = colorbar('Position',[0.89108 0.11 0.016 0.815]);
+% create colorbar label
+ylabel(cb, '$RMS(R(\vec{x}) - \vec{m})/RMS(\delta \vec{m})$', 'FontSize', 30, 'Interpreter', 'latex')
 clim([0, 7])
 
 % create colorbar label
 %ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
 
 % set the edge alpha to a value near 0
-s(1).EdgeAlpha = 0.1;
-s(2).EdgeAlpha = 0.1;
-s(3).EdgeAlpha = 0.1;
+for nn = 1:length(s)
+    s(nn).EdgeAlpha = 0.2;
+end
+
 
 
 % Create ylabel
@@ -293,6 +321,9 @@ xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsiz
 % Create xlabel
 zlabel('$\tau_{c}$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
+% Create title
+title('RMS Residual using 35 EMIT Spectral Measurements','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
 % Set position and size of figure
 set(gcf, 'Position', [0 0 900 900])
 
@@ -300,10 +331,6 @@ set(gcf, 'Position', [0 0 900 900])
 %% Make 3D plot of contour slices along the tau dimension
 
 
-Refl_emit_uncertainty = 0.05 .* Refl_emit;
-
-% compute the rms of the EMIT reflectance uncertainty
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % rms residual values to plot
 lvls = [0, 0.25, 0.5:0.25:4];
@@ -380,11 +407,6 @@ hold(axes1,'on');
 
 
 
-% compute the rms of the EMIT reflectance uncertainty
-Refl_emit_uncertainty = 0.015 .* Refl_emit;
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
-
-
 % rms residual values to plot
 lvls = [0, 0.25, 0.5, 1:3];
 %lvls = [0, 0.3, 0.5, 1:2];
@@ -459,8 +481,6 @@ hold(axes1,'on');
 %lvls = [0, 0.25, 0.5, 1:3];
 %lvls = [0, 0.3, 0.5, 1:2];
 
-% compute the rms of the EMIT reflectance uncertainty
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % Create contour
 % [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
@@ -528,9 +548,6 @@ hold(axes1,'on');
 %lvls = [0, 0.25, 0.5, 1:3];
 lvls = [0, 0.3, 0.5, 1:2];
 
-% compute the rms of the EMIT reflectance uncertainty
-Refl_emit_uncertainty = 0.05 .* Refl_emit;
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
@@ -589,9 +606,6 @@ set(gcf, 'Position', [0 0 900 900])
 % Lets find all x, y and z values where the rms(R(x) - m)/rms(delta m) is
 % less than 1
 
-% compute the rms of the EMIT reflectance uncertainty
-Refl_emit_uncertainty = 0.05 .* Refl_emit;
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
@@ -638,10 +652,6 @@ idx_tauC = tau_c_fine == tau_c_min(1);
 figure;
 
 
-% compute the rms of the EMIT reflectance uncertainty
-Refl_emit_uncertainty = 0.05 .* Refl_emit;
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
-
 
 % rms residual values to plot
 %lvls = [0, 0.25, 0.5, 1:3];
@@ -650,7 +660,7 @@ rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
-s = surf(R_bot_fine(:,:, idx_tauC), R_top_fine(:,:, idx_tauC), rms_residual(:,:, idx_tauC));
+s = surf(R_bot_fine(:,:, idx_tauC), R_top_fine(:,:, idx_tauC), rms_residual(:,:, idx_tauC)./rms_uncert);
 
 s.EdgeAlpha = 0.5;
 
@@ -668,7 +678,7 @@ ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsiz
 xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create xlabel
-zlabel('$RMS(R(\vec{x}) - \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+zlabel('$RMS(R(\vec{x}) - \vec{m}) / RMS(\delta \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 
 % Create title
@@ -696,13 +706,230 @@ set(gcf, 'Position', [0 0 900 900])
 
 
 
+%% Make a plot of the RMS data cube showing all three variables
+
+figure; 
+
+scatter3(R_bot_fine(:), R_top_fine(:), Tau_c_fine(:), 40, rms_residual(:),'filled')    % draw the scatter plot(:)
+
+% Create colorbar
+cb = colorbar;
+% create colorbar label
+ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+grid on; grid minor
+
+
+set(gcf, 'Position', [0 0 1200 1200])
+
+
 %%
+
+
+
+
+
+% -----------------------------------------------------------------
+% ----------- COMPARISON PLOTS BETWEEN EMIT AND MODIS -------------
+% -----------------------------------------------------------------
+
+
+
+
+
+
+
+
+%% Make a plot of the volume of solution space that is less than the rms uncertainty
+
+
+idx_uncert = rms_residual./rms_uncert <= 1;
+idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
+
+percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
+
+percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
+
+
+figure; 
+
+subplot(1,2,1)
+
+% plot volume of states using 35 EMIT measurements
+s = scatter3(R_bot_fine(idx_uncert), R_top_fine(idx_uncert), Tau_c_fine(idx_uncert), 40, rms_residual(idx_uncert),'filled');    % draw the scatter plot(:)
+%change face alpha
+%s.MarkerFaceColor = mySavedColors(1, 'fixed');
+s.MarkerFaceAlpha = 0.5;
+% Create colorbar
+cb = colorbar;
+% create colorbar label
+ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+
+% set limits
+xlim([r_bot_fine(1), r_bot_fine(end)])
+ylim([r_top_fine(1), r_top_fine(end)])
+zlim([tau_c_fine(1), tau_c_fine(end)])
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['35 Channels - $RMS(R(\vec{x}) - \vec{m}) \leq RMS(\delta \vec{m})$'],'Interpreter','latex', 'FontSize', 33);
+
+grid on; grid minor
+
+
+% plot volume of states using 7 MODIS channels
+
+subplot(1,2,2)
+s2 = scatter3(R_bot_fine(idx_uncert_MODIS7), R_top_fine(idx_uncert_MODIS7), Tau_c_fine(idx_uncert_MODIS7),...
+    40, rms_residual(idx_uncert_MODIS7),'filled');    % draw the scatter plot(:)
+
+s2.MarkerFaceAlpha = 0.5;
+% Create colorbar
+cb = colorbar;
+% create colorbar label
+ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+% set limits
+xlim([r_bot_fine(1), r_bot_fine(end)])
+ylim([r_top_fine(1), r_top_fine(end)])
+zlim([tau_c_fine(1), tau_c_fine(end)])
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+title(['7 Channels - $RMS(R(\vec{x}) - \vec{m}) \leq RMS(\delta \vec{m})$'],'Interpreter','latex', 'FontSize', 33);
+
+grid on; grid minor
+
+
+set(gcf, 'Position', [0 0 2400 1200])
+
+
+
+
+%% Create a surface plot at the optical depth associated with the minimum rms 
+% plot the RMS residual at the minimum optical depth and let the radii at
+% cloud top and bottom varry
+
+
+% define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
+idx_tauC_emit = tau_c_fine == tau_c_min(1);
+%idx_tauC = tau_c_fine == 6.2;
+
+% Create figure
+figure;
+
+
+
+% rms residual values to plot
+%lvls = [0, 0.25, 0.5, 1:3];
+%lvls = [0, 0.3, 0.5, 1:2];
+
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+s = surf(R_bot_fine(:,:, idx_tauC_emit), R_top_fine(:,:, idx_tauC_emit), rms_residual(:,:, idx_tauC_emit)./rms_uncert);
+
+s.EdgeAlpha = 0.5;
+s.FaceAlpha = 0.25;
+s.FaceColor = mySavedColors(1, 'fixed');
+
+hold on;
+
+
+% --------- Plot MODIS 7 results ------------
+% define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
+idx_tauC_modis = tau_c_fine == tau_c_min_MODIS7(1);
+
+s2 = surf(R_bot_fine(:,:, idx_tauC_modis), R_top_fine(:,:, idx_tauC_modis), rms_residual_MODIS7(:,:, idx_tauC_modis)./rms_uncert_MODIS7);
+
+s2.EdgeAlpha = 0.5;
+s2.FaceAlpha = 0.25;
+s2.FaceColor = mySavedColors(2, 'fixed');
+
+
+% Create colorbar
+cb = colorbar;
+% create colorbar label
+ylabel(cb, '$RMS(R(\vec{x}) - \vec{m}) / RMS(\delta \vec{m})$', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+
+% Create ylabel
+ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel('$RMS(R(\vec{x}) - \vec{m}) / RMS(\delta \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+
+% Create title
+title(['RMS Residual between EMIT and LibRadTran'],'Interpreter','latex', 'FontSize', 33);
+
+% define legend
+legend(['35 EMIT wavelengths - min $\tau_c = $', num2str(tau_c_fine(idx_tauC_emit))],...
+    ['7 EMIT wavelengths - min $\tau_c = $', num2str(tau_c_fine(idx_tauC_modis))], 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', 25)
+
+box(gca,'on');
+grid(gca,'on');
+axis(gca,'tight');
+hold(gca,'off');
+% Set the remaining axes properties
+set(gca,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% % Create colorbar
+% cb = colorbar(axes1);
+% % create colorbar label
+% ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+set(gcf, 'Position', [0 0 1200 1200])
+
+
+
+%%
+
+
 
 
 
 % -------------------------------------
 % ----------- MODIS PLOTS -------------
 % -------------------------------------
+
+
 
 
 
@@ -729,9 +956,7 @@ hold(axes1,'on');
 lvls = [0, 0.25, 0.5, 1:3];
 %lvls = [0, 0.3, 0.5, 1:2];
 
-% compute the rms of the EMIT reflectance uncertainty using frist 7 MODIS
-% wavelenghts
-rms_uncert_MODIS7 = sqrt(mean(Refl_emit_uncertainty_MODIS7.^2));
+
 
 % Create contour plot showing all radii at cloud top and bottom for a
 % particular optical depth
@@ -790,8 +1015,6 @@ hold(axes1,'on');
 %lvls = [0, 0.25, 0.5, 1:3];
 %lvls = [0, 0.3, 0.5, 1:2];
 
-% compute the rms of the EMIT reflectance uncertainty
-rms_uncert = sqrt(mean(Refl_emit_uncertainty.^2));
 
 % Create contour
 % [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...

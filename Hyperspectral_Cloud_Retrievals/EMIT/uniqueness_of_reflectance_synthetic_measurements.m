@@ -13,9 +13,9 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_
 %% Define synthetic model data
 
 
-r_top_truth = 8.8;
+r_top_truth = 12.1;
 r_bot_truth = 4.7;
-tau_c_truth = 5.6;
+tau_c_truth = 5.9;
 
 idx_r_top = r_top_fine==r_top_truth;
 idx_r_bot = r_bot_fine==r_bot_truth;
@@ -28,7 +28,7 @@ synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c,
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.01;
+measurement_uncert = 0.05;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -93,27 +93,36 @@ if use_l2_norm==false
 
     % Compute the rms difference between the measurements and the modeled
     % reflectances
-    rms_residual = sqrt(mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine).^2, 4));
 
-    rms_residual_MODIS7 = sqrt(mean( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    rms_residual_MODIS7 = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine_MODIS7).^2, 4));
 
     % Compute the RMS of the synthetic measurement uncertainty
-    rms_uncert = sqrt(mean(synthetic_measurement_uncert.^2));
+    rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
+
+    % Compute the RMS of the synthetic measurement uncertainty using 7
+    % MODIS channels
+    rms_uncert_MODIS7 = sqrt( mean( synthetic_measurement_uncert_MODIS7.^2));
 
 
 else
 
     %Compute the l2 norm difference between the measurements and the modeled reflectances
-    rms_residual = sqrt(sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine).^2, 4));
 
-    rms_residual_MODIS7 = sqrt(sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+    rms_residual_MODIS7 = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
         - Refl_model_fine_MODIS7).^2, 4));
 
-    % Compute the RMS of the synthetic measurement uncertainty
-    rms_uncert = sqrt(sum(synthetic_measurement_uncert.^2));
+    % Compute the l2 norm of the synthetic measurement uncertainty
+    rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+
+    % Compute the l2 norm of the synthetic measurement uncertainty using 7
+    % MODIS channels
+    rms_uncert_MODIS7 = sqrt( sum( synthetic_measurement_uncert_MODIS7.^2));
+
 
 end
 
@@ -376,3 +385,142 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
 % r_bot vectors
 %set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
 set(gcf, 'Position', [0 0 900 900])
+
+
+
+%% Create a surface plot where the x-axis is (r_top - b_bot), the y-axis is optical depth and the 
+% z-axis is the rms residual
+
+
+
+
+% compute the difference between r_top and r_bot at each grid point
+R_top_minus_R_bot = R_top_fine(:,:,1) - R_bot_fine(:,:,1);
+
+% stack columns
+R_top_minus_R_bot = reshape(R_top_minus_R_bot, [], 1);
+
+% Let's sort it in ascending order
+[R_top_minus_R_bot_sort, idx_sort] = sort(R_top_minus_R_bot);
+
+
+% Let's collapse the rms_residual matrix into two dimentions
+% we need to reshape the rms_residaul matrix
+
+% r_top changes along the y-dimension, or the row-space
+% r_bot changes along the x-dimension, or the column-space
+% tau_c changes along the z-dimension, or the depth-space
+
+% --- Stack columns just like above! ----
+%rms_residual_2D = reshape(rms_residual, [], size(rms_residual, 3));
+
+rms_residual_2D = zeros(size(rms_residual, 1)*size(rms_residual, 2), size(rms_residual, 3));
+
+for dd = 1:size(rms_residual, 3)
+
+    data_column = [];
+
+    for cc = 1:size(rms_residual, 2)
+    
+        data_column = [data_column; rms_residual(:,cc,dd)];
+
+    end
+
+    % Sort the data column in ascending order of the independent variable
+    rms_residual_2D(:,dd) = data_column(idx_sort);
+
+end
+
+
+
+
+
+
+% Create a mesh grid!
+R_top_minus_R_bot_sort = repmat(R_top_minus_R_bot_sort, 1, size(rms_residual, 3));
+
+% create a matrix with the same dimensions as R_bot_minus_R_top but with
+% optical depth changing along row spac
+Tau_c_2D = repmat(tau_c_fine, size(R_top_minus_R_bot,1), 1);
+
+
+
+
+% Create a surface plot
+figure;
+
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+s = surf(R_top_minus_R_bot_sort, Tau_c_2D, rms_residual_2D);
+
+s.EdgeAlpha = 0.5;
+
+% Create colorbar
+cb = colorbar;
+% create colorbar label
+ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+% Create ylabel
+ylabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$r_{top} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+
+
+
+% Create title
+if use_l2_norm==false
+
+    % Create xlabel
+    zlabel('$RMS(R(\vec{x}) - \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+    title(['RMS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+else
+
+    % Create xlabel
+    zlabel('$RSS(R(\vec{x}) - \vec{m})$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+    title(['RSS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+end
+
+
+
+zlim([0, max(rms_residual, [], 'all')])
+
+box(gca,'on');
+grid(gca,'on');
+axis(gca,'tight');
+hold(gca,'off');
+% Set the remaining axes properties
+set(gca,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% % Create colorbar
+% cb = colorbar(axes1);
+% % create colorbar label
+% ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 1150 1100])
+
+
+
+%% 
+
+idx_uncert = rms_residual./rms_uncert <= 1;
+idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
+
+percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
+
+percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
