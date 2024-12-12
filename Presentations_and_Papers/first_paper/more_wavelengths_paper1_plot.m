@@ -408,7 +408,7 @@ hold(axes1,'on');
 
 
 % rms residual values to plot
-lvls = [0, 0.25, 0.5, 1:3];
+lvls = [0, 1:5];
 %lvls = [0, 0.3, 0.5, 1:2];
 
 

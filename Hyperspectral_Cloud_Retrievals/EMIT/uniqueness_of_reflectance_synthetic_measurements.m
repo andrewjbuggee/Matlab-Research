@@ -6,16 +6,16 @@ clear variables
 %% LOAD DATA SET
 
 % load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-26-Nov-2024_rev1.mat')
-load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
-
+%load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
+load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
 
 
 %% Define synthetic model data
 
 
-r_top_truth = 12.1;
-r_bot_truth = 4.7;
-tau_c_truth = 5.9;
+r_top_truth = 12.12;
+r_bot_truth = 4.73;
+tau_c_truth = 5.94;
 
 idx_r_top = r_top_fine==r_top_truth;
 idx_r_bot = r_bot_fine==r_bot_truth;
@@ -336,7 +336,7 @@ hold(axes1,'on');
 
 
 % rms residual values to plot
-lvls = [0, 0.25, 0.5, 1:5];
+lvls = [0, 1:5];
 %lvls = [0, 0.3, 0.5, 1:2];
 
 
@@ -365,8 +365,21 @@ ylabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsiz
 xlabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
 
 % Create title
-title(['RMS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
-    ' between EMIT and LibRadTran'],'Interpreter','latex', 'FontSize', 33);
+if use_l2_norm==false
+
+    title(['RMS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+else
+
+    title(['RSS Residual at global min $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+end
+
+
 
 box(axes1,'on');
 grid(axes1,'on');
@@ -380,6 +393,76 @@ set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','Z
 % % create colorbar label
 % ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
 
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 900 900])
+
+
+
+%% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+% --- (r_top - r_bot) versus tau  for the minimum r_top ----
+
+
+
+% define the optical depth slice you'd like to plot
+idx_rTop = r_top_fine == r_top_min(1);
+
+% Create figure
+figure;
+
+
+% Create axes
+axes1 = axes;
+hold(axes1,'on');
+
+
+% rms residual values to plot
+lvls = [0, 1:5];
+
+
+% Create contour
+[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
+clabel(c1,h1,'FontSize',20,'FontWeight','bold');
+
+
+
+
+% Create ylabel
+ylabel('$r_{top}^{min} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create title
+if use_l2_norm==false
+
+    title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+else
+
+    title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 23);
+
+end
+
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'tight');
+hold(axes1,'off');
+% Set the remaining axes properties
+set(axes1,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+% % Create colorbar
+% cb = colorbar(axes1);
+% % create colorbar label
+% ylabel(cb, '$1/sr$', 'FontSize', 30, 'Interpreter', 'latex')
 
 % set the figure size to be proportional to the length of the r_top and
 % r_bot vectors
@@ -532,6 +615,9 @@ idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
 percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
 
 percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
+
+
+
 
 
 %% plots from Claude
