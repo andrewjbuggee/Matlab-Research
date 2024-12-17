@@ -13,13 +13,13 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_
 %% Define synthetic model data
 
 
-r_top_truth = 12.12;
-r_bot_truth = 4.73;
-tau_c_truth = 5.94;
+r_top_truth = 12.17;
+r_bot_truth = 4.74;
+tau_c_truth = 5.96;
 
-idx_r_top = r_top_fine==r_top_truth;
-idx_r_bot = r_bot_fine==r_bot_truth;
-idx_tau_c = tau_c_fine==tau_c_truth;
+[~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
+[~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
+[~, idx_tau_c] = min(abs(tau_c_fine - tau_c_truth));
 
 synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
 
@@ -28,7 +28,7 @@ synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c,
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.05;
+measurement_uncert = 0.01;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -54,19 +54,16 @@ synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_
 %%
 
 
-% Meshgrid is defined on x,y,z space, not row, column, depth space
-% In 3D space, z = row, x = column, y = depth
-[R_bot, R_top, Tau_c] = meshgrid(r_bot, r_top, tau_c);
 
-% Create the new fine grid to interpolate on
-% define the discrete step length of each variable
-d_r_top = 0.1;      % microns
-d_r_bot = 0.1;      % microns
-d_tau_c = 0.1;
-
-r_top_fine = r_top(1):d_r_top:r_top(end);
-r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
-tau_c_fine = tau_c(1):d_tau_c:tau_c(end);
+% % Create the new fine grid to interpolate on
+% % define the discrete step length of each variable
+% d_r_top = 0.1;      % microns
+% d_r_bot = 0.1;      % microns
+% d_tau_c = 0.1;
+% 
+% r_top_fine = r_top(1):d_r_top:r_top(end);
+% r_bot_fine = r_bot(1):d_r_bot:r_bot(end);
+% tau_c_fine = tau_c(1):d_tau_c:tau_c(end);
 
 [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
 
