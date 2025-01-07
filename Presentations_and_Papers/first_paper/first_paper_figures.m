@@ -3202,6 +3202,7 @@ set(gcf, 'Position', [0 0 1200 625])
 
 %% Subplot comparing l2 norm residual for synthetic data bewteen different measurement uncertainty scenarios
 
+clear variables
 
 % define axes label font size
 axes_label_font_size = 40;
@@ -3324,15 +3325,17 @@ subplot(1,2,1)
 lvls = [0, 1:24];
 
 
-% % Create filled contour
-% [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
-% %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
+% Create filled contour
+[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
+%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
 
-% Create contour
-[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+% % Create contour
+% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
 
 % Create ylabel
 ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
@@ -3361,6 +3364,9 @@ disp([newline,'Percent of state space within the convergence region using 5% mea
     num2str(100*percent_states_less_than_rms_uncert),'%', newline])
 
 
+ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
+
+grid on; grid minor
 
 % --- Create synthetic measurements with 1% uncertinaty ---
 % -------------------------------------
@@ -3439,24 +3445,26 @@ set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
 
 
 
-% % Create filled contour
-% [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
-% %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
-%
-% % Create colorbar
-% cb = colorbar();
-% % create colorbar label
-% ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
-%     'FontSize', cb_font_size, 'Interpreter', 'latex')
-% clim([lvls(1), lvls(end)])
+% Create filled contour
+[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
+%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
+
+% Create colorbar
+cb = colorbar();
+% create colorbar label
+ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
+    'FontSize', cb_font_size, 'Interpreter', 'latex')
+clim([lvls(1), lvls(end)])
 
 
 
-% Create contour
-[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+% % Create contour
+% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
 
 
 % Create ylabel
@@ -3661,15 +3669,17 @@ s1 = subplot(1,2,1);
 lvls = [0, 1:24];
 
 
-% Create contour plot
-[c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+% % Create contour plot
+% [c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+% clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
 
-% % Create filled contour plot
-% [c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
-% %clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
+
+% Create filled contour plot
+[c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+%clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
+
 
 % Set tick label font size
 ax = gca(f);
@@ -3720,23 +3730,23 @@ set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
 
 
 
-% Create contour
-[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+% % Create contour
+% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
 
 
-% % Create filled contour
-% [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
-% %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
-%
-% % Create colorbar
-% cb = colorbar();
-% % create colorbar label
-% ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
-%     'FontSize', cb_font_size, 'Interpreter', 'latex')
-% clim([lvls(1), lvls(end)])
+% Create filled contour
+[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
+
+% Create colorbar
+cb = colorbar();
+% create colorbar label
+ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
+    'FontSize', cb_font_size, 'Interpreter', 'latex')
+clim([lvls(1), lvls(end)])
 
 
 

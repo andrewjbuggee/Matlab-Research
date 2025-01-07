@@ -21,9 +21,9 @@ function [droplet_radius_uncertainty] = cloud_droplet_probe_uncertainty_estimate
 % microns diameter, and 2 microns for bins greater than 14 microns
 % diameter. So for measured radii from 1 to 7 microns, there is an
 % uncertainty of 1 micron? Well, if the bin is between 6 and 7 microns, the
-% droplet could be 6 or 7 microns. It's best to describe this bin as
-% measuring radii of 6.5 microns, and defining the uncertainty as +/- 0.5
-% microns.
+% droplet could be anything between 6 and 7 microns. It's best to describe
+% this bin as measuring radii of 6.5 microns, and defining the uncertainty
+% as +/- 0.5 microns.
 
 
 % -------------------------------------------------------------------
