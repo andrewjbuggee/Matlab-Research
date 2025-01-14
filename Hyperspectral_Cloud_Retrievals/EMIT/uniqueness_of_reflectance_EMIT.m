@@ -941,7 +941,7 @@ disp([newline, num2str(100* (num_states/(numel(r_top)*numel(r_bot)*numel(tau_c))
 % define the discrete step length of each variable
 d_r_top = 0.05;      % microns
 d_r_bot = 0.05;      % microns
-d_tau_c = 0.05;
+d_tau_c = 0.01;
 
 r_top_fine = r_top(1):d_r_top:r_top(end);
 r_bot_fine = r_bot(1):d_r_bot:r_bot(end);

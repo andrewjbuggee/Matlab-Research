@@ -53,7 +53,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the MODIS data folder path
 
-    modisPath = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/',...
+    modisPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'MODIS_Cloud_Retrieval/MODIS_data/'];
 
     % Define the folder path where all .INP files will be saved
@@ -71,10 +71,13 @@ end
 %modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-%modisFolder = '2008_11_11_1430/';
+modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
+%modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
+
+% ----- January 27, 2024 at 15:00 UTC -----
+%modisFolder = '2024_01_27/';       % 
 
 
 

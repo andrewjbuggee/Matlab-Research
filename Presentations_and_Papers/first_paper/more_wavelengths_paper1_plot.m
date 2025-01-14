@@ -36,8 +36,8 @@ clear variables
 %% LOAD DATA SET
 
 %load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-26-Nov-2024_rev1.mat')
-load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
-
+%load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-27-Nov-2024_rev1.mat')
+load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev2.mat')
 
 %% Want to use real EMIT geometry inputs?
 
@@ -336,7 +336,7 @@ set(gcf, 'Position', [0 0 900 900])
 lvls = [0, 0.25, 0.5:0.25:4];
 
 % define the slices along the tau dimension to plot
-tau_slice = [6, 6.2, 6.4, 6.6];
+tau_slice = [6, 6.2, tau_c_min(1), 6.6];
 
 % Create figure
 figure2 = figure;

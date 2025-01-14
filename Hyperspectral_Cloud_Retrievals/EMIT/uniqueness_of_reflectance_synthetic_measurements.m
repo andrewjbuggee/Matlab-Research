@@ -13,7 +13,7 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_
 %% Define synthetic model data
 
 
-r_top_truth = 12.17;
+r_top_truth = 10.17;
 r_bot_truth = 4.74;
 tau_c_truth = 5.96;
 
@@ -416,7 +416,7 @@ hold(axes1,'on');
 
 
 % rms residual values to plot
-lvls = [0, 1:5];
+lvls = [0, 1:24];
 
 
 % Create contour

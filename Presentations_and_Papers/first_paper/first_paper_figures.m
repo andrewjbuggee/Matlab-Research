@@ -3238,13 +3238,13 @@ tau_c_truth = 5.96;
 synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
 
 
-% --- Create synthetic measurements with 1% uncertinaty ---
-% -------------------------------------
+% --- Create synthetic measurements with 5% uncertinaty ---
+% ---------------------------------------------------------
 % Add Gaussian Noise to the measurements
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.05;
+measurement_uncert_1 = 0.05;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -3258,11 +3258,11 @@ measurement_uncert = 0.05;
 % uncertainty of 5% implies the true value can lie anywhere between the
 % measured value +/- 5% of the measured value
 % define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/3) .*...
+synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_1/3) .*...
     randn(length(inputs.bands2run), 1);
 
 % define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
+synthetic_measurement_uncert = measurement_uncert_1 .* synthetic_measurement_with_noise;
 
 
 
@@ -3347,13 +3347,13 @@ xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_la
 if use_l2_norm==false
 
     title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
 
 else
 
     title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
 
 end
@@ -3368,13 +3368,16 @@ ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
 
 grid on; grid minor
 
+
+
+
 % --- Create synthetic measurements with 1% uncertinaty ---
 % -------------------------------------
 % Add Gaussian Noise to the measurements
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.01;
+measurement_uncert_2 = 0.01;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -3388,11 +3391,11 @@ measurement_uncert = 0.01;
 % uncertainty of 5% implies the true value can lie anywhere between the
 % measured value +/- 5% of the measured value
 % define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/3) .*...
+synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_2/3) .*...
     randn(length(inputs.bands2run), 1);
 
 % define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
+synthetic_measurement_uncert = measurement_uncert_2 .* synthetic_measurement_with_noise;
 
 % Using an exact modeled estimate without noise
 use_l2_norm = true;
@@ -3477,13 +3480,13 @@ xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_la
 if use_l2_norm==false
 
     title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
 
 else
 
     title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
         '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
 
 end
@@ -3532,7 +3535,8 @@ contour_label_size = 25;
 
 % LOAD DATA SET
 
-load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
+% load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
+load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev2.mat')
 
 % Create mesh grid
 [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
@@ -3540,8 +3544,8 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_
 
 % Define synthetic model data
 
-r_top_truth = 10.17;
-r_bot_truth = 4.74;
+r_top_truth = 9.17;
+r_bot_truth = 5.74;
 tau_c_truth = 5.96;
 
 [~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
@@ -3551,13 +3555,57 @@ tau_c_truth = 5.96;
 synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
 
 
-% --- Create synthetic measurements with 1% uncertinaty ---
-% -------------------------------------
+% --- Create synthetic measurements using 7 MODIS Channels with 5% uncertinaty ---
+% --------------------------------------------------------------------------------
 % Add Gaussian Noise to the measurements
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.01;
+measurement_uncert_MODIS7 = 0.017;
+
+% Define a gaussian where the mean value is the true measurement, and twice
+% the standard deviation is the product of the measurement uncertainty and
+% the true measurements.
+% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+%           +/- 2*sigma = 95% of the area under the gaussian curve
+%           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+% Compute the new synethtic measurement with gaussian noise
+% *** Gaussian noise can be either positive or negative. Meaning, an
+% uncertainty of 5% implies the true value can lie anywhere between the
+% measured value +/- 5% of the measured value
+% define a
+synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_MODIS7/3) .*...
+    randn(length(inputs.bands2run), 1);
+
+% define the synthetic relfectance uncertainty
+synthetic_measurement_uncert = measurement_uncert_MODIS7 .* synthetic_measurement_with_noise;
+
+
+% Define 7 MODIS channels
+% Let's now seperate out the interpolated relfectance at the seven MODIS
+% wavelengths
+wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
+
+% define the synthetic measurement
+synthetic_measurement_with_noise_MODIS7 = synthetic_measurement_with_noise(wl_MODIS7_idx);
+synthetic_measurement_uncert_MODIS7 = synthetic_measurement_uncert(wl_MODIS7_idx);
+
+% Grab the modeled data at just the 7 MODIS bands
+Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
+
+% --------------------------------------------------------------------------------
+
+
+
+
+% --- Create synthetic measurements using 35 MODIS Channels with 0.5% uncertinaty ---
+% --------------------------------------------------------------------------------
+% Add Gaussian Noise to the measurements
+
+% --- meausrement uncertainty ---
+% define this as a fraction of the measurement
+measurement_uncert = 0.003;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -3577,18 +3625,7 @@ synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement
 % define the synthetic relfectance uncertainty
 synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
 
-
-% Define 7 MODIS channels
-% Let's now seperate out the interpolated relfectance at the seven MODIS
-% wavelengths
-wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
-
-% define the synthetic measurement
-synthetic_measurement_with_noise_MODIS7 = synthetic_measurement_with_noise(wl_MODIS7_idx);
-synthetic_measurement_uncert_MODIS7 = synthetic_measurement_uncert(wl_MODIS7_idx);
-
-% Grab the modeled data at just the 7 MODIS bands
-Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
+% --------------------------------------------------------------------------------
 
 
 
@@ -3666,18 +3703,18 @@ s1 = subplot(1,2,1);
 
 
 % rms residual values to plot
-lvls = [0, 1:24];
-
+lvls = [0, 1:2:24];
+%lvls = [0, 1:10];
 
 % % Create contour plot
-% [c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-% clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+[c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
 
 
 % Create filled contour plot
-[c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+% [c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
 %clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
 
 
@@ -3695,13 +3732,13 @@ xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_la
 if use_l2_norm==false
 
     title(['RMS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
-        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
         '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
 
 else
 
     title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
-        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert),...
+        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
         '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
 
 end
@@ -3727,26 +3764,28 @@ s2 = subplot(1,2,2);
 set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
 
 
-
+% rms residual values to plot
+lvls = [0, 1, 5:5:25];
+%lvls = [0, 1:10];
 
 
 % % Create contour
-% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
 
 
 % Create filled contour
-[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+% [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
 %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
 
 % Create colorbar
-cb = colorbar();
-% create colorbar label
-ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
-    'FontSize', cb_font_size, 'Interpreter', 'latex')
-clim([lvls(1), lvls(end)])
+% cb = colorbar();
+% % create colorbar label
+% ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
+%     'FontSize', cb_font_size, 'Interpreter', 'latex')
+% clim([lvls(1), lvls(end)])
 
 
 
