@@ -64,7 +64,7 @@ modis_long = modis.geo.long;
 
 
 % we will be computing the arclength between points on an ellipsoid
-% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with a length unit of meters.
+% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
 wgs84 = wgs84Ellipsoid("m");
 
 % Set up an empty array for each vocals-rex data point
