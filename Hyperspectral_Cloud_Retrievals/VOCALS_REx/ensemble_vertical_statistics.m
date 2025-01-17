@@ -12,8 +12,9 @@ clear variables
 
 if strcmp(whatComputer,'anbu8374')==true
 
+
     foldername = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/'];
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
@@ -83,7 +84,7 @@ ensemble_profiles.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-ensemble_profiles.keep_precip_drizzle_profiles = true;             % if false, keep non-precip profiles only
+ensemble_profiles.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
 ensemble_profiles.precip_driz_threshold = 5;         % g/m^2
@@ -258,7 +259,8 @@ if ensemble_profiles.sort_for_precip_driz==true
 
         save([foldername,'ensemble_profiles_without_precip_from_',num2str(length(filename)), '_files_LWC-threshold_',...
             num2str(ensemble_profiles.inputs.LWC_threshold), '_Nc-threshold_',...
-            num2str(ensemble_profiles.inputs.Nc_threshold), '_',char(datetime("today")),'.mat'],...
+            num2str(ensemble_profiles.inputs.Nc_threshold), '_drizzleLWP-threshold_',...
+            num2str(ensemble_profiles.precip_driz_threshold),'_',char(datetime("today")),'.mat'],...
             'ensemble_profiles', 'filename')
 
     end

@@ -9,7 +9,7 @@
 % number concentration for non-precipitating clouds. Add an adiabatic
 % profile for the liquid water content and effective radius to show the
 % mean profiles are close to adiabatic, supporting my assumption.
-% ----- For Vertical Profiles ----
+% ----- For Vertical Profiles -----
 
 
 clear variables
@@ -20,14 +20,18 @@ clear variables
 
 if strcmp(whatComputer, 'anbu8374')==true
 
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
     % --- non-precip profiles only, LWC>0.03, Nc>1  ----
-    load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1',...
-        '/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+    load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<5  ----
+%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025'])
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
-    %     load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1',...
-    %         '/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_stopAtMaxLWC_Nc-threshold_1_19-Sep-2023'])
+    %     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_stopAtMaxLWC_Nc-threshold_1_19-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.005, Nc>1  ----
     %     load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/',...
@@ -448,7 +452,7 @@ ylabel('Normalized Altitude', 'Interpreter', 'latex')
 xlim([0, 320])                   % cm^(-3)
 
 % set the size of the figure
-set(gcf, 'Position', [0 0 1255 625])
+set(gcf, 'Position', [0 0 1255 700])
 
 
 
@@ -530,15 +534,24 @@ clear variables
 
 if strcmp(whatComputer, 'anbu8374')==true
 
+
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1  ----
+%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<5  ----
+        load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025.mat'])
+
     % --- non-precip profiles only, LWC>0.03, Nc>1  ----
     %     load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1',...
     %         '/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
 
 
-    % ***** Using new VOCALS READ function with LWC adjustment *****
-    % --- non-precip profiles only, LWC>0.03, Nc>1  ----
-    load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1',...
-        '/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023.mat'])
+    % ***** Using new VOCALS READ function with LWC adjustment ***** 
+    % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<1  ----
+%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023.mat'])
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
@@ -1086,7 +1099,8 @@ xline(mean(Nc_median), 'Color', 'black', 'LineWidth', 2, 'Alpha',1,...
 
 
 annotation('textbox',[0.134 0.802 0.142 0.114],...
-    'String',{'Non-Precipitating clouds only ($LWP_{2DC}<1 \,g/m^{2}$)'},...
+    'String',{['Non-Precipitating clouds only ($LWP_{2DC}<', num2str(ensemble_profiles.precip_driz_threshold),...
+    '\,g/m^{2}$)']},...
     'LineWidth',2,...
     'Interpreter','latex',...
     'FontSize',17,...
