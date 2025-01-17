@@ -3558,9 +3558,13 @@ load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_
 
 % Define synthetic model data
 
+% r_top_truth = 9.17;
+% r_bot_truth = 5.74;
+% tau_c_truth = 5.96;
+
 r_top_truth = 9.17;
 r_bot_truth = 5.74;
-tau_c_truth = 5.96;
+tau_c_truth = 6.512;
 
 [~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
 [~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
@@ -3575,7 +3579,7 @@ synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c,
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert_MODIS7 = 0.017;
+measurement_uncert_MODIS7 = 0.02;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -3619,7 +3623,7 @@ Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert = 0.003;
+measurement_uncert = 0.02;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -3717,7 +3721,7 @@ s1 = subplot(1,2,1);
 
 
 % rms residual values to plot
-lvls = [0, 1:2:24];
+lvls = [0, 1:2:11];
 %lvls = [0, 1:10];
 
 % % Create contour plot
@@ -3779,7 +3783,7 @@ set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
 
 
 % rms residual values to plot
-lvls = [0, 1, 5:5:25];
+lvls = [0, 1:2:11];
 %lvls = [0, 1:10];
 
 
