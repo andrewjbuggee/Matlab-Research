@@ -403,7 +403,7 @@ end
 toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-modis_pixel_2_plot = 4;
+modis_pixel_2_plot = 1;
 plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
 
 

@@ -27,7 +27,7 @@ if strcmp(whatComputer, 'anbu8374')==true
     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<5  ----
-%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025'])
+    %     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025'])
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
@@ -539,19 +539,19 @@ if strcmp(whatComputer, 'anbu8374')==true
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
     % --- non-precip profiles only, LWC>0.03, Nc>1  ----
-%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
+    %     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<5  ----
-        load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025.mat'])
+    load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_5_14-Jan-2025.mat'])
 
     % --- non-precip profiles only, LWC>0.03, Nc>1  ----
     %     load(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1',...
     %         '/ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_19-Sep-2023'])
 
 
-    % ***** Using new VOCALS READ function with LWC adjustment ***** 
+    % ***** Using new VOCALS READ function with LWC adjustment *****
     % --- non-precip profiles only, LWC>0.03, Nc>1, 2DC-LWP<1  ----
-%     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023.mat'])
+    %     load([folderpath, 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_05-Nov-2023.mat'])
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>1, stop at max LWC ----
@@ -1537,7 +1537,7 @@ set(gcf, 'Position',[0 0 1000 630])
 
 %% FIGURE 5
 
-% ---- Standard Deviation of Horizontal Profiles
+% ---------- Standard Deviation of Horizontal Profiles --------------
 % Compute the standard deviation of droplet size over some identified
 % length scale. Slide this length scale across the horizontal profile and
 % compute the standard deviation for each window. Do this for each profile
@@ -1553,11 +1553,12 @@ clear variables
 
 if strcmp(whatComputer, 'anbu8374')==true
 
-    folder_path = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 elseif strcmp(whatComputer, 'andrewbuggee')==true
 
-    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/', ...
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
@@ -1723,7 +1724,7 @@ if strcmp(whatComputer, 'anbu8374')==true
 
 elseif strcmp(whatComputer, 'andrewbuggee')==true
 
-    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/', ...
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 
@@ -1775,10 +1776,11 @@ plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, 1:length(horz_profs.re), 
 
 % Define the indices you'd like to plot
 % indices_2_plot = [3, 8, 10];
-indices_2_plot = [3, 4, 10, 12];
+% indices_2_plot = [3, 4, 10, 12];
+indices_2_plot = [3, 4, 10,];
 
 % define the colors of each curve
-C = mySavedColors([6,7,9], 'fixed');
+C = mySavedColors([5, 17, 8], 'fixed');
 
 N_cuvres = length(indices_2_plot);
 
@@ -1927,7 +1929,7 @@ end
 
 
 % in the third subplot, define the indices_2_plot being plotted
-legend(legend_str, 'Interpreter','latex', 'Location','best', 'FontSize', 20)
+legend(legend_str, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
 
 % set plot size
 set(gcf, 'Position', [0 0 1200 625])
@@ -1972,7 +1974,7 @@ elseif strcmp(whatComputer, 'andrewbuggee')==true
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 25 g/m^2         -----
-    load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_30-Oct-2023'])
 
 
@@ -2238,8 +2240,8 @@ if strcmp(whatComputer, 'anbu8374')==true
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 25 g/m^2         -----
-%     load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
-%         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_30-Oct-2023.mat'])
+    %     load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_30-Oct-2023.mat'])
 
 
     % ****** Using LWC Adjustment in readVocals ******
@@ -2255,29 +2257,28 @@ elseif strcmp(whatComputer, 'andrewbuggee')==true
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 10 g/m^2         -----
-    %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data',...
-    %         '/SPS_1/ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_30-Oct-2023'])
 
 
 
+    % ****** Using LWC Adjustment in readVocals ******
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 25 g/m^2         -----
-    %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
-    %         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_30-Oct-2023'])
+    % load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %     'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_06-Nov-2023.mat'])
 
 
     % ****** Using LWC Adjustment in readVocals ******
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 35 g/m^2         -----
-    load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_35_06-Nov-2023'])
 
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>1 ----
     % ------           2DC LWP < 50 g/m^2         -----
-    %     load(['/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
-    %         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_50_30-Oct-2023'])
+    % load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %     'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_50_30-Oct-2023'])
 
 
 
@@ -2344,7 +2345,6 @@ end
 % ----- PLOT 1 -----
 % Try plotting the standard deviation for every length scale as a histogram
 
-% compute
 figure;
 
 for ll = 1:length(length_scale)
@@ -2397,6 +2397,56 @@ grid on; grid minor;
 ylabel('Counts', 'Interpreter','latex')
 
 title(['STD over different length scales'], 'Interpreter','latex')
+
+legend(legend_str, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 25)
+
+
+% set plot size
+set(gcf, 'Position', [0 0 1200 625])
+
+
+
+
+
+% ----- PLOT 2 -----
+% Try plotting the mean effective radius for every length scale as a histogram
+
+figure;
+
+for ll = 1:length(length_scale)
+
+
+
+    % ------- Plot Histogram and Mean Value ------
+
+    histogram(mean_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'FaceColor', mySavedColors(ll+2, 'fixed'))
+    hold on
+
+
+    % Plot a vertical line showing the average value of the distribution
+    xline(mean(mean_lengthScale{ll}), 'LineWidth', 3, 'LineStyle', '--',...
+        'Color', mySavedColors(ll+2, 'fixed'), 'FontSize', 23, 'FontWeight','bold')
+
+    legend_str{2*ll - 1} = ['Length Scale = ', num2str(length_scale(ll)/1e3), ' $km$'];
+    legend_str{2*ll} = ['$\left< \bar{r_e} \right> $ = ', num2str(round(mean(mean_lengthScale{ll}), 2)), '$\mu m$'];
+
+    ylabel('Counts', 'Interpreter','latex')
+
+
+
+
+end
+
+
+% ------ Pretty Plot Stuff -------
+
+% Include an x axis label on the middle plot
+xlabel('$<r_e>$ ($\mu m$)', 'Interpreter','latex');
+
+grid on; grid minor;
+ylabel('Counts', 'Interpreter','latex')
+
+title(['Mean over different length scales'], 'Interpreter','latex')
 
 legend(legend_str, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 22)
 
@@ -3214,650 +3264,1342 @@ title('Mean of the distribution of STDs for each length scale', 'Interpreter','l
 set(gcf, 'Position', [0 0 1200 625])
 
 
+
+
+
+%% Plot computing the change in reflectance with respect to a change in the radius at cloud bottom
+% This is a bar plot using three different optical depths
+
+clear variables
+
+
+% ------ Define the state vector -------
+r_top = 8.25;
+r_bot = 6;
+tau_c = 10:5:20;
+
+
+
+
+
+
+% Want to use real MODIS geometry inputs?
+
+% Load modis data and create input structure
+
+if strcmp(whatComputer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+    % Define the MODIS data folder path
+
+    modisPath = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the MODIS data folder path
+
+    modisPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+
+end
+
+
+% -------------------------------------
+% ------- PICK MODIS DATA SET  --------
+% -------------------------------------
+
+% ----- November 9th at decimal time 0.611 (14:40) -----
+%modisFolder = '2008_11_09/';
+
+% ----- November 11th at decimal time 0.604 (14:30) -----
+modisFolder = '2008_11_11_1430/';
+
+% ----- November 11th at decimal time 0.784 (18:50) -----
+%modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
+
+% ----- January 27, 2024 at 15:00 UTC -----
+%modisFolder = '2024_01_27/';       %
+
+
+[modis,L1B_fileName] = retrieveMODIS_data([modisPath, modisFolder]);
+
+
+% Define an index to use
+%modis_idx = 110292;     % for 9 nov 2008
+%modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
+modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS
+%modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
+
+% Grab the MODIS reflectances for the pixel used
+[r,c] = ind2sub(size(modis.EV1km.reflectance), modis_idx);
+Refl_modis = zeros(size(modis.EV1km.reflectance,3), length(tau_c));
+
+for bb = 1:size(modis.EV1km.reflectance, 3)
+
+    % ****** DID YOU USE REFLECTANCE_4MODIS? ******
+    % If not you need to divide the MODIS reflectance by cos(sza)
+    Refl_modis(bb) = modis.EV1km.reflectance(r,c,bb);
+
+end
+
+% --------------------------------------
+% --------------------------------------
+% Define the parameters of the INP file
+% --------------------------------------
+% --------------------------------------
+
+
+% Define the MODIS spectral band you wish to run
+% ------------------------------------------------------------------------
+band_num = 1:7;
+% ------------------------------------------------------------------------
+
+
+
+% Define the number of streams to use in your radiative transfer model
+num_streams = 16;
+% ------------------------------------------------------------------------
+
+
+% Define the source file
+source_file = '../data/solar_flux/hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+%source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+source_file_resolution = 0.1;           % nm
+
+
+
+% Define the spectral response function
+% ------------------------------------------------------------------------
+spec_response = modis_aqua_specResponse_func(band_num, source_file_resolution);
+
+
+% define the wavelength range. If monochromatic, enter the same number
+% twice
+% ------------------------------------------------------------------------
+% band7 = modisBands(band_num);
+% wavelength = [band7(2), band7(3)];              % nm - monochromatic wavelength calcualtion
+for ww = 1:length(band_num)
+    wavelength(ww,:) = [spec_response{ww}(1,1), spec_response{ww}(end,1)];
+end
+
+% ------------------------------------------------------------------------
+% --- Do you want to use the Nakajima and Tanka radiance correction? -----
+use_nakajima_phaseCorrection = true;
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ----------------- What band model do you want to use? ------------------
+
+% reptran coarse is the default
+% if using reptran, provide one of the following: coarse (default), medium
+% or fine
+band_parameterization = 'reptran coarse';
+%band_parameterization = 'reptran_channel modis_terra_b07';
+% ------------------------------------------------------------------------
+
+
+
+
+% define the atmospheric data file
+atm_file = 'afglus.dat';
+
+% define the surface albedo
+albedo = 0.05;
+
+% day of the year
+day_of_year = str2double(L1B_fileName{1}(15:17));
+
+% ------------------------------------------------------------------------
+% ------ Do you want to use the MODIS cloud top height estimate? ---------
+use_MODIS_cloudTopHeight = true;
+cloud_depth = 500;                % meters
+
+if use_MODIS_cloudTopHeight==true
+    z_topBottom = [modis.cloud.topHeight(modis_idx), modis.cloud.topHeight(modis_idx) - cloud_depth]./1e3; %km above surface
+
+else
+    % define the geometric location of the cloud top and cloud bottom
+    z_topBottom = [2.5, 2];          % km above surface
+
+end
+
+% Water Cloud depth
+H = z_topBottom(1) - z_topBottom(2);                                % km - geometric thickness of cloud
+
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% -------------- Do you want a cloud in your model? ----------------------
+yesCloud = true;
+
+% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
+linear_cloudFraction = false;
+% if false, define the cloud cover percentage
+percent_cloud_cover = 1;
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% ---------- Do you want use your custom mie calculation file? -----------
+use_custom_mie_calcs = false;
+% ------------------------------------------------------------------------
+
+% define the type of droplet distribution
+distribution_str = 'gamma';
+% define whether this is a vertically homogenous cloud or not
+vert_homogeneous_str = 'vert-non-homogeneous';
+% define how liquid water content will be computed
+parameterization_str = 'mie';
+
+% define the wavelength used for the optical depth as the 650 nm
+band1 = modisBands(1);
+lambda_forTau = band1(1);            % nm
+
+
+% ------------------------------------------------------------------------
+% ------------------- Radius Profile attributes --------------------------
+% ------------------------------------------------------------------------
+
+profile_type = 'adiabatic'; % type of water droplet profile
+
+n_layers = 10;                          % number of layers to model within cloud
+
+z = linspace(z_topBottom(1), z_topBottom(2), n_layers);        % km - altitude above ground vector
+
+indVar = 'altitude';                    % string that tells the code which independent variable we used
+
+dist_var = linspace(20,20,n_layers);              % distribution variance
+% ------------------------------------------------------------------------
+
+
+
+% Define the parameterization scheme used to comptue the optical quantities
+if use_custom_mie_calcs==false
+    wc_parameterization = 'mie interpolate';
+else
+    %wc_parameterization = '../data/wc/mie/wc.mie_test.cdf interpolate';
+    wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+end
+
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+
+
+% define the solar zenith angle
+sza = double(modis.solar.zenith(modis_idx));           % degree
+
+% Define the solar azimuth measurement between values 0 and 360
+% this is how we map MODIS azimuth of the sun to the LibRadTran measurement
+phi0 = double(modis.solar.azimuth(modis_idx) + 180);         % degree
+
+% define the viewing zenith angle
+vza = double(modis.sensor.zenith(modis_idx)); % values are in degrees;                        % degree
+
+% define the viewing azimuth angle
+% define the viewing azimuth angle
+% to properly map the azimuth angle onto the reference plane used by
+% libRadTran, we need an if statement
+if modis.sensor.azimuth(modis_idx)<0
+    vaz = 360 + modis.sensor.azimuth(modis_idx);
+else
+    vaz = modis.sensor.azimuth(modis_idx);
+end
+
+
+% --------------------------------------------------------------
+% --- Do you want to use the Cox-Munk Ocean Surface Model? -----
+use_coxMunk = true;
+wind_speed = 3;             % m/s
+% --------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want boundary layer aerosols in your model? -----------
+yesAerosols = true;
+
+aerosol_type = 4;               % 4 = maritime aerosols
+aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
+% ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% --- Do you want to uvSpec to compute reflectivity for you? ---
+compute_reflectivity_uvSpec = false;
+% --------------------------------------------------------------
+
+% Create a droplet profile
+re_prof = create_droplet_profile2([r_top, r_bot], z, indVar, profile_type);     % microns - effective radius vector
+
+
+
+
+
+
+
+
+% Write each INP file and Calculate Reflectance for MODIS
+
+inputName = cell(length(band_num), length(tau_c));
+outputName = cell(length(band_num), length(tau_c));
+wc_filename = cell(length(band_num), length(tau_c));
+
+
+R_model = zeros(length(band_num), length(tau_c));
+
+
+tic
+
+for tc = 1:length(tau_c)
+
+
+    disp(['Iteration: [tc] = [', [num2str(tc)], ']...', newline])
+
+
+    parfor ww = 1:length(band_num)
+
+
+
+        % -----------------------------------
+        % ---- Write a Water Cloud file! ----
+        % -----------------------------------
+        % most uncertainties for the modis optical retrieval are between 2
+        % and 10 percent. So lets round off all re values to the 1000th decimal
+        % place
+
+        % ------------------------------------------------------
+        % --------------------VERY IMPORTANT ------------------
+        % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
+        % ------------------------------------------------------
+        wc_filename{tc,ww} = write_wc_file(re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
+            dist_var, vert_homogeneous_str, parameterization_str, ww);
+        wc_filename{tc,ww} = wc_filename{tc,ww}{1};
+
+
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
+        % input_names need a unique identifier. Let's give them the nn value so
+        % they can be traced, and are writen over in memory
+        %                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
+        %                     'nm_withCloudLayer_',num2str(r_top(rt)),'rTop_',num2str(r_bot(rb)),...
+        %                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
+
+        inputName{tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
+            'reflectance', atm_file(1:end-4),'.INP'];
+
+
+
+        outputName{tc,ww} = ['OUTPUT_',inputName{tc,ww}(1:end-4)];
+
+
+
+        % ----------------- ******************** ---------------------
+        % ------------------ Write the INP File --------------------
+        % ----------------- ******************** ---------------------
+
+        % Open the old file for writing
+        fileID = fopen([folder2save,inputName{tc,ww}], 'w');
+
+        % Define which RTE solver to use
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'rte_solver','disort',' ', '# Radiative transfer equation solver');
+
+
+        % Define the number of streams to keep track of when solving the equation
+        % of radiative transfer
+        % ------------------------------------------------
+        formatSpec = '%s %u %5s %s \n\n';
+        fprintf(fileID, formatSpec,'number_of_streams', num_streams,' ', '# Number of streams');
+
+
+        % Use phase function correction?
+        % ------------------------------------------------
+        if use_nakajima_phaseCorrection==true
+            % define the pahse correction to be true
+            % ------------------------------------------------
+            formatSpec = '%s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
+        end
+
+
+        % Define the band model to use
+        % of radiative transfer
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'mol_abs_param', band_parameterization,' ', '# Band model');
+
+
+        % Define the location and filename of the atmopsheric profile to use
+        % ------------------------------------------------
+        formatSpec = '%s %5s %s \n';
+        fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/',atm_file],' ', '# Location of atmospheric profile');
+
+        % Define the location and filename of the extraterrestrial solar source
+        % ---------------------------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'source solar', source_file, ' ', '# Bounds between 250 and 10000 nm');
+
+
+        % Define the location and filename of the extraterrestrial solar source
+        % ---------------------------------------------------------------------
+        formatSpec = '%s %u %5s %s \n\n';
+        fprintf(fileID, formatSpec,'day_of_year', day_of_year, ' ', '# accounts for changing Earth-Sun distance');
+
+
+
+        % Define the surface albedo
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'albedo', albedo, ' ', '# Surface albedo of the ocean');
+
+
+        % Define the Water Cloud properties, if you want a cloud in your model
+        % --------------------------------------------------------------------
+        if yesCloud==true
+
+            % Define the water cloud file
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n';
+            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{tc,ww}], ' ', '# Location of water cloud file');
+
+            % Define the percentage of horizontal cloud cover
+            % This is a number between 0 and 1
+            % ------------------------------------------------
+            formatSpec = '%s %f %5s %s \n';
+            fprintf(fileID, formatSpec,'cloudcover wc', percent_cloud_cover, ' ', '# Cloud cover percentage');
+
+
+            % Define the technique or parameterization used to convert liquid cloud
+            % properties of r_eff and LWC to optical depth
+            % ----------------------------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'wc_properties', wc_parameterization, ' ', '# optical properties parameterization technique');
+
+        end
+
+
+
+        % Define the wavelengths for which the equation of radiative transfer will
+        % be solve
+        % -------------------------------------------------------------------------
+        formatSpec = '%s %f %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'wavelength', wavelength(ww,1), wavelength(ww,2), ' ', '# Wavelength range');
+
+
+
+
+        if use_coxMunk==true
+
+            % Define the wind speed for the Cox-Munk ocean surface bi-directional reflectance model
+            % be solve
+            % -------------------------------------------------------------------------
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'brdf_cam u10', wind_speed, ' ', '# (m/s) Ocean Surface wind speed');
+
+        end
+
+
+
+        % Define the Aerosol Layer properties, if you want a cloud in your model
+        % --------------------------------------------------------------------
+        if yesAerosols==true
+
+            % Turn on default aersol layer, which occupies lower 2km of model
+            % --------------------------------------------------------------
+            formatSpec = '%s %5s %s \n';
+            fprintf(fileID, formatSpec,'aerosol_default', ' ', '# turn on Shettle (1989) boundary layer aerosols');
+
+
+            % Specify the Aerosl type
+            % 1=rural aersols,  4=maritime aersols,  5=Urban aerosols,
+            % 6=Tropospheric aerosols
+            % ------------------------------------------------
+            formatSpec = '%s %u %5s %s \n';
+            fprintf(fileID, formatSpec,'aerosol_haze', aerosol_type, ' ', '# Aerosol type');
+
+
+            % Define aerosol layer optical depth
+            % ----------------------------------------------------------------------
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'aerosol_modify tau set', aerosol_opticalDepth, ' ', '# Optical Depth of aerosol layer');
+
+        end
+
+
+
+
+        % Define the sensor altitude
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'zout', 'toa', ' ', '# Sensor Altitude');
+
+        % Define the solar zenith angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'sza', sza, ' ', '# Solar zenith angle');
+
+        % Define the solar azimuth angle
+        % -------------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'phi0', phi0, ' ', '# Solar azimuth angle');
+
+        % Define the cosine of the zenith viewing angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'umu', round(cosd(vza),4), ' ', '# Cosine of the zenith viewing angle');
+
+        % Define the azimuth viewing angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'phi', vaz, ' ', '# Azimuthal viewing angle');
+
+
+
+        if compute_reflectivity_uvSpec==true
+            % Set the output quantity to be reflectivity
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'output_quantity', 'reflectivity', ' ', '# Output is reflectance');
+        end
+
+
+        %     % Set the outputs
+        %     % ------------------------------------------------
+        %     formatSpec = '%s %s %5s %s \n\n';
+        %     fprintf(fileID, formatSpec,'output_user', 'lambda edir edn eup uavgdir uavgdn uavgup uu', ' ', '# Output quantities');
+
+
+
+
+
+        % Set the error message to quiet of verbose
+        % ------------------------------------------------
+        formatSpec = '%s';
+        fprintf(fileID, formatSpec,'verbose');
+
+
+        % Close the file!
+        fclose(fileID);
+        % ----------------------------------------------------
+        % ----------------------------------------------------
+
+
+
+
+        % ----------------------------------------------------
+        % --------------- RUN RADIATIVE TRANSFER -------------
+        % ----------------------------------------------------
+
+
+        % compute INP file
+        [inputSettings] = runUVSPEC(folder2save,inputName{tc, ww},outputName{tc, ww});
+
+        % read .OUT file
+        [ds,~,~] = readUVSPEC(folder2save,outputName{tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
+
+        if compute_reflectivity_uvSpec==false
+            % compute reflectance in the MODIS style (without
+            % dividing by cos(sza)
+            R_model(tc, ww) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
+
+        else
+
+            R_model(tc, ww) = ds.reflectivity.value;
+        end
+
+
+
+
+    end
+
+
+    % --------------------------------------
+    % ------- Compute the Change in R ------
+    % ----- perturb the radius at r_bot ----
+    % --------------------------------------
+
+    % Define the change to the opical depth
+    change_in_state = 0.1 * tau_c(tc);
+
+    new_tau_c = tau_c(tc) + change_in_state;
+    % --------------------------------------------
+    % create water cloud file with droplet profile
+    % --------------------------------------------
+
+    loop_var = 0;
+
+    wc_filename = write_wc_file(re_prof, new_tau_c, z_topBottom, lambda_forTau, dist_str,...
+        dist_var, vert_homogeneous_str, parameterization_str, loop_var);
+
+
+    % ----- Write an INP file --------
+    names.inp = write_INP_file_4MODIS_Gauss_Newton(GN_inputs, modisInputs, pixel_row, pixel_col, modis, wc_filename);
+
+    % now lets write the output names
+
+    names.out = writeOutputNames(names.inp);
+
+    % ---- Run uvspec for the files created -----
+    [new_measurement_estimate,~] = runReflectanceFunction_4modis_gaussNewton(names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
+
+    change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
+
+
+
+
+end
+
+
+
+end
+
+
+% -----------------------------------------------------
+% -----------------------------------------------------
+
+
+% Lets step through each optical depth and compute the change in
+% reflectance
+change_in_reflectance = zeros(length(measurement_estimate), length(tau_c));
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Subplot comparing l2 norm residual for synthetic data bewteen different measurement uncertainty scenarios
 
-clear variables
+for nn = 1:1
 
-% define axes label font size
-axes_label_font_size = 40;
+    clear variables
 
-% define axes tick label font size
-axes_tick_label_font_size = 25;
+    % define axes label font size
+    axes_label_font_size = 40;
 
-% define colorbar font size
-cb_font_size = 40;
+    % define axes tick label font size
+    axes_tick_label_font_size = 25;
 
-% define contour label size
-contour_label_size = 25;
+    % define colorbar font size
+    cb_font_size = 40;
 
-
-% LOAD DATA SET
-
-load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
-
-% Create mesh grid
-[R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
+    % define contour label size
+    contour_label_size = 25;
 
 
-% Define synthetic model data
+    % LOAD DATA SET
 
-r_top_truth = 10.17;
-r_bot_truth = 4.74;
-tau_c_truth = 5.96;
-
-[~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
-[~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
-[~, idx_tau_c] = min(abs(tau_c_fine - tau_c_truth));
-
-synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
+    %load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
+    load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev2.mat')
 
 
-% --- Create synthetic measurements with 5% uncertinaty ---
-% ---------------------------------------------------------
-% Add Gaussian Noise to the measurements
-
-% --- meausrement uncertainty ---
-% define this as a fraction of the measurement
-measurement_uncert_1 = 0.05;
-
-% Define a gaussian where the mean value is the true measurement, and twice
-% the standard deviation is the product of the measurement uncertainty and
-% the true measurements.
-% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
-%           +/- 2*sigma = 95% of the area under the gaussian curve
-%           +/- 3*sigma = 99.7% of the area under the gaussian curve
-
-% Compute the new synethtic measurement with gaussian noise
-% *** Gaussian noise can be either positive or negative. Meaning, an
-% uncertainty of 5% implies the true value can lie anywhere between the
-% measured value +/- 5% of the measured value
-% define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_1/3) .*...
-    randn(length(inputs.bands2run), 1);
-
-% define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert_1 .* synthetic_measurement_with_noise;
+    % Create mesh grid
+    [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
 
 
+    % Define synthetic model data
+
+    % r_top_truth = 10.17;
+    % r_bot_truth = 4.74;
+    % tau_c_truth = 5.96;
+
+
+    r_top_truth = 9.17;
+    r_bot_truth = 5.74;
+    tau_c_truth = 6.512;
+
+    [~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
+    [~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
+    [~, idx_tau_c] = min(abs(tau_c_fine - tau_c_truth));
+
+    synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
+
+
+    % --- Create synthetic measurements with 5% uncertinaty ---
+    % ---------------------------------------------------------
+    % Add Gaussian Noise to the measurements
+
+    % --- meausrement uncertainty ---
+    % define this as a fraction of the measurement
+    measurement_uncert_1 = 0.02;
+
+    % Define a gaussian where the mean value is the true measurement, and twice
+    % the standard deviation is the product of the measurement uncertainty and
+    % the true measurements.
+    % Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+    %           +/- 2*sigma = 95% of the area under the gaussian curve
+    %           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+    % Compute the new synethtic measurement with gaussian noise
+    % *** Gaussian noise can be either positive or negative. Meaning, an
+    % uncertainty of 5% implies the true value can lie anywhere between the
+    % measured value +/- 5% of the measured value
+    % define a
+    synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_1/3) .*...
+        randn(length(inputs.bands2run), 1);
+
+    % define the synthetic relfectance uncertainty
+    synthetic_measurement_uncert = measurement_uncert_1 .* synthetic_measurement_with_noise;
 
 
 
 
-% Using an exact modeled estimate without noise
-use_l2_norm = true;
-
-rms_residual = [];
-rms_uncert = [];
-
-if use_l2_norm==false
-
-    % Compute the rms difference between the measurements and the modeled
-    % reflectances
-    rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
 
 
-    % Compute the RMS of the synthetic measurement uncertainty
-    rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
+    % Using an exact modeled estimate without noise
+    use_l2_norm = true;
 
-else
+    rms_residual = [];
+    rms_uncert = [];
 
-    %Compute the l2 norm difference between the measurements and the modeled reflectances
-    rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
+    if use_l2_norm==false
 
-    % Compute the l2 norm of the synthetic measurement uncertainty
-    rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+        % Compute the rms difference between the measurements and the modeled
+        % reflectances
+        rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
+
+
+        % Compute the RMS of the synthetic measurement uncertainty
+        rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
+
+    else
+
+        %Compute the l2 norm difference between the measurements and the modeled reflectances
+        rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
+
+        % Compute the l2 norm of the synthetic measurement uncertainty
+        rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+
+    end
+
+
+
+    % Find the states with the lowest rms residul
+
+    % find the smallest rms residual value, omitting nans
+    [~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
+
+    r_top_min = R_top_fine(idx_min);
+
+
+
+
+    % Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
+    % --- (r_top - r_bot) versus tau  for the minimum r_top ----
+
+    % define the optical depth slice you'd like to plot
+    idx_rTop_5pct = r_top_fine == r_top_min(1);
+
+    % Create figure
+    figure;
+
+    s1 = subplot(1,2,1);
+
+    % set subplot position
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(s1, 'Position', [0.0687 0.11 0.41 0.815])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(s1, 'Position', [0.0687 0.11 0.41 0.815])
+
+    end
+
+
+    % rms residual values to plot
+    lvls = [0, 1:24];
+
+
+    % Create filled contour
+    % [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
+    %     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
+    %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
+
+    % Create contour
+    [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
+        length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+    clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
+
+    % Create ylabel
+    ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create xlabel
+    xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create title
+    if use_l2_norm==false
+
+        title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
+            ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
+            '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
+
+    else
+
+        title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
+            ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
+            '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
+
+    end
+
+    idx_uncert = rms_residual./rms_uncert <= 1;
+    percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
+    disp([newline,'Percent of state space within the convergence region using 5% measurement uncertainty: ',...
+        num2str(100*percent_states_less_than_rms_uncert),'%', newline])
+
+
+    ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
+
+    grid on; grid minor
+
+
+
+
+    % --- Create synthetic measurements with 1% uncertinaty ---
+    % -------------------------------------
+    % Add Gaussian Noise to the measurements
+
+    % --- meausrement uncertainty ---
+    % define this as a fraction of the measurement
+    measurement_uncert_2 = 0.003;
+
+    % Define a gaussian where the mean value is the true measurement, and twice
+    % the standard deviation is the product of the measurement uncertainty and
+    % the true measurements.
+    % Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+    %           +/- 2*sigma = 95% of the area under the gaussian curve
+    %           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+    % Compute the new synethtic measurement with gaussian noise
+    % *** Gaussian noise can be either positive or negative. Meaning, an
+    % uncertainty of 5% implies the true value can lie anywhere between the
+    % measured value +/- 5% of the measured value
+    % define a
+    synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_2/3) .*...
+        randn(length(inputs.bands2run), 1);
+
+    % define the synthetic relfectance uncertainty
+    synthetic_measurement_uncert = measurement_uncert_2 .* synthetic_measurement_with_noise;
+
+    % Using an exact modeled estimate without noise
+    use_l2_norm = true;
+
+    rms_residual = [];
+    rms_uncert = [];
+
+    if use_l2_norm==false
+
+        % Compute the rms difference between the measurements and the modeled
+        % reflectances
+        rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
+
+
+        % Compute the RMS of the synthetic measurement uncertainty
+        rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
+
+    else
+
+        %Compute the l2 norm difference between the measurements and the modeled reflectances
+        rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
+
+        % Compute the l2 norm of the synthetic measurement uncertainty
+        rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+
+    end
+
+
+
+    % Find the states with the lowest rms residul
+
+    % find the smallest rms residual value, omitting nans
+    [~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
+
+    r_top_min = R_top_fine(idx_min);
+
+
+    % define the optical depth slice you'd like to plot
+    idx_rTop_1pct = r_top_fine == r_top_min(1);
+
+
+
+    s2 = subplot(1,2,2);
+
+    % set subplot position
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(s2, 'Position', [0.56 0.11 0.41 0.815])
+
+    end
+
+
+    % rms residual values to plot
+    lvls = [0, 1:4:32];
+
+
+    % % Create filled contour
+    % [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
+    %     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
+    % clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
+    %
+    % % Create colorbar
+    % cb = colorbar();
+    % % create colorbar label
+    % ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
+    %     'FontSize', cb_font_size, 'Interpreter', 'latex')
+    % clim([lvls(1), lvls(end)])
+
+
+
+    % Create contour
+    [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
+        length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+    clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
+
+
+    % Create ylabel
+    ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create xlabel
+    xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create title
+    if use_l2_norm==false
+
+        title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
+            ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
+            '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
+
+    else
+
+        title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
+            ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
+            '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
+
+    end
+
+
+    ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
+
+    grid on; grid minor
+
+
+
+    % set the figure size to be proportional to the length of the r_top and
+    % r_bot vectors
+
+    %set the figure size
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(gcf, 'Position', [0 0 2400 1200])
+
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(gcf, 'Position', [0 0 1500 850])
+
+
+    end
+
+
+    idx_uncert = rms_residual./rms_uncert <= 1;
+    percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
+    disp([newline,'Percent of state space within the convergence region using 1% measurement uncertainty: ',...
+        num2str(100*percent_states_less_than_rms_uncert),'%', newline])
+
+
+
+    clear variables
+
 
 end
-
-
-
-% Find the states with the lowest rms residul
-
-% find the smallest rms residual value, omitting nans
-[~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
-
-r_top_min = R_top_fine(idx_min);
-
-
-
-
-% Create Contour plot of rms residual between true EMIT measurements and the libRadTran modeled measurements
-% --- (r_top - r_bot) versus tau  for the minimum r_top ----
-
-% define the optical depth slice you'd like to plot
-idx_rTop_5pct = r_top_fine == r_top_min(1);
-
-% Create figure
-figure;
-
-subplot(1,2,1)
-
-
-% rms residual values to plot
-lvls = [0, 1:24];
-
-
-% Create filled contour
-[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
-%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
-
-% % Create contour
-% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_5pct,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
-
-
-
-% Create ylabel
-ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create xlabel
-xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create title
-if use_l2_norm==false
-
-    title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
-        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
-
-else
-
-    title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_5pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_1),...
-        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
-
-end
-
-idx_uncert = rms_residual./rms_uncert <= 1;
-percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
-disp([newline,'Percent of state space within the convergence region using 5% measurement uncertainty: ',...
-    num2str(100*percent_states_less_than_rms_uncert),'%', newline])
-
-
-ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
-
-grid on; grid minor
-
-
-
-
-% --- Create synthetic measurements with 1% uncertinaty ---
-% -------------------------------------
-% Add Gaussian Noise to the measurements
-
-% --- meausrement uncertainty ---
-% define this as a fraction of the measurement
-measurement_uncert_2 = 0.01;
-
-% Define a gaussian where the mean value is the true measurement, and twice
-% the standard deviation is the product of the measurement uncertainty and
-% the true measurements.
-% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
-%           +/- 2*sigma = 95% of the area under the gaussian curve
-%           +/- 3*sigma = 99.7% of the area under the gaussian curve
-
-% Compute the new synethtic measurement with gaussian noise
-% *** Gaussian noise can be either positive or negative. Meaning, an
-% uncertainty of 5% implies the true value can lie anywhere between the
-% measured value +/- 5% of the measured value
-% define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_2/3) .*...
-    randn(length(inputs.bands2run), 1);
-
-% define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert_2 .* synthetic_measurement_with_noise;
-
-% Using an exact modeled estimate without noise
-use_l2_norm = true;
-
-rms_residual = [];
-rms_uncert = [];
-
-if use_l2_norm==false
-
-    % Compute the rms difference between the measurements and the modeled
-    % reflectances
-    rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
-
-
-    % Compute the RMS of the synthetic measurement uncertainty
-    rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
-
-else
-
-    %Compute the l2 norm difference between the measurements and the modeled reflectances
-    rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
-
-    % Compute the l2 norm of the synthetic measurement uncertainty
-    rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
-
-end
-
-
-
-% Find the states with the lowest rms residul
-
-% find the smallest rms residual value, omitting nans
-[~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
-
-r_top_min = R_top_fine(idx_min);
-
-
-% define the optical depth slice you'd like to plot
-idx_rTop_1pct = r_top_fine == r_top_min(1);
-
-
-
-s2 = subplot(1,2,2);
-
-% set subplot position
-set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
-
-
-
-
-% Create filled contour
-[c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', 'k');
-%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold');
-
-% Create colorbar
-cb = colorbar();
-% create colorbar label
-ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
-    'FontSize', cb_font_size, 'Interpreter', 'latex')
-clim([lvls(1), lvls(end)])
-
-
-
-% % Create contour
-% [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop_1pct,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-% clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
-
-
-
-
-% Create ylabel
-ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create xlabel
-xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create title
-if use_l2_norm==false
-
-    title(['RMS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
-        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
-
-else
-
-    title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_1pct)),...
-        ' between Synthetic Measurements with ', num2str(100*measurement_uncert_2),...
-        '\% uncertainty and LibRadTran'],'Interpreter','latex', 'FontSize', 16);
-
-end
-
-
-ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
-
-grid on; grid minor
-
-
-
-% set the figure size to be proportional to the length of the r_top and
-% r_bot vectors
-
-set(gcf, 'Position', [0 0 2400 1200])
-
-idx_uncert = rms_residual./rms_uncert <= 1;
-percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
-disp([newline,'Percent of state space within the convergence region using 1% measurement uncertainty: ',...
-    num2str(100*percent_states_less_than_rms_uncert),'%', newline])
-
-
-
-clear variables
-
-
-
 
 
 %% Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
 
-clear variables
+for nn = 1:25
+
+    clear variables
 
 
-% define axes label font size
-axes_label_font_size = 40;
+    % define axes label font size
+    axes_label_font_size = 40;
 
-% define axes tick label font size
-axes_tick_label_font_size = 25;
+    % define axes tick label font size
+    axes_tick_label_font_size = 25;
 
-% define colorbar font size
-cb_font_size = 40;
+    % define colorbar font size
+    cb_font_size = 40;
 
-% define contour label size
-contour_label_size = 25;
+    % define contour label size
+    contour_label_size = 25;
 
-% LOAD DATA SET
+    % LOAD DATA SET
 
-% load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
-load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev2.mat')
+    % load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev1.mat')
+    load('reflectance_calcs_EMIT-data-from-17_Jan_2024_coast_sim-ran-on-11-Dec-2024_rev2.mat')
 
-% Create mesh grid
-[R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
-
-
-% Define synthetic model data
-
-% r_top_truth = 9.17;
-% r_bot_truth = 5.74;
-% tau_c_truth = 5.96;
-
-r_top_truth = 9.17;
-r_bot_truth = 5.74;
-tau_c_truth = 6.512;
-
-[~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
-[~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
-[~, idx_tau_c] = min(abs(tau_c_fine - tau_c_truth));
-
-synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
+    % Create mesh grid
+    [R_bot_fine, R_top_fine, Tau_c_fine] = meshgrid(r_bot_fine, r_top_fine, tau_c_fine);
 
 
-% --- Create synthetic measurements using 7 MODIS Channels with 5% uncertinaty ---
-% --------------------------------------------------------------------------------
-% Add Gaussian Noise to the measurements
+    % Define synthetic model data
 
-% --- meausrement uncertainty ---
-% define this as a fraction of the measurement
-measurement_uncert_MODIS7 = 0.02;
+    % r_top_truth = 9.17;
+    % r_bot_truth = 5.74;
+    % tau_c_truth = 5.96;
 
-% Define a gaussian where the mean value is the true measurement, and twice
-% the standard deviation is the product of the measurement uncertainty and
-% the true measurements.
-% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
-%           +/- 2*sigma = 95% of the area under the gaussian curve
-%           +/- 3*sigma = 99.7% of the area under the gaussian curve
+    r_top_truth = 9.17;
+    r_bot_truth = 5.74;
+    tau_c_truth = 6.512;
 
-% Compute the new synethtic measurement with gaussian noise
-% *** Gaussian noise can be either positive or negative. Meaning, an
-% uncertainty of 5% implies the true value can lie anywhere between the
-% measured value +/- 5% of the measured value
-% define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_MODIS7/3) .*...
-    randn(length(inputs.bands2run), 1);
+    [~, idx_r_top] = min(abs(r_top_fine - r_top_truth));
+    [~, idx_r_bot] = min(abs(r_bot_fine - r_bot_truth));
+    [~, idx_tau_c] = min(abs(tau_c_fine - tau_c_truth));
 
-% define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert_MODIS7 .* synthetic_measurement_with_noise;
+    synthetic_measurement = reshape(Refl_model_fine(idx_r_top, idx_r_bot, idx_tau_c, :), [],1);
 
 
-% Define 7 MODIS channels
-% Let's now seperate out the interpolated relfectance at the seven MODIS
-% wavelengths
-wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
+    % --- Create synthetic measurements using 7 MODIS Channels with 5% uncertinaty ---
+    % --------------------------------------------------------------------------------
+    % Add Gaussian Noise to the measurements
 
-% define the synthetic measurement
-synthetic_measurement_with_noise_MODIS7 = synthetic_measurement_with_noise(wl_MODIS7_idx);
-synthetic_measurement_uncert_MODIS7 = synthetic_measurement_uncert(wl_MODIS7_idx);
+    % --- meausrement uncertainty ---
+    % define this as a fraction of the measurement
+    measurement_uncert_MODIS7 = 0.02;
 
-% Grab the modeled data at just the 7 MODIS bands
-Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
+    % Define a gaussian where the mean value is the true measurement, and twice
+    % the standard deviation is the product of the measurement uncertainty and
+    % the true measurements.
+    % Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+    %           +/- 2*sigma = 95% of the area under the gaussian curve
+    %           +/- 3*sigma = 99.7% of the area under the gaussian curve
 
-% --------------------------------------------------------------------------------
+    % Compute the new synethtic measurement with gaussian noise
+    % *** Gaussian noise can be either positive or negative. Meaning, an
+    % uncertainty of 5% implies the true value can lie anywhere between the
+    % measured value +/- 5% of the measured value
+    % define a
+    synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert_MODIS7/3) .*...
+        randn(length(inputs.bands2run), 1);      % 1/sr
+
+    % define the synthetic relfectance uncertainty
+    synthetic_measurement_uncert = measurement_uncert_MODIS7 .* synthetic_measurement_with_noise;         % 1/sr
 
 
+    % Define 7 MODIS channels
+    % Let's now seperate out the interpolated relfectance at the seven MODIS
+    % wavelengths
+    wl_MODIS7_idx = [1, 4, 6, 7, 19, 23, 29];
 
+    % define the synthetic measurement
+    synthetic_measurement_with_noise_MODIS7 = synthetic_measurement_with_noise(wl_MODIS7_idx);
+    synthetic_measurement_uncert_MODIS7 = synthetic_measurement_uncert(wl_MODIS7_idx);
 
-% --- Create synthetic measurements using 35 MODIS Channels with 0.5% uncertinaty ---
-% --------------------------------------------------------------------------------
-% Add Gaussian Noise to the measurements
+    % Grab the modeled data at just the 7 MODIS bands
+    Refl_model_fine_MODIS7 = Refl_model_fine(:,:,:, wl_MODIS7_idx);
 
-% --- meausrement uncertainty ---
-% define this as a fraction of the measurement
-measurement_uncert = 0.02;
-
-% Define a gaussian where the mean value is the true measurement, and twice
-% the standard deviation is the product of the measurement uncertainty and
-% the true measurements.
-% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
-%           +/- 2*sigma = 95% of the area under the gaussian curve
-%           +/- 3*sigma = 99.7% of the area under the gaussian curve
-
-% Compute the new synethtic measurement with gaussian noise
-% *** Gaussian noise can be either positive or negative. Meaning, an
-% uncertainty of 5% implies the true value can lie anywhere between the
-% measured value +/- 5% of the measured value
-% define a
-synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/3) .*...
-    randn(length(inputs.bands2run), 1);
-
-% define the synthetic relfectance uncertainty
-synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
-
-% --------------------------------------------------------------------------------
+    % --------------------------------------------------------------------------------
 
 
 
-% Using an exact modeled estimate without noise
-use_l2_norm = true;
+
+    % --- Create synthetic measurements using 35 MODIS Channels with 0.5% uncertinaty ---
+    % --------------------------------------------------------------------------------
+    % Add Gaussian Noise to the measurements
+
+    % --- meausrement uncertainty ---
+    % define this as a fraction of the measurement
+    measurement_uncert = 0.02;
+
+    % Define a gaussian where the mean value is the true measurement, and twice
+    % the standard deviation is the product of the measurement uncertainty and
+    % the true measurements.
+    % Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+    %           +/- 2*sigma = 95% of the area under the gaussian curve
+    %           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+    % Compute the new synethtic measurement with gaussian noise
+    % *** Gaussian noise can be either positive or negative. Meaning, an
+    % uncertainty of 5% implies the true value can lie anywhere between the
+    % measured value +/- 5% of the measured value
+    % define a
+    synthetic_measurement_with_noise = synthetic_measurement + synthetic_measurement.*(measurement_uncert/3) .*...
+        randn(length(inputs.bands2run), 1);
+
+    % define the synthetic relfectance uncertainty
+    synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement_with_noise;
+
+    % --------------------------------------------------------------------------------
 
 
-if use_l2_norm==false
 
-    % Compute the rms difference between the measurements and the modeled
-    % reflectances
-    rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
-
-    rms_residual_MODIS7 = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine_MODIS7).^2, 4));
-
-    % Compute the RMS of the synthetic measurement uncertainty
-    rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
-
-    % Compute the RMS of the synthetic measurement uncertainty using 7
-    % MODIS channels
-    rms_uncert_MODIS7 = sqrt( mean( synthetic_measurement_uncert_MODIS7.^2));
+    % Using an exact modeled estimate without noise
+    use_l2_norm = true;
 
 
-else
+    if use_l2_norm==false
 
-    %Compute the l2 norm difference between the measurements and the modeled reflectances
-    rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine).^2, 4));
+        % Compute the rms difference between the measurements and the modeled
+        % reflectances
+        rms_residual = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
 
-    rms_residual_MODIS7 = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
-        - Refl_model_fine_MODIS7).^2, 4));
+        rms_residual_MODIS7 = sqrt( mean( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine_MODIS7).^2, 4));
 
-    % Compute the l2 norm of the synthetic measurement uncertainty
-    rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+        % Compute the RMS of the synthetic measurement uncertainty
+        rms_uncert = sqrt( mean( synthetic_measurement_uncert.^2));
 
-    % Compute the l2 norm of the synthetic measurement uncertainty using 7
-    % MODIS channels
-    rms_uncert_MODIS7 = sqrt( sum( synthetic_measurement_uncert_MODIS7.^2));
+        % Compute the RMS of the synthetic measurement uncertainty using 7
+        % MODIS channels
+        rms_uncert_MODIS7 = sqrt( mean( synthetic_measurement_uncert_MODIS7.^2));
+
+
+    else
+
+        %Compute the l2 norm difference between the measurements and the modeled reflectances
+        rms_residual = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine).^2, 4));
+
+        rms_residual_MODIS7 = sqrt( sum( (repmat(reshape(synthetic_measurement_with_noise_MODIS7, 1, 1, 1, []), length(r_top_fine), length(r_bot_fine), length(tau_c_fine))...
+            - Refl_model_fine_MODIS7).^2, 4));
+
+        % Compute the l2 norm of the synthetic measurement uncertainty
+        rms_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+
+        % Compute the l2 norm of the synthetic measurement uncertainty using 7
+        % MODIS channels
+        rms_uncert_MODIS7 = sqrt( sum( synthetic_measurement_uncert_MODIS7.^2));
+
+
+    end
+
+
+    % Find the states with the lowest rms residul
+    % find the smallest rms residual value, omitting nans
+    [~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
+
+    r_top_min = R_top_fine(idx_min);
+
+
+
+    % Find the states with the lowest rms residul for the 7 MODIS wavelengths
+    % find the smallest rms residual value, omitting nans
+    [~, idx_min_MODIS7] = min(rms_residual_MODIS7, [], 'all', 'omitnan');
+
+    r_top_min_MODIS7 = R_top_fine(idx_min_MODIS7);
+
+
+
+
+    % ------------- PLOT l2 norm using 7 MODIS wavelengths ------------
+    % Create Contour plot of rms residual between 7 MODIS wavelengths and
+    % Synthetic measurements
+    % --- (r_top - r_bot) versus tau  for the minimum r_top ----
+
+    % define the slice at some cloud top radii you'd like to plot
+    idx_rTop_MODIS7 = r_top_fine == r_top_min_MODIS7(1);
+
+    % Create figure
+    f = figure;
+
+    s1 = subplot(1,2,1);
+
+    % set subplot position
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(s1, 'Position', [0.0687 0.11 0.41 0.815])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(s1, 'Position', [0.0687 0.11 0.41 0.815])
+
+    end
+
+
+    % rms residual values to plot
+    lvls = [0, 1:2:11];
+    %lvls = [0, 1:10];
+
+    % % Create contour plot
+    [c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+        length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+    clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
+    % Create filled contour plot
+    % [c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
+    %     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+    %clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
+
+
+    % Set tick label font size
+    ax = gca(f);
+    ax.FontSize = axes_tick_label_font_size;
+
+    % Create ylabel
+    ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create xlabel
+    xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create title
+    if use_l2_norm==false
+
+        title(['RMS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
+            ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
+            '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
+
+    else
+
+        title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
+            ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
+            '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
+
+    end
+
+    grid on; grid minor
+
+
+
+    ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
+
+
+    % ------------- PLOT l2 norm using 35 MODIS wavelengths ------------
+    % Create Contour plot of rms residual between 35 MODIS wavelengths and
+    % Synthetic measurements
+    % --- (r_top - r_bot) versus tau  for the minimum r_top ----
+
+    % define the slice at some cloud top radii you'd like to plot
+    idx_rTop = r_top_fine == r_top_min(1);
+
+    s2 = subplot(1,2,2);
+
+    % set subplot position
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(s2, 'Position', [0.56 0.11 0.41 0.815])
+
+    end
+
+
+    % rms residual values to plot
+    lvls = [0, 1:2:11];
+    %lvls = [0, 1:10];
+
+
+    % % Create contour
+    [c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+        length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
+    clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+
+
+    % Create filled contour
+    % [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
+    %     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
+    %clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
+
+    % Create colorbar
+    % cb = colorbar();
+    % % create colorbar label
+    % ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
+    %     'FontSize', cb_font_size, 'Interpreter', 'latex')
+    % clim([lvls(1), lvls(end)])
+
+
+
+
+    % Set tick label font size
+    ax = gca(f);
+    ax.FontSize = axes_tick_label_font_size;
+
+    % Create ylabel
+    ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create xlabel
+    xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
+
+    % Create title
+    if use_l2_norm==false
+
+        title(['RMS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
+            ' - 35 Synthetic Measurements with ', num2str(100*measurement_uncert),...
+            '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
+
+    else
+
+        title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
+            ' - 35 Synthetic Measurements with ', num2str(100*measurement_uncert),...
+            '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
+
+    end
+
+    ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
+
+    grid on; grid minor
+
+
+
+
+    %set the figure size
+    % set subplot position
+    if strcmp(whatComputer, 'anbu8374')==true
+        set(gcf, 'Position', [0 0 2400 1200])
+
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+        set(gcf, 'Position', [0 0 1500 850])
+
+
+    end
+
+
+    idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
+    percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
+    disp([newline,'Percent of state space within the convergence region using 7 MODIS channels: ',...
+        num2str(100*percent_states_less_than_rms_uncert_MODIS7),'%', newline])
+
+
+
+    idx_uncert = rms_residual./rms_uncert <= 1;
+    percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
+    disp([newline,'Percent of state space within the convergence region using 35 EMIT channels: ',...
+        num2str(100*percent_states_less_than_rms_uncert),'%', newline])
+
+
+
+    clear variables
 
 
 end
 
-
-% Find the states with the lowest rms residul
-% find the smallest rms residual value, omitting nans
-[~, idx_min] = min(rms_residual, [], 'all', 'omitnan');
-
-r_top_min = R_top_fine(idx_min);
-
-
-
-% Find the states with the lowest rms residul for the 7 MODIS wavelengths
-% find the smallest rms residual value, omitting nans
-[~, idx_min_MODIS7] = min(rms_residual_MODIS7, [], 'all', 'omitnan');
-
-r_top_min_MODIS7 = R_top_fine(idx_min_MODIS7);
-
-
-
-
-% ------------- PLOT l2 norm using 7 MODIS wavelengths ------------
-% Create Contour plot of rms residual between 7 MODIS wavelengths and
-% Synthetic measurements
-% --- (r_top - r_bot) versus tau  for the minimum r_top ----
-
-% define the slice at some cloud top radii you'd like to plot
-idx_rTop_MODIS7 = r_top_fine == r_top_min_MODIS7(1);
-
-% Create figure
-f = figure;
-
-s1 = subplot(1,2,1);
-
-
-% rms residual values to plot
-lvls = [0, 1:2:11];
-%lvls = [0, 1:10];
-
-% % Create contour plot
-[c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
-
-
-% Create filled contour plot
-% [c1,h1] = contourf(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, reshape(rms_residual_MODIS7(idx_rTop_MODIS7,:, :)./rms_uncert_MODIS7, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
-%clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
-
-
-% Set tick label font size
-ax = gca(f);
-ax.FontSize = axes_tick_label_font_size;
-
-% Create ylabel
-ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create xlabel
-xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create title
-if use_l2_norm==false
-
-    title(['RMS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
-        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
-        '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
-
-else
-
-    title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_MODIS7)),...
-        ' - 7 Synthetic Measurements with ', num2str(100*measurement_uncert_MODIS7),...
-        '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
-
-end
-
-grid on; grid minor
-
-
-
-ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
-
-
-% ------------- PLOT l2 norm using 35 MODIS wavelengths ------------
-% Create Contour plot of rms residual between 35 MODIS wavelengths and
-% Synthetic measurements
-% --- (r_top - r_bot) versus tau  for the minimum r_top ----
-
-% define the slice at some cloud top radii you'd like to plot
-idx_rTop = r_top_fine == r_top_min(1);
-
-s2 = subplot(1,2,2);
-
-% set subplot position
-set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
-
-
-% rms residual values to plot
-lvls = [0, 1:2:11];
-%lvls = [0, 1:10];
-
-
-% % Create contour
-[c1,h1] = contour(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-    length(tau_c_fine)),  lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
-
-
-% Create filled contour
-% [c1,h1] = contourf(tau_c_fine, r_top_min(1)-r_bot_fine, reshape(rms_residual(idx_rTop,:, :)./rms_uncert, length(r_bot_fine),...
-%     length(tau_c_fine)),  lvls, 'LineWidth', 3, 'EdgeColor', 'k');
-%clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(9, 'fixed'));
-
-% Create colorbar
-% cb = colorbar();
-% % create colorbar label
-% ylabel(cb, '$\sqrt{ \Sigma{ \left(R(\vec{x}) - \vec{m} \right)^{2} }} / \sqrt{ \Sigma{ \left(\delta \vec{m} \right)^{2}}}$',...
-%     'FontSize', cb_font_size, 'Interpreter', 'latex')
-% clim([lvls(1), lvls(end)])
-
-
-
-
-% Set tick label font size
-ax = gca(f);
-ax.FontSize = axes_tick_label_font_size;
-
-% Create ylabel
-ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create xlabel
-xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
-
-% Create title
-if use_l2_norm==false
-
-    title(['RMS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
-        ' - 35 Synthetic Measurements with ', num2str(100*measurement_uncert),...
-        '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
-
-else
-
-    title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop)),...
-        ' - 35 Synthetic Measurements with ', num2str(100*measurement_uncert),...
-        '\% uncertainty'],'Interpreter','latex', 'FontSize', 16);
-
-end
-
-ylim([min(r_top_min(1)-r_bot_fine), max(r_top_min(1)-r_bot_fine)])
-
-grid on; grid minor
-
-
-
-
-%set the figure size
-set(gcf, 'Position', [0 0 2400 1200])
-
-
-idx_uncert_MODIS7 = rms_residual_MODIS7./rms_uncert_MODIS7 <= 1;
-percent_states_less_than_rms_uncert_MODIS7 = sum(idx_uncert_MODIS7, 'all')/numel(rms_residual_MODIS7);
-disp([newline,'Percent of state space within the convergence region using 7 MODIS channels: ',...
-    num2str(100*percent_states_less_than_rms_uncert_MODIS7),'%', newline])
-
-
-
-idx_uncert = rms_residual./rms_uncert <= 1;
-percent_states_less_than_rms_uncert = sum(idx_uncert, 'all')/numel(rms_residual);
-disp([newline,'Percent of state space within the convergence region using 35 EMIT channels: ',...
-    num2str(100*percent_states_less_than_rms_uncert),'%', newline])
-
-
-
-clear variables
-
+%%
 

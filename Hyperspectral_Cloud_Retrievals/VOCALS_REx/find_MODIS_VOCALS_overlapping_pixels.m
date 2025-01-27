@@ -30,12 +30,18 @@ for nn = 1:numel(indexes2check)
     if liquidWater_mask(indexes2check(nn))==true && modis.cloud.optThickness17(indexes2check(nn))>=tauThreshold && modis.cloud.effRad_uncert_17(indexes2check(nn))<uncertaintyLimit
 
     else
-        error([newline,'The MODIS pixel chosen for comparison with the VOCALS-REx measurement is incompatible',newline,...
-            'Either this pixel didnt detect liquid water, or it didnt surpass the tau threshold',newline])
+        warning([newline,'The MODIS pixel chosen for comparison with the VOCALS-REx measurement is incompatible',newline,...
+            'Either this pixel didnt detect liquid water, or it didnt surpass the tau threshold',newline,...
+            'Removing index: ', num2str(indexes2check(nn)), newline])
+
+        indexes2check(nn) = nan;
 
     end
 
 end
+
+% delete indices marked with nan
+indexes2check(isnan(indexes2check)) = [];
 
 
 % ------------------------------------------------------------------------

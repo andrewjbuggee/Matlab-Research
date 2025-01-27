@@ -67,6 +67,9 @@ constant.M_sun = 1.98840987e+30;                % kg
 % Nominal Earth Radius
 constant.R_earth = 6378100;                % m
 
+% Nominal Earth Radius
+constant.R_moon = 1737500;                % m
+
 % Nominal Jupiter Radius
 constant.R_jup = 71492000;                % kg
 
@@ -75,6 +78,9 @@ constant.R_sun = 695700000;                % kg
 
 % 1 Astronomical unit - avg distance between the Earth and the Sun
 constant.au = 1.49597871e+11;             % m
+
+% avg distance between the Earth and Moon
+constant.d_moon = 384990e3;             % m
 
 
 % Effective temperature of the Sun
