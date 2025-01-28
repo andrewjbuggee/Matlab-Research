@@ -95,11 +95,11 @@ end
 
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisData = '2008_11_09/';
+% modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-%modisData = '2008_11_11_1430/';
+modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
