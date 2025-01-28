@@ -71,10 +71,10 @@ end
 %modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisFolder = '2008_11_11_1430/';
+% modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
+modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
 
 % ----- January 27, 2024 at 15:00 UTC -----
 %modisFolder = '2024_01_27/';       % 
@@ -637,7 +637,7 @@ while isfile(filename)
 end
 
 save(filename,"r_top", "r_bot", "tau_c", "wavelength", "R_model", "Refl_model", "modisFolder",...
-    'modis_idx', 'pixels2use', 'Refl_uncert_modis', 'Refl_modis');
+    'modis_idx', 'Refl_uncert_modis', 'Refl_modis');
 
 
 toc

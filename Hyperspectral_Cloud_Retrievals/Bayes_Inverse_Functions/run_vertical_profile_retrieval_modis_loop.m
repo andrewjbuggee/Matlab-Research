@@ -89,7 +89,7 @@ end
 
 
 
-%% LOAD MODIS DATA
+%% LOAD MODIS AND VOCALS-REX DATA
 
 % Load modis data and create input structure
 
@@ -117,11 +117,11 @@ modisInputs = create_modis_inputs([modisFolder, modisData], L1B_fileName);
 
 
 % ----- November 9 data -----
-vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+% vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 % ----- November 11 data -----
-% vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 
@@ -180,8 +180,12 @@ toc
 % This is a number corresponding the the index of
 % vocalsRex.modisIndex_minDist
 
-modis_pixel_2_plot = 4;
-plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, modis_pixel_2_plot)
+for nn = 1:length(vocalsRex.modisIndex_minDist)
+
+%     modis_pixel_2_plot = vocalsRex.modisIndex_minDist(nn);
+    plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, nn)
+
+end
 
 %% FIND MODIS PIXELS CLOSEST TO VOCALS
 
