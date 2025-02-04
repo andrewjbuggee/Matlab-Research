@@ -16,7 +16,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, folderpaths, emit)
+function inputs = create_emit_inputs_TBLUT(emitDataFolder, emitDataPath, folder2save, emit)
 
 
 %%
@@ -25,7 +25,7 @@ function inputs = create_emit_inputs_TBLUT(emitDataFolder, folderpaths, emit)
 inputs.emitDataFolder = emitDataFolder;
 
 % read the contents of the EMIT data folder
-folder_contents = dir([folderpaths.emitDataPath, emitDataFolder]);
+folder_contents = dir([emitDataPath, emitDataFolder]);
 
 % ----- Save the L1B file name -----
 for nn = 1:length(folder_contents)
@@ -61,12 +61,12 @@ data_date = datetime([inputs.L1B_filename(18:21), '-', inputs.L1B_filename(22:23
     'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
-inputs.folder2save.libRadTran_INP_OUT = [folderpaths.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
+inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
     '_time_', inputs.L1B_filename(27:30), '/'];
 
 
 % This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataFolder]; 
+inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
 
 % This is the name of the .mat file with the reflectance calcs
 inputs.reflectance_calculations_fileName = ['TBLUT_reflectance_calculations_', char(datetime("today")),'.mat'];

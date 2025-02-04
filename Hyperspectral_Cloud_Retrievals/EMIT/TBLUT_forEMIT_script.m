@@ -115,7 +115,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_TBLUT(emitDataFolder, folder2save, emit);
+inputs = create_emit_inputs_TBLUT(emitDataFolder, emitDataPath, folder2save, emit);
 
 % *** Check Inputs ***
 

@@ -92,6 +92,7 @@ wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical de
 jacobian = zeros(length(measurement_estimate),num_model_parameters);
 change_in_measurement = zeros(length(measurement_estimate),num_model_parameters);
 
+
 % ----- Let's define the 3 new state vectors -----
 % each new state vector perturbs one variable only
 %perturbed_state_vector = repmat(state_vector, length(state_vector), 1) + change_in_state;
@@ -183,34 +184,6 @@ if jacobian_barPlot_flag==true
 
 
 end
-
-
-
-%-------------------------------------------------------------
-% ---- SPECIAL PLOT FOR r_bot --------------------------------
-%-------------------------------------------------------------
-
-% spectral_bands = modisBands(1:7);
-% [~, index_sort] = sort(spectral_bands);
-% string_bands = string(round(spectral_bands(index_sort(:,1),1)));
-% 
-% load('jacobian_rt-10_rb-9_tau-20.mat', 'change_in_measurement')
-% change_r_bot = change_in_measurement(index_sort(:,1),2);
-% load('jacobian_rt-10_rb-9_tau-15.mat', 'change_in_measurement')
-% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
-% load('jacobian_rt-10_rb-9_tau-10.mat', 'change_in_measurement','measurement_variance')
-% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
-% 
-% f = figure; bar([abs(change_r_bot),sqrt(measurement_variance(index_sort(:,1)))])
-% hold on
-% xticklabels(string_bands);
-% xlabel('Wavelength $(nm)$', 'Interpreter','latex')
-% ylabel('$\triangle$ Reflectance','Interpreter','latex')
-% legend('$\tau_c = 20$','$\tau_c = 15$', '$\tau_c = 10$','$\sigma_\lambda$',...
-%      'interpreter', 'latex', 'Location','best','Fontsize',20); 
-% grid on; grid minor
-% set(f, 'Position',[0 0 1000 500])
-% title('$\partial F(\vec{x})/\partial r_{bot}$', 'Interpreter','latex')
 
 
 

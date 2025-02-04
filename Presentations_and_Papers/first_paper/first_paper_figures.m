@@ -390,8 +390,8 @@ plot(re_logNormal_mean, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor
-xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex')
-ylabel('Normalized Altitude', 'Interpreter', 'latex')
+xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex', 'Fontsize',30)
+ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize',30)
 
 % set x axis boundaries
 xlim([4, 10])                   % microns
@@ -414,8 +414,8 @@ plot(lwc_mean, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor
-xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex')
-ylabel('Normalized Altitude', 'Interpreter','latex')
+xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter','latex', 'FontSize', 30)
 
 % set x axis boundaries
 xlim([0, 0.6])                   % g/cm^3
@@ -956,8 +956,8 @@ plot(re_logNormal_median, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor
-xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex')
-ylabel('Normalized Altitude', 'Interpreter', 'latex')
+xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
 
 % set x axis boundaries
 xlim([4, 12])                   % microns
@@ -983,8 +983,8 @@ plot(lwc_logNormal_median, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor
-xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex')
-ylabel('Normalized Altitude', 'Interpreter','latex')
+xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter','latex', 'FontSize', 30)
 
 % set x axis boundaries
 xlim([0, 0.6])                   % g/cm^3
@@ -1014,14 +1014,14 @@ plot(Nc_median, bin_center, 'Color', mySavedColors(2, 'fixed'))
 
 
 grid on; grid minor
-xlabel('$<N_c(z)>$ $(cm^{-3})$', 'Interpreter','latex')
-ylabel('Normalized Altitude', 'Interpreter', 'latex')
+xlabel('$<N_c(z)>$ $(cm^{-3})$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
 
 % set x axis boundaries
 xlim([0, 320])                   % cm^(-3)
 
 % set the size of the figure
-set(gcf, 'Position', [0 0 1255 625])
+set(gcf, 'Position', [0 0 1350 675])
 
 
 
@@ -1076,7 +1076,6 @@ plot(re_adiabatic_fit, bin_center(1+nudge_from_bottom:end), 'k', 'LineWidth',2)
 %                 (4*pi*density*(re_adiabatic_fit*1e-4).^3);          % #/cm^3
 
 
-
 subplot(1,3,3)
 hold on;
 %plot(Nc_adiabatic_fit, bin_center, 'k', 'LineWidth', 2)
@@ -1098,7 +1097,7 @@ xline(mean(Nc_median), 'Color', 'black', 'LineWidth', 2, 'Alpha',1,...
 %     'FitBoxToText','off');
 
 
-annotation('textbox',[0.134 0.802 0.142 0.114],...
+annotation('textbox',[0.134 0.85 0.142 0.114],...
     'String',{['Non-Precipitating clouds only ($LWP_{2DC}<', num2str(ensemble_profiles.precip_driz_threshold),...
     '\,g/m^{2}$)']},...
     'LineWidth',2,...
@@ -1106,6 +1105,35 @@ annotation('textbox',[0.134 0.802 0.142 0.114],...
     'FontSize',17,...
     'FontName','Helvetica Neue',...
     'FitBoxToText','off');
+
+
+
+% Define axes labels and font size
+subplot(1,3,1)
+xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
+
+subplot(1,3,2)
+xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter','latex', 'FontSize', 30)
+
+subplot(1,3,3)
+xlabel('$<N_c(z)>$ $(cm^{-3})$', 'Interpreter','latex', 'FontSize', 30)
+ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
+
+
+% ---------- Save figure --------------
+% save .fig file
+% folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+% f = gcf;
+% saveas(f,[folderpath_figs,'Fig 2 - median vertical profiles of droplet size - LWC - and number concentration.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% title('')
+% folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+% exportgraphics(f,[folderpath_pngs,'Fig 2 - median vertical profiles of droplet size - LWC - and number concentration.png'],'Resolution', 400);
 
 
 
@@ -1896,11 +1924,11 @@ grid on; grid minor;
 % if the 2DC data is compliant, plot the effective radius computed
 % using both instruments
 if horz_profs.flag_2DC_data_is_conforming==true
-    ylabel('$r_e$ ($\mu m$)', 'Interpreter','latex')
+    ylabel('$r_e$ ($\mu m$)', 'Interpreter','latex', 'Fontsize', 30)
 else
     % if the 2DC data is non-conforming, use only the CDP data and
     % make a note of it
-    ylabel('$r_e$ ($\mu m$) - (CDP only)', 'Interpreter','latex')
+    ylabel('$r_e$ ($\mu m$) - (CDP only)', 'Interpreter','latex', 'Fontsize', 30)
 end
 
 % include a title in the middle plot
@@ -1919,10 +1947,10 @@ end
 % Include an x axis label on the middle plot
 if normalize_distance==true
 
-    xlabel('Normalized Horizontal Distance Travelled', 'Interpreter','latex');
+    xlabel('Normalized Horizontal Distance Travelled', 'Interpreter','latex', 'Fontsize', 30);
 else
 
-    xlabel('Horizontal Distance Travelled ($km$)', 'Interpreter','latex');
+    xlabel('Horizontal Distance Travelled ($km$)', 'Interpreter','latex', 'Fontsize', 30);
 end
 
 
@@ -1933,6 +1961,22 @@ legend(legend_str, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
 
 % set plot size
 set(gcf, 'Position', [0 0 1200 625])
+
+% save .fig file
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 5 - 3 horizontal in-situ profiles.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title for the PNG
+title('')
+% remove horizontal lines
+% *** do this manually ***
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+exportgraphics(f,[folderpath_pngs,'Fig 5 - 3 horizontal in-situ profiles.png'],'Resolution', 400);
+
+
 
 
 
@@ -2220,7 +2264,211 @@ annotation('textbox',[0.134 0.802 0.142 0.114],...
 
 
 
-%% FIGURE 8 - Standard Deviation of all ensemble profiles for different length scales
+%% FIGURE 8 - Standard Deviation of effective radius for all horizontal profiles for different length scales
+
+% ---- Standard Deviation of Horizontal Profiles ---------
+% Compute the standard deviation of droplet size over some identified
+% length scale. Slide this length scale across the horizontal profile and
+% compute the standard deviation for each window. Do this for each profile
+% in a data set
+
+
+clear variables
+
+
+% grab the filepath name according to which computer is being used
+
+if strcmp(whatComputer, 'anbu8374')==true
+
+
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 25 g/m^2         -----
+    %     load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %         'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_30-Oct-2023.mat'])
+
+
+    % ****** Using LWC Adjustment in readVocals ******
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 35 g/m^2         -----
+    load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+        'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_35_06-Nov-2023'])
+
+
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 10 g/m^2         -----
+
+
+
+    % ****** Using LWC Adjustment in readVocals ******
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 25 g/m^2         -----
+    % load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %     'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_25_06-Nov-2023.mat'])
+
+
+    % ****** Using LWC Adjustment in readVocals ******
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 35 g/m^2         -----
+    load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+        'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_35_06-Nov-2023'])
+
+
+
+    % --- non-precip profiles only, LWC>0.03, Nc>1 ----
+    % ------           2DC LWP < 50 g/m^2         -----
+    % load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/',...
+    %     'ensemble_horizontal_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_1_drizzleLWP-threshold_50_30-Oct-2023'])
+
+
+
+end
+
+
+
+% --- Define the horizontal length scale to compute statistics over ---
+length_scale = [1000, 5000];        % meters
+
+% Loop through each profile in the ensemble
+
+for ll = 1:length(length_scale)
+
+    % Set up an empty array for each length scale
+    % step trough each individual droplet size profile
+    std_lengthScale{ll} = [];
+
+    for nn = 1:length(ensemble_profiles.altitude)
+
+
+
+        for rr = 2:length(ensemble_profiles.re{nn})
+
+            % First, check to see if the remaining distance between rr and the
+            % end of our horizontal profile is greater than our length scale.
+            % If not, break the for loop
+            if (ensemble_profiles.horz_dist{nn}(end) - ensemble_profiles.horz_dist{nn}(rr))>length_scale(ll)
+
+                idx_displacement = 0;
+                % find data points that make up the length scale
+                dist_km = ensemble_profiles.horz_dist{nn}(rr+idx_displacement) - ensemble_profiles.horz_dist{nn}(rr-1);
+
+                while dist_km<length_scale(ll)
+
+                    % step to the next data point
+                    idx_displacement = idx_displacement + 1;
+                    dist_km = ensemble_profiles.horz_dist{nn}(rr+idx_displacement) - ensemble_profiles.horz_dist{nn}(rr-1);
+
+                end
+
+                % when the distance between two data points reaches 1000 meters,
+                % stop and calculate the mean and standard deviation
+                std_lengthScale{ll} = [std_lengthScale{ll}, std(ensemble_profiles.re{nn}(rr-1 : rr+idx_displacement))];           % microns
+
+            else
+
+                break
+
+            end
+
+        end
+
+    end
+
+end
+
+
+
+
+
+% ----- PLOT 1 -----
+% Try plotting the standard deviation for every length scale as a histogram
+
+figure;
+
+for ll = 1:length(length_scale)
+
+
+
+    % ------- Plot Histogram and Mean Value ------
+
+    histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'FaceColor', mySavedColors(ll+2, 'fixed'))
+    hold on
+
+
+    % Plot a vertical line showing the average value of the distribution
+    xline(mean(std_lengthScale{ll}), 'LineWidth', 3, 'LineStyle', '--',...
+        'Color', mySavedColors(ll+2, 'fixed'), 'FontSize', 23, 'FontWeight','bold')
+
+    legend_str{2*ll - 1} = ['Length Scale = ', num2str(length_scale(ll)/1e3), ' $km$'];
+    legend_str{2*ll} = ['$\left< \sigma_{r_e} \right> $ = ', num2str(round(mean(std_lengthScale{ll}), 2)), '$\mu m$'];
+
+    ylabel('Counts', 'Interpreter','latex')
+
+
+
+
+
+    % ------- Plot CDF and 0.5 yline ------
+
+    %     histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'Normalization', 'cdf')
+    %     hold on
+    %
+    %
+    %     % Plot a vertical line showing the average value of the distribution
+    %     yline(0.5, 'LineWidth', 2, 'Label','Half Total Counts',...
+    %         'LabelHorizontalAlignment','left','LabelVerticalAlignment','top',...
+    %         'Interpreter', 'latex', 'LineStyle', '--',...
+    %         'Color', 'k', 'FontSize', 23, 'FontWeight','bold')
+    %
+    %     ylabel('CDF', 'Interpreter','latex')
+
+
+end
+
+
+% ------ Pretty Plot Stuff -------
+
+% Include an x axis label on the middle plot
+xlabel('$\sigma_{r_e}$ ($\mu m$)', 'Interpreter','latex', 'FontSize', 30);
+
+grid on; grid minor;
+ylabel('Counts', 'Interpreter','latex', 'FontSize', 30)
+
+title(['STD over different length scales'], 'Interpreter','latex')
+
+legend(legend_str, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 25)
+
+
+% set plot size
+set(gcf, 'Position', [0 0 1200 625])
+
+
+
+
+
+% ---------- Save figure --------------
+% save .fig file
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+title('')
+xlim([0,2])
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+exportgraphics(f,[folderpath_pngs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.png'],'Resolution', 400);
+
+
+
+
+
+%% FIGURE 8 - Mean value of effective radius for all horizontal profiles for different length scales
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -2296,7 +2544,6 @@ for ll = 1:length(length_scale)
     % Set up an empty array for each length scale
     % step trough each individual droplet size profile
     mean_lengthScale{ll} = [];
-    std_lengthScale{ll} = [];
 
     for nn = 1:length(ensemble_profiles.altitude)
 
@@ -2324,7 +2571,6 @@ for ll = 1:length(length_scale)
                 % when the distance between two data points reaches 1000 meters,
                 % stop and calculate the mean and standard deviation
                 mean_lengthScale{ll} = [mean_lengthScale{ll}, mean(ensemble_profiles.re{nn}(rr-1 : rr+idx_displacement))];         % microns
-                std_lengthScale{ll} = [std_lengthScale{ll}, std(ensemble_profiles.re{nn}(rr-1 : rr+idx_displacement))];           % microns
 
             else
 
@@ -2342,73 +2588,8 @@ end
 
 
 
-% ----- PLOT 1 -----
-% Try plotting the standard deviation for every length scale as a histogram
-
-figure;
-
-for ll = 1:length(length_scale)
 
 
-
-    % ------- Plot Histogram and Mean Value ------
-
-    histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'FaceColor', mySavedColors(ll+2, 'fixed'))
-    hold on
-
-
-    % Plot a vertical line showing the average value of the distribution
-    xline(mean(std_lengthScale{ll}), 'LineWidth', 3, 'LineStyle', '--',...
-        'Color', mySavedColors(ll+2, 'fixed'), 'FontSize', 23, 'FontWeight','bold')
-
-    legend_str{2*ll - 1} = ['Length Scale = ', num2str(length_scale(ll)/1e3), ' $km$'];
-    legend_str{2*ll} = ['$\left< \sigma_{r_e} \right> $ = ', num2str(round(mean(std_lengthScale{ll}), 2)), '$\mu m$'];
-
-    ylabel('Counts', 'Interpreter','latex')
-
-
-
-
-
-    % ------- Plot CDF and 0.5 yline ------
-
-    %     histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'Normalization', 'cdf')
-    %     hold on
-    %
-    %
-    %     % Plot a vertical line showing the average value of the distribution
-    %     yline(0.5, 'LineWidth', 2, 'Label','Half Total Counts',...
-    %         'LabelHorizontalAlignment','left','LabelVerticalAlignment','top',...
-    %         'Interpreter', 'latex', 'LineStyle', '--',...
-    %         'Color', 'k', 'FontSize', 23, 'FontWeight','bold')
-    %
-    %     ylabel('CDF', 'Interpreter','latex')
-
-
-end
-
-
-% ------ Pretty Plot Stuff -------
-
-% Include an x axis label on the middle plot
-xlabel('$\sigma(r_e)$ ($\mu m$)', 'Interpreter','latex');
-
-grid on; grid minor;
-ylabel('Counts', 'Interpreter','latex')
-
-title(['STD over different length scales'], 'Interpreter','latex')
-
-legend(legend_str, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 25)
-
-
-% set plot size
-set(gcf, 'Position', [0 0 1200 625])
-
-
-
-
-
-% ----- PLOT 2 -----
 % Try plotting the mean effective radius for every length scale as a histogram
 
 figure;
@@ -2453,7 +2634,6 @@ legend(legend_str, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 22)
 
 % set plot size
 set(gcf, 'Position', [0 0 1200 625])
-
 
 
 
@@ -2650,10 +2830,10 @@ for ll = 1:length(length_scale)
     % ------ Pretty Plot Stuff -------
 
     % Include an x axis label on the middle plot
-    xlabel('$\sigma(r_e)$ ($\mu m$)', 'Interpreter','latex');
+    xlabel('$\sigma(r_e)$ ($\mu m$)', 'Interpreter','latex', 'Fontsize', 30);
 
     grid on; grid minor;
-    ylabel('Counts', 'Interpreter','latex')
+    ylabel('Counts', 'Interpreter','latex', 'FontSize', 30)
 
     title(['STD over length scale of ', num2str(length_scale(ll)), ' meters'], 'Interpreter','latex')
 
@@ -2670,6 +2850,11 @@ for ll = 1:length(length_scale)
 
 
 end
+
+
+
+
+
 
 
 
@@ -3274,9 +3459,13 @@ clear variables
 
 
 % ------ Define the state vector -------
-r_top = 8.25;
+r_top = 9;
 r_bot = 6;
 tau_c = 10:5:20;
+
+% r_top = 9.03;
+% r_bot = 9.03;
+% tau_c = 6.34;
 
 
 
@@ -3323,10 +3512,10 @@ end
 %modisFolder = '2008_11_09/';
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisFolder = '2008_11_11_1430/';
+% modisFolder = '2008_11_11_1430/';
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-%modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
+modisFolder = '2008_11_11_1850/';       % This data set is measured MODIS on board Aqua
 
 % ----- January 27, 2024 at 15:00 UTC -----
 %modisFolder = '2024_01_27/';       %
@@ -3337,19 +3526,21 @@ modisFolder = '2008_11_11_1430/';
 
 % Define an index to use
 %modis_idx = 110292;     % for 9 nov 2008
-%modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
+% modis_idx = 348140;    % for 9 nov 2008 - pixel overlapping with VOCALS
 modis_idx = 1278681;        % for 11 Nov 2008 @ 18:50 - pixel overlapping with VOCALS
 %modis_idx = 110293;        % for 11 Nove 2008 @ 1430 - pixel overlapping with VOCALS
 
 % Grab the MODIS reflectances for the pixel used
 [r,c] = ind2sub(size(modis.EV1km.reflectance), modis_idx);
-Refl_modis = zeros(size(modis.EV1km.reflectance,3), length(tau_c));
+Refl_modis = zeros(size(modis.EV1km.reflectance,3), 1);
+Refl_modis_uncert = zeros(size(modis.EV1km.reflectance,3), 1);
 
 for bb = 1:size(modis.EV1km.reflectance, 3)
 
     % ****** DID YOU USE REFLECTANCE_4MODIS? ******
     % If not you need to divide the MODIS reflectance by cos(sza)
     Refl_modis(bb) = modis.EV1km.reflectance(r,c,bb);
+    Refl_modis_uncert(bb) = 0.01*modis.EV1km.reflectanceUncert(r,c,bb);  % fraction of the measurment that is uncertain
 
 end
 
@@ -3554,12 +3745,13 @@ re_prof = create_droplet_profile2([r_top, r_bot], z, indVar, profile_type);     
 
 % Write each INP file and Calculate Reflectance for MODIS
 
-inputName = cell(length(band_num), length(tau_c));
-outputName = cell(length(band_num), length(tau_c));
-wc_filename = cell(length(band_num), length(tau_c));
 
 
 R_model = zeros(length(band_num), length(tau_c));
+
+R_model_perturbed = zeros(length(band_num), length(tau_c));
+
+lgnd_str = cell(1, length(tau_c));
 
 
 tic
@@ -3570,41 +3762,35 @@ for tc = 1:length(tau_c)
     disp(['Iteration: [tc] = [', [num2str(tc)], ']...', newline])
 
 
+    % -----------------------------------
+    % ---- Write a Water Cloud file! ----
+    % -----------------------------------
+    % most uncertainties for the modis optical retrieval are between 2
+    % and 10 percent. So lets round off all re values to the 1000th decimal
+    % place
+
+    % ------------------------------------------------------
+    % --------------------VERY IMPORTANT ------------------
+    % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
+    % ------------------------------------------------------
+    wc_filename = write_wc_file(re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
+        dist_var, vert_homogeneous_str, parameterization_str, tc);
+    wc_filename = wc_filename{1};
+
+
     parfor ww = 1:length(band_num)
-
-
-
-        % -----------------------------------
-        % ---- Write a Water Cloud file! ----
-        % -----------------------------------
-        % most uncertainties for the modis optical retrieval are between 2
-        % and 10 percent. So lets round off all re values to the 1000th decimal
-        % place
-
-        % ------------------------------------------------------
-        % --------------------VERY IMPORTANT ------------------
-        % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-        % ------------------------------------------------------
-        wc_filename{tc,ww} = write_wc_file(re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
-            dist_var, vert_homogeneous_str, parameterization_str, ww);
-        wc_filename{tc,ww} = wc_filename{tc,ww}{1};
 
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
         % ------------------------------------------------
-        % input_names need a unique identifier. Let's give them the nn value so
-        % they can be traced, and are writen over in memory
-        %                 inputName{rt,rb,tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
-        %                     'nm_withCloudLayer_',num2str(r_top(rt)),'rTop_',num2str(r_bot(rb)),...
-        %                     'rBot_', num2str(tau_c(tc)), 'tauC_' ,atm_file(1:end-4),'.INP'];
 
-        inputName{tc,ww} = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
-            'reflectance', atm_file(1:end-4),'.INP'];
+        inputName = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
+            'nm_reflectance_', atm_file(1:end-4),'.INP'];
 
 
 
-        outputName{tc,ww} = ['OUTPUT_',inputName{tc,ww}(1:end-4)];
+        outputName = ['OUTPUT_',inputName(1:end-4)];
 
 
 
@@ -3613,7 +3799,7 @@ for tc = 1:length(tau_c)
         % ----------------- ******************** ---------------------
 
         % Open the old file for writing
-        fileID = fopen([folder2save,inputName{tc,ww}], 'w');
+        fileID = fopen([folder2save,inputName], 'w');
 
         % Define which RTE solver to use
         % ------------------------------------------------
@@ -3676,7 +3862,7 @@ for tc = 1:length(tau_c)
             % Define the water cloud file
             % ------------------------------------------------
             formatSpec = '%s %s %5s %s \n';
-            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{tc,ww}], ' ', '# Location of water cloud file');
+            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename], ' ', '# Location of water cloud file');
 
             % Define the percentage of horizontal cloud cover
             % This is a number between 0 and 1
@@ -3808,19 +3994,19 @@ for tc = 1:length(tau_c)
 
 
         % compute INP file
-        [inputSettings] = runUVSPEC(folder2save,inputName{tc, ww},outputName{tc, ww});
+        [inputSettings] = runUVSPEC(folder2save,inputName,outputName);
 
         % read .OUT file
-        [ds,~,~] = readUVSPEC(folder2save,outputName{tc, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
+        [ds,~,~] = readUVSPEC(folder2save,outputName,inputSettings(2,:), compute_reflectivity_uvSpec);
 
         if compute_reflectivity_uvSpec==false
             % compute reflectance in the MODIS style (without
             % dividing by cos(sza)
-            R_model(tc, ww) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
+            R_model(ww, tc) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
 
         else
 
-            R_model(tc, ww) = ds.reflectivity.value;
+            R_model(ww, tc) = ds.reflectivity.value;
         end
 
 
@@ -3829,42 +4015,270 @@ for tc = 1:length(tau_c)
     end
 
 
-    % --------------------------------------
-    % ------- Compute the Change in R ------
-    % ----- perturb the radius at r_bot ----
-    % --------------------------------------
+    % ---------------------------------------------------------------------------
+    % ------- Compute the Change in R due to a small perturbation in r_bot ------
+    % ---------------------------------------------------------------------------
 
     % Define the change to the opical depth
-    change_in_state = 0.1 * tau_c(tc);
+    change_in_r_bot = 0.35 * r_bot;
 
-    new_tau_c = tau_c(tc) + change_in_state;
-    % --------------------------------------------
-    % create water cloud file with droplet profile
-    % --------------------------------------------
+    new_r_bot = r_bot + change_in_r_bot;
+    % ------------------------------------------------
+    % create water cloud file with new droplet profile
+    % ------------------------------------------------
+
+    new_re_prof = create_droplet_profile2([r_top, new_r_bot], z, indVar, profile_type);     % microns - effective radius vector
 
     loop_var = 0;
 
-    wc_filename = write_wc_file(re_prof, new_tau_c, z_topBottom, lambda_forTau, dist_str,...
+    new_wc_filename = write_wc_file(new_re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
         dist_var, vert_homogeneous_str, parameterization_str, loop_var);
+    new_wc_filename = new_wc_filename{1};
 
 
-    % ----- Write an INP file --------
-    names.inp = write_INP_file_4MODIS_Gauss_Newton(GN_inputs, modisInputs, pixel_row, pixel_col, modis, wc_filename);
+    % ----- Compute the new Reflectance with the perturbed r_bot value ----
 
-    % now lets write the output names
-
-    names.out = writeOutputNames(names.inp);
-
-    % ---- Run uvspec for the files created -----
-    [new_measurement_estimate,~] = runReflectanceFunction_4modis_gaussNewton(names,INP_folderName,saveCalculations_fileName, GN_inputs.spec_response);
-
-    change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
+    parfor ww = 1:length(band_num)
 
 
 
 
-end
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
 
+        inputName = [num2str(floor((wavelength(ww,2)-wavelength(ww,1))/2 + wavelength(ww,1))),...
+            'nm_reflectance_', atm_file(1:end-4),'.INP'];
+
+
+
+        outputName = ['OUTPUT_',inputName(1:end-4)];
+
+
+
+        % ----------------- ******************** ---------------------
+        % ------------------ Write the INP File --------------------
+        % ----------------- ******************** ---------------------
+
+        % Open the old file for writing
+        fileID = fopen([folder2save,inputName], 'w');
+
+        % Define which RTE solver to use
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'rte_solver','disort',' ', '# Radiative transfer equation solver');
+
+
+        % Define the number of streams to keep track of when solving the equation
+        % of radiative transfer
+        % ------------------------------------------------
+        formatSpec = '%s %u %5s %s \n\n';
+        fprintf(fileID, formatSpec,'number_of_streams', num_streams,' ', '# Number of streams');
+
+
+        % Use phase function correction?
+        % ------------------------------------------------
+        if use_nakajima_phaseCorrection==true
+            % define the pahse correction to be true
+            % ------------------------------------------------
+            formatSpec = '%s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
+        end
+
+
+        % Define the band model to use
+        % of radiative transfer
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'mol_abs_param', band_parameterization,' ', '# Band model');
+
+
+        % Define the location and filename of the atmopsheric profile to use
+        % ------------------------------------------------
+        formatSpec = '%s %5s %s \n';
+        fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/',atm_file],' ', '# Location of atmospheric profile');
+
+        % Define the location and filename of the extraterrestrial solar source
+        % ---------------------------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'source solar', source_file, ' ', '# Bounds between 250 and 10000 nm');
+
+
+        % Define the location and filename of the extraterrestrial solar source
+        % ---------------------------------------------------------------------
+        formatSpec = '%s %u %5s %s \n\n';
+        fprintf(fileID, formatSpec,'day_of_year', day_of_year, ' ', '# accounts for changing Earth-Sun distance');
+
+
+
+        % Define the surface albedo
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'albedo', albedo, ' ', '# Surface albedo of the ocean');
+
+
+        % Define the Water Cloud properties, if you want a cloud in your model
+        % --------------------------------------------------------------------
+        if yesCloud==true
+
+            % Define the water cloud file
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n';
+            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/', new_wc_filename], ' ', '# Location of water cloud file');
+
+            % Define the percentage of horizontal cloud cover
+            % This is a number between 0 and 1
+            % ------------------------------------------------
+            formatSpec = '%s %f %5s %s \n';
+            fprintf(fileID, formatSpec,'cloudcover wc', percent_cloud_cover, ' ', '# Cloud cover percentage');
+
+
+            % Define the technique or parameterization used to convert liquid cloud
+            % properties of r_eff and LWC to optical depth
+            % ----------------------------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'wc_properties', wc_parameterization, ' ', '# optical properties parameterization technique');
+
+        end
+
+
+
+        % Define the wavelengths for which the equation of radiative transfer will
+        % be solve
+        % -------------------------------------------------------------------------
+        formatSpec = '%s %f %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'wavelength', wavelength(ww,1), wavelength(ww,2), ' ', '# Wavelength range');
+
+
+
+
+        if use_coxMunk==true
+
+            % Define the wind speed for the Cox-Munk ocean surface bi-directional reflectance model
+            % be solve
+            % -------------------------------------------------------------------------
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'brdf_cam u10', wind_speed, ' ', '# (m/s) Ocean Surface wind speed');
+
+        end
+
+
+
+        % Define the Aerosol Layer properties, if you want a cloud in your model
+        % --------------------------------------------------------------------
+        if yesAerosols==true
+
+            % Turn on default aersol layer, which occupies lower 2km of model
+            % --------------------------------------------------------------
+            formatSpec = '%s %5s %s \n';
+            fprintf(fileID, formatSpec,'aerosol_default', ' ', '# turn on Shettle (1989) boundary layer aerosols');
+
+
+            % Specify the Aerosl type
+            % 1=rural aersols,  4=maritime aersols,  5=Urban aerosols,
+            % 6=Tropospheric aerosols
+            % ------------------------------------------------
+            formatSpec = '%s %u %5s %s \n';
+            fprintf(fileID, formatSpec,'aerosol_haze', aerosol_type, ' ', '# Aerosol type');
+
+
+            % Define aerosol layer optical depth
+            % ----------------------------------------------------------------------
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'aerosol_modify tau set', aerosol_opticalDepth, ' ', '# Optical Depth of aerosol layer');
+
+        end
+
+
+
+
+        % Define the sensor altitude
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'zout', 'toa', ' ', '# Sensor Altitude');
+
+        % Define the solar zenith angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'sza', sza, ' ', '# Solar zenith angle');
+
+        % Define the solar azimuth angle
+        % -------------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'phi0', phi0, ' ', '# Solar azimuth angle');
+
+        % Define the cosine of the zenith viewing angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'umu', round(cosd(vza),4), ' ', '# Cosine of the zenith viewing angle');
+
+        % Define the azimuth viewing angle
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'phi', vaz, ' ', '# Azimuthal viewing angle');
+
+
+
+        if compute_reflectivity_uvSpec==true
+            % Set the output quantity to be reflectivity
+            % ------------------------------------------------
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'output_quantity', 'reflectivity', ' ', '# Output is reflectance');
+        end
+
+
+        %     % Set the outputs
+        %     % ------------------------------------------------
+        %     formatSpec = '%s %s %5s %s \n\n';
+        %     fprintf(fileID, formatSpec,'output_user', 'lambda edir edn eup uavgdir uavgdn uavgup uu', ' ', '# Output quantities');
+
+
+
+
+
+        % Set the error message to quiet of verbose
+        % ------------------------------------------------
+        formatSpec = '%s';
+        fprintf(fileID, formatSpec,'verbose');
+
+
+        % Close the file!
+        fclose(fileID);
+        % ----------------------------------------------------
+        % ----------------------------------------------------
+
+
+
+
+        % ----------------------------------------------------
+        % --------------- RUN RADIATIVE TRANSFER -------------
+        % ----------------------------------------------------
+
+
+        % compute INP file
+        [inputSettings] = runUVSPEC(folder2save,inputName,outputName);
+
+        % read .OUT file
+        [ds,~,~] = readUVSPEC(folder2save,outputName,inputSettings(2,:), compute_reflectivity_uvSpec);
+
+        if compute_reflectivity_uvSpec==false
+            % compute reflectance in the MODIS style (without
+            % dividing by cos(sza)
+            R_model_perturbed(ww, tc) = reflectanceFunction_4modis(inputSettings(2,:), ds, spec_response{ww}(:,2));
+
+        else
+
+            R_model_perturbed(ww, tc) = ds.reflectivity.value;
+        end
+
+
+
+
+    end
+
+
+    % Create the legend string
+    lgnd_str{tc} = ['$\triangle R(\tau_c = $', num2str(tau_c(tc)), ')'];
 
 
 end
@@ -3873,14 +4287,161 @@ end
 % -----------------------------------------------------
 % -----------------------------------------------------
 
+% Compute the reflectance uncertainty for each model run
+R_model_uncert = repmat(Refl_modis_uncert, 1, length(tau_c)).*R_model;
 
-% Lets step through each optical depth and compute the change in
-% reflectance
-change_in_reflectance = zeros(length(measurement_estimate), length(tau_c));
+% Compute the CPF equivelant uncertainty using the same measurements (0.3% from Shea et al., 2020)
+R_cpf_uncert = 0.003 .* R_model;
+
+
+% Compute the change in reflectance
+change_in_measurement = R_model - R_model_perturbed;
+
+
+% Create bar plot showing the chnage in our reflectance measurements
+
+% create a string for each wavelength reflectance was calculated
+spectral_bands = round(mean(wavelength, 2));
+[~, index_sort] = sort(spectral_bands);
+string_bands = string(round(spectral_bands(index_sort(:,1),1)));
+
+
+% define colors for three optical depths
+C = mySavedColors([8,9,10], 'fixed');
+
+f = figure;
+
+% ---------------------------------------------------------------
+% ------ Using Error Bars to display measurement uncertainty ----
+% ---------------------------------------------------------------
+
+% b1 = bar(abs(change_in_measurement(index_sort, :)), 'grouped');
+% % Let's add the MODIS measurement uncertainty
+% 
+% hold on;
+% 
+% 
+% for nn = 1:length(tau_c)
+% 
+%     % set colors of each bar representing a change in measurement
+%     b1(nn).FaceColor = C(nn,:);
+%     b1(nn).EdgeColor = [0, 0, 0];
+% 
+% 
+%     % plot uncertainty as an errorbar
+%     er = errorbar(b1(nn).XEndPoints, change_in_measurement(index_sort,nn), [], R_model_uncert(:, nn));
+%     er.Color = [0 0 0];                            
+%     er.LineStyle = 'none'; 
+%     er.LineWidth = 1;
+% 
+% end
+
+
+% ---------------------------------------------------------------------
+% ------ Using transparent bars to display measurement uncertainty ----
+% ---------------------------------------------------------------------
+
+% % plot uncertainty as a transparent bar
+% b_modis_uncert = bar(R_model_uncert(index_sort, :), 'grouped');
+% 
+% hold on
+% 
+% % plot the change in reflectance
+% b_deltaR = bar(abs(change_in_measurement(index_sort, :)), 'grouped');
+% 
+% % lastly, plot the clarreo pathfinder equivelant reflectance uncertainty
+% b_cpf_uncert = bar(R_cpf_uncert(index_sort, :), 'grouped');
+% 
+% 
+% 
+% for nn = 1:length(tau_c)
+% 
+%     % set colors of each bar representing a change in measurement
+%     b_deltaR(nn).FaceColor = C(nn,:);
+%     b_deltaR(nn).EdgeColor = [0, 0, 0];
+% 
+%     % set the transparency for the uncertainty estimates
+%     b_modis_uncert(nn).FaceAlpha = 0.25;
+%     b_modis_uncert(nn).FaceColor = [0, 0, 0];
+%     b_modis_uncert(nn).EdgeColor = [0, 0, 0];
+% 
+%     % set the color of the CPF uncertainty
+%     b_cpf_uncert(nn).FaceColor = mySavedColors(5, 'fixed');
+%     b_modis_uncert(nn).EdgeColor = [0, 0, 0];
+% 
+% 
+% end
+
+
+% ---------------------------------------------------------------------
+% ----------- Using markers to display measurement uncertainty --------
+% ---------------------------------------------------------------------
+
+% plot the change in reflectance
+b_deltaR = bar(abs(change_in_measurement(index_sort, :)), 'grouped');
+
+
+for nn = 1:length(tau_c)
+
+    % set colors of each bar representing a change in measurement
+    b_deltaR(nn).FaceColor = C(nn,:);
+    b_deltaR(nn).EdgeColor = [0, 0, 0];
+
+
+end
+
+% plot MODIS as a marker
+hold on
+plot(b_deltaR(2).XEndPoints, R_model_uncert(index_sort, 2), '.-', 'markersize', 30, ...
+    'Color', [0,0,0], 'LineWidth', 0.5)
+
+
+% lastly, plot the clarreo pathfinder equivelant reflectance uncertainty
+plot(b_deltaR(2).XEndPoints, R_cpf_uncert(index_sort, 2), 's-', 'markersize', 10, ...
+    'MarkerFaceColor', [0,0,0], 'MarkerEdgeColor', [0,0,0], 'LineWidth', 0.5,...
+    'Color', [0,0,0])
+
+% -------------------------------------------------------------------
 
 
 
 
+xticklabels(string_bands);
+
+% set the transparency at 100% but leave an outline
+
+
+xlabel('Wavelength $(nm)$', 'Interpreter','latex', 'Fontsize', 30)
+
+ylabel('Reflectance ($sr^{-1}$)','Interpreter','latex', 'Fontsize', 30)
+
+% print legend for uncertainty and change in reflectance plotted as bars
+% legend([{'$\sigma_{MODIS}$'}, {''}, {''}, lgnd_str, {'$\sigma_{CPF}$'}], 'interpreter', 'latex', 'Location','best','Fontsize',20);
+
+% print legend change in reflectance as bars and uncertainty as markers
+legend([lgnd_str, {'$\sigma_{MODIS}$'},  {'$\sigma_{CPF}$'}], 'interpreter', 'latex','Fontsize',20,...
+    'Position',[0.184 0.405 0.146 0.252]);
+
+grid on; grid minor
+
+set(f, 'Position',[0 0 1000 500])
+
+title(['$\partial F(\vec{x})/\partial r_{bot}$  -  $r_{top} = $', num2str(r_top), ' $\mu m$',...
+    '; $r_{bot}  = $', num2str(r_bot), ' $\mu m$'], 'Interpreter','latex', 'Fontsize', 35)
+
+
+% ---------- Save figure --------------
+% save .fig file
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 4 - Jacobian with respect to radius at cloud bottom.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+title('')
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+exportgraphics(f,[folderpath_pngs,'Fig 4 - Jacobian with respect to radius at cloud bottom.png'],'Resolution', 400);
 
 
 
@@ -4242,6 +4803,22 @@ for nn = 1:1
 end
 
 
+% % ---------- Save figure --------------
+% % save .fig file
+% folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+% f = gcf;
+% saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 2% and 0.3% uncertainty.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% title('')
+% folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+% exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 2% and 0.3% uncertainty.png'],'Resolution', 400);
+
+
+
+
 %% Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
 
 for nn = 1:25
@@ -4601,5 +5178,152 @@ for nn = 1:25
 
 end
 
-%%
+
+% ---------- Save figure --------------
+% save .fig file
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 2% and 0.3% uncertainty.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+title('')
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 2% and 0.3% uncertainty.png'],'Resolution', 400);
+
+
+
+
+
+
+
+
+%% Adding panel lettering to multispectral retrieval plots (Figures 3a, 3b and 3c)
+
+
+% panel letter position
+pos = [0.82 0.767 0.0558 0.067];
+
+
+% ------------------------------------------------------------
+% ----------------- Figure 3a - small tau --------------------
+% ------------------------------------------------------------
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+
+% open figure 1
+open([folderpath_figs, 'Fig 3a- retrieved vertical profile with insitu - tau=6.fig'])
+
+
+% add a text box with a bracketed letter
+% --- Create a Textbox stating these are only non-precipitating clouds ---
+% Create textbox
+annotation('textbox',pos,...
+    'String',{'(a)'},...
+    'LineWidth',2,...
+    'Interpreter','latex',...
+    'FontSize',30,...
+    'FontName','Helvetica Neue',...
+    'FontWeight', 'bold',...
+    'LineStyle','none',...
+    'FitBoxToText','on');
+
+% set the yaxis font label on the left side to 30
+yyaxis left
+ylabel('Optical Depth', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the yaxis font label on the right side to 30
+yyaxis right
+ylabel('Altitude within cloud (m)', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the xaxis font label to 30
+xlabel('Effective Radius ($ \mu m $)', 'Interpreter','latex', 'Fontsize', 30)
+
+
+% Save high resolution figure
+f = gcf;
+exportgraphics(f,[folderpath_pngs,'Fig 3a- retrieved vertical profile with insitu - tau=6.png'],'Resolution', 400);
+
+
+
+% ------------------------------------------------------------
+% ----------------- Figure 3a - small tau --------------------
+% ------------------------------------------------------------
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+
+% open figure 1
+open([folderpath_figs, 'Fig 3b - retrieved vertical profile with insitu - tau=10 - better r_top match.fig'])
+
+
+% add a text box with a bracketed letter
+% --- Create a Textbox stating these are only non-precipitating clouds ---
+% Create textbox
+annotation('textbox', pos,...
+    'String',{'(b)'},...
+    'LineWidth',2,...
+    'Interpreter','latex',...
+    'FontSize',30,...
+    'FontName','Helvetica Neue',...
+    'FontWeight', 'bold',...
+    'LineStyle','none',...
+    'FitBoxToText','on');
+
+% set the yaxis font label on the left side to 30
+yyaxis left
+ylabel('Optical Depth', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the yaxis font label on the right side to 30
+yyaxis right
+ylabel('Altitude within cloud (m)', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the xaxis font label to 30
+xlabel('Effective Radius ($ \mu m $)', 'Interpreter','latex', 'Fontsize', 30)
+
+
+% Save high resolution figure
+f = gcf;
+exportgraphics(f,[folderpath_pngs,'Fig 3b - retrieved vertical profile with insitu - tau=10 - better r_top match.png'],'Resolution', 400);
+
+
+
+% ------------------------------------------------------------
+% ----------------- Figure 3c - large tau --------------------
+% ------------------------------------------------------------
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+
+% open figure 1
+open([folderpath_figs, 'Fig 3c - retrieved vertical profile with in-situ - tau=19.fig'])
+
+
+% add a text box with a bracketed letter
+% --- Create a Textbox stating these are only non-precipitating clouds ---
+% Create textbox
+annotation('textbox', pos,...
+    'String',{'(c)'},...
+    'LineWidth',2,...
+    'Interpreter','latex',...
+    'FontSize',30,...
+    'FontName','Helvetica Neue',...
+    'FontWeight', 'bold',...
+    'LineStyle','none',...
+    'FitBoxToText','on');
+
+% set the yaxis font label on the left side to 30
+yyaxis left
+ylabel('Optical Depth', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the yaxis font label on the right side to 30
+yyaxis right
+ylabel('Altitude within cloud (m)', 'Interpreter','latex', 'Fontsize', 30)
+
+% set the xaxis font label to 30
+xlabel('Effective Radius ($ \mu m $)', 'Interpreter','latex', 'Fontsize', 30)
+
+
+% Save high resolution figure
+f = gcf;
+exportgraphics(f,[folderpath_pngs,'Fig 3c - retrieved vertical profile with in-situ - tau=19.png'],'Resolution', 400);
 
