@@ -32,16 +32,22 @@ info = hdfinfo(fileName);
 % version of radiance (see page 33 of the MODIS L1B user guide)
 % Let's read in the Earth-Sun distance as a ratio of 1 AU at the middle
 % time of the data granule
-earth_sun_distance = hdfread(fileName, 'Earth-Sun Distance');
+%earth_sun_distance = hdfread(fileName, 'Earth-Sun Distance');
 
 % Let's read in the Solar irradiances at 1 AU divided by pi, weighted by a
 % detectors relative spectral response for EACH reflective detector
 % For each of the 15 1km resolution bands, there are 10 detectors
 % For each of the 5 500m resolution bands, there are 20 detectors
 % For each of the 2 250m resolution bands, there are 40 detectors
-weighted_solar_irradiance = hdfread(fileName, 'Solar Irradiance on RSB Detectors over pi');
+%weighted_solar_irradiance = hdfread(fileName, 'Solar Irradiance on RSB Detectors over pi');
 
+
+
+
+
+% ----------------------------------------------------------
 % Check to see what product we are reading in
+% ----------------------------------------------------------
 
 if strcmp(fileName(6:8),'QKM')
     % then we are reading in calibrated Earth View data at 250m resolution
@@ -243,6 +249,59 @@ else
 end
 
 
+
+
+% ----------------------------------------------------------
+% ------------ Read in MODIS L1B Swath Meta Data -----------
+% ----------------------------------------------------------
+
+L1B_metadata = hdfread(fileName, 'Level 1B Swath Metadata');
+
+raw_time = L1B_metadata{5};     % TAI time (number of sec. since 1/1/93)
+
+
+% there are typically 203 scans for each granule. Since there are 10
+% detectors for the 1KM data, that means there are 2030 total measurements
+% in the along track direction. Along the scan direction, there are 1354
+% measurements, or pixels. 
+% Let's interpolate the get the time of each pixel in the along-scan
+% direction
+
+modis_pixel_time_along_scan = zeros(size(EV.radiance, 2), length(raw_time));
+
+for nn=1:(length(raw_time)-1)
+    
+    time_from_one_scan_to_the_next = linspace(raw_time(nn), raw_time(nn+1), size(EV.radiance,2)+1);
+    modis_pixel_time_along_scan(:,nn) = time_from_one_scan_to_the_next(1:end-1)';
+
+end
+
+% the last column is the final scan time
+modis_pixel_time_along_scan(:,end) = linspace(raw_time(end), raw_time(end) + (time_from_one_scan_to_the_next(end-1) - ...
+    time_from_one_scan_to_the_next(1)), size(EV.radiance, 2))';
+
+% to get the time of every pixel in a full 1KM resolution granule, we
+% repeat values in the along-track dimension. For 1KM resolution data,
+% there are 10 sensors. So every column (each scan) should be repeated 10
+% times.
+modis_pixel_time = [];
+
+for nn = 1:length(raw_time)
+    
+    modis_pixel_time = [modis_pixel_time, repmat(modis_pixel_time_along_scan(:,nn), 1, 10)];
+
+end
+
+% now let's convert these times to UTC
+% MODIS EV Sector time starts on 1 Jan 1993
+epoch = datetime(1993,1,1,'TimeZone','UTCLeapSeconds');
+
+% now lets add secods according to the EV sector start time measurements
+EV.pixel_time_UTC = (epoch + seconds(modis_pixel_time))';
+
+% let's also store the time in decimal foramt, where the decimal represents
+% the fraction of the hour (e.g. 14.5 is 14:30 UTC)
+EV.pixel_time_decimal = EV.pixel_time_UTC.Hour + EV.pixel_time_UTC.Minute/60 + EV.pixel_time_UTC.Second/3600;
 
 
 

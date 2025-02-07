@@ -15,13 +15,35 @@ modis_timeUTC = modis.time(1) + modis.time(2)/min_per_hour;
 
 % Now combine all time vectors together so we can find which profile is
 % closest in time to the MODIS data
-time2modis = zeros(1, length(vert_prof.time_utc));
+% A single MODIS granule takes 5 minutes to be collected. First, lets
+% determine if any profiles were recorded within the the 5 minute window
+% when MODIS collected data.
+within_5min_window = zeros(1, length(vert_prof.time_utc));
+time_to_halfwayPoint = zeros(1, length(vert_prof.time_utc));
+
 for nn = 1:length(vert_prof.time_utc)
-    time2modis(nn) = min(abs(vert_prof.time_utc{nn} - modis_timeUTC));    % times are in hours
+    
+    within_5min_window(nn) = any(vert_prof.time_utc{nn} >= modis.EV1km.pixel_time_decimal(1,1) & ...
+                                vert_prof.time_utc{nn} <= modis.EV1km.pixel_time_decimal(end,end));
+    
+    % use the time half way through the scan
+    time_to_halfwayPoint(nn) = min(abs(vert_prof.time_utc{nn} - ...
+                            modis.EV1km.pixel_time_decimal(round(end/2),round(end/2))));    % times are in hours
 end
 
-% Determine which profile is closest to the time MODIS data was recorded
-[~, index_vertProf_closest2modis] = min(time2modis);
+% If yes, keep all profiles recorded within the MODIS granule time window
+if any(within_5min_window)==true
+    
+    index_vertProfs_2keep = find(within_5min_window);
+
+    
+else
+    % if there aren't any profiles recorded within the MODIS granule time
+    % window, find the profile closest to this time window
+    % Determine which profile is closest to the time MODIS data was recorded
+    [~, index_vertProfs_2keep] = min(time_to_halfwayPoint);
+
+end
 
 
 % Let's keep the vertical profile that is closest to MODIS
@@ -38,7 +60,7 @@ data2keep = cell(1, numel(vert_prof_cell));
 for ii = 1:length(vert_prof_cell)
     if iscell(vert_prof_cell{ii})==true
 
-        data2keep{ii} = vert_prof_cell{ii}{index_vertProf_closest2modis};
+        data2keep{ii} = vert_prof_cell{ii}{index_vertProfs_2keep};
 
     else
 
@@ -89,7 +111,7 @@ if modisInputs.flags.useAdvection==false
 
 
     % Find the MODIS pixel closest to every VOCALS-Rex location in the
-    % horizontal profile
+    % vertical profile
     parfor nn = 1:n_data_VR
 
 
