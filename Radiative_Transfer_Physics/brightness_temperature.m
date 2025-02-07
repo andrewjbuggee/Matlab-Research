@@ -19,7 +19,7 @@
 % (2) - independentVariable - Define the independent variable used to make 
 % the spectral measurement. If using a monochromatic measurement, only a
 % single value is required. If using a real measurement over some spectral
-% window, from the spectral bounds of the measurement. The choice is 
+% window, enter the spectral bounds of the measurement. The choice is 
 % arbitrary. One can define the planck function so that it varies with 
 % wavelength, frequency, or wavenumber. Though I don't know why you'd
 % want to use wavenumbers. 

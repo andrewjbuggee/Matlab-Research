@@ -61,7 +61,7 @@ radiance = zeros(length(temperatures),length(independent_variables));
 if strcmp(indVar_units,'microns')
     
     % convert wavelenghts to meters
-    independent_variables = independent_variables .* 1/1e6; % meters
+    independent_variables = independent_variables .* 1e-6; % meters
     
     for ii = 1:length(temperatures)
         
