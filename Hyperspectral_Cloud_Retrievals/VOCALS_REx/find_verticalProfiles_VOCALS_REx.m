@@ -144,6 +144,16 @@ for ii = 1:length(index_consec)-1
     vert_profs.horz_wind_speed{ii} = vocalsRex.horz_wind_speed(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))));
     vert_profs.horz_wind_direction{ii} = vocalsRex.horz_wind_direction(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))));
 
+    % Read the water vapor variables
+    vert_profs.absolute_humidity{ii} = vocalsRex.absolute_humidity(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+    vert_profs.mixing_ratio{ii} = vocalsRex.mixing_ratio(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+    vert_profs.vapor_pressure{ii} = vocalsRex.vapor_pressure(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+    vert_profs.Nc_vapor{ii} = vocalsRex.Nc_vapor(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+    vert_profs.Nc_vapor_pp{ii} = vocalsRex.Nc_vapor_pp(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+
+    % read the temperature
+    vert_profs.temp{ii} = vocalsRex.temp(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
+
 
     % ----------- These variables are not being used -----------------
     %     vert_profs.SWT{ii} = vocalsRex.SWT(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
@@ -213,6 +223,13 @@ vert_profs.Nc_2DC(index2delete) = [];
 vert_profs.horz_wind_speed(index2delete) = [];
 vert_profs.horz_wind_direction(index2delete) = [];
 
+vert_profs.absolute_humidity(index2delete) = [];
+vert_profs.mixing_ratio(index2delete) = [];
+vert_profs.vapor_pressure(index2delete) = [];
+vert_profs.Nc_vapor(index2delete) = [];
+vert_profs.Nc_vapor_pp(index2delete) = [];
+vert_profs.temp(index2delete) = [];
+
 % ----------- These variables are not being used -----------------
 % vert_profs.SWT(index2delete) = [];
 % vert_profs.SWB(index2delete) = [];
@@ -222,23 +239,6 @@ vert_profs.horz_wind_direction(index2delete) = [];
 
 
 
-% -----------------------------------------------------------------------
-% Usually at the end of each profile there are several zeros. Let's delete
-% all 0 values at the end of the vector ONLY when all remaining values are
-% 0
-
-% for ii = 1:length(vert_profs.Nc)
-%
-%
-%
-%     % -----------------------------------------------------------------------
-%     % find the point where all remaining values are zero and truncate
-%     % -----------------------------------------------------------------------
-%
-%
-%
-%
-% end
 
 
 
@@ -443,6 +443,13 @@ for ii = 1:length(vert_profs.lwc)
         vert_profs.horz_wind_speed{ii} = 0;
         vert_profs.horz_wind_direction{ii} = 0;
 
+        vert_profs.absolute_humidity{ii} = 0;
+        vert_profs.mixing_ratio{ii} = 0;
+        vert_profs.vapor_pressure{ii} = 0;
+        vert_profs.Nc_vapor{ii} = 0;
+        vert_profs.Nc_vapor_pp{ii} = 0;
+        vert_profs.temp{ii} = 0;
+
         % ----------- These variables are not being used -----------------
         %         vert_profs.SWT{ii} = 0;
         %         vert_profs.SWB{ii} = 0;
@@ -481,6 +488,13 @@ for ii = 1:length(vert_profs.lwc)
         vert_profs.Nc_2DC{ii} = 0;
         vert_profs.horz_wind_speed{ii} = 0;
         vert_profs.horz_wind_direction{ii} = 0;
+
+        vert_profs.absolute_humidity{ii} = 0;
+        vert_profs.mixing_ratio{ii} = 0;
+        vert_profs.vapor_pressure{ii} = 0;
+        vert_profs.Nc_vapor{ii} = 0;
+        vert_profs.Nc_vapor_pp{ii} = 0;
+        vert_profs.temp{ii} = 0;
 
         % ----------- These variables are not being used -----------------
         %         vert_profs.SWT{ii} = 0;
@@ -526,6 +540,14 @@ for ii = 1:length(vert_profs.lwc)
         vert_profs.horz_wind_speed{ii} = vert_profs.horz_wind_speed{ii}(firstIndex:lastIndex);
         vert_profs.horz_wind_direction{ii} = vert_profs.horz_wind_direction{ii}(firstIndex:lastIndex);
 
+        vert_profs.absolute_humidity{ii} = vert_profs.absolute_humidity{ii}(firstIndex:lastIndex);
+        vert_profs.mixing_ratio{ii} = vert_profs.mixing_ratio{ii}(firstIndex:lastIndex);
+        vert_profs.vapor_pressure{ii} = vert_profs.vapor_pressure{ii}(firstIndex:lastIndex);
+        vert_profs.Nc_vapor{ii} = vert_profs.Nc_vapor{ii}(firstIndex:lastIndex);
+        vert_profs.Nc_vapor_pp{ii} = vert_profs.Nc_vapor_pp{ii}(firstIndex:lastIndex);
+        vert_profs.temp{ii} = vert_profs.temp{ii}(firstIndex:lastIndex);
+
+
         % ----------- These variables are not being used -----------------
         %         vert_profs.SWT{ii} = vert_profs.SWT{ii}(firstIndex:lastIndex);
         %         vert_profs.SWB{ii} = vert_profs.SWB{ii}(firstIndex:lastIndex);
@@ -544,8 +566,8 @@ for ii = 1:length(vert_profs.lwc)
         profile_idx_2delete(ii) = true;
 
 
-    % Also check to see if the total profile found is less than 50 meters
-    % deep. If it is, flag it for deletion
+        % Also check to see if the total profile found is less than 50 meters
+        % deep. If it is, flag it for deletion
     elseif abs(vert_profs.altitude{ii}(1) - vert_profs.altitude{ii}(end))<50
 
         profile_idx_2delete(ii) = true;
@@ -598,6 +620,14 @@ if sum(profile_idx_2delete)>0
     vert_profs.Nc_2DC(profile_idx_2delete) = [];
     vert_profs.horz_wind_speed(profile_idx_2delete) = [];
     vert_profs.horz_wind_direction(profile_idx_2delete) = [];
+
+
+    vert_profs.absolute_humidity(profile_idx_2delete) = [];
+    vert_profs.mixing_ratio(profile_idx_2delete) = [];
+    vert_profs.vapor_pressure(profile_idx_2delete) = [];
+    vert_profs.Nc_vapor(profile_idx_2delete) = [];
+    vert_profs.Nc_vapor_pp(profile_idx_2delete) = [];
+    vert_profs.temp(profile_idx_2delete) = [];
 
     % ----------- These variables are not being used -----------------
     %     vert_profs.SWT(profile_idx_2delete) = [];
@@ -761,7 +791,7 @@ end
 % properties of the medium that make it attenuating must be integrated
 % along the entire line of sight. Cloud optical depth is defind as the
 % vertically integrated optical depth from cloud top to cloud bottom.
-% Assuming a plane-parallel cloud, the equation is: 
+% Assuming a plane-parallel cloud, the equation is:
 % int( sec(theta) * Qe * pi * r^2(z) * Nc(z)) dz
 % The term sec(theta) accounts for the zenith angle off from a true
 % vertical path (one that travels against the vector of the gravitational
@@ -841,7 +871,7 @@ if iscell(vert_profs.altitude)==true
         vert_profs.tau{nn} = zeros(1,vector_length-1);
 
         % compute sec(theta) by first computing the hypotenuse
-        
+
 
 
         % Optical thickness is defined by integrating from cloud top to
@@ -871,10 +901,10 @@ if iscell(vert_profs.altitude)==true
                     % effevtive radius from the 2DC data, but this will
                     % underestimate the optical depth
                     % if the re CDP data is taken at 10 samples per second,
-                    % only take every 10th value. 
+                    % only take every 10th value.
                     if length(vocalsRex.re_CDP)>length(vocalsRex.time)
                         error([newline, 'I dont know how to handle SPS10 data!', newline])
-                    
+
                     else
                         re_meters = vert_profs.re_CDP{nn}(vector_length-ii:vector_length)./1e6;                      % meters
                     end

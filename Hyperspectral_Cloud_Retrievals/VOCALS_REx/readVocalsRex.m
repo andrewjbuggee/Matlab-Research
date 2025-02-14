@@ -360,12 +360,20 @@ end
 altitude = reshape(altitude, 1, length(altitude));
 
 
+% -------------------------------------------------------------------------
+% ------------------ Grab the ambient air temperature ---------------------
+% -------------------------------------------------------------------------
+ambient_air_temp = ncread(filename, 'ATX');                                          % C - ambient air tempertaure
+
 
 % -------------------------------------------------------------------------
-% ------- Grab the ambient air temperature and water vapor pressure ------
+% --------------- Grab different water vapor measurements ---------------
 % -------------------------------------------------------------------------
 water_vapor_pressure = ncread(filename, 'EDPUV');                                    % hPa - ambient water vapor pressure
-ambient_air_temp = ncread(filename, 'ATX');                                    % C - ambient air tempertaure
+mixing_ratio = ncread(filename, 'MR');                                           % g of water vapor/kg of dry air - water vapor mixing ratio
+absolute_humidity = ncread(filename, 'RHODT');                                   % g of water vapor/m^3 of air - absolute humidity
+
+
 
 
 
@@ -819,6 +827,13 @@ vocalsRex.altitude = altitude;
 
 vocalsRex.horz_wind_speed = horz_wind_speed;
 vocalsRex.horz_wind_direction = horz_wind_direction;
+
+vocalsRex.vapor_pressure = water_vapor_pressure;             % hPa - ambient water vapor pressure
+vocalsRex.mixing_ratio = mixing_ratio;                       % g of water vapor/kg of dry air - water vapor mixing ratio
+vocalsRex.absolute_humidity = absolute_humidity;             % g of water vapor/m^3 of air - absolute humidity
+
+vocalsRex.temp = ambient_air_temp;                           % degrees C
+
 
 % ------------ STUFF I'M CURERENTLY NOT USING -------------
 % All this stuff will be useful someday! But right now, I'm not using it.
