@@ -13,7 +13,7 @@ constant.G = 6.6743e-11;                % m^3/kg/s^2
 constant.g0 = 9.80665;                % m/s^2
 
 % Avogadro's constant
-constant.N_A = 6.02214076e+23;                % 1/mol
+constant.N_A = 6.02214076e+23;                % molecules/mol
 
 % universal gas constant
 constant.R_uni = 8.31446262;                % J/K/mol

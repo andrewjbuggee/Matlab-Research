@@ -1,6 +1,14 @@
 % read in data from LibRadTran atmospheric data files
 
 
+% INPUTS
+%   (1) filename:
+%       (a) afglus.dat - AFGL atmospheric constituent profile. U.S. standard atmosphere 1976. ( AFGL-TR-86-0110) 
+%       (b) afglms.dat - AFGL atmospheric constituent profile. midlatitude summer. ( AFGL-TR-86-0110)    
+%       (c) afglmw.dat - AFGL atmospheric constituent profile. midlatitude winter. ( AFGL-TR-86-0110)   
+%       (d) afglt.dat - AFGL atmospheric constituent profile. tropical. ( AFGL-TR-86-0110)
+
+
 % By Andrew John Buggee
 
 %%

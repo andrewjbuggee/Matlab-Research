@@ -7,6 +7,62 @@
 % the cell array.
 
 
+% outputs
+%   1) lambda - wavelength of light. Units: nanometers
+
+%   2) edir - direct beam irradiance w.r.t horizontal plane, which is the
+%   unscattered light that reaches the ground. For a flux F, the
+%   transmission from space to ground can be defined as F/F0 = exp(-tau).
+%   Therefore the direct beam irradiance is the fraction of light that
+%   made it through a medium without scattering or absorption:
+%   F = F0 exp(-tau). Units: (mW/m^2/s)
+
+%   3) edn - diffuse down irradiance (total minus direct beam). This is the
+%   fraction of irradiance that was scattered or absorbed by the traversed
+%   medium (1 - exp(-tau)) but eventually made it down to the ground.
+%   Units: (mW/m^2/s)
+
+%   4) eup - diffuse up irradiance. This the scattered, emitted light
+%   that is moving upwards at the surface of the earth. It is a fraction of
+%   the absorbed or scattered light (1 - exp(-tau)) that returns back to
+%   space, rather than moves towards the ground. Likely single + multiple
+%   scattering accounted for. Units: (mW/m^2/s)
+
+%   5) uavgdir - Direct beam contribution to the mean intensity. Peter
+%   believes this is referring to the actinic flux, which is the flux
+%   attenuated in the atmosphere at some angle. Its usually in units of
+%   photons/area/sec but for UVSPEC its provided in units of
+%   milli-Watts/m^2/sec. Its a similar product as flux, which only accounts
+%   for the portion of light normal to some refernce sureface. Actinic
+%   flux doesn't have the reference plane. Units: (mW/m^2/s).
+
+%   6) uavgdn - Diffuse downward radiation contribution to the mean
+%   intesntiy. It is the diffuse portion of quantity (5). So it is the mean
+%   intensity (actinic flux) that reaches the ground after a scattering or
+%   absorption event. Units: (mW/m^2/s)
+
+%   7) uavgup - Diffuse upward radiation contribution to the mean intenstiy
+%   - This is the upward actinic flux after some scattering or absorption
+%   event. Units: (mW/m^2/s).
+
+%   8) uu - Radiance - If umu is specified, where umu is the cosine of the
+%   zenith viewing angle, and phi is specified, where phi is the sensor
+%   azimuth, then uu is the radiance at umu and phi. When specifying these
+%   two angles, it is important to also include the solar aziumuth angle,
+%   phi0. Remember radiances are for specific look angles. Note: if umu is
+%   not specified, uvspec defaults to a zenith viewing angle of 0; umu>0
+%   means sensors looking downward (i.e. satellite), and umu<0 means
+%   looking upward; phi=phi0 means sensor is looking into direction of the
+%   sun; phi-phi0=180 means the sun is in back of the sensor.
+%   Units: (mW/m^2/nm/sr)
+
+
+%   9) u0u - Azimuthally averaged Radiance - If umu is specified, where
+%   umu is the cosine of the zenith viewing angle,then u0u is the
+%   azimuthally averaged radiance at umu angles. Units: (mW/m^2/sr)
+
+
+
 % TO-DO:
 %   1) The outputs are different if we choose to output transmittance or
 %   transmissivity. What are the headers?
