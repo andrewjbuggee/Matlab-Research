@@ -99,11 +99,11 @@ end
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-modisData = '2008_11_11_1430/';
+% modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
-% modisData = '2008_11_11_1850/';
+modisData = '2008_11_11_1850/';
 
 
 
@@ -168,7 +168,7 @@ Nc_threshold = 1;               % # droplets/cm^3
 % Time is measured in seconds since the startTime
 
 % ---- DO YOU WANT TO USE ADVECTION? -----
-modisInputs.flags.useAdvection = true;
+modisInputs.flags.useAdvection = false;
 
 tic
 vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);

@@ -775,6 +775,22 @@ end
 
 
 
+%% Compute water vapor concentration
+
+% open physical constants library
+con = physical_constants;
+
+% compute number concentration from absolute humidity
+vocalsRex.Nc_vapor = absolute_humidity .* (con.N_A/(con.Mol_mass_h20_vap*1e3));             % # of molecules/m^3
+
+% convert units to inverse cubic cm
+vocalsRex.Nc_vapor = vocalsRex.Nc_vapor ./ 1e6;                                             % # of molecules/cm^3
+
+% try computing number concentration from the partial pressure as well
+vocalsRex.Nc_vapor_pp = (water_vapor_pressure.*1e2) .* (con.N_A./(con.R_uni * (ambient_air_temp + 273.15)));     % # of molecules / m^3
+
+% convert units to inverse cubic cm
+vocalsRex.Nc_vapor_pp = vocalsRex.Nc_vapor_pp ./ 1e6;                                       % # of molecules/cm^3
 
 
 
