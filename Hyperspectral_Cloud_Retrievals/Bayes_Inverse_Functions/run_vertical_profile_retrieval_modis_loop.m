@@ -168,7 +168,7 @@ Nc_threshold = 1;               % # droplets/cm^3
 % Time is measured in seconds since the startTime
 
 % ---- DO YOU WANT TO USE ADVECTION? -----
-modisInputs.flags.useAdvection = false;
+modisInputs.flags.useAdvection = true;
 
 tic
 vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
@@ -344,10 +344,12 @@ for rt = 1:length(r_top_apriori_percentage_vector)
 
 
 
-
-            % Compute the retrieval variables
+            % --------------------------------------------------------------
+            % ---------------- Retrieve Vertical Profile! ------------------
+            % --------------------------------------------------------------
             [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
-
+            % --------------------------------------------------------------
+            % --------------------------------------------------------------
 
             
             

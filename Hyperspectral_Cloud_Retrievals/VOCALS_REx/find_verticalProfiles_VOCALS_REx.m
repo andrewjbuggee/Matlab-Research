@@ -366,6 +366,7 @@ for ii = 1:length(vert_profs.lwc)
 
             if mean(dz_dt)>0
                 % if true then the plane is ascending
+                vert_profs.ascending{ii} = true;
                 if mean(dLWC_dz)>0
                     % and the lwc is increasing, make the last index the
                     % max LWC value
@@ -382,6 +383,7 @@ for ii = 1:length(vert_profs.lwc)
 
             elseif mean(dz_dt)<0
                 % then the plane is descending
+                vert_profs.ascending{ii} = false;
                 if mean(dLWC_dz)>0
                     % then the lwc increases with decreasing height, which
                     % means the lwc decreases with increasing height, and
@@ -827,7 +829,7 @@ for nn = 1:length(vert_profs.Nc)
     % the cloud, use pythareous's theorem to estimate the slant path
     % travelled within the cloud
     vert_profs.cloud_depth{nn} = max(vert_profs.altitude{nn}) - min(vert_profs.altitude{nn});
-    vert_profs.slath_path{nn} = sqrt(vert_profs.horz_dist{nn}(end)^2 + vert_profs.cloud_depth{nn}^2);
+    vert_profs.slant_path{nn} = sqrt(vert_profs.horz_dist{nn}(end)^2 + vert_profs.cloud_depth{nn}^2);
 
     % Compute the zenith angle of the slant path with respect to the cloud
     % base, assuming a plane-parallel cloud and a straight line for the

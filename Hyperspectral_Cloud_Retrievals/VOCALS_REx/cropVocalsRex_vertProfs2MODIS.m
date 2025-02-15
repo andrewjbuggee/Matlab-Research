@@ -7,61 +7,100 @@ function vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, sto
 vert_prof = find_verticalProfiles_VOCALS_REx(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold);
 
 
-min_per_hour = 60;                                                                      % min
-
-modis_timeUTC = modis.time(1) + modis.time(2)/min_per_hour;
+%% Let's step through each vertical profile and find the MODIS pixel that overlaps
 
 
+% --------------------------------------------------------------------
+% ------ Find the MODIS pixels to use for the vertical retrieval -----
+% --------------------------------------------------------------------
 
-% Now combine all time vectors together so we can find which profile is
-% closest in time to the MODIS data
-% A single MODIS granule takes 5 minutes to be collected. First, lets
-% determine if any profiles were recorded within the the 5 minute window
-% when MODIS collected data.
+% store the MODIS latitude and longitude
+modis_lat = modis.geo.lat;
+modis_long = modis.geo.long;
+
+% store modis pixel time
+modis_pixel_time = modis.EV1km.pixel_time_decimal;
+
+
+% we will be computing the arclength between points on an ellipsoid
+% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
+wgs84 = wgs84Ellipsoid("m");
+
+% Set up an empty array for each vocals-rex data point
+modis_minDist = zeros(1, length(vert_prof.latitude));
+time_diff_MODIS_VR = zeros(1, length(vert_prof.latitude));
 within_5min_window = zeros(1, length(vert_prof.time_utc));
-time_to_halfwayPoint = zeros(1, length(vert_prof.time_utc));
 
-for nn = 1:length(vert_prof.time_utc)
-    
-    within_5min_window(nn) = any(vert_prof.time_utc{nn} >= modis.EV1km.pixel_time_decimal(1,1) & ...
-                                vert_prof.time_utc{nn} <= modis.EV1km.pixel_time_decimal(end,end));
-    
-    % use the time half way through the scan
-    time_to_halfwayPoint(nn) = min(abs(vert_prof.time_utc{nn} - ...
-                            modis.EV1km.pixel_time_decimal(round(end/2),round(end/2))));    % times are in hours
-end
+% Step through each vertical profile and find the MODIS pixel that overlaps
+% with the mid point of the in-situ sample
+parfor nn = 1:length(vert_prof.latitude)
 
-% If yes, keep all profiles recorded within the MODIS granule time window
-if any(within_5min_window)==true
-    
-    index_vertProfs_2keep = find(within_5min_window);
 
-    
-else
-    % if there aren't any profiles recorded within the MODIS granule time
-    % window, find the profile closest to this time window
-    % Determine which profile is closest to the time MODIS data was recorded
-    
-    % First, check to see if this is the MODIS file from 11 Nov. 2008 recorded at 1850 UTC.
-    % This file is tricky because two vertical profiles recorded right
-    % before and right after the MODIS granule are very different. The
-    % first has an adiabatic droplet profile, the second is nearly
-    % homogeneous.
-    if strcmp(modisInputs.L1B_filename, 'MYD021KM.A2008316.1850.061.2018039033053.hdf')==true
-        % pick the second closest profile
-        [~, idx_min] = min(time_to_halfwayPoint);
-        % get rid of this value
-        time_to_halfwayPoint(idx_min) = inf;
-        % grab the next vertical profile closest in time
-        [~, index_vertProfs_2keep] = min(time_to_halfwayPoint);
-    else
+    dist_btwn_MODIS_and_VR = distance(modis_lat, modis_long, vert_prof.latitude{nn}(round(end/2)),...
+        vert_prof.longitude{nn}(round(end/2)), wgs84);
 
-        [~, index_vertProfs_2keep] = min(time_to_halfwayPoint);
+    [modis_minDist(nn), index_minDist] = min(dist_btwn_MODIS_and_VR, [], 'all');            % m - minimum distance
 
-    end
+
+    % compute the time between the modis pixel closest to the VR sampled
+    % path and the time VOCALS was recorded
+    time_diff_MODIS_VR(nn) = abs(modis_pixel_time(index_minDist) - ...
+        vert_prof.time_utc{nn}(round(end/2))) * 60;                         % minutes
+
+    % A single MODIS granule takes 5 minutes to be collected. First, lets
+    % determine if any profiles were recorded within the the 5 minute window
+    % when MODIS collected data.
+
+    within_5min_window(nn) = any(vert_prof.time_utc{nn} >= modis_pixel_time(1,1) & ...
+        vert_prof.time_utc{nn} <= modis_pixel_time(end,end));
 
 end
 
+%% Check the time difference and the distance between the closest pixel and VR
+
+
+% First, keep all profiles recorded within the MODIS granule time window
+% and have a minimum distance with the closest MODIS pixel of less than 1km
+if any(within_5min_window==true & modis_minDist<=1000)
+    
+    index_vertProfs_2keep = find(within_5min_window==true & modis_minDist<=1000);
+
+% Next, keep profiles with the smallest time difference as long as the
+% distance between the closest MODIS pixel and the VR profile is less than
+% 1km
+elseif any(time_diff_MODIS_VR<5 & modis_minDist<1000)
+    
+%     % First, check to see if this is the MODIS file from 11 Nov. 2008 recorded at 1850 UTC.
+%     % This file is tricky because two vertical profiles recorded right
+%     % before and right after the MODIS granule are very different. The
+%     % first has an adiabatic droplet profile, the second is nearly
+%     % homogeneous.
+%     if strcmp(modisInputs.L1B_filename, 'MYD021KM.A2008316.1850.061.2018039033053.hdf')==true
+%         % pick the second closest profile
+%         [~, idx_min] = min(time_to_halfwayPoint);
+%         % get rid of this value
+%         time_to_halfwayPoint(idx_min) = inf;
+%         % grab the next vertical profile closest in time
+%         [~, index_vertProfs_2keep] = min(time_to_halfwayPoint);
+%     else
+% 
+%         [~, index_vertProfs_2keep] = min(time_to_halfwayPoint);
+% 
+%     end
+
+
+    % save vertical profiles that were recorded within 5 minutes of the
+    % MODIS recording and the distance between VR and the closest pixel is
+    % less than 1km
+    index_vertProfs_2keep = find(time_diff_MODIS_VR<5 & modis_minDist<1000);
+
+end
+
+% I dont' know what to do if there is more than 1 profile that satisfies
+% the above criteria
+if length(index_vertProfs_2keep)>1
+    error([newline, "Code isn't set up for more than 1 profile.", newline])
+end
 
 % Let's keep the vertical profile that is closest to MODIS
 clear vocalsRex;
@@ -97,14 +136,6 @@ vocalsRex = cell2struct(data2keep, fields, 2);
 % ------ Find the MODIS pixels to use for the vertical retrieval -----
 % --------------------------------------------------------------------
 
-% store the MODIS latitude and longitude
-modis_lat = modis.geo.lat;
-modis_long = modis.geo.long;
-
-
-% we will be computing the arclength between points on an ellipsoid
-% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
-wgs84 = wgs84Ellipsoid("m");
 
 % Set up an empty array for each vocals-rex data point
 modisIndex_minDist = zeros(1, length(vocalsRex.latitude));
@@ -118,23 +149,21 @@ vr_long = vocalsRex.longitude;
 n_data_VR = length(vr_lat);
 
 
-% First, let's find the MODIS pixel closest to each VOCALS-REx location for
-% the sampled vertical profile
+% First, let's find the MODIS pixel closest to ALL VOCALS-REx locations
+% throughout the sampled vertical profile
 parfor nn = 1:n_data_VR
 
 
     dist_btwn_MODIS_and_VR = distance(modis_lat, modis_long, vr_lat(nn), vr_long(nn), wgs84);
 
-    [min_dist, index_minDist] = min(dist_btwn_MODIS_and_VR, [], 'all');
-    % save this index so we know what MODIs pixel to use in comparison
-    modisIndex_minDist(nn) = index_minDist;
-    modis_minDist(nn) = min_dist;            % meters
+    [modis_minDist(nn), modisIndex_minDist(nn)] = min(dist_btwn_MODIS_and_VR, [], 'all');       % m - minimum distance between VR and closest MODIS pixel
+
 
 end
 
 % Did the VOCALS-REx measurement take place before or after the MODIS
 % sample? Use the pixel closest to VOCALS-REx
-[min_dist, min_idx] = min(modis_minDist);
+[global_min_dist, min_idx] = min(modis_minDist);
 VR_sampled_before_MODIS = vocalsRex.time_utc(min_idx) < modis.EV1km.pixel_time_decimal(modisIndex_minDist(min_idx));
 
 

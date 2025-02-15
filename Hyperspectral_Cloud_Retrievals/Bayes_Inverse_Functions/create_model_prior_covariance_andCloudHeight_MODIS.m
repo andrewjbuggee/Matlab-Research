@@ -203,13 +203,24 @@ else
         elseif GN_inputs.RT.use_VOCALS_cloudTopHeight==true
 
             % Define cloud top height using Vocals Rex
-            GN_inputs.RT.cloudTop_height(nn) = vocalsRex.altitude(end)/1e3;        % km
+            % first determine if the plane is ascending or descending
+            if mean(diff(vocalsRex.altitude)./diff(vocalsRex.time))<0
+                % the the plane is descending. Take the first altitude for
+                % cloud top
+                GN_inputs.RT.cloudTop_height(nn) = vocalsRex.altitude(1)/1e3;        % km
+
+            elseif mean(diff(vocalsRex.altitude)./diff(vocalsRex.time))>0
+                % the the plane is ascending. Take the last altitude for
+                % cloud top
+                GN_inputs.RT.cloudTop_height(nn) = vocalsRex.altitude(end)/1e3;        % km
+
+            end
 
         else
 
             % Define a fixed cloud top height
             GN_inputs.RT.cloudTop_height(nn) = 6;           % km
-            
+
         end
 
 
@@ -237,7 +248,9 @@ else
     if GN_inputs.RT.use_VOCALS_cloudDepth==true
 
         % Define cloud depth using Vocals Rex
-        GN_inputs.RT.cloudDepth = (vocalsRex.altitude(end) - vocalsRex.altitude(1))/1e3;      % km
+        % using absolute value makes the ascending or descending question
+        % irrelevant
+        GN_inputs.RT.cloudDepth = abs((vocalsRex.altitude(end) - vocalsRex.altitude(1)))/1e3;      % km
 
     else
 
