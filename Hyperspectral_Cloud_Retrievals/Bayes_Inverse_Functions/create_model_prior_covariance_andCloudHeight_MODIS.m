@@ -8,7 +8,8 @@ function [GN_inputs] = create_model_prior_covariance_andCloudHeight_MODIS(GN_inp
 
 
 % define the model variance and mean using the Truth Table found by my
-% TBLUT algorithm
+% TBLUT algorithm. Either use my own retireval estiamtes or the values
+% derived by the MODIS Level 6 cloud products
 
 
 % grab the pixel indices that will be used in the following analysis
@@ -145,13 +146,12 @@ else
         GN_inputs.model.apriori(nn,:) = [modis.cloud.effRadius17(indexes2run(nn)), 0.7058*modis.cloud.effRadius17(indexes2run(nn)), modis.cloud.optThickness17(indexes2run(nn))];
 
 
-        % lets create the variance and mean for each model parameter
-        % Using the same values defined by King and Vaughn (2012)
-        % King and Vaughn define the standard deviation of each variable...
+
         % The first two values are the standard deviation of the effective
         % radius at the top of the cloud and the bottom of the cloud, measured
         % in microns. The third value is the percentage of the optical depth
         % that defines the standard deviation.
+        %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
 
         % Using the ensemble results from in-situ measurements of
         % non-precipitating cloud from the VOCALS-REx campaign,
@@ -162,10 +162,15 @@ else
         % Set the uncertainty of the radius at cloud top to be the
         % retireval uncertainty
 
-        %stdev_variables = [sqrt(3), sqrt(10), sqrt(0.1 *truthTable.modisT17(1:n))];
-        %stdev_variables = [1.5, 7, (0.2 * modis.cloud.optThickness17(indexes2run(nn)))];
+        % For the a priori uncertainty of the radius at cloud bottom,
+        % we scaled the bi-spectral retrieval uncertainty of effective radius
+        % using the weighting function for 2.13 𝜇𝑚. over 50% of the measured 
+        % signal comes from the upper quartile of the cloud. Only 8% of the 
+        % total signal comes from the lowest quartile. Thus, we adopted a cloud bottom
+        % uncertainty of a factor 6 larger than retrieved effective radius uncertainty.
         stdev_variables = [GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(indexes2run(nn))*0.01, ...
-            GN_inputs.model.apriori(nn,2)*0.25, GN_inputs.model.apriori(nn,3) * modis.cloud.optThickness_uncert_17(indexes2run(nn))*0.01];
+            GN_inputs.model.apriori(nn,2) * 6*modis.cloud.effRad_uncert_17(indexes2run(nn))*0.01,...
+            GN_inputs.model.apriori(nn,3) * modis.cloud.optThickness_uncert_17(indexes2run(nn))*0.01];
         
         % variance for the effective radius (microns squared) and optical thickness respectively
         GN_inputs.model.variance(nn, :) = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2];
@@ -255,7 +260,7 @@ else
     else
 
         % Define a custom cloud depth
-        GN_inputs.RT.cloudDepth = 1;            % km
+        GN_inputs.RT.cloudDepth = 0.5;            % km
 
     end
 

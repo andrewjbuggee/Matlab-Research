@@ -233,18 +233,6 @@ for pp = 1:length(pixel_row)
             fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{1}], ' ', '# Location of water cloud file');
             %fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{1}(1)], ' ', '# Location of water cloud file');
 
-            % Define the percentage of horizontal cloud cover
-            % This is a number between 0 and 1
-            % ------------------------------------------------
-            if GN_inputs.RT.linear_cloudFraction==true
-                %percent_cloud_cover(nn) = -0.1082 * modis.EV1km.reflectance(row(nn), col(nn),1) + 0.92164;      % custom linear fit 1 (seventh pass figure)
-                cloud_cover = (0.89 - 0.8459)/(0.2 - 0.7) * modis.EV1km.reflectance(pixel_row(pp), pixel_col(pp),1) +...
-                    (0.8459 - 0.7*(0.89 - 0.8459)/(0.2 - 0.7));      % custom linear fit 2 (Ninth pass figure)
-            else
-                cloud_cover = GN_inputs.RT.cloud_cover;
-            end
-            formatSpec = '%s %f %5s %s \n';
-            fprintf(fileID, formatSpec,'cloudcover wc', cloud_cover, ' ', '# Cloud cover percentage');
 
 
             % Define the technique or parameterization used to convert liquid cloud

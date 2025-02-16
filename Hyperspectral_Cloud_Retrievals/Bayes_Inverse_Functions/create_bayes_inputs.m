@@ -25,19 +25,11 @@ bayes_inputs.model.prior = 'gaussian';
 % define the number of model parameters to solve for
 bayes_inputs.num_model_parameters = 3;
 
+
 % Define the spectral channels to use in the gauss-newton solver
-% The data from 11-11-2008 at 18:50 measured erroneous values in the 1.6
-% micron channel. If using this data, lets ignore this measurement
 
-if strcmp(modisInputs.modisDataFolder(96:end), '/2008_11_11_1850/')==true
-    
-    bayes_inputs.bands2use = [1:5,7];
-    
-else 
+bayes_inputs.bands2use = 1:7;  % number of spectral bands to use
 
-    bayes_inputs.bands2use = 1:7;  % number of spectral bands to use
-
-end
 
 
 
@@ -180,10 +172,6 @@ bayes_inputs.RT.day_of_year = str2double(modisInputs.L1B_filename(15:17));
 % -------------- Do you want a cloud in your model? ----------------------
 bayes_inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-bayes_inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-bayes_inputs.RT.cloud_cover = 1;
 % ------------------------------------------------------------------------
 
 
@@ -219,7 +207,7 @@ bayes_inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and
 bayes_inputs.RT.drop_distribution_str = 'gamma';
 % define the distribution varaince
 % 7 is the value libRadTran uses for liquid water clouds
-bayes_inputs.RT.drop_distribution_var = 7;
+bayes_inputs.RT.drop_distribution_var = 10;
 % define whether this is a vertically homogenous cloud or not
 bayes_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 % define how liquid water content will be computed
