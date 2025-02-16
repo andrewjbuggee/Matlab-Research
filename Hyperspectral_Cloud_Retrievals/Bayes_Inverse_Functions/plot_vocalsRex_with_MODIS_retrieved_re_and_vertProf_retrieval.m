@@ -17,7 +17,7 @@ function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex
 % ---------------- Compute Liquid Water Path -----------------------
 % ------------------------------------------------------------------
 
-LWP_vocals = trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
+LWP_vocals = vocalsRex.lwp;                 % grams of water/m^2
 
 % ----- Compute the CDP uncertainty -----
 re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
@@ -107,7 +107,7 @@ end
 
 % Plot the z-space in meters on the right axis
 yyaxis right
-ylim([0, vocalsRex.altitude(end) - vocalsRex.altitude(1)])
+ylim([0, abs(vocalsRex.altitude(end) - vocalsRex.altitude(1))])
 set(gca,'YColor','black')
 ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',35);
 yyaxis left

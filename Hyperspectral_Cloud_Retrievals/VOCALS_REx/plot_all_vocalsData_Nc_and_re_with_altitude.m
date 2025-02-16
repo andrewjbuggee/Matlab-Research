@@ -6,32 +6,34 @@ function [] = plot_all_vocalsData_Nc_and_re_with_altitude(vocalsRex)
 
 
 figure; subplot(2,1,1)
-semilogy(double(vocalsRex.time)./3600, vocalsRex.total_Nc, 'Color','k'); 
+semilogy(double(vocalsRex.time), vocalsRex.total_Nc, 'Color','k'); 
 grid on; grid minor; 
 ylabel('Total $N_c$  $(cm^{3})$','Interpreter','latex', 'Color','k')
 title('VOCALS-REx flight Data', 'Interpreter','latex')
 
 hold on;
 yyaxis right; 
-plot(double(vocalsRex.time)./3600, vocalsRex.altitude)
+plot(double(vocalsRex.time), vocalsRex.altitude)
 ylabel('Altitude ($m$)','Interpreter','latex')
 
 % grab current axes
 ax1 = gca;
 
-subplot(2,1,2)
-plot(double(vocalsRex.time)./3600, vocalsRex.re, 'Color','blue'); 
+s2 = subplot(2,1,2);
+plot(double(vocalsRex.time), vocalsRex.re, 'Color', mySavedColors(18, 'fixed')); 
+set(s2,'YColor', mySavedColors(4, 'fixed'));
 grid on; grid minor; 
-xlabel('Time (hours)','Interpreter','latex')
+xlabel('Time (Seconds since Takeoff)','Interpreter','latex')
+ylim([0, 50])           % no need to look at effective radii larger than 50 microns
 
 hold on;
 yyaxis right; 
-plot(double(vocalsRex.time)./3600, vocalsRex.altitude)
+plot(double(vocalsRex.time), vocalsRex.altitude)
 ylabel('Altitude ($m$)','Interpreter','latex')
 
 % change color of left y axis
 yyaxis left
-ylabel('$r_e$ $(\mu m)$','Interpreter','latex', 'Color','blue')
+ylabel('$r_e$ $(\mu m)$','Interpreter','latex', 'Color',mySavedColors(18, 'fixed'))
 
 
 % grab current axes

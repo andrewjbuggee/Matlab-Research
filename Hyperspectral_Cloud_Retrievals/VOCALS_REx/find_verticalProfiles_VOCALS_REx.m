@@ -277,8 +277,8 @@ for ii = 1:length(vert_profs.lwc)
 
     % We also need to check every profile to ensure the liquid water
     % content stays above our threshold for the entire profile. It should
-    % only drop below our threshold at before and after the profile found
-    % the below while loop searches for the index to end on. Everything
+    % only drop below our threshold before and after the profile found.
+    % The below while loop searches for the index to end on. Everything
     % inbetween the first and last index should be greater than or equal to
     % the LWC threshold
     consecutive_length = zeros(length(indexes2keep), length(indexes2keep));

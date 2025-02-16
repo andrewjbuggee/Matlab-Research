@@ -196,7 +196,7 @@ bufferTime = 0;
 
 % Find the MODIS pixels that overlap with VOCALS-REx
 
-pixels2use = find_MODIS_VOCALS_overlapping_pixels(modis, modisInputs, vocalsRex);
+[pixels2use, vocalsRex] = find_MODIS_VOCALS_overlapping_pixels(modis, modisInputs, vocalsRex);
 
 
 % Tell MODIS_INPUTS to use only these pixels found

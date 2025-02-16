@@ -131,7 +131,7 @@ vocalsRex = cell2struct(data2keep, fields, 2);
 
 
 
-
+%%
 % --------------------------------------------------------------------
 % ------ Find the MODIS pixels to use for the vertical retrieval -----
 % --------------------------------------------------------------------

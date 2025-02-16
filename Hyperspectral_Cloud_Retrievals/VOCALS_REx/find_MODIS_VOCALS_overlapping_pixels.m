@@ -1,4 +1,4 @@
-function pixels2use = find_MODIS_VOCALS_overlapping_pixels(modis, inputs, vocalsRex)
+function [pixels2use, vocalsRex] = find_MODIS_VOCALS_overlapping_pixels(modis, inputs, vocalsRex)
 
 % Define folder to save calculations
 folderName2Save = inputs.savedCalculations_folderName; % where to save the indices
@@ -40,8 +40,14 @@ for nn = 1:numel(indexes2check)
 
 end
 
+
+% delete these indices from the vocalsRex structure
+vocalsRex.modisIndex_minDist(isnan(indexes2check)) = [];
+
 % delete indices marked with nan
 indexes2check(isnan(indexes2check)) = [];
+
+
 
 
 % ------------------------------------------------------------------------
