@@ -694,21 +694,24 @@ for nn = 1:N_photons
     number_of_scattering_events(nn) = size(photon_tau_position{nn},1)-2;
 
 
-    % Make live plot!
-    % Create plot object 
+
+    % ---------------------------
+    % ***** Make live plot! *****
+    % ---------------------------
+    % Create plot object
     p = zeros(1, size(photon_tau_position{nn},1));
 
     for ff = 1:size(photon_tau_position{nn},1)-1
 
-    % Plot photon path
-    p(ff) = plot([photon_tau_position{nn}(ff,1), photon_tau_position{nn}(ff+1,1)],...
-              [photon_tau_position{nn}(ff,2), photon_tau_position{nn}(ff+1,2)], ...
-              'LineWidth',6);
-    hold on
+        % Plot photon path
+        p(ff) = plot([photon_tau_position{nn}(ff,1), photon_tau_position{nn}(ff+1,1)],...
+            [photon_tau_position{nn}(ff,2), photon_tau_position{nn}(ff+1,2)], ...
+            'LineWidth',6);
+        hold on
 
 
-    drawnow
-    pause(0.2)
+        drawnow
+        pause(0.2)
 
 
 

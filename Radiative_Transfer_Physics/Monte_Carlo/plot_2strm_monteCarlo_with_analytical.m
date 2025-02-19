@@ -80,10 +80,10 @@ if inputs.N_layers==1
             texBox_str = ['$R_{\infty} = \frac{\sqrt{1 - g \tilde{\omega}}\, - \,\sqrt{1 - \tilde{\omega}}}',...
                 '{\sqrt{1 - g \tilde{\omega}}\, + \,\sqrt{1 - \tilde{\omega}}}$'];
             t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
-            t.Color = 'white';
+            t.Color = 'black';
             t.FontSize = 25;
             t.FontWeight = 'bold';
-            t.EdgeColor = 'white';
+            t.EdgeColor = 'black';
             t.FitBoxToText = 'on';
 
 
@@ -147,10 +147,10 @@ if inputs.N_layers==1
                 ['$\tau_0$ = ', num2str(inputs.tau_upper_limit)],...
                 ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
             t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
-            t.Color = 'white';
+            t.Color = 'black';
             t.FontSize = 25;
             t.FontWeight = 'bold';
-            t.EdgeColor = 'white';
+            t.EdgeColor = 'black';
             t.FitBoxToText = 'on';
 
             legend('$F_{\uparrow}/F_0$ analytical','$F_{\downarrow}/F_0$ analytical',...
@@ -206,10 +206,10 @@ if inputs.N_layers==1
             texBox_str = {'$R(\tau = 0) = \frac{\bar{\tau}(1 - g)/2}{1 + \bar{\tau}(1 - g)/2}$',...
                 '$T(\tau = \bar{\tau}) = \frac{1}{1 + \bar{\tau}(1 - g)/2}$'};
             t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
-            t.Color = 'white';
+            t.Color = 'black';
             t.FontSize = 25;
             t.FontWeight = 'bold';
-            t.EdgeColor = 'white';
+            t.EdgeColor = 'black';
             t.FitBoxToText = 'on';
 
             legend('$R_{\infty}$ analytical','$T(\bar{\tau})$ analytical',...
@@ -259,10 +259,10 @@ else
         ['$\tau_0$ = ', num2str(inputs.tau_upper_limit)],...
         ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
     t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
-    t.Color = 'white';
+    t.Color = 'black';
     t.FontSize = 25;
     t.FontWeight = 'bold';
-    t.EdgeColor = 'white';
+    t.EdgeColor = 'black';
     t.FitBoxToText = 'on';
 
 

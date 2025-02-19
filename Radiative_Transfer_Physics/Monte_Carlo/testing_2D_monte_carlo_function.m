@@ -9,7 +9,7 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 2;
+inputs.tau_y_upper_limit = 10;
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
@@ -21,7 +21,7 @@ inputs.albedo_maxTau = 0;
 
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e7;
+inputs.N_photons = 1e4;
 
 
 % ----------------------------------------------------------------------
@@ -335,10 +335,10 @@ end
 tic
 
 % ------- Without Live Plotting ---------
-[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs);
+% [F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs);
 
 % ---------- With Live Plotting ---------
-%[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
+[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
 
 toc
 

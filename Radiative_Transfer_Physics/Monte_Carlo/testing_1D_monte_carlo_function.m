@@ -9,7 +9,7 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_lower_limit = 0;
-inputs.tau_upper_limit = 10;
+inputs.tau_upper_limit = 5;
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -21,7 +21,7 @@ inputs.albedo_maxTau = 0;
 % from top to bottom. If both are true, create a cell array for both the
 % changing radii and the changing index of refraction
 
-inputs.layerRadii = linspace(10,5,100);      % radius of spheres in each layer
+inputs.layerRadii = 10;      % microns - radius of the spheres in each layer
 
 % Define the number of layers within the medium that differ
 inputs.N_layers = length(inputs.layerRadii);
@@ -31,7 +31,7 @@ inputs.N_layers = length(inputs.layerRadii);
 inputs.layerBoundaries = linspace(inputs.tau_lower_limit, inputs.tau_upper_limit, inputs.N_layers +1);
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e4;
+inputs.N_photons = 1e6;
 
 
 %%  MIE CALCULATIONS
@@ -44,7 +44,7 @@ inputs.N_photons = 1e4;
 % define the wavelength
 % The wavelength input is defined as follows:
 % [wavelength_start, wavelength_end, wavelength_step].
-inputs.mie.wavelength = [2200, 2200, 0];          % nanometers
+inputs.mie.wavelength = [550, 550, 0];          % nanometers
 
 % The first entry belows describes the type of droplet distribution
 % that should be used. The second describes the distribution width. If
@@ -108,12 +108,26 @@ inputs.ssa = ds.ssa;
 % Define the asymmetry parameter
 inputs.g = ds.asymParam;
 
+% --------------------------------------
+% ----- Override ssa and g values ------
+% --------------------------------------
+inputs.ssa = 1;
+inputs.g = 0;
+% --------------------------------------
+
+
 
 %% Run 2 stream 1D monte carlo code
 
-
+% ------- Without Live Plotting ---------
 [F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo(inputs);
 
+
+% ------- With Live Plotting ---------
+
+% do you want to save the live figure for as a video file?
+% inputs.saveLivePlot_asVideo = false;
+% [F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo_with_livePlot(inputs);
 
 %% Compare the monte carlo solution with the analytical solution
 

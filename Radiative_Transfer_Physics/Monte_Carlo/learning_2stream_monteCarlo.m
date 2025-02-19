@@ -5,7 +5,7 @@
 
 % By Andrew John Buggee
 
-%% For an Infintely Thick Medium...
+%% For a Medium with finite thickness...
 % We start by injecting a single photon into our medium.
 clear variables
 % Let's define T as the random variable that describes the probability
@@ -43,8 +43,8 @@ ssa = mie_properties_water(6);
 g = mie_properties_water(7);
 
 % ***** Custom ssa and g *****
-ssa = 0.9;                % between 0 and 1
-g = 0.85;               % between -1 and 1
+% ssa = 0.9;                % between 0 and 1
+% g = 0.85;               % between -1 and 1
 % ----------------------------
 
 % reset the random number generator
