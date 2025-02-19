@@ -55,7 +55,7 @@ if length(vocalsRex.re_CDP)>length(vocalsRex.time)
     time_sps10 = linspace(vocalsRex.time(1), vocalsRex.time(end), length(vocalsRex.re_CDP));
 end
 
-
+% ----------------------------------------
 % ---- Vertical Profile Requirements ----
 % dz/dt must be non-zero.
 % Total Nc has to start at a value below 1
@@ -77,17 +77,21 @@ n_window = 20;
 dz_dt_mean = movmean(dz_dt,n_window);
 
 
-% The plane's vertical velocity exceeds 2 m/s on average when it ascends or
-% descends. Use this the window the data. Find
+% Looking at a plot of time versus dz/dt as well as the plane's altitude,
+% it's clear the plane's vertical velocity exceeds +/- 2 m/s on average when
+% it ascends or descends, respectively. Use this to seperate the data
+% between profiles measured via ascending or descending.
 
-index_ascend_or_descend = find(abs(dz_dt_mean)>2);
+index_ascend_or_descend = find(abs(dz_dt_mean)>2);      % indexes where the plane was either ascending or descending
 
 
 % Find consecutive logical true values, which represent stand alone
-% profiles where the plane is climbing or descending.
+% profiles where the plane is climbing or descending. Do this by taking the
+% difference between adjacent indices of index_ascend_or_descend. Values
+% that are not 1 represent non neighboring indices
 index_consec = find(diff(index_ascend_or_descend)~=1);
 
-% include a 1 to start
+% include a 0 as the starting value
 index_consec = [0, index_consec];
 
 
@@ -172,7 +176,9 @@ vert_profs.startTime = vocalsRex.startTime;                                     
 
 
 % -----------------------------------------------------------------------
-% Now find which of these profiles start and end with Nc<1 AND have some values above 1
+% Now step through each profile found above and determine if the start and
+% end and end with the total Nc<1 AND have all intermediate values are
+% greater than 1: Nc>1
 
 index2delete = [];
 
@@ -181,7 +187,10 @@ for ii = 1:length(vert_profs.Nc)
     %[vert_profs.Nc{ii}(1), vert_profs.Nc{ii}(end), any(vert_profs.Nc{ii}>10^7), all(vert_profs.Nc{ii}<1)]
 
     % Check to see if any of these statements are met. If so, delete the
-    % profile
+    % profile.
+    % Sometimes we find anamolously high values of number concentration
+    % Also check to see if all values are below the threshold of total Nc =
+    % 1
     if any(vert_profs.Nc{ii}>10^7) || all(vert_profs.Nc{ii}<Nc_threshold)
 
         % if this is true, mark the index for deletion
@@ -245,8 +254,8 @@ vert_profs.temp(index2delete) = [];
 
 
 % -----------------------------------------------------------------------
-% Now sort through the vertical profiles and get rid of data points where
-% the LWC and the total Nc is below some threshold
+% Now sort through the vertical profiles that remain and get rid of data 
+% points where the LWC and the total Nc is below some threshold
 % -----------------------------------------------------------------------
 
 
@@ -262,25 +271,29 @@ max_lwc = zeros(1, length(vert_profs.lwc));
 for ii = 1:length(vert_profs.lwc)
 
     % Find the first data point and the last data point where the LWC
-    % threshold is exceeded. That is, before the first index, several
-    % values should be below the threshold. And several data points
-    % after the last index should also be below the threshold
+    % and total number concentration thresholds are exceeded. This 
+    % represents the start and end of the vertical profiles, the 
+    % boundaries of the cloud. 
 
     indexes_above_LWC_Nc_threshold = vert_profs.lwc{ii}>=LWC_threshold & vert_profs.Nc{ii}>=Nc_threshold;
 
 
-    % find the first 1, the first data point that exceeds the LWC
-    % threshold. The first value in the index below is where the
+    % find the indices where both thresholds are true
+    % The first value in the index below is where the
     % profile will start. The last index below will be the end of the
     % profile
     indexes2keep = find(indexes_above_LWC_Nc_threshold);
 
     % We also need to check every profile to ensure the liquid water
     % content stays above our threshold for the entire profile. It should
-    % only drop below our threshold before and after the profile found.
+    % only drop below our threshold before and after the profile found. The
+    % code above will only check if each index is above both thresholds.
+    % Imagine a scenario where there are two cloud layers separated by a
+    % small gap, but the plane is still ascending. The code belows finds
+    % any departures, i.e. breaks in our profiles.
     % The below while loop searches for the index to end on. Everything
     % inbetween the first and last index should be greater than or equal to
-    % the LWC threshold
+    % the LWC threshold AND the number concentration threshold
     consecutive_length = zeros(length(indexes2keep), length(indexes2keep));
 
 
@@ -318,10 +331,10 @@ for ii = 1:length(vert_profs.lwc)
 
 
 
-        % find the max LWC and the index between the first and last index.
-        % The max value wil be used to remove profiles that don't have a max
-        % LWC above the minimum threshold. The max_index will be used if the
-        % profile needs to stop at the max LWC value as well
+        % find the max LWC and it's associated index for the profile found.
+        % The max value will be used to remove profiles that don't have a max
+        % LWC above the minimum threshold. The max_index will also be used if the
+        % profile needs to stop at the max LWC value
         [max_lwc(ii), index_max_lwc] = max(vert_profs.lwc{ii}(firstIndex:lastIndex));
 
         [~, index_absolute_max_lwc] = max(vert_profs.lwc{ii});
@@ -462,7 +475,7 @@ for ii = 1:length(vert_profs.lwc)
         % if the longest consecutive vector of measurements above the
         % defined liquid water content threshold is less than the
         % consecutive length threshold, we won't keep this vertical
-        % profile.
+        % profile. Let's set this threshold as 5 consecutive data points
 
     elseif length(firstIndex:lastIndex)<consecutive_length_threshold
 
