@@ -11,23 +11,9 @@ function plot_vocalsRex_with_MODIS_retrieved_re(vocalsRex, modis, pixel_2Plot)
 % ------------------------------------------------------------------
 % ---------------- Compute Liquid Water Path -----------------------
 % ------------------------------------------------------------------
+LWP_vocals = vocalsRex.lwp;                 % grams of water/m^2
 
-% if measured profile occured while the plane is decreasing, multiply the
-% integral with a minus sign
-if mean(diff(vocalsRex.altitude))<0 && median(diff(vocalsRex.re))<0
 
-    LWP_vocals = -trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
-
-elseif mean(diff(vocalsRex.altitude))>0 && median(diff(vocalsRex.re))>0
-
-    LWP_vocals = trapz(vocalsRex.altitude, vocalsRex.lwc);                 % grams of water/m^2
-
-else
-
-    error([newline, 'The in-situ measurement is confusing me. Check the altitude and effective radius',...
-        newline])
-
-end
 
 % ----- Compute the CDP uncertainty -----
 re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);

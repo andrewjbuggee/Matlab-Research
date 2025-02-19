@@ -52,7 +52,7 @@ end
 legend_str = cell(1, 3*size(GN_outputs.re_profile, 2));
 idx_step = 0;
 
-rms_values  = zeros(1, size(GN_outputs.re_profile,2));
+rss_values  = zeros(1, size(GN_outputs.re_profile,2));
 
 % Plot the Gauss-Newton Retrieval
 for pp = 1:size(GN_outputs.re_profile,2)
@@ -73,13 +73,13 @@ for pp = 1:size(GN_outputs.re_profile,2)
         'vertical', 'Color',mySavedColors(pp,'fixed'), 'markersize', 20, 'Linewidth', 2)
 
     % Store the rms residual
-    rms_values(pp) = GN_outputs.rms_residual{pp}(end);
+    rss_values(pp) = GN_outputs.rss_residual{pp}(end);
 
     % create legend string for each index
 %     legend_str{3*pp - 2} = ['Retrieved Profile - idx = ', num2str(pp), ' - rms residual = ', ...
 %         num2str(rms_values(pp))];
     legend_str{4*pp - 3} = ['idx = ', num2str(pp), ' - rms residual = ', ...
-            num2str(round(rms_values(pp),5))];
+            num2str(round(rss_values(pp),5))];
 
     % create empty legends for the error bar entries
     idx_step = idx_step+1;

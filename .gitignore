@@ -8,6 +8,7 @@ Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/README-info-89_001.txt
 Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_25/README-info-89_002.txt
 Radiative_Transfer_Physics/bhmie-matlab/*
 Radiative_Transfer_Physics/HiTran_data/hitran_water_vapor_absorption_350_to_2600nm.par
+Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_videos/*
 
 *.html
 *.hdf
@@ -20,6 +21,8 @@ Radiative_Transfer_Physics/HiTran_data/hitran_water_vapor_absorption_350_to_2600
 *.jpeg
 *.xlsx
 *.par
+*.mov
+*.avi
 
 # Windows default autosave extension
 *.asv
