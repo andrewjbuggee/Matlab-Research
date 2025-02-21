@@ -15,6 +15,7 @@ clear variables
 addLibRadTran_paths;
 scriptPlotting_wht;
 
+
 %% Define the MODIS and VOCALS-REx data paths for the machine you're using
 
 

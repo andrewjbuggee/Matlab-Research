@@ -4,7 +4,8 @@ function vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, sto
 
 
 % ----- Find all vertical profiles within VOCALS-REx data ------
-vert_prof = find_verticalProfiles_VOCALS_REx(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold);
+%vert_prof = find_verticalProfiles_VOCALS_REx(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold);
+vert_prof = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold);
 
 
 %% Let's step through each vertical profile and find the MODIS pixel that overlaps

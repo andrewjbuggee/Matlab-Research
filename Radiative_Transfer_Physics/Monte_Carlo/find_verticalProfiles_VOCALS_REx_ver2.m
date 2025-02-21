@@ -36,7 +36,7 @@
 
 
 
-function [vert_profs] = find_verticalProfiles_VOCALS_REx(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold)
+function [vert_profs] = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold)
 
 % Define the length of consecutive values found above the liquid water
 % content threshold that is required to deem it a vertical profile.
@@ -55,12 +55,16 @@ if length(vocalsRex.re_CDP)>length(vocalsRex.time)
     time_sps10 = linspace(vocalsRex.time(1), vocalsRex.time(end), length(vocalsRex.re_CDP));
 end
 
-% ----------------------------------------
-% ---- Vertical Profile Requirements ----
+% ------------------------------------------------------------
+% ------------------ Vertical Profile Requirements -----------
+% ------------------------------------------------------------
 % dz/dt must be non-zero.
 % Total Nc has to start at a value below 1
 % Total Nc has to end at a value below 1
-% ----------------------------------------
+% LWC has to start below threshold
+% LWC has to end below threshold
+% All intervening data points must exceed LWC and Nc thresholds
+% -------------------------------------------------------------
 
 % First lets crop the data only to those portions where the plane is
 % ascending or descending
@@ -73,16 +77,46 @@ dz_dt = diff(vocalsRex.altitude)./diff(vocalsRex.time);            % m/s
 % only the vertical profiles
 
 n_window = 20;
-
-dz_dt_mean = movmean(dz_dt,n_window);
+% set the first value as 0, since there can be no change with only 1 data
+% point
+dz_dt_mean = [0, movmean(dz_dt,n_window)];
 
 
 % Looking at a plot of time versus dz/dt as well as the plane's altitude,
 % it's clear the plane's vertical velocity exceeds +/- 2 m/s on average when
 % it ascends or descends, respectively. Use this to seperate the data
 % between profiles measured via ascending or descending.
+vertical_velocity_threshold = 2;    % m/s
 
-index_ascend_or_descend = find(abs(dz_dt_mean)>2);      % indexes where the plane was either ascending or descending
+index_ascend_or_descend = find(abs(dz_dt_mean)>vertical_velocity_threshold);      % indexes where the plane was either ascending or descending
+
+
+% Find regions where total Nc transitions from less than 1 to greater than
+% 1, LWC transitions from below 0.03 to greater than 0.03, and dz/dt~=0
+idx_dz_dt = abs(dz_dt_mean)>vertical_velocity_threshold;
+
+% at what idx's does the total Nc change from below 1 to above 1
+% these indexes bookend vertical profiles. They should happen before and
+% after. 
+idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc>1 & vocalsRex.lwc>0.03)]; 
+
+% profiles with start with a transition idx of 1 and end with a transition
+% idx of -1. Search in between these indexes, where the separation is
+% atleast 3 indexes
+% first find all transition idxs with a value of 1
+idx_1 = find(idx_Nc_lwc_transition==1);
+idx_minus1 = find(idx_Nc_lwc_transition==-1);
+
+
+% step through each idx
+for nn = 1:length(idx_1)
+
+    % find the first -1 after idx1 with a spacing of atleast 3 indexes
+    % is the mean dz/dt greater than the threshold in between and idx of 1
+    % and the following idx of -1 with a minimum seperation of 3 indexes?
+
+
+
 
 
 % Find consecutive logical true values, which represent stand alone
