@@ -162,7 +162,7 @@ end
 % bottom to top. If this is all true, save the vocals rex data
 lwc_threshold = 0.03;           % g/m^3
 stop_at_max_lwc = false;         % truncate profile after the maximum lwc value
-Nc_threshold = 1;               % # droplets/cm^3
+Nc_threshold = 25;               % # droplets/cm^3
 
 
 % Lets only keep the vocalsRex data we need

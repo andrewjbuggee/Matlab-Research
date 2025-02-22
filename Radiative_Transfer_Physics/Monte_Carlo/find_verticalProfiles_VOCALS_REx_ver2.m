@@ -38,22 +38,11 @@
 
 function [vert_profs] = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold)
 
-% Define the length of consecutive values found above the liquid water
-% content threshold that is required to deem it a vertical profile.
-consecutive_length_threshold = 5;
 
-% Store whether or not the 2DC was conforming
-vert_profs.flag_2DC_data_is_conforming = vocalsRex.flag_2DC_data_is_conforming;
+% Create an new structure for the vertical profiles
+% grab fieldnames from VocalsRex
+fields = fieldnames(vocalsRex);
 
-% Let's also store the time vector in UTC format
-
-UTC_starttime = vocalsRex.startTime(1) + vocalsRex.startTime(2)/60;   % hours.decimalhours in UTC format
-
-% IF the CDP data was sampled at 10Hz, make a time vector to use for
-% indexing
-if length(vocalsRex.re_CDP)>length(vocalsRex.time)
-    time_sps10 = linspace(vocalsRex.time(1), vocalsRex.time(end), length(vocalsRex.re_CDP));
-end
 
 % ------------------------------------------------------------
 % ------------------ Vertical Profile Requirements -----------
@@ -77,9 +66,9 @@ dz_dt = diff(vocalsRex.altitude)./diff(vocalsRex.time);            % m/s
 % only the vertical profiles
 
 n_window = 20;
-% set the first value as 0, since there can be no change with only 1 data
-% point
-dz_dt_mean = [0, movmean(dz_dt,n_window)];
+% append a zero to the end so it has the same length as the original time
+% vector
+dz_dt_mean = [movmean(dz_dt,n_window), 0];
 
 
 % Looking at a plot of time versus dz/dt as well as the plane's altitude,
@@ -88,17 +77,23 @@ dz_dt_mean = [0, movmean(dz_dt,n_window)];
 % between profiles measured via ascending or descending.
 vertical_velocity_threshold = 2;    % m/s
 
-index_ascend_or_descend = find(abs(dz_dt_mean)>vertical_velocity_threshold);      % indexes where the plane was either ascending or descending
-
 
 % Find regions where total Nc transitions from less than 1 to greater than
 % 1, LWC transitions from below 0.03 to greater than 0.03, and dz/dt~=0
 idx_dz_dt = abs(dz_dt_mean)>vertical_velocity_threshold;
 
+% Find consecutive indices, which represent stand alone
+% profiles where the plane is climbing or descending. Do this by taking the
+% difference between adjacent indices of idx_dz_dt. Values
+% that are not 1 represent non neighboring indices
+index_consec = find(diff(idx_dz_dt)~=1);
+
+
+
 % at what idx's does the total Nc change from below 1 to above 1
 % these indexes bookend vertical profiles. They should happen before and
-% after. 
-idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc>1 & vocalsRex.lwc>0.03)]; 
+% after.
+idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc > Nc_threshold & vocalsRex.lwc > LWC_threshold)];
 
 % profiles with start with a transition idx of 1 and end with a transition
 % idx of -1. Search in between these indexes, where the separation is
@@ -107,596 +102,129 @@ idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc>1 & vocalsRex.lwc>0.03)];
 idx_1 = find(idx_Nc_lwc_transition==1);
 idx_minus1 = find(idx_Nc_lwc_transition==-1);
 
+% define minimum number of points to keep as a profile
+length_threshold = 5;
+
+% define the number of indexes to check before and after profile's first
+% and last index
+num_ba = 10;
+
+
+% Start with zero profiles and add a 1 for each profile found
+profile_num = 0;
+
+
 
 % step through each idx
 for nn = 1:length(idx_1)
 
-    % find the first -1 after idx1 with a spacing of atleast 3 indexes
-    % is the mean dz/dt greater than the threshold in between and idx of 1
-    % and the following idx of -1 with a minimum seperation of 3 indexes?
-
-
-
-
-
-% Find consecutive logical true values, which represent stand alone
-% profiles where the plane is climbing or descending. Do this by taking the
-% difference between adjacent indices of index_ascend_or_descend. Values
-% that are not 1 represent non neighboring indices
-index_consec = find(diff(index_ascend_or_descend)~=1);
-
-% include a 0 as the starting value
-index_consec = [0, index_consec];
-
-
-% store the total number of droplets in each bin to calculate the LWC for
-% each instrument
-Nc_per_bin = cell(1, length(index_consec)-1);
-
-% -----------------------------------------------------------------------
-% For each break in the data, create a profile
-for ii = 1:length(index_consec)-1
-
-    % read in the total number of droplets per unit volume
-    vert_profs.Nc{ii} = vocalsRex.total_Nc(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.Nc_CDP{ii} = vocalsRex.total_Nc_CDP(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.Nc_2DC{ii} = vocalsRex.total_Nc_2DC(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-    % read in the total number of droplets for each size bin, but there is
-    % no need to store this variable
-    Nc_per_bin{ii} = vocalsRex.Nc(:,index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))));
-
-    % read in the number of droplets for each size bin, and divide by the
-    % width of the size bin to estimate the droplet distribution
-    vert_profs.nr{ii} = vocalsRex.Nc(:,index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))./...
-        repmat(diff(double(vocalsRex.drop_radius_bin_edges))', 1, length(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1)))));
-
-    vert_profs.time{ii} = vocalsRex.time(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.time_utc{ii} = UTC_starttime + double(vert_profs.time{ii})./3600;
-    vert_profs.latitude{ii} = vocalsRex.latitude(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.longitude{ii} = vocalsRex.longitude(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.altitude{ii} = vocalsRex.altitude(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-    if vocalsRex.flag_2DC_data_is_conforming==true
-        vert_profs.re{ii} = vocalsRex.re(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-        vert_profs.re_2DC{ii} = vocalsRex.re_2DC(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    else
-        vert_profs.mean_r_2DC{ii} = vocalsRex.mean_r_2DC(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    end
-
-    % check to see if the CDP data was sampled at 1Hz or 10 Hz
-    if length(vocalsRex.re_CDP)>length(vocalsRex.time)
-        % CDP data sampled at 10Hz
-        indices_sps10 = time_sps10>=vert_profs.time{ii}(1) & time_sps10<=vert_profs.time{ii}(end);
-        vert_profs.re_CDP{ii} = vocalsRex.re_CDP(indices_sps10)';
-        vert_profs.lwc_CDP{ii} = vocalsRex.lwc_CDP(indices_sps10)';
-    else
-        % CDP data sampled at 1Hz
-        vert_profs.re_CDP{ii} = vocalsRex.re_CDP(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-        vert_profs.lwc_CDP{ii} = vocalsRex.lwc_CDP(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    end
-
-    vert_profs.lwc{ii} = vocalsRex.lwc(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.lwc_2DC{ii} = vocalsRex.lwc_2DC(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-    vert_profs.horz_wind_speed{ii} = vocalsRex.horz_wind_speed(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))));
-    vert_profs.horz_wind_direction{ii} = vocalsRex.horz_wind_direction(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))));
-
-    % Read the water vapor variables
-    vert_profs.absolute_humidity{ii} = vocalsRex.absolute_humidity(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.mixing_ratio{ii} = vocalsRex.mixing_ratio(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.vapor_pressure{ii} = vocalsRex.vapor_pressure(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.Nc_vapor{ii} = vocalsRex.Nc_vapor(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    vert_profs.Nc_vapor_pp{ii} = vocalsRex.Nc_vapor_pp(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-    % read the temperature
-    vert_profs.temp{ii} = vocalsRex.temp(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-
-    % ----------- These variables are not being used -----------------
-    %     vert_profs.SWT{ii} = vocalsRex.SWT(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    %     vert_profs.SWB{ii} = vocalsRex.SWB(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    %     vert_profs.LWT{ii} = vocalsRex.LWT(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-    %     vert_profs.LWB{ii} = vocalsRex.LWB(index_ascend_or_descend(index_consec(ii)+1:(index_consec(ii+1))))';
-
-end
-
-% Grab the non-time-stamped data as well
-vert_profs.drop_radius_bin_edges = double(vocalsRex.drop_radius_bin_edges);
-vert_profs.drop_radius_bin_center = double(vocalsRex.drop_radius_bin_center);
-vert_profs.startTime = vocalsRex.startTime;                                                    % We have to assume that this is in UTC time as well
-
-
-
-
-% -----------------------------------------------------------------------
-% Now step through each profile found above and determine if the start and
-% end and end with the total Nc<1 AND have all intermediate values are
-% greater than 1: Nc>1
-
-index2delete = [];
-
-for ii = 1:length(vert_profs.Nc)
-
-    %[vert_profs.Nc{ii}(1), vert_profs.Nc{ii}(end), any(vert_profs.Nc{ii}>10^7), all(vert_profs.Nc{ii}<1)]
-
-    % Check to see if any of these statements are met. If so, delete the
-    % profile.
-    % Sometimes we find anamolously high values of number concentration
-    % Also check to see if all values are below the threshold of total Nc =
-    % 1
-    if any(vert_profs.Nc{ii}>10^7) || all(vert_profs.Nc{ii}<Nc_threshold)
-
-        % if this is true, mark the index for deletion
-        index2delete = [index2delete, ii];
-
-    end
-
-
-
-
-end
-
-
-
-
-% Let's delete all cells that met the above conditions
-vert_profs.Nc(index2delete) = [];
-Nc_per_bin(index2delete) = [];
-vert_profs.nr(index2delete) = [];
-vert_profs.time(index2delete) = [];
-vert_profs.time_utc(index2delete) = [];
-vert_profs.lwc(index2delete) = [];
-vert_profs.latitude(index2delete) = [];
-vert_profs.longitude(index2delete) = [];
-vert_profs.altitude(index2delete) = [];
-
-if vocalsRex.flag_2DC_data_is_conforming==true
-    vert_profs.re(index2delete) = [];
-    vert_profs.re_2DC(index2delete) = [];
-else
-    vert_profs.mean_r_2DC(index2delete) = [];
-end
-
-vert_profs.re_CDP(index2delete) = [];
-vert_profs.lwc_CDP(index2delete) = [];
-vert_profs.lwc_2DC(index2delete) = [];
-vert_profs.Nc_CDP(index2delete) = [];
-vert_profs.Nc_2DC(index2delete) = [];
-vert_profs.horz_wind_speed(index2delete) = [];
-vert_profs.horz_wind_direction(index2delete) = [];
-
-vert_profs.absolute_humidity(index2delete) = [];
-vert_profs.mixing_ratio(index2delete) = [];
-vert_profs.vapor_pressure(index2delete) = [];
-vert_profs.Nc_vapor(index2delete) = [];
-vert_profs.Nc_vapor_pp(index2delete) = [];
-vert_profs.temp(index2delete) = [];
-
-% ----------- These variables are not being used -----------------
-% vert_profs.SWT(index2delete) = [];
-% vert_profs.SWB(index2delete) = [];
-% vert_profs.LWT(index2delete) = [];
-% vert_profs.LWB(index2delete) = [];
-
-
-
-
-
-
-
-
-
-% -----------------------------------------------------------------------
-% Now sort through the vertical profiles that remain and get rid of data 
-% points where the LWC and the total Nc is below some threshold
-% -----------------------------------------------------------------------
-
-
-% zero vector incase it is needed below
-max_lwc = zeros(1, length(vert_profs.lwc));
-
-
-% create a zero vector that defines which profiles don't meet requirements
-% and need to be delted
-%profile_idx_2delete = zeros(1, length(vert_profs.lwc));
-
-
-for ii = 1:length(vert_profs.lwc)
-
-    % Find the first data point and the last data point where the LWC
-    % and total number concentration thresholds are exceeded. This 
-    % represents the start and end of the vertical profiles, the 
-    % boundaries of the cloud. 
-
-    indexes_above_LWC_Nc_threshold = vert_profs.lwc{ii}>=LWC_threshold & vert_profs.Nc{ii}>=Nc_threshold;
-
-
-    % find the indices where both thresholds are true
-    % The first value in the index below is where the
-    % profile will start. The last index below will be the end of the
-    % profile
-    indexes2keep = find(indexes_above_LWC_Nc_threshold);
-
-    % We also need to check every profile to ensure the liquid water
-    % content stays above our threshold for the entire profile. It should
-    % only drop below our threshold before and after the profile found. The
-    % code above will only check if each index is above both thresholds.
-    % Imagine a scenario where there are two cloud layers separated by a
-    % small gap, but the plane is still ascending. The code belows finds
-    % any departures, i.e. breaks in our profiles.
-    % The below while loop searches for the index to end on. Everything
-    % inbetween the first and last index should be greater than or equal to
-    % the LWC threshold AND the number concentration threshold
-    consecutive_length = zeros(length(indexes2keep), length(indexes2keep));
-
-
-    % This is getting redundant, but oh well
-
-    if isempty(indexes2keep)==true
-
-        % do nothing, this profile will be thrown out
-
-    else
-
-        for firstIndex = indexes2keep(1):indexes2keep(end)-1
-            for lastIndex = firstIndex+1:indexes2keep(end)
-
-                % if all values between the first index and last index are
-                % true, this means they are all above the minimum liquid water
-                % content threshold
-                if all(vert_profs.lwc{ii}(firstIndex:lastIndex)>=LWC_threshold & vert_profs.Nc{ii}(firstIndex:lastIndex)>=Nc_threshold)==true
-
-                    % compute the length of the vector
-                    consecutive_length(firstIndex, lastIndex) = length(vert_profs.lwc{ii}(firstIndex:lastIndex));
-
-                end
-
-            end
-        end
-
-        % Now we find the first and last index that corresponds to the longest
-        % consecutive string of values above the LWC threshold
-        [~, max_idx] = max(consecutive_length, [], 'all');
-
-        % the row and column correspond the the first and last index,
-        % respectively
-        [firstIndex, lastIndex] = ind2sub(size(consecutive_length), max_idx);
-
-
-
-        % find the max LWC and it's associated index for the profile found.
-        % The max value will be used to remove profiles that don't have a max
-        % LWC above the minimum threshold. The max_index will also be used if the
-        % profile needs to stop at the max LWC value
-        [max_lwc(ii), index_max_lwc] = max(vert_profs.lwc{ii}(firstIndex:lastIndex));
-
-        [~, index_absolute_max_lwc] = max(vert_profs.lwc{ii});
-
-
-    end
-
-
-
-    if stop_at_max_lwc == true
-
-
-        if isempty(indexes2keep)==true
-
-            % do nothing if this is true. The values will simply be set to
-            % zero.
-
-        else
-
-            % if the plane is ascending, and the LWC is growing with
-            % altitude within the cloud, the max LWC value will the final
-            % index. If the plane is descending, and the LWC is growing
-            % with altitude within the cloud, then the LWC will be the
-            % first index.
-
-            % The data will start at the first index above the minimum
-            % threshold, found above, and end at the index of maximum LWC,
-            % found in this if statement
-
-            dz_dt = diff(vert_profs.altitude{ii}(firstIndex:lastIndex))./diff(double(vert_profs.time{ii}(firstIndex:lastIndex)))';
-
-            % first let's smooth out the LWC profile
-            lwc_smooth = movmean(double(vert_profs.lwc{ii}(firstIndex:lastIndex)), 12);
-            dLWC_dz = diff(lwc_smooth)./diff(vert_profs.altitude{ii}(firstIndex:lastIndex));
-
-            % if the liquid water content is increasing with altitude, then
-            % the max value is the last index. If the liquid water content
-            % decreases with altitude, then the first index is the max
-            % value
-
-            % first determine if the plane is ascending or descending
-
-            if mean(dz_dt)>0
-                % if true then the plane is ascending
-                vert_profs.ascending{ii} = true;
-                if mean(dLWC_dz)>0
-                    % and the lwc is increasing, make the last index the
-                    % max LWC value
-
-                    lastIndex = firstIndex + index_max_lwc -1;
-
-                elseif mean(dLWC_dz)<0
-                    % then the lwc is decreasing with altitude and we
-                    % should set the first index with the max value
-
-                    firstIndex = firstIndex + index_max_lwc -1;
-
-                end
-
-            elseif mean(dz_dt)<0
-                % then the plane is descending
-                vert_profs.ascending{ii} = false;
-                if mean(dLWC_dz)>0
-                    % then the lwc increases with decreasing height, which
-                    % means the lwc decreases with increasing height, and
-                    % so the first index should be set as the max index.
-
-                    firstIndex = firstIndex + index_max_lwc -1;
-
-                    % and we keep the last index
-
-                elseif mean(dLWC_dz)<0
-                    % then the lwc is descreasing as we descend, which
-                    % means the LWC is increasing with increasing altitude,
-                    % and the last index should be set as the max value
-
-                    lastIndex = firstIndex + index_max_lwc -1;
-
-                end
-
+    % For every cloud boundary, find the next index where both the total
+    % number concentration AND the LWC are below the thresholds
+    idx_cloud_boundary = find(vocalsRex.total_Nc(idx_1(nn)+1:end) < Nc_threshold & ...
+                         vocalsRex.lwc(idx_1(nn)+1:end) < LWC_threshold);
+
+    % the index below is the LAST value before BOTH total number
+    % concentration and liquid water content dip below their respective
+    % thresholds
+    idx_cloud_boundary = idx_cloud_boundary(1) + idx_1(nn) -1;
+
+    % Each time the total number concentration and LWC thresholds are
+    % exceed, our idx_Nc_LWC_transition will be marked with a 1. When
+    % either of these thresholds are no longer met, our
+    % idx_Nc_LWC_transition will be mark a -1. So every single 1 will have
+    % a corresponding -1
+    % Search between each [1,-1] pair and ensure while the intervening
+    % measurements took place, the mean dz/dt of the plane was above some
+    % threshold. This indicates that plane was eitehr climbing or
+    % descending during the entire cloud that was sampled. Lets also ensure
+    % that these profiles have a length of atleast our length_threshold
+
+    % is the plane descending or ascending between the cloud boundaries?
+%     ascend_or_descend_throughout_cloud = all(idx_dz_dt(idx_1(nn):idx_minus1(nn)));
+    ascend_or_descend_throughout_cloud = all(idx_dz_dt(idx_1(nn):idx_cloud_boundary));
+
+    % is the measured cloud segment longer than our threshold?
+%     meets_length_requirement = length(idx_1(nn):idx_minus1(nn))>=length_threshold;
+    meets_length_requirement = length(idx_1(nn):idx_cloud_boundary)>=length_threshold;
+
+    % check to make sure the median value of the 7 data points before and
+    % after are below the thresholds. We use the median because the range
+    % of values can be in the hundreds over a few data points, skewing the
+    % average significantly. For LWC we can use the average since the range
+    % is much smaller
+    before_profile_below_thresholds = median(vocalsRex.total_Nc(idx_1(nn)-num_ba:idx_1(nn)-1)) < Nc_threshold & ...
+                         mean(vocalsRex.lwc(idx_1(nn)-num_ba:idx_1(nn)-1)) < LWC_threshold;
+
+    after_profile_below_thresholds = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < Nc_threshold & ...
+                         mean(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < LWC_threshold;
+
+    % The above logical statements tend discard layered cloud systems where
+    % there is a very short decrease in the total number concentration and
+    % liquid water content, typically over just a few data points (seconds)
+    % and then the values increase above the thresholds again.
+
+    % if both are true, keep profile
+    if ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
+            before_profile_below_thresholds==true && after_profile_below_thresholds==true
+
+        % grab those indices and store it as a vertical profile
+        profile_num = profile_num+1;
+
+        vert_profs(profile_num) = vocalsRex;
+
+        for ff = 1:length(fields)
+
+            % now remove all data points outside of the vertical profile
+
+            if numel(vert_profs(profile_num).(fields{ff}))==length(idx_dz_dt)
+                
+                % all the time data will have be a vector with the same
+                % length as our calculation of vertical velocity
+
+                % reshape all fields so that time increases with increasing
+                % column number (row vector)
+                vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_minus1(nn)),...
+                    1, []);
+
+                
+            elseif numel(vert_profs(profile_num).(fields{ff}))>length(idx_dz_dt)
+                % only one field is a matrix with more values than the time
+                % vector, and thats the matrix for the size distribution,
+                % with rows representing different size bins and columns
+                % are along the time dimension
+                vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_minus1(nn));
+
+            elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
+
+                % some miscallaneous fields have non-timed information
+                % keep all this information
+                vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff});
 
             end
 
 
-
-
         end
+
+
 
 
     end
-
-
-    % if none of the values within the vertical profile are above the LWC
-    % threshold, delete this profile. But for now, just set it to be a
-    % vector of 0's
-    if isempty(indexes2keep)==true
-
-        vert_profs.Nc{ii} = 0;
-        Nc_per_bin{ii} = 0;
-        vert_profs.nr{ii} = 0;
-        vert_profs.time{ii} = 0;
-        vert_profs.time_utc{ii} = 0;
-        vert_profs.lwc{ii} = 0;
-        vert_profs.latitude{ii} = 0;
-        vert_profs.longitude{ii} = 0;
-        vert_profs.altitude{ii} = 0;
-
-        if vocalsRex.flag_2DC_data_is_conforming==true
-            vert_profs.re{ii} = 0;
-            vert_profs.re_2DC{ii} = 0;
-        else
-            vert_profs.mean_r_2DC{ii} = 0;
-        end
-
-
-        vert_profs.re_CDP{ii} = 0;
-        vert_profs.lwc_CDP{ii} = 0;
-        vert_profs.lwc_2DC{ii} = 0;
-        vert_profs.Nc_CDP{ii} = 0;
-        vert_profs.Nc_2DC{ii} = 0;
-        vert_profs.horz_wind_speed{ii} = 0;
-        vert_profs.horz_wind_direction{ii} = 0;
-
-        vert_profs.absolute_humidity{ii} = 0;
-        vert_profs.mixing_ratio{ii} = 0;
-        vert_profs.vapor_pressure{ii} = 0;
-        vert_profs.Nc_vapor{ii} = 0;
-        vert_profs.Nc_vapor_pp{ii} = 0;
-        vert_profs.temp{ii} = 0;
-
-        % ----------- These variables are not being used -----------------
-        %         vert_profs.SWT{ii} = 0;
-        %         vert_profs.SWB{ii} = 0;
-        %         vert_profs.LWT{ii} = 0;
-        %         vert_profs.LWB{ii} = 0;
-
-
-        % if the longest consecutive vector of measurements above the
-        % defined liquid water content threshold is less than the
-        % consecutive length threshold, we won't keep this vertical
-        % profile. Let's set this threshold as 5 consecutive data points
-
-    elseif length(firstIndex:lastIndex)<consecutive_length_threshold
-
-        vert_profs.Nc{ii} = 0;
-        Nc_per_bin{ii} = 0;
-        vert_profs.nr{ii} = 0;
-        vert_profs.time{ii} = 0;
-        vert_profs.time_utc{ii} = 0;
-        vert_profs.lwc{ii} = 0;
-        vert_profs.latitude{ii} = 0;
-        vert_profs.longitude{ii} = 0;
-        vert_profs.altitude{ii} = 0;
-
-        if vocalsRex.flag_2DC_data_is_conforming==true
-            vert_profs.re{ii} = 0;
-            vert_profs.re_2DC{ii} = 0;
-        else
-            vert_profs.mean_r_2DC{ii} = 0;
-        end
-
-        vert_profs.re_CDP{ii} = 0;
-        vert_profs.lwc_CDP{ii} = 0;
-        vert_profs.lwc_2DC{ii} = 0;
-        vert_profs.Nc_CDP{ii} = 0;
-        vert_profs.Nc_2DC{ii} = 0;
-        vert_profs.horz_wind_speed{ii} = 0;
-        vert_profs.horz_wind_direction{ii} = 0;
-
-        vert_profs.absolute_humidity{ii} = 0;
-        vert_profs.mixing_ratio{ii} = 0;
-        vert_profs.vapor_pressure{ii} = 0;
-        vert_profs.Nc_vapor{ii} = 0;
-        vert_profs.Nc_vapor_pp{ii} = 0;
-        vert_profs.temp{ii} = 0;
-
-        % ----------- These variables are not being used -----------------
-        %         vert_profs.SWT{ii} = 0;
-        %         vert_profs.SWB{ii} = 0;
-        %         vert_profs.LWT{ii} = 0;
-        %         vert_profs.LWB{ii} = 0;
-
-
-
-
-    else
-
-        % delete all time-stamped data that meet the above logical statement
-
-        vert_profs.Nc{ii} = vert_profs.Nc{ii}(firstIndex:lastIndex);
-        Nc_per_bin{ii} = Nc_per_bin{ii}(:,firstIndex:lastIndex);
-        vert_profs.nr{ii} = vert_profs.nr{ii}(:, firstIndex:lastIndex);
-        vert_profs.time{ii} = vert_profs.time{ii}(firstIndex:lastIndex);
-        vert_profs.time_utc{ii} = vert_profs.time_utc{ii}(firstIndex:lastIndex);
-        vert_profs.lwc{ii} = vert_profs.lwc{ii}(firstIndex:lastIndex);
-        vert_profs.latitude{ii} = vert_profs.latitude{ii}(firstIndex:lastIndex);
-        vert_profs.longitude{ii} = vert_profs.longitude{ii}(firstIndex:lastIndex);
-        vert_profs.altitude{ii} = vert_profs.altitude{ii}(firstIndex:lastIndex);
-
-        if vocalsRex.flag_2DC_data_is_conforming==true
-            vert_profs.re{ii} = vert_profs.re{ii}(firstIndex:lastIndex);
-            vert_profs.re_2DC{ii} = vert_profs.re_2DC{ii}(firstIndex:lastIndex);
-        else
-            vert_profs.mean_r_2DC{ii} = vert_profs.mean_r_2DC{ii}(firstIndex:lastIndex);
-        end
-
-        % check to see if were dealing with SPS1 of SPS10 data
-        if length(vocalsRex.re_CDP)>length(vocalsRex.time)
-            error([newline, 'I dont know how to handle SPS10 data.', newline])
-        else
-            vert_profs.re_CDP{ii} = vert_profs.re_CDP{ii}(firstIndex:lastIndex);
-            vert_profs.lwc_CDP{ii} = vert_profs.lwc_CDP{ii}(firstIndex:lastIndex);
-        end
-
-        vert_profs.lwc_2DC{ii} = vert_profs.lwc_2DC{ii}(firstIndex:lastIndex);
-        vert_profs.Nc_CDP{ii} = vert_profs.Nc_CDP{ii}(firstIndex:lastIndex);
-        vert_profs.Nc_2DC{ii} = vert_profs.Nc_2DC{ii}(firstIndex:lastIndex);
-        vert_profs.horz_wind_speed{ii} = vert_profs.horz_wind_speed{ii}(firstIndex:lastIndex);
-        vert_profs.horz_wind_direction{ii} = vert_profs.horz_wind_direction{ii}(firstIndex:lastIndex);
-
-        vert_profs.absolute_humidity{ii} = vert_profs.absolute_humidity{ii}(firstIndex:lastIndex);
-        vert_profs.mixing_ratio{ii} = vert_profs.mixing_ratio{ii}(firstIndex:lastIndex);
-        vert_profs.vapor_pressure{ii} = vert_profs.vapor_pressure{ii}(firstIndex:lastIndex);
-        vert_profs.Nc_vapor{ii} = vert_profs.Nc_vapor{ii}(firstIndex:lastIndex);
-        vert_profs.Nc_vapor_pp{ii} = vert_profs.Nc_vapor_pp{ii}(firstIndex:lastIndex);
-        vert_profs.temp{ii} = vert_profs.temp{ii}(firstIndex:lastIndex);
-
-
-        % ----------- These variables are not being used -----------------
-        %         vert_profs.SWT{ii} = vert_profs.SWT{ii}(firstIndex:lastIndex);
-        %         vert_profs.SWB{ii} = vert_profs.SWB{ii}(firstIndex:lastIndex);
-        %         vert_profs.LWT{ii} = vert_profs.LWT{ii}(firstIndex:lastIndex);
-        %         vert_profs.LWB{ii} = vert_profs.LWB{ii}(firstIndex:lastIndex);
-
-
-    end
-
-
-    % Flag profiles where the LWC has been set to a single value comprised of a 0
-    % These need to be deleted.
-
-    if length(vert_profs.lwc{ii})==1 && vert_profs.lwc{ii}==0
-
-        profile_idx_2delete(ii) = true;
-
-
-        % Also check to see if the total profile found is less than 50 meters
-        % deep. If it is, flag it for deletion
-    elseif abs(vert_profs.altitude{ii}(1) - vert_profs.altitude{ii}(end))<50
-
-        profile_idx_2delete(ii) = true;
-
-    else
-
-        profile_idx_2delete(ii) = false;
-
-    end
-
-
 
 end
 
 
+for nn = 1:profile_num
+
+    length(vert_profs(nn).time)
 
 
+    % Store the LWC threshold used
+    vert_profs(nn).LWC_threshold = LWC_threshold;            % g/m^3
 
-
-% the is_profile_zero logical array defines which profiles to delete
-
-
-% if this is true, delete all entries for the index
-if sum(profile_idx_2delete)>0
-
-    % delete all time-stamped data that meet the above logical statement
-
-    vert_profs.Nc(profile_idx_2delete) = [];
-    Nc_per_bin(profile_idx_2delete) = [];
-    vert_profs.nr(profile_idx_2delete) = [];
-    vert_profs.time(profile_idx_2delete) = [];
-    vert_profs.time_utc(profile_idx_2delete) = [];
-    vert_profs.lwc(profile_idx_2delete) = [];
-    vert_profs.latitude(profile_idx_2delete) = [];
-    vert_profs.longitude(profile_idx_2delete) = [];
-    vert_profs.altitude(profile_idx_2delete) = [];
-
-    if vocalsRex.flag_2DC_data_is_conforming==true
-        vert_profs.re(profile_idx_2delete) = [];
-        vert_profs.re_2DC(profile_idx_2delete) = [];
-    else
-        vert_profs.mean_r_2DC(profile_idx_2delete) = [];
-    end
-
-
-    vert_profs.re_CDP(profile_idx_2delete) = [];
-    vert_profs.lwc_CDP(profile_idx_2delete) = [];
-    vert_profs.lwc_2DC(profile_idx_2delete) = [];
-    vert_profs.Nc_CDP(profile_idx_2delete) = [];
-    vert_profs.Nc_2DC(profile_idx_2delete) = [];
-    vert_profs.horz_wind_speed(profile_idx_2delete) = [];
-    vert_profs.horz_wind_direction(profile_idx_2delete) = [];
-
-
-    vert_profs.absolute_humidity(profile_idx_2delete) = [];
-    vert_profs.mixing_ratio(profile_idx_2delete) = [];
-    vert_profs.vapor_pressure(profile_idx_2delete) = [];
-    vert_profs.Nc_vapor(profile_idx_2delete) = [];
-    vert_profs.Nc_vapor_pp(profile_idx_2delete) = [];
-    vert_profs.temp(profile_idx_2delete) = [];
-
-    % ----------- These variables are not being used -----------------
-    %     vert_profs.SWT(profile_idx_2delete) = [];
-    %     vert_profs.SWB(profile_idx_2delete) = [];
-    %     vert_profs.LWT(profile_idx_2delete) = [];
-    %     vert_profs.LWB(profile_idx_2delete) = [];
+    % Store the Nc threshold used
+    vert_profs(nn).Nc_threshold = Nc_threshold;            % g/m^3
 
 end
-
-
-% ----------------------------------------------------------------------
-% ----------------------------------------------------------------------
-
-% Store the LWC threshold used
-vert_profs.LWC_threshold = LWC_threshold;            % g/m^3
-
-% Store the Nc threshold used
-vert_profs.Nc_threshold = Nc_threshold;            % g/m^3
-
-
 
 
 
@@ -712,67 +240,8 @@ vert_profs.Nc_threshold = Nc_threshold;            % g/m^3
 % The CDP probe measures radii between 0.875 and 25.055 microns.
 % The 2DC probe measures radii between 31.25 and 793 microns
 
-if iscell(vert_profs.altitude)==true
-
-    num_profiles = length(vert_profs.altitude);
-
-
-    % step through each profile
-    for nn = 1:num_profiles
-
-
-        % LWP is calculated by integrating from cloud bottom to
-        % cloud top. If the plane decreases in altitude, we need to
-        % integrate from the end of the profile (cloud bottom) to the
-        % begining (cloud top). If the plane is ascending, we do
-        % the opposite.
-
-        dz_dt = diff(reshape(vert_profs.altitude{nn}, [],1))./diff(reshape(vert_profs.time{nn}, [], 1));
-
-        if mean(dz_dt)>0
-            % then the plane is ascending!
-
-            % Compute the total LWP
-            vert_profs.lwp{nn} = trapz(vert_profs.altitude{nn}, vert_profs.lwc{nn});            % g/m^2
-
-            % ------ Compute the CDP LWP ---------
-            vert_profs.lwp_CDP{nn} = trapz(vert_profs.altitude{nn}, vert_profs.lwc_CDP{nn});
-
-
-            % ------ Compute the 2DC LWP ---------
-            vert_profs.lwp_2DC{nn} = trapz(vert_profs.altitude{nn}, vert_profs.lwc_2DC{nn});
-
-
-        elseif mean(dz_dt)<0
-            % then the plane is descending!
-
-            % Compute the total LWP
-            vert_profs.lwp{nn} = trapz(flipud(vert_profs.altitude{nn}), flipud(vert_profs.lwc{nn}));            % g/m^2
-
-            % ------ Compute the CDP LWP ---------
-            vert_profs.lwp_CDP{nn} = trapz(flipud(vert_profs.altitude{nn}), flipud(vert_profs.lwc_CDP{nn}));
-
-
-            % ------ Compute the 2DC LWP ---------
-            % compute the 2DC LWP by integration over the cloud depth
-            vert_profs.lwp_2DC{nn} = trapz(flipud(vert_profs.altitude{nn}), flipud(vert_profs.lwc_2DC{nn}));
-
-
-
-
-
-        end
-
-
-
-    end
-
-
-
-
-else
-
-    % if vocalsRex is not a cell, then there is only one profile
+% step through each profile
+for nn = 1:profile_num
 
 
     % LWP is calculated by integrating from cloud bottom to
@@ -781,38 +250,35 @@ else
     % begining (cloud top). If the plane is ascending, we do
     % the opposite.
 
-    dz_dt = diff(reshape(vert_profs.altitude, [],1))./diff(reshape(vert_profs.time, [], 1));
+    dz_dt = diff(vert_profs(nn).altitude,1)./diff(vert_profs(nn).time, 1);
 
     if mean(dz_dt)>0
         % then the plane is ascending!
 
         % Compute the total LWP
-        vert_profs.lwp = trapz(vert_profs.altitude, vert_profs.lwc);            % g/m^2
+        vert_profs(nn).lwp = trapz(vert_profs(nn).altitude, vert_profs(nn).lwc);            % g/m^2
 
         % ------ Compute the CDP LWP ---------
-        % compute the CDP LWP by integration over the cloud depth
-        vert_profs.lwp_CDP = trapz(vert_profs.altitude, vert_profs.lwc_CDP);
+        vert_profs(nn).lwp_CDP = trapz(vert_profs(nn).altitude, vert_profs(nn).lwc_CDP);
 
 
         % ------ Compute the 2DC LWP ---------
-        % compute the 2DC LWP by integration over the cloud depth
-        vert_profs.lwp_2DC = trapz(vert_profs.altitude, vert_profs.lwc_2DC);
+        vert_profs(nn).lwp_2DC = trapz(vert_profs(nn).altitude, vert_profs(nn).lwc_2DC);
 
 
     elseif mean(dz_dt)<0
         % then the plane is descending!
 
         % Compute the total LWP
-        vert_profs.lwp = trapz(flipud(vert_profs.altitude), flipud(vert_profs.lwc));            % g/m^2
+        vert_profs(nn).lwp = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc));            % g/m^2
 
         % ------ Compute the CDP LWP ---------
-        % compute the CDP LWP by integration over the cloud depth
-        vert_profs.lwp_CDP = trapz(flipud(vert_profs.altitude), flipud(vert_profs.lwc_CDP));
+        vert_profs(nn).lwp_CDP = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc_CDP));
 
 
         % ------ Compute the 2DC LWP ---------
         % compute the 2DC LWP by integration over the cloud depth
-        vert_profs.lwp_2DC = trapz(flipud(vert_profs.altitude), flipud(vert_profs.lwc_2DC));
+        vert_profs(nn).lwp_2DC = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc_2DC));
 
 
 
@@ -822,8 +288,12 @@ else
 
 
 
-
 end
+
+
+
+
+
 
 
 
@@ -854,7 +324,7 @@ end
 wgs84 = wgs84Ellipsoid("m");        % units of meters
 
 
-for nn = 1:length(vert_profs.Nc)
+for nn = 1:length(vert_profs)
 
     % Step through each point to get the linear distance travelled as a
     % vector
@@ -909,11 +379,9 @@ end
 % array
 if iscell(vert_profs.altitude)==true
 
-    num_profiles = length(vert_profs.altitude);
-
 
     % step through each profile
-    for nn = 1:num_profiles
+    for nn = 1:profile_num
 
 
         vector_length = length(vert_profs.altitude{nn});
