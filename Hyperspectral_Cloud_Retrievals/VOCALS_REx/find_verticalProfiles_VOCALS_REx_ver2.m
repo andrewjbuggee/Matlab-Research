@@ -163,7 +163,7 @@ for nn = 1:length(idx_1)
     % and then the values increase above the thresholds again.
 
 
-    idx_1(nn)
+    %idx_1(nn)
     % if both are true, keep profile
     if ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
             before_profile_below_thresholds==true && after_profile_below_thresholds==true

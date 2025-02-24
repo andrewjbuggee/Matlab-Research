@@ -16,8 +16,9 @@ function plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex
 % ------------------------------------------------------------------
 % ---------------- Compute Liquid Water Path -----------------------
 % ------------------------------------------------------------------
-
 LWP_vocals = vocalsRex.lwp;                 % grams of water/m^2
+
+
 
 % ----- Compute the CDP uncertainty -----
 re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
@@ -29,13 +30,45 @@ re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
 nice_blue = [0 0.4470 0.741];
 nice_orange = [0.8500, 0.3250, 0.0980];
 
+
 figure;
-errorbar(flipud(vocalsRex.re), vocalsRex.tau', flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
-    'MarkerFaceColor','black','LineWidth',1);
+
+% Optical depth is ALWAYS computed from cloud top to cloud base. Let's
+% determine if the profile was sampled while the plane was ascending or
+% descending
+dz_dt = diff(vocalsRex.altitude)./diff(vocalsRex.time);
+
+if mean(dz_dt)>0
+
+    % The plane was ascending. So we should flip the effective radius
+    % measurement, because it starts from cloud bottom. The optical depth
+    % vector starts from cloud top.
+
+    errorbar(fliplr(vocalsRex.re), vocalsRex.tau, fliplr(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
+        'MarkerFaceColor','black','LineWidth',1);
+
+elseif mean(dz_dt)<0
+
+    % The plane was descending. Therefore, the effective radius
+    % measurements start from cloud top. The optical depth
+    % vector starts from cloud top as well, so we don't need any altering
+
+    errorbar(vocalsRex.re, vocalsRex.tau, re_uncertainty, 'horizontal','-o','Color','black', 'MarkerSize',10,...
+        'MarkerFaceColor','black','LineWidth',1);
+
+else
+
+    error([newline, 'Somethings up with the optical depth vector. Check this against the altitude and effective radius',...
+        newline])
+
+end
+
 set(gca,'YDir','reverse')
-ylabel('Optical Depth','interpreter','latex','FontSize',35);
-xlabel('Effective Radius $$(\mu m)$$','Interpreter','latex', 'Fontsize', 35)
+ylabel('$\tau$','interpreter','latex','FontSize',35);
+xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
+title('Comparison between in-situ and MODIS retrieved $r_e$', 'Interpreter','latex')
 grid on; grid minor; hold on;
+
 
 if modisInputs.flags.useAdvection==true
 
@@ -95,23 +128,6 @@ for pp = 1:size(GN_outputs.re_profile,2)
 end
 
 
-% Fit a curve to the in-situ data to show the capability we are interested
-% in devloping
-
-% curve_fit_linewidth = 6;
-% curve_fit_color = mySavedColors(1,'fixed');                        % Bright pink
-%
-% f = fit(tau', fliplr(double(vocalsRex.re))', 'smoothingspline','SmoothingParam',0.9);
-% hold on;
-% plot(f(tau),tau,'Color',curve_fit_color,'LineStyle',':', 'LineWidth',curve_fit_linewidth);
-
-% Plot the z-space in meters on the right axis
-yyaxis right
-ylim([0, abs(vocalsRex.altitude(end) - vocalsRex.altitude(1))])
-set(gca,'YColor','black')
-ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',35);
-yyaxis left
-ylim([-0.25, vocalsRex.tau(end)*1.15])
 
 % Label cloud top and cloud bottom
 % Create textbox
@@ -161,7 +177,7 @@ retrieved_LWP = GN_outputs.LWP(pixel_2Plot);        % g/m^2
 % Let's compute the mean number concentration within this cloud and print
 % it on our plot
 
-mean_Nc = mean(vocalsRex.Nc);
+mean_Nc = mean(vocalsRex.total_Nc);
 
 dim = [.137 .35 .3 .3];
 str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,...
@@ -188,6 +204,14 @@ annotation('textbox',[0.6893 0.0142 0.27 0.04126],...
     'Interpreter','latex',...
     'LineWidth', 2,...
     'FontSize',20,'FontWeight','bold');
+
+
+% Plot the z-space in meters on the right axis
+yyaxis right
+ylim([0, abs(vocalsRex.altitude(end) - vocalsRex.altitude(1))])
+set(gca,'YColor','black')
+ylabel('Altitude within cloud $(m)$', 'Interpreter','latex','FontSize',30);
+yyaxis left
 
 
 end
