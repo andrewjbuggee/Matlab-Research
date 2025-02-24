@@ -96,11 +96,14 @@ idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc > Nc_threshold & vocalsRex.l
 idx_1 = find(idx_Nc_lwc_transition==1);
 
 % define minimum number of points to keep as a profile
-length_threshold = 10;
+length_threshold = 15;
 
 % define the number of indexes to check before and after profile's first
 % and last index
-num_ba = 10;
+num_ba = 20;
+
+% If needed use more indices before and after the profile
+num_ba_long = 30;
 
 
 % Start with zero profiles and add a 1 for each profile found
@@ -141,7 +144,7 @@ for nn = 1:length(idx_1)
 
     % is the measured cloud segment longer than our threshold?
     %     meets_length_requirement = length(idx_1(nn):idx_minus1(nn))>=length_threshold;
-    meets_length_requirement = length(idx_1(nn):idx_cloud_boundary)>=length_threshold;
+    meets_length_requirement = length(idx_1(nn):idx_cloud_boundary)>length_threshold;
 
     % check to make sure the median value of the 7 data points before and
     % after are below the thresholds. We use the median because the range
@@ -160,7 +163,7 @@ for nn = 1:length(idx_1)
     % and then the values increase above the thresholds again.
 
 
-
+    idx_1(nn)
     % if both are true, keep profile
     if ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
             before_profile_below_thresholds==true && after_profile_below_thresholds==true
@@ -214,7 +217,7 @@ for nn = 1:length(idx_1)
         % In this scenario, there is a cloud with a short segement where
         % the measured values decrease below the defined thresholds
 
-        % Find the next index where the values increase abvoe the defined
+        % Find the next index where the values increase above the defined
         % thersholds
         idx_cloud_boundary2 = find(vocalsRex.total_Nc(idx_cloud_boundary+1:end) > Nc_threshold & ...
             vocalsRex.lwc(idx_cloud_boundary+1:end) > LWC_threshold);
@@ -243,9 +246,8 @@ for nn = 1:length(idx_1)
 
         % Compute the median total number concentration and the mean lwc
         % over a longer segment of data after the end of the profile. Start
-        % at the end of the first boundary found. Use the median for both
+        % at the end of the first boundary found. Use the median for boths
         % because the set of values can span two orders of magnitude
-        num_ba_long = 20;
         after_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < Nc_threshold & ...
             median(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < LWC_threshold;
 
@@ -350,7 +352,7 @@ for nn = 1:length(idx_1)
         % over a longer segment of data after the start of the profile. Start
         % at the end of the first boundary found. Use the median for both
         % because the set of values can span two orders of magnitude
-        num_ba_long = 20;
+        
         before_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < Nc_threshold & ...
             median(vocalsRex.lwc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < LWC_threshold;
 
@@ -366,7 +368,7 @@ for nn = 1:length(idx_1)
         % layers, and the measurements of Nc and LWC are below the
         % thresholds after the second layer for atleast num_ba
         % measurements, accept the entire layer as a cloud.
-        if length_between_multi_layers<length_of_second_layer && before_profile_below_thresholds_long==true &&...
+        if length_between_multi_layers<5 && before_profile_below_thresholds_long==true &&...
                 before_profile_below_thresholds2==true
 
             % If these are all met, then let's accept the full profile
@@ -386,7 +388,7 @@ for nn = 1:length(idx_1)
 
                     % reshape all fields so that time increases with increasing
                     % column number (row vector)
-                    vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary3),...
+                    vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_cloud_boundary_minus1:idx_cloud_boundary),...
                         1, []);
 
 
@@ -395,7 +397,7 @@ for nn = 1:length(idx_1)
                     % vector, and thats the matrix for the size distribution,
                     % with rows representing different size bins and columns
                     % are along the time dimension
-                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary3);
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_cloud_boundary_minus1:idx_cloud_boundary);
 
                 elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
 
