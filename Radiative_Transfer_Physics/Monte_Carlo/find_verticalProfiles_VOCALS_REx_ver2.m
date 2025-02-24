@@ -103,7 +103,7 @@ idx_1 = find(idx_Nc_lwc_transition==1);
 idx_minus1 = find(idx_Nc_lwc_transition==-1);
 
 % define minimum number of points to keep as a profile
-length_threshold = 5;
+length_threshold = 7;
 
 % define the number of indexes to check before and after profile's first
 % and last index
@@ -118,10 +118,13 @@ profile_num = 0;
 % step through each idx
 for nn = 1:length(idx_1)
 
-    % For every cloud boundary, find the next index where both the total
+    % For every cloud idx_1 index where the we transition from an
+    % atmosphere with a total number concentration and liquid water content
+    % below the defined thresholds to a cloud with values above the
+    % thresholds, find the next index where both the total
     % number concentration AND the LWC are below the thresholds
     idx_cloud_boundary = find(vocalsRex.total_Nc(idx_1(nn)+1:end) < Nc_threshold & ...
-                         vocalsRex.lwc(idx_1(nn)+1:end) < LWC_threshold);
+        vocalsRex.lwc(idx_1(nn)+1:end) < LWC_threshold);
 
     % the index below is the LAST value before BOTH total number
     % concentration and liquid water content dip below their respective
@@ -140,11 +143,11 @@ for nn = 1:length(idx_1)
     % that these profiles have a length of atleast our length_threshold
 
     % is the plane descending or ascending between the cloud boundaries?
-%     ascend_or_descend_throughout_cloud = all(idx_dz_dt(idx_1(nn):idx_minus1(nn)));
+    %     ascend_or_descend_throughout_cloud = all(idx_dz_dt(idx_1(nn):idx_minus1(nn)));
     ascend_or_descend_throughout_cloud = all(idx_dz_dt(idx_1(nn):idx_cloud_boundary));
 
     % is the measured cloud segment longer than our threshold?
-%     meets_length_requirement = length(idx_1(nn):idx_minus1(nn))>=length_threshold;
+    %     meets_length_requirement = length(idx_1(nn):idx_minus1(nn))>=length_threshold;
     meets_length_requirement = length(idx_1(nn):idx_cloud_boundary)>=length_threshold;
 
     % check to make sure the median value of the 7 data points before and
@@ -153,15 +156,17 @@ for nn = 1:length(idx_1)
     % average significantly. For LWC we can use the average since the range
     % is much smaller
     before_profile_below_thresholds = median(vocalsRex.total_Nc(idx_1(nn)-num_ba:idx_1(nn)-1)) < Nc_threshold & ...
-                         mean(vocalsRex.lwc(idx_1(nn)-num_ba:idx_1(nn)-1)) < LWC_threshold;
+        mean(vocalsRex.lwc(idx_1(nn)-num_ba:idx_1(nn)-1)) < LWC_threshold;
 
     after_profile_below_thresholds = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < Nc_threshold & ...
-                         mean(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < LWC_threshold;
+        mean(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < LWC_threshold;
 
     % The above logical statements tend discard layered cloud systems where
     % there is a very short decrease in the total number concentration and
     % liquid water content, typically over just a few data points (seconds)
     % and then the values increase above the thresholds again.
+
+
 
     % if both are true, keep profile
     if ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
@@ -177,22 +182,22 @@ for nn = 1:length(idx_1)
             % now remove all data points outside of the vertical profile
 
             if numel(vert_profs(profile_num).(fields{ff}))==length(idx_dz_dt)
-                
+
                 % all the time data will have be a vector with the same
                 % length as our calculation of vertical velocity
 
                 % reshape all fields so that time increases with increasing
                 % column number (row vector)
-                vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_minus1(nn)),...
+                vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
                     1, []);
 
-                
+
             elseif numel(vert_profs(profile_num).(fields{ff}))>length(idx_dz_dt)
                 % only one field is a matrix with more values than the time
                 % vector, and thats the matrix for the size distribution,
                 % with rows representing different size bins and columns
                 % are along the time dimension
-                vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_minus1(nn));
+                vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
 
             elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
 
@@ -206,13 +211,278 @@ for nn = 1:length(idx_1)
         end
 
 
+        % Let's check to see if there is a short segment over which the
+        % measured values drop below the defined thersholds, potentially
+        % indicated a multilayered cloud
+    elseif ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
+            before_profile_below_thresholds==true && after_profile_below_thresholds==false
+
+
+        % In this scenario, there is a cloud with a short segement where
+        % the measured values decrease below the defined thresholds
+
+        % Find the next index where the values increase abvoe the defined
+        % thersholds
+        idx_cloud_boundary2 = find(vocalsRex.total_Nc(idx_cloud_boundary+1:end) > Nc_threshold & ...
+            vocalsRex.lwc(idx_cloud_boundary+1:end) > LWC_threshold);
+
+        % the index below is the next value where BOTH total number
+        % concentration and liquid water content are greater than their
+        % respective thresholds
+        idx_cloud_boundary2 = idx_cloud_boundary2(1) + idx_cloud_boundary;
+
+        % compute the number of measurements that drop below the define
+        % thresholds
+        length_between_multi_layers = idx_cloud_boundary2 - idx_cloud_boundary - 1;
+
+        % Check to see for how many data points the next cloud layer
+        % satisfies both thresholds
+        idx_cloud_boundary3 = find(vocalsRex.total_Nc(idx_cloud_boundary2+1:end) < Nc_threshold & ...
+            vocalsRex.lwc(idx_cloud_boundary2+1:end) < LWC_threshold);
+
+        % the index below is the next value where BOTH total number
+        % concentration and liquid water content are greater than their
+        % respective thresholds
+        idx_cloud_boundary3 = idx_cloud_boundary3(1) + idx_cloud_boundary2 - 1;
+
+        % How many measurements make up the second cloud layer?
+        length_of_second_layer = idx_cloud_boundary3 - idx_cloud_boundary2;
+
+        % Compute the median total number concentration and the mean lwc
+        % over a longer segment of data after the end of the profile. Start
+        % at the end of the first boundary found. Use the median for both
+        % because the set of values can span two orders of magnitude
+        num_ba_long = 20;
+        after_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < Nc_threshold & ...
+        median(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < LWC_threshold;
+
+
+        % Make sure both total number concentration and liquid water
+        % content are below the defined thresholds after the second cloud
+        % layer
+        after_profile_below_thresholds2 = median(vocalsRex.total_Nc(idx_cloud_boundary3:idx_cloud_boundary3+num_ba)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(idx_cloud_boundary3:idx_cloud_boundary3+num_ba)) < LWC_threshold;
+
+
+        % If the number of measurements for the second layer is greater
+        % than the number of measurements for the gap between the two
+        % layers, and the measurements of Nc and LWC are below the
+        % thresholds after the second layer for atleast num_ba
+        % measurements, accept the entire layer as a cloud.
+        if length_between_multi_layers<5 && after_profile_below_thresholds_long==true &&...
+                after_profile_below_thresholds2==true 
+
+            % If these are all met, then let's accept the full profile
+            % grab those indices and store it as a vertical profile
+            profile_num = profile_num+1;
+
+            vert_profs(profile_num) = vocalsRex;
+
+            for ff = 1:length(fields)
+
+                % now remove all data points outside of the vertical profile
+
+                if numel(vert_profs(profile_num).(fields{ff}))==length(idx_dz_dt)
+
+                    % all the time data will have be a vector with the same
+                    % length as our calculation of vertical velocity
+
+                    % reshape all fields so that time increases with increasing
+                    % column number (row vector)
+                    vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary3),...
+                        1, []);
+
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))>length(idx_dz_dt)
+                    % only one field is a matrix with more values than the time
+                    % vector, and thats the matrix for the size distribution,
+                    % with rows representing different size bins and columns
+                    % are along the time dimension
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary3);
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
+
+                    % some miscallaneous fields have non-timed information
+                    % keep all this information
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff});
+
+                end
+
+
+            end
+
+
+        end
+
+
+
+        % Let's check to see if there is a short segment over which the
+        % measured values drop below the defined thersholds, potentially
+        % indicated a multilayered cloud
+    elseif ascend_or_descend_throughout_cloud==true && meets_length_requirement==true &&...
+            before_profile_below_thresholds==false && after_profile_below_thresholds==true
+
+
+        % In this scenario, there is a cloud with a short segement where
+        % the measured values decrease below the defined thresholds
+
+        % Find the previous index where the values increase above the defined
+        % thersholds
+        idx_cloud_boundary0 = find(vocalsRex.total_Nc(1:idx_1(nn)-1) > Nc_threshold & ...
+            vocalsRex.lwc(1:idx_1(nn)-1) > LWC_threshold);
+
+        % the index below is the previous value where BOTH total number
+        % concentration and liquid water content are greater than their
+        % respective thresholds
+        idx_cloud_boundary0 = idx_cloud_boundary0(end);
+
+        % compute the number of measurements that drop below the define
+        % thresholds
+        length_between_multi_layers = idx_1(nn) - idx_cloud_boundary0;
+
+        % Check to see for how many data points the next cloud layer
+        % satisfies both thresholds
+        idx_cloud_boundary_minus1 = find(vocalsRex.total_Nc(1:idx_cloud_boundary0-1) < Nc_threshold & ...
+            vocalsRex.lwc(1:idx_cloud_boundary0-1) < LWC_threshold);
+
+        % the index below is the next value where BOTH total number
+        % concentration and liquid water content are greater than their
+        % respective thresholds
+        idx_cloud_boundary_minus1 = idx_cloud_boundary_minus1(end);
+
+        % How many measurements make up the second cloud layer?
+        length_of_second_layer = idx_cloud_boundary0 - idx_cloud_boundary_minus1;
+
+        % Compute the median total number concentration and the mean lwc
+        % over a longer segment of data after the start of the profile. Start
+        % at the end of the first boundary found. Use the median for both
+        % because the set of values can span two orders of magnitude
+        num_ba_long = 20;
+        before_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < Nc_threshold & ...
+        median(vocalsRex.lwc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < LWC_threshold;
+
+        % Make sure both total number concentration and liquid water
+        % content are below the defined thresholds after the second cloud
+        % layer
+        before_profile_below_thresholds2 = median(vocalsRex.total_Nc(idx_cloud_boundary_minus1-num_ba_long:idx_cloud_boundary_minus1)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(idx_cloud_boundary_minus1-num_ba_long:idx_cloud_boundary_minus1)) < LWC_threshold;
+
+
+        % If the number of measurements for the second layer is greater
+        % than the number of measurements for the gap between the two
+        % layers, and the measurements of Nc and LWC are below the
+        % thresholds after the second layer for atleast num_ba
+        % measurements, accept the entire layer as a cloud.
+        if length_between_multi_layers<length_of_second_layer && before_profile_below_thresholds_long==true &&...
+                before_profile_below_thresholds2==true 
+
+            % If these are all met, then let's accept the full profile
+            % grab those indices and store it as a vertical profile
+            profile_num = profile_num+1;
+
+            vert_profs(profile_num) = vocalsRex;
+
+            for ff = 1:length(fields)
+
+                % now remove all data points outside of the vertical profile
+
+                if numel(vert_profs(profile_num).(fields{ff}))==length(idx_dz_dt)
+
+                    % all the time data will have be a vector with the same
+                    % length as our calculation of vertical velocity
+
+                    % reshape all fields so that time increases with increasing
+                    % column number (row vector)
+                    vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary3),...
+                        1, []);
+
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))>length(idx_dz_dt)
+                    % only one field is a matrix with more values than the time
+                    % vector, and thats the matrix for the size distribution,
+                    % with rows representing different size bins and columns
+                    % are along the time dimension
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary3);
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
+
+                    % some miscallaneous fields have non-timed information
+                    % keep all this information
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff});
+
+                end
+
+
+            end
+
+
+            % If the gap inbetween the two cloud layers is larger than the
+            % second layer, let's only accept the original cloud layer
+        elseif length_between_multi_layers>length_of_second_layer && before_profile_below_thresholds_long==true &&...
+                before_profile_below_thresholds2==true 
+
+
+            % If theses conditions are met, let's keep the original profile
+            % indexes
+            profile_num = profile_num+1;
+
+            vert_profs(profile_num) = vocalsRex;
+
+            for ff = 1:length(fields)
+
+                % now remove all data points outside of the vertical profile
+
+                if numel(vert_profs(profile_num).(fields{ff}))==length(idx_dz_dt)
+
+                    % all the time data will have be a vector with the same
+                    % length as our calculation of vertical velocity
+
+                    % reshape all fields so that time increases with increasing
+                    % column number (row vector)
+                    vert_profs(profile_num).(fields{ff}) = reshape(vert_profs(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
+                        1, []);
+
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))>length(idx_dz_dt)
+                    % only one field is a matrix with more values than the time
+                    % vector, and thats the matrix for the size distribution,
+                    % with rows representing different size bins and columns
+                    % are along the time dimension
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
+
+                elseif numel(vert_profs(profile_num).(fields{ff}))<length(idx_dz_dt)
+
+                    % some miscallaneous fields have non-timed information
+                    % keep all this information
+                    vert_profs(profile_num).(fields{ff}) = vert_profs(profile_num).(fields{ff});
+
+                end
+
+
+            end
+
+
+
+
+        end
+
+
 
 
     end
 
+
 end
 
 
+%% Sometimes multilayered clouds cause the code above to keep two very similar profiles
+% Go through all profiles found. If the indexes of one profile are nearly
+% identical to another, get rid of one.
+
+
+
+
+%%
 for nn = 1:profile_num
 
     length(vert_profs(nn).time)
@@ -228,7 +498,7 @@ end
 
 
 
-
+%%
 % ----------------------------------------------------------------------
 % ------------------ Compute Liquid Water Path -------------------------
 % ----------------------------------------------------------------------
