@@ -82,12 +82,6 @@ vertical_velocity_threshold = 2;    % m/s
 % 1, LWC transitions from below 0.03 to greater than 0.03, and dz/dt~=0
 idx_dz_dt = abs(dz_dt_mean)>vertical_velocity_threshold;
 
-% Find consecutive indices, which represent stand alone
-% profiles where the plane is climbing or descending. Do this by taking the
-% difference between adjacent indices of idx_dz_dt. Values
-% that are not 1 represent non neighboring indices
-index_consec = find(diff(idx_dz_dt)~=1);
-
 
 
 % at what idx's does the total Nc change from below 1 to above 1
@@ -100,10 +94,9 @@ idx_Nc_lwc_transition = [0, diff(vocalsRex.total_Nc > Nc_threshold & vocalsRex.l
 % atleast 3 indexes
 % first find all transition idxs with a value of 1
 idx_1 = find(idx_Nc_lwc_transition==1);
-idx_minus1 = find(idx_Nc_lwc_transition==-1);
 
 % define minimum number of points to keep as a profile
-length_threshold = 7;
+length_threshold = 10;
 
 % define the number of indexes to check before and after profile's first
 % and last index
@@ -254,7 +247,7 @@ for nn = 1:length(idx_1)
         % because the set of values can span two orders of magnitude
         num_ba_long = 20;
         after_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < Nc_threshold & ...
-        median(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < LWC_threshold;
+            median(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba_long)) < LWC_threshold;
 
 
         % Make sure both total number concentration and liquid water
@@ -270,7 +263,7 @@ for nn = 1:length(idx_1)
         % thresholds after the second layer for atleast num_ba
         % measurements, accept the entire layer as a cloud.
         if length_between_multi_layers<5 && after_profile_below_thresholds_long==true &&...
-                after_profile_below_thresholds2==true 
+                after_profile_below_thresholds2==true
 
             % If these are all met, then let's accept the full profile
             % grab those indices and store it as a vertical profile
@@ -359,7 +352,7 @@ for nn = 1:length(idx_1)
         % because the set of values can span two orders of magnitude
         num_ba_long = 20;
         before_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < Nc_threshold & ...
-        median(vocalsRex.lwc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < LWC_threshold;
+            median(vocalsRex.lwc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < LWC_threshold;
 
         % Make sure both total number concentration and liquid water
         % content are below the defined thresholds after the second cloud
@@ -374,7 +367,7 @@ for nn = 1:length(idx_1)
         % thresholds after the second layer for atleast num_ba
         % measurements, accept the entire layer as a cloud.
         if length_between_multi_layers<length_of_second_layer && before_profile_below_thresholds_long==true &&...
-                before_profile_below_thresholds2==true 
+                before_profile_below_thresholds2==true
 
             % If these are all met, then let's accept the full profile
             % grab those indices and store it as a vertical profile
@@ -419,7 +412,7 @@ for nn = 1:length(idx_1)
             % If the gap inbetween the two cloud layers is larger than the
             % second layer, let's only accept the original cloud layer
         elseif length_between_multi_layers>length_of_second_layer && before_profile_below_thresholds_long==true &&...
-                before_profile_below_thresholds2==true 
+                before_profile_below_thresholds2==true
 
 
             % If theses conditions are met, let's keep the original profile
@@ -479,14 +472,48 @@ end
 % Go through all profiles found. If the indexes of one profile are nearly
 % identical to another, get rid of one.
 
+% let's set a buffer of 4 indices. If either the starting or ending indices
+% are within 4 of one another, delete the shorter profile
+buffer_length = 4;
+idx2delete = [];
+
+for n1 = 1:profile_num
+    for n2 = (n1+1):profile_num
+
+        if (vert_profs(n2).time(1) - vert_profs(n1).time(1)) <= buffer_length ||...
+                (vert_profs(n2).time(end) - vert_profs(n1).time(end)) <= buffer_length
+
+            % If this is true, keep the longer profile
+            if length(vert_profs(n2).time)>length(vert_profs(n1).time)
+                idx2delete = [idx2delete, n1];
+
+            elseif length(vert_profs(n2).time)<length(vert_profs(n1).time)
+                idx2delete = [idx2delete, n2];
+
+            else
+
+                % They're the same size! Just pick one (Is this even
+                % possible?)
+                idx2delete = [idx2delete, n2];
+
+            end
+
+
+        end
+
+
+    end
+end
+
+
+% detele indexes associated with profiles nearly identical to another
+% profile
+vert_profs(idx2delete) = [];
 
 
 
 %%
-for nn = 1:profile_num
-
-    length(vert_profs(nn).time)
-
+for nn = 1:length(vert_profs)
 
     % Store the LWC threshold used
     vert_profs(nn).LWC_threshold = LWC_threshold;            % g/m^3
@@ -511,7 +538,7 @@ end
 % The 2DC probe measures radii between 31.25 and 793 microns
 
 % step through each profile
-for nn = 1:profile_num
+for nn = 1:length(vert_profs)
 
 
     % LWP is calculated by integrating from cloud bottom to
@@ -598,31 +625,31 @@ for nn = 1:length(vert_profs)
 
     % Step through each point to get the linear distance travelled as a
     % vector
-    horz_distance_travelled = zeros(1, length(vert_profs.latitude{nn}));
+    horz_distance_travelled = zeros(1, length(vert_profs(nn).latitude));
 
-    for xx = 2:length(vert_profs.latitude{nn})
+    for xx = 2:length(vert_profs(nn).latitude)
 
         % Find the linear distance between the start and end of the horizontal profile.
         % When you specify a reference ellipsoid as input to the distance function,
         % the function returns linear distances in the units of the semimajor axis of the ellipsoid.
-        horz_distance_travelled(xx) = distance(vert_profs.latitude{nn}(1), vert_profs.longitude{nn}(1),...
-            vert_profs.latitude{nn}(xx), vert_profs.longitude{nn}(xx),wgs84);
+        horz_distance_travelled(xx) = distance(vert_profs(nn).latitude(1), vert_profs(nn).longitude(1),...
+            vert_profs(nn).latitude(xx), vert_profs(nn).longitude(xx),wgs84);
 
     end
 
-    vert_profs.horz_dist{nn} = horz_distance_travelled;
+    vert_profs(nn).horz_dist = horz_distance_travelled;
 
     % Using the horizontal distance travelled, and the vertical depth of
-    % the cloud, use pythareous's theorem to estimate the slant path
+    % the cloud, use pythagreous' theorem to estimate the slant path
     % travelled within the cloud
-    vert_profs.cloud_depth{nn} = max(vert_profs.altitude{nn}) - min(vert_profs.altitude{nn});
-    vert_profs.slant_path{nn} = sqrt(vert_profs.horz_dist{nn}(end)^2 + vert_profs.cloud_depth{nn}^2);
+    vert_profs(nn).cloud_depth = max(vert_profs(nn).altitude) - min(vert_profs(nn).altitude);
+    vert_profs(nn).slant_path = sqrt(vert_profs(nn).horz_dist(end)^2 + vert_profs(nn).cloud_depth^2);
 
     % Compute the zenith angle of the slant path with respect to the cloud
     % base, assuming a plane-parallel cloud and a straight line for the
     % planes trajectory
 
-    vert_profs.VR_zenith_angle{nn} = atand(vert_profs.horz_dist{nn}(end)/vert_profs.cloud_depth{nn});
+    vert_profs(nn).VR_zenith_angle = atand(vert_profs(nn).horz_dist(end)/vert_profs(nn).cloud_depth);
 
 
 end
@@ -645,150 +672,18 @@ end
 % optical depth along the slant path. Cloud optical depth is defined soley
 % as the optical depth over the vertical dimension of a cloud.
 
-% if there is more than one profile, the data will be stored in a cell
-% array
-if iscell(vert_profs.altitude)==true
 
 
-    % step through each profile
-    for nn = 1:profile_num
+% step through each profile
+for nn = 1:length(vert_profs)
 
 
-        vector_length = length(vert_profs.altitude{nn});
-        vert_profs.tau{nn} = zeros(1,vector_length-1);
+    vector_length = length(vert_profs(nn).altitude);
+    vert_profs(nn).tau = zeros(1,vector_length-1);
 
-        % compute sec(theta) by first computing the hypotenuse
-
-
-
-        % Optical thickness is defined by integrating from cloud top to
-        % cloud bottom. If the plane increases in altitude, we need to
-        % integrating from the end of the profile (cloud top) to the
-        % begining (cloud bottom). If the plane is descending, we do
-        % the opposite.
-
-        dz_dt = diff(vert_profs.altitude{nn})./diff(vert_profs.time{nn})';
+    % compute sec(theta) by first computing the hypotenuse
 
 
-        if mean(dz_dt)>0
-            % then the plane is ascending!
-
-
-            % step through the altitude array
-            for ii = 1:vector_length-1
-
-
-                % we have to convert Nc and re to have the same units as the alitude,
-                % which is in meters
-
-                if vocalsRex.flag_2DC_data_is_conforming==true
-                    re_meters = vert_profs.re{nn}(vector_length-ii:vector_length)./1e6;                      % meters
-                else
-                    % What choice do we have? I guess we will just use the
-                    % effevtive radius from the 2DC data, but this will
-                    % underestimate the optical depth
-                    % if the re CDP data is taken at 10 samples per second,
-                    % only take every 10th value.
-                    if length(vocalsRex.re_CDP)>length(vocalsRex.time)
-                        error([newline, 'I dont know how to handle SPS10 data!', newline])
-
-                    else
-                        re_meters = vert_profs.re_CDP{nn}(vector_length-ii:vector_length)./1e6;                      % meters
-                    end
-
-                end
-
-                total_Nc_meters = vert_profs.Nc{nn}(vector_length-ii:vector_length).*1e6;                           % #/m^3
-                altitude = vert_profs.altitude{nn}(end) -  vert_profs.altitude{nn}(vector_length-ii:vector_length); % meters
-
-
-                % We assume the droplet size is appreciably larger than the
-                % incident wavelength (something in the visible, like 550 nm)
-                % so we can assume the extinction efficiency is 2. This leads
-                % to the following equation for optical depth:
-                % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
-                % where Q_e is set to 2
-                %vert_profs.tau{nn}(ii) = 2*pi* trapz(flipud(altitude), flipud(re_meters.^2 .* total_Nc_meters));
-
-                % Or we can use a pre-computed mie table to use a more
-                % accurate value for the extinction efficiency.
-                %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters.*1e6], 'mono', true);
-
-                % Or we could compute the average extinction efficiency
-                % over a droplet size distrubution
-                [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                    550, 'water', 'gamma', ii);
-
-                vert_profs.tau{nn}(ii) = pi* trapz(flipud(altitude), flipud(Qe_avg' .* re_meters.^2 .* total_Nc_meters));
-
-            end
-
-        elseif mean(dz_dt)<0
-            % then the plane is descending!
-
-            % step through the altitude array
-            for ii = 1:vector_length-1
-
-
-                % we have to convert Nc and re to have the same units as the alitude,
-                % which is in meters
-                if vocalsRex.flag_2DC_data_is_conforming==true
-                    re_meters = vert_profs.re{nn}(1:ii+1)./1e6;                      % meters
-                else
-                    % What choice do we have? I guess we will just use the
-                    % effevtive radius from the 2DC data, but this will
-                    % underestimate the optical depth
-                    re_meters = vert_profs.re_CDP{nn}(1:ii+1)./1e6;                      % meters
-                end
-
-                total_Nc_meters = vert_profs.Nc{nn}(1:ii+1).*1e6;                           % #/m^3
-                altitude = vert_profs.altitude{nn}(1) -  vert_profs.altitude{nn}(1:ii+1);   % meters
-
-
-                % We assume the droplet size is appreciably larger than the
-                % incident wavelength (something in the visible, like 550 nm)
-                % so we can assume the extinction efficiency is 2. This leads
-                % to the following equation for optical depth:
-                % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
-                % where Q_e is set to 2
-                %vert_profs.tau{nn}(ii) = 2*pi* trapz(altitude, re_meters.^2 .* total_Nc_meters);
-
-
-                % Or we can use a pre-computed mie table to use a more
-                % accurate value for the extinction efficiency.
-                %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters'.*1e6], 'mono', true);
-
-
-                % Or we could compute the average extinction efficiency
-                % over a droplet size distrubution
-                [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                    550, 'water', 'gamma', ii);
-
-
-                vert_profs.tau{nn}(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
-
-
-
-            end
-
-        end
-
-
-
-        % add a zero at the begining!
-        vert_profs.tau{nn} = [0,vert_profs.tau{nn}];
-
-    end
-
-
-
-
-else
-
-    % if vocalsRex is not a cell, then there is only one profile
-
-    vector_length = length(vert_profs.altitude);
-    vert_profs.tau = zeros(1,vector_length-1);
 
     % Optical thickness is defined by integrating from cloud top to
     % cloud bottom. If the plane increases in altitude, we need to
@@ -796,27 +691,39 @@ else
     % begining (cloud bottom). If the plane is descending, we do
     % the opposite.
 
-    dz_dt = diff(vert_profs.altitude{nn})./diff(vert_profs.time{nn})';
+    dz_dt = diff(vert_profs(nn).altitude)./diff(vert_profs(nn).time);
+
 
     if mean(dz_dt)>0
+        % then the plane is ascending!
 
 
         % step through the altitude array
         for ii = 1:vector_length-1
 
+
             % we have to convert Nc and re to have the same units as the alitude,
             % which is in meters
+
             if vocalsRex.flag_2DC_data_is_conforming==true
-                re_meters = vert_profs.re(vector_length-ii:vector_length)./1e6;                      % meters
+                re_meters = vert_profs(nn).re(vector_length-ii:vector_length)./1e6;                      % meters
             else
                 % What choice do we have? I guess we will just use the
                 % effevtive radius from the 2DC data, but this will
                 % underestimate the optical depth
-                re_meters = vert_profs.re_CDP(vector_length-ii:vector_length)./1e6;                      % meters
+                % if the re CDP data is taken at 10 samples per second,
+                % only take every 10th value.
+                if length(vocalsRex.re_CDP)>length(vocalsRex.time)
+                    error([newline, 'I dont know how to handle SPS10 data!', newline])
+
+                else
+                    re_meters = vert_profs(nn).re_CDP(vector_length-ii:vector_length)./1e6;                      % meters
+                end
+
             end
 
-            total_Nc_meters = vert_profs.Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
-            altitude = vert_profs.altitude(end) -  vert_profs.altitude(vector_length-ii:vector_length);
+            total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
+            altitude = vert_profs(nn).altitude(end) -  vert_profs(nn).altitude(vector_length-ii:vector_length); % meters
 
 
             % We assume the droplet size is appreciably larger than the
@@ -825,7 +732,7 @@ else
             % to the following equation for optical depth:
             % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
             % where Q_e is set to 2
-            %vert_profs.tau(ii) = 2*pi* trapz(flipud(altitude), flipud(re_meters.^2 .* total_Nc_meters));
+            %vert_profs(nn).tau(ii) = 2*pi* trapz(flipud(altitude), flipud(re_meters.^2 .* total_Nc_meters));
 
             % Or we can use a pre-computed mie table to use a more
             % accurate value for the extinction efficiency.
@@ -836,70 +743,71 @@ else
             [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
                 550, 'water', 'gamma', ii);
 
-            vert_profs.tau(ii) = pi* trapz(flipud(altitude), flipud(Qe_avg' .* re_meters.^2 .* total_Nc_meters));
-
-
-
-
+            vert_profs(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
 
         end
 
     elseif mean(dz_dt)<0
+        % then the plane is descending!
 
-        % The plane is descending! The cloud top values come first
+        % step through the altitude array
+        for ii = 1:vector_length-1
 
 
-        % we have to convert Nc and re to have the same units as the alitude,
-        % which is in meters
-        if vocalsRex.flag_2DC_data_is_conforming==true
-            re_meters = vert_profs.re(1:ii+1)./1e6;                      % meters
-        else
-            % What choice do we have? I guess we will just use the
-            % effevtive radius from the 2DC data, but this will
-            % underestimate the optical depth
-            re_meters = vert_profs.re_CDP(1:ii+1)./1e6;                     % meters
+            % we have to convert Nc and re to have the same units as the alitude,
+            % which is in meters
+            if vocalsRex.flag_2DC_data_is_conforming==true
+                re_meters = vert_profs(nn).re(1:ii+1)./1e6;                      % meters
+            else
+                % What choice do we have? I guess we will just use the
+                % effevtive radius from the 2DC data, but this will
+                % underestimate the optical depth
+                re_meters = vert_profs(nn).re_CDP(1:ii+1)./1e6;                      % meters
+            end
+
+            total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
+            altitude = vert_profs(nn).altitude(1) -  vert_profs(nn).altitude(1:ii+1);   % meters
+
+
+            % We assume the droplet size is appreciably larger than the
+            % incident wavelength (something in the visible, like 550 nm)
+            % so we can assume the extinction efficiency is 2. This leads
+            % to the following equation for optical depth:
+            % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
+            % where Q_e is set to 2
+            %vert_profs(nn).tau(ii) = 2*pi* trapz(altitude, re_meters.^2 .* total_Nc_meters);
+
+
+            % Or we can use a pre-computed mie table to use a more
+            % accurate value for the extinction efficiency.
+            %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters'.*1e6], 'mono', true);
+
+
+            % Or we could compute the average extinction efficiency
+            % over a droplet size distrubution
+            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
+                550, 'water', 'gamma', ii);
+
+
+            vert_profs(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
+
+
+
         end
-
-        total_Nc_meters = vert_profs.Nc(1:ii+1).*1e6;                           % #/m^3
-        altitude = vert_profs.altitude(1) -  vert_profs.altitude(1:ii+1);
-
-
-        % We assume the droplet size is appreciably larger than the
-        % incident wavelength (something in the visible, like 550 nm)
-        % so we can assume the extinction efficiency is 2. This leads
-        % to the following equation for optical depth:
-        % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
-        % where Q_e is set to 2
-        %vert_profs.tau(ii) = 2*pi* trapz(altitude, re_meters.^2 .* total_Nc_meters);
-
-
-        % Or we can use a pre-computed mie table to use a more
-        % accurate value for the extinction efficiency.
-        %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters'.*1e6], 'mono', true);
-
-
-        % Or we could compute the average extinction efficiency
-        % over a droplet size distrubution
-        [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-            550, 'water', 'gamma', ii);
-
-
-        vert_profs.tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
-
-
-
-    else
-
-        error([newline, 'Something is wrong with the calculation of vertical velocity'], newline)
 
     end
 
 
-    % add a zero at the begining!
-    vert_profs.tau = [0,vert_profs.tau];
 
+    % add a zero at the begining!
+    vert_profs(nn).tau = [0,vert_profs(nn).tau];
 
 end
+
+
+
+
+
 
 
 
