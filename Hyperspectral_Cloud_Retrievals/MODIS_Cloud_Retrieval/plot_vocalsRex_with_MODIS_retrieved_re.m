@@ -25,22 +25,30 @@ re_uncertainty = cloud_droplet_probe_uncertainty_estimate(vocalsRex.re);
 nice_blue = [0 0.4470 0.741];
 nice_orange = [0.8500, 0.3250, 0.0980];
 
-% Make sure the optical depth increases as the effective radius decreases
-optical_depth = vocalsRex.tau';
-
 
 figure;
 
-% check if tau is increasing and re is decreasing
-if mean(diff(optical_depth))>0 && median(diff(vocalsRex.re))<0
+% Optical depth is ALWAYS computed from cloud top to cloud base. Let's
+% determine if the profile was sampled while the plane was ascending or
+% descending
+dz_dt = diff(vocalsRex.altitude)./diff(vocalsRex.time);
 
-    errorbar(vocalsRex.re, optical_depth, re_uncertainty, 'horizontal','-o','Color','black', 'MarkerSize',10,...
+if mean(dz_dt)>0
+
+    % The plane was ascending. So we should flip the effective radius
+    % measurement, because it starts from cloud bottom. The optical depth
+    % vector starts from cloud top.
+
+    errorbar(fliplr(vocalsRex.re), vocalsRex.tau, fliplr(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
         'MarkerFaceColor','black','LineWidth',1);
 
-elseif mean(diff(optical_depth))>0 && median(diff(vocalsRex.re))>0
+elseif mean(dz_dt)<0
 
+    % The plane was descending. Therefore, the effective radius
+    % measurements start from cloud top. The optical depth
+    % vector starts from cloud top as well, so we don't need any altering
 
-    errorbar(flipud(vocalsRex.re), optical_depth, flipud(re_uncertainty), 'horizontal','-o','Color','black', 'MarkerSize',10,...
+    errorbar(vocalsRex.re, vocalsRex.tau, re_uncertainty, 'horizontal','-o','Color','black', 'MarkerSize',10,...
         'MarkerFaceColor','black','LineWidth',1);
 
 else
@@ -115,7 +123,7 @@ yl0.LabelHorizontalAlignment = 'left';
 % Let's compute the mean number concentration within this cloud and print
 % it on our plot
 
-mean_Nc = mean(vocalsRex.Nc);
+mean_Nc = mean(vocalsRex.total_Nc);
 
 dim = [.2 .5 .3 .3];
 str = ['$$< N_c >_{in-situ} = \;$$',num2str(round(mean_Nc)),' $$cm^{-3}$$',newline,'$$LWP_{in-situ} = $$',num2str(round(LWP_vocals,1)),' $$g/m^{2}$$'];

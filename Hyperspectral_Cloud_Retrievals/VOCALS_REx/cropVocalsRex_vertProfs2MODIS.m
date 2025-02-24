@@ -27,18 +27,18 @@ modis_pixel_time = modis.EV1km.pixel_time_decimal;
 % Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
 wgs84 = wgs84Ellipsoid("m");
 
-% Set up an empty array for each vocals-rex data point
-modis_minDist = zeros(1, length(vert_prof.latitude));
-time_diff_MODIS_VR = zeros(1, length(vert_prof.latitude));
-within_5min_window = zeros(1, length(vert_prof.time_utc));
+% Set up an empty array for each vocals-rex profile
+modis_minDist = zeros(1, length(vert_prof));
+time_diff_MODIS_VR = zeros(1, length(vert_prof));
+within_5min_window = zeros(1, length(vert_prof));
 
 % Step through each vertical profile and find the MODIS pixel that overlaps
 % with the mid point of the in-situ sample
-parfor nn = 1:length(vert_prof.latitude)
+parfor nn = 1:length(vert_prof)
 
 
-    dist_btwn_MODIS_and_VR = distance(modis_lat, modis_long, vert_prof.latitude{nn}(round(end/2)),...
-        vert_prof.longitude{nn}(round(end/2)), wgs84);
+    dist_btwn_MODIS_and_VR = distance(modis_lat, modis_long, vert_prof(nn).latitude(round(end/2)),...
+        vert_prof(nn).longitude(round(end/2)), wgs84);
 
     [modis_minDist(nn), index_minDist] = min(dist_btwn_MODIS_and_VR, [], 'all');            % m - minimum distance
 
@@ -46,14 +46,14 @@ parfor nn = 1:length(vert_prof.latitude)
     % compute the time between the modis pixel closest to the VR sampled
     % path and the time VOCALS was recorded
     time_diff_MODIS_VR(nn) = abs(modis_pixel_time(index_minDist) - ...
-        vert_prof.time_utc{nn}(round(end/2))) * 60;                         % minutes
+        vert_prof(nn).time_utc(round(end/2))) * 60;                         % minutes
 
     % A single MODIS granule takes 5 minutes to be collected. First, lets
     % determine if any profiles were recorded within the the 5 minute window
     % when MODIS collected data.
 
-    within_5min_window(nn) = any(vert_prof.time_utc{nn} >= modis_pixel_time(1,1) & ...
-        vert_prof.time_utc{nn} <= modis_pixel_time(end,end));
+    within_5min_window(nn) = any(vert_prof(nn).time_utc >= modis_pixel_time(1,1) & ...
+        vert_prof(nn).time_utc <= modis_pixel_time(end,end));
 
 end
 
@@ -95,6 +95,27 @@ elseif any(time_diff_MODIS_VR<5 & modis_minDist<1000)
     % less than 1km
     index_vertProfs_2keep = find(time_diff_MODIS_VR<5 & modis_minDist<1000);
 
+
+
+else
+
+    % If there isn't a profile sampled within the 5 minute window, or
+    % within 5 minutes of a MODIS pixel, take the profile with the shortest
+    % amount of time between it's recording and MODIS, as long as it's
+    % within 1 km of the pixel in question
+    [~, min_time_idx] = min(time_diff_MODIS_VR);
+    if modis_minDist(min_time_idx)<1000
+
+        index_vertProfs_2keep = min_time_idx;
+
+    else
+
+        error([newline, 'The minimum time difference between a VR in-situ profile and a MODIS pixel ',...
+            'was ', num2str(min(time_diff_MODIS_VR)), ' minutes, and the distance to the closest pixel ',...
+            'was ', num2str(modis_minDist(min_time_idx)), ' meters.', newline])
+    end
+
+
 end
 
 % I dont' know what to do if there is more than 1 profile that satisfies
@@ -106,29 +127,8 @@ end
 % Let's keep the vertical profile that is closest to MODIS
 clear vocalsRex;
 
-% to get the data we want, we need to convert the structure to a cell array
-fields = fieldnames(vert_prof);
-vert_prof_cell = struct2cell(vert_prof);
-
-data2keep = cell(1, numel(vert_prof_cell));
-
-
-% step through each field. If its a cell, only keep the index found above
-for ii = 1:length(vert_prof_cell)
-    if iscell(vert_prof_cell{ii})==true
-
-        data2keep{ii} = vert_prof_cell{ii}{index_vertProfs_2keep};
-
-    else
-
-        data2keep{ii} = vert_prof_cell{ii};
-
-    end
-end
-
-% Convert back to a structure and keep the data closest in time to MODIS
-vocalsRex = cell2struct(data2keep, fields, 2);
-
+% Keep only the profiles listed in index_vertProfs_2keep
+vocalsRex = vert_prof(index_vertProfs_2keep);
 
 
 
