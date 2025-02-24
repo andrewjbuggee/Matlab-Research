@@ -77,7 +77,7 @@ ensemble_profiles.inputs.LWC_threshold = 0.03;       % g/m^3
 ensemble_profiles.inputs.stop_at_max_LWC = false;
 
 % define the total number concentration threshold
-ensemble_profiles.inputs.Nc_threshold = 1;       %  #-droplets/cm^3
+ensemble_profiles.inputs.Nc_threshold = 25;       %  #-droplets/cm^3
 
 % if sorting for precipitation, provide a drizzle/precip threshold.
 ensemble_profiles.sort_for_precip_driz = true;
@@ -98,7 +98,7 @@ for nn = 1:length(filename)
     vocalsRex = readVocalsRex([foldername,filename{nn}]);
 
     % find the vertical profiles
-    vert_profs = find_verticalProfiles_VOCALS_REx(vocalsRex, ensemble_profiles.inputs.LWC_threshold,...
+    vert_profs = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, ensemble_profiles.inputs.LWC_threshold,...
         ensemble_profiles.inputs.stop_at_max_LWC, ensemble_profiles.inputs.Nc_threshold);
 
     if ensemble_profiles.sort_for_precip_driz == true

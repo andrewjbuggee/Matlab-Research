@@ -513,6 +513,52 @@ end
 vert_profs(idx2delete) = [];
 
 
+%% If stop_at_max_LWC is true, remove measurements after max LWC for each profile
+
+if stop_at_max_lwc == true
+
+    error([newline, 'The code to cut profiles after max LWC hasnt been tested', newline])
+    
+
+    for nn = 1:length(vert_profs)
+
+        % find index with max LWC
+        [max_lwc, idx_max_lwc] = max(vert_profs(nn).lwc);
+
+
+        for ff = 1:length(fields)
+
+                % now remove all data points outside of the vertical profile
+
+                if numel(vert_profs(nn).(fields{ff}))==length(idx_dz_dt)
+
+                    % all the time data will have be a vector with the same
+                    % length as our calculation of vertical velocity
+
+                    % reshape all fields so that time increases with increasing
+                    % column number (row vector)
+                    vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(1:idx_max_lwc);
+
+
+                elseif numel(vert_profs(nn).(fields{ff}))>length(idx_dz_dt)
+                    % only one field is a matrix with more values than the time
+                    % vector, and thats the matrix for the size distribution,
+                    % with rows representing different size bins and columns
+                    % are along the time dimension
+                    vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(:, 1:idx_max_lwc);
+
+
+                end
+
+
+        end
+
+
+    end
+
+end
+
+
 
 %%
 for nn = 1:length(vert_profs)
