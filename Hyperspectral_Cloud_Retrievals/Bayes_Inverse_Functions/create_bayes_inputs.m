@@ -189,6 +189,16 @@ bayes_inputs.RT.use_VOCALS_cloudTopHeight = true;
 bayes_inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
 % ------------------------------------------------------------------------
 
+
+% ------------------------------------------------------------------------
+% ------- Do you want to modify concentration of Carbon dioxide? ---------
+bayes_inputs.RT.modify_CO2 = true;
+
+bayes_inputs.RT.CO2_mixing_ratio = 416;       % ppm
+% ------------------------------------------------------------------------
+
+
+
 % ------------------------------------------------------------------------
 % -------- Do you want to use the VOCALS measured cloud depth? -----------
 bayes_inputs.RT.use_VOCALS_cloudDepth = true;

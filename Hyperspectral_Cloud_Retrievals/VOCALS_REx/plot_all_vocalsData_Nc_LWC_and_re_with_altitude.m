@@ -10,7 +10,7 @@ fnt_size_ylabel = 25;
 figure; subplot(3,1,1)
 semilogy(double(vocalsRex.time), vocalsRex.total_Nc, 'Color','k'); 
 grid on; grid minor; 
-ylabel('Total $N_c$  $(cm^{3})$','Interpreter','latex', 'Color','k', 'FontSize', fnt_size_ylabel)
+ylabel('Total $N_c$  $(cm^{-3})$','Interpreter','latex', 'Color','k', 'FontSize', fnt_size_ylabel)
 title('VOCALS-REx flight Data', 'Interpreter','latex')
 
 hold on;

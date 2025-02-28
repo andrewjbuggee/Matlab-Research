@@ -217,6 +217,19 @@ for pp = 1:length(pixel_row)
         end
 
 
+
+        % Do you want to modify CO2 concentrations?
+        % ------------------------------------------------------------------------
+        if GN_inputs.RT.modify_CO2==true
+
+            % If true, modify the mixing ratio of carbon dioxide
+            % --------------------------------------------------------------
+            formatSpec = '%s %f %5s %s \n\n';
+            fprintf(fileID, formatSpec,'mixing_ratio CO2 ', GN_inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
+
+        end
+
+
         % Define the surface albedo
         % ------------------------------------------------
         formatSpec = '%s %s %5s %s \n\n';
