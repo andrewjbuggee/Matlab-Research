@@ -89,6 +89,10 @@ inputs.keep_precip_drizzle_profiles = false;             % if false, keep non-pr
 % The threshold is defined as the total 2DC LWP
 inputs.precip_driz_threshold = 5;         % g/m^2
 
+
+% start an empty array
+ensemble_profiles = [];
+
 % Load data
 
 for nn = 1:length(filename)
@@ -103,31 +107,38 @@ for nn = 1:length(filename)
 
     if inputs.sort_for_precip_driz == true
         % sort profiles into those with drizzle/precipitaiton and those without
-        % The index below indicates with profiles meet the threshold
+        % The index below indicates which profiles met the threshold
         % requirements for precipitation
-        index_non_precip_drizzle = sort_vert_profs_for_precipitation(vert_profs, inputs.precip_driz_threshold);
+        indexes_with_precip = sort_vert_profs_for_precipitation(vert_profs, inputs.precip_driz_threshold);
         % Do you wish to keep the profiles with precipitation or those
         % without?
         if inputs.keep_precip_drizzle_profiles==false
             % We want the index values that only pertain to
             % non-precipitating profiles
-            index_non_precip_drizzle = setxor((1:length(vert_profs)), index_non_precip_drizzle);
+            indexes_2keep = setxor((1:length(vert_profs)), indexes_with_precip);
+
+        else
+            indexes_2keep = 1:length(vert_profs);
         end
 
+        % what is the current length of the ensemble profile structure?
+        l = length(ensemble_profiles);
 
         % grab just the variables of interest for from each vertical profile
-        for mm = 1:length(index_non_precip_drizzle)
+        for mm = 1:length(indexes_2keep)
+
+
 
 
 
             % we only have droplet effective radius from both instruments if the 2DC
             % data is non-zero
-            if vert_profs(index_non_precip_drizzle(mm)).flag_2DC_data_is_conforming
+            if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
 
                 % then we have an effective radius that uses data from both instruments
-                ensemble_profiles(nn*mm).re = vert_profs(index_non_precip_drizzle(mm)).re;                          % both instruments
+                ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
                 % and we have an effective radius from just the 2DC data
-                ensemble_profiles(nn*mm).re_2DC = vert_profs(index_non_precip_drizzle(mm)).re_2DC;                   % from the 2DC instrument only
+                ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
 
             else
 
@@ -142,11 +153,8 @@ for nn = 1:length(filename)
 
                     % we don't have an effective radius for the 2DC data
                     % What we we have is the first moment
-                    ensemble_profiles(nn*mm).mean_r_2DC = vert_profs(index_non_precip_drizzle(mm)).mean_r_2DC;            % from the 2DC instrument only
+                    ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
 
-                else
-
-                    ensemble_profiles.mean_r_2DC = vert_profs(index_non_precip_drizzle).mean_r_2DC;
 
                 end
 
@@ -154,73 +162,82 @@ for nn = 1:length(filename)
             end
 
 
-            ensemble_profiles(nn*mm).altitude = vert_profs(index_non_precip_drizzle).altitude;
-            ensemble_profiles(nn*mm).tau = vert_profs(index_non_precip_drizzle).tau;
-            ensemble_profiles(nn*mm).re_CDP = vert_profs(index_non_precip_drizzle).re_CDP;
-            ensemble_profiles(nn*mm).lwc = vert_profs(index_non_precip_drizzle).lwc;
-            ensemble_profiles(nn*mm).lwc_CDP = vert_profs(index_non_precip_drizzle).lwc_CDP;
-            ensemble_profiles(nn*mm).lwc_2DC = vert_profs(index_non_precip_drizzle).lwc_2DC;
-            ensemble_profiles(nn*mm).total_Nc = vert_profs(index_non_precip_drizzle).total_Nc;
-            ensemble_profiles(nn*mm).time = vert_profs(index_non_precip_drizzle).time;
-            ensemble_profiles(nn*mm).Nc_vapor = vert_profs(index_non_precip_drizzle).Nc_vapor;
-            ensemble_profiles(nn*mm).Nc_vapor_partPres = vert_profs(index_non_precip_drizzle).Nc_vapor_partPres;
-
-
+            ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
+            ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
+            ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
+            ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
+            ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
+            ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
+            ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
+            ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
+            ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
+            ensemble_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
 
 
         end
+
+
+
 
 
 
     else
 
-        % *** FIX THIS SEGMENT FOR NEW PROFILES, WHICH ARE NOT CELL ARRAYS
-        % ***
+
+        % what is the current length of the ensemble profile structure?
+        l = length(ensemble_profiles);
+
         % grab just the variables of interest for from each vertical profile
+        for mm = 1:length(indexes_2keep)
 
-        % we only have droplet effective radius from both instruments if the 2DC
-        % data is non-zero
-        if vert_profs(index_non_precip_drizzle(mm)).flag_2DC_data_is_conforming
 
-            % then we have an effective radius that uses data from both instruments
-            ensemble_profiles(nn*mm).re = vert_profs(index_non_precip_drizzle(mm)).re;                          % both instruments
-            % and we have an effective radius from just the 2DC data
-            ensemble_profiles(nn*mm).re_2DC = vert_profs(index_non_precip_drizzle(mm)).re_2DC;                   % from the 2DC instrument only
 
-        else
+            % we only have droplet effective radius from both instruments if the 2DC
+            % data is non-zero
+            if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
 
-            % we don't have an effective radius for the 2DC data
-            % What we we have is the first moment
-            % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
-            % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
-            % VERY LOW VALUE
-
-            % check to see if this field exists
-            if isfield(ensemble_profiles, 'mean_r_2DC')==true
-
-                % we don't have an effective radius for the 2DC data
-                % What we we have is the first moment
-                ensemble_profiles(nn*mm).mean_r_2DC = vert_profs(index_non_precip_drizzle(mm)).mean_r_2DC;            % from the 2DC instrument only
+                % then we have an effective radius that uses data from both instruments
+                ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
+                % and we have an effective radius from just the 2DC data
+                ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
 
             else
 
-                ensemble_profiles.mean_r_2DC = vert_profs(index_non_precip_drizzle).mean_r_2DC;
+                % we don't have an effective radius for the 2DC data
+                % What we we have is the first moment
+                % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
+                % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
+                % VERY LOW VALUE
+
+                % check to see if this field exists
+                if isfield(ensemble_profiles, 'mean_r_2DC')==true
+
+                    % we don't have an effective radius for the 2DC data
+                    % What we we have is the first moment
+                    ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
+
+
+                end
+
 
             end
 
 
+            ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
+            ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
+            ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
+            ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
+            ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
+            ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
+            ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
+            ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
+            ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
+            ensemble_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
+
+
         end
 
-        ensemble_profiles(nn*mm).altitude = vert_profs.altitude;
-        ensemble_profiles(nn*mm).tau = vert_profs.tau;
-        ensemble_profiles(nn*mm).re_CDP = vert_profs.re_CDP;
-        ensemble_profiles(nn*mm).lwc = vert_profs.lwc;
-        ensemble_profiles(nn*mm).lwc_CDP = vert_profs.lwc_CDP;
-        ensemble_profiles(nn*mm).lwc_2DC = vert_profs.lwc_2DC;
-        ensemble_profiles(nn*mm).total_Nc = vert_profs.total_Nc;
-        ensemble_profiles(nn*mm).time = vert_profs.time;
-        ensemble_profiles(nn*mm).Nc_vapor = vert_profs.Nc_vapor;
-        ensemble_profiles(nn*mm).Nc_vapor_partPres = vert_profs.Nc_vapor_partPres;
+
 
 
 
@@ -248,7 +265,7 @@ if inputs.sort_for_precip_driz==true
         save([foldername,'ensemble_profiles_without_precip_from_',num2str(length(filename)), '_files_LWC-threshold_',...
             num2str(inputs.LWC_threshold), '_Nc-threshold_',...
             num2str(inputs.Nc_threshold), '_drizzleLWP-threshold_',...
-            num2str(precip_driz_threshold),'_',char(datetime("today")),'.mat'],...
+            num2str(inputs.precip_driz_threshold),'_',char(datetime("today")),'.mat'],...
             'ensemble_profiles', 'filename')
 
     end
@@ -294,8 +311,8 @@ for nn = 1:length(ensemble_profiles.re)
             increasing_profiles.lwc = ensemble_profiles.lwc(nn);
             increasing_profiles.total_Nc = ensemble_profiles.total_Nc(nn);
             increasing_profiles.time = ensemble_profiles.time(nn);
-            increasing_profiles(nn*mm).Nc_vapor = vert_profs(index_non_precip_drizzle).Nc_vapor;
-            increasing_profiles(nn*mm).Nc_vapor_partPres = vert_profs(index_non_precip_drizzle).Nc_vapor_partPres;
+            increasing_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
+            increasing_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
 
         else
 
@@ -349,14 +366,14 @@ decreasing_profiles.lwc_threshold = inputs.LWC_threshold;
 
 %% Plot a histogram of the optical depths and the geometric depths
 
-cloud_optical_depth = zeros(1, length(ensemble_profiles.tau));
-cloud_geometric_thickness = zeros(1, length(ensemble_profiles.altitude));
+cloud_optical_depth = zeros(1, length(ensemble_profiles));
+cloud_geometric_thickness = zeros(1, length(ensemble_profiles));
 
 
-for nn = 1:length(ensemble_profiles.tau)
+for nn = 1:length(ensemble_profiles)
 
-    cloud_optical_depth(nn) = ensemble_profiles.tau{nn}(end);
-    cloud_geometric_thickness(nn) = abs(ensemble_profiles.altitude{nn}(1) - ensemble_profiles.altitude{nn}(end));
+    cloud_optical_depth(nn) = ensemble_profiles(nn).tau(end);
+    cloud_geometric_thickness(nn) = abs(ensemble_profiles(mm).altitude(1) - ensemble_profiles(nn).altitude(end));
 
 end
 
@@ -394,13 +411,13 @@ bin_edges = 0:1/n_bins:1;
 vertically_segmented_attributes = cell(n_bins, 3);
 
 
-normalized_tau = cell(1, length(ensemble_profiles.altitude));
+normalized_tau = cell(1, length(ensemble_profiles));
 
 
-for nn = 1:length(ensemble_profiles.altitude)
+for nn = 1:length(ensemble_profiles)
 
     % first we need to normalize the vertical component of all profiles
-    normalized_tau{nn} = ensemble_profiles.tau{nn}./ensemble_profiles.tau{nn}(end);
+    normalized_tau{nn} = ensemble_profiles(nn).tau./ensemble_profiles(nn).tau(end);
 
     % the data is stored in altitude space. If we wish to have the data
     % oriented in optical depth space, we need to reverse the order,
@@ -410,19 +427,29 @@ for nn = 1:length(ensemble_profiles.altitude)
     % We want all data oriented in tau space. So look for ascending
     % profiles, and flip the vector. If the plane is descending, we don't
     % need to do anything
-    if mean(diff(ensemble_profiles.altitude{nn})./diff(ensemble_profiles.time{nn}))>0
+    if mean(diff(ensemble_profiles(nn).altitude)./diff(ensemble_profiles(nn).time))>0
         % if true, then the plane is ascending, grab and flip the variables
         % of interest
-        re = flipud(ensemble_profiles.re{nn});
-        lwc = flipud(ensemble_profiles.lwc{nn});
-        Nc = flipud(ensemble_profiles.total_Nc{nn});
+        if isempty(ensemble_profiles(nn).re)==true
+            re = fliplr(ensemble_profiles(nn).re_CDP);
+        else
+            re = fliplr(ensemble_profiles(nn).re);
+        end
+
+        lwc = fliplr(ensemble_profiles(nn).lwc);
+        Nc = fliplr(ensemble_profiles(nn).total_Nc);
 
     else
         % if false, then the plane is descending, just grab the variables
         % of interest
-        re = ensemble_profiles.re{nn};
-        lwc = ensemble_profiles.lwc{nn};
-        Nc = ensemble_profiles.total_Nc{nn};
+        if isempty(ensemble_profiles(nn).re)==true
+            re = ensemble_profiles(nn).re_CDP;
+        else
+            re = ensemble_profiles(nn).re;
+        end
+
+        lwc = ensemble_profiles(nn).lwc;
+        Nc = ensemble_profiles(nn).total_Nc;
 
     end
 
@@ -445,13 +472,13 @@ for nn = 1:length(ensemble_profiles.altitude)
         end
 
         % store the effective radius values
-        vertically_segmented_attributes{bb, 1} = [vertically_segmented_attributes{bb, 1}; re(index_segment)];
+        vertically_segmented_attributes{bb, 1} = [vertically_segmented_attributes{bb, 1}, re(index_segment)];
 
         % store the liquid water content values
-        vertically_segmented_attributes{bb, 2} = [vertically_segmented_attributes{bb, 2}; lwc(index_segment)];
+        vertically_segmented_attributes{bb, 2} = [vertically_segmented_attributes{bb, 2}, lwc(index_segment)];
 
         % store the total droplet number concentration values
-        vertically_segmented_attributes{bb, 3} = [vertically_segmented_attributes{bb, 3}; Nc(index_segment)];
+        vertically_segmented_attributes{bb, 3} = [vertically_segmented_attributes{bb, 3}, Nc(index_segment)];
 
 
 
@@ -934,8 +961,8 @@ re_bottom_median = median(vertically_segmented_attributes{end,1});
 
 for nn = 1:length(ensemble_profiles.re)
 
-    diff_top_bottom_1(nn) = ensemble_profiles.re{nn}(1) - ensemble_profiles.re{nn}(end);
-    diff_top_bottom_2(nn) = ensemble_profiles.re{nn}(2) - ensemble_profiles.re{nn}(end);
+    diff_top_bottom_1(nn) = ensemble_profiles.re(1) - ensemble_profiles.re(end);
+    diff_top_bottom_2(nn) = ensemble_profiles.re(2) - ensemble_profiles.re(end);
 
 end
 
@@ -950,7 +977,7 @@ LWP = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.lwc)
 
-    LWP(nn) = abs(trapz(ensemble_profiles.altitude{nn}, ensemble_profiles.lwc{nn}));
+    LWP(nn) = abs(trapz(ensemble_profiles.altitude, ensemble_profiles.lwc));
 
 end
 
@@ -1006,7 +1033,7 @@ LWP = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.lwc)
 
-    LWP(nn) = abs(trapz(ensemble_profiles.altitude{nn}, ensemble_profiles.lwc{nn}));
+    LWP(nn) = abs(trapz(ensemble_profiles.altitude, ensemble_profiles.lwc));
 
 end
 
@@ -1058,7 +1085,7 @@ tau = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.tau)
 
-    tau(nn) = ensemble_profiles.tau{nn}(end);
+    tau(nn) = ensemble_profiles.tau(end);
 
 end
 
