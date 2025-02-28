@@ -527,7 +527,7 @@ vert_profs_vapor(idx2delete) = [];
 % let's find the indexes before and after each vertical in-situ cloud
 % sampling where the plane started and ended it's ascent/descent
 
-n_window = 30;
+n_window = 5;
 % append a zero to the end so it has the same length as the original time
 % vector
 dz_dt_mean = [movmean(dz_dt,n_window), 0];
@@ -550,6 +550,10 @@ for nn = 1:length(vert_profs_vapor)
         % find the first index after to the end of our vertical profile
         % where the plane was not ascending (dz/dt<=0)
         idx_dz_dt_less_than0_after = find(dz_dt_mean(vert_profs_vapor(nn).time(end):end)<=0);
+
+        
+
+    end
 
 
 
