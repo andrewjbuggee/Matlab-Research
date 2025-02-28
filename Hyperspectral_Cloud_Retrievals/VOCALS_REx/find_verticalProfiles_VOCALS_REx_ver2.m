@@ -151,11 +151,30 @@ for nn = 1:length(idx_1)
     % of values can be in the hundreds over a few data points, skewing the
     % average significantly. For LWC we can use the average since the range
     % is much smaller
-    before_profile_below_thresholds = median(vocalsRex.total_Nc(idx_1(nn)-num_ba:idx_1(nn)-1)) < Nc_threshold & ...
-        mean(vocalsRex.lwc(idx_1(nn)-num_ba:idx_1(nn)-1)) < LWC_threshold;
 
-    after_profile_below_thresholds = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < Nc_threshold & ...
-        mean(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < LWC_threshold;
+    % check if idx_1(nn)-num_ba is a positive number
+    if (idx_1(nn)-num_ba)>0
+
+        before_profile_below_thresholds = median(vocalsRex.total_Nc(idx_1(nn)-num_ba:idx_1(nn)-1)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(idx_1(nn)-num_ba:idx_1(nn)-1)) < LWC_threshold;
+
+    else
+        % Start from index 1
+        before_profile_below_thresholds = median(vocalsRex.total_Nc(1:idx_1(nn)-1)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(1:idx_1(nn)-1)) < LWC_threshold;
+    end
+
+    % check if idx_cloud_boundary+num_ba>length of data set
+    if (idx_cloud_boundary+num_ba)<length(vocalsRex.time)
+
+        after_profile_below_thresholds = median(vocalsRex.total_Nc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(idx_cloud_boundary+1:idx_cloud_boundary+num_ba)) < LWC_threshold;
+
+    else
+        % end at the last index
+        after_profile_below_thresholds = median(vocalsRex.total_Nc(idx_cloud_boundary+1:end)) < Nc_threshold & ...
+            mean(vocalsRex.lwc(idx_cloud_boundary+1:end)) < LWC_threshold;
+    end
 
     % The above logical statements tend discard layered cloud systems where
     % there is a very short decrease in the total number concentration and

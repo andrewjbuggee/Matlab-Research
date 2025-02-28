@@ -22,7 +22,12 @@ ylabel('Altitude ($m$)','Interpreter','latex', 'FontSize', fnt_size_ylabel)
 ax1 = gca;
 
 s2 = subplot(3,1,2);
-plot(double(vocalsRex.time), vocalsRex.re, 'Color', mySavedColors(18, 'fixed')); 
+if vocalsRex.flag_2DC_data_is_conforming==true
+    plot(double(vocalsRex.time), vocalsRex.re, 'Color', mySavedColors(18, 'fixed')); 
+
+else
+    plot(double(vocalsRex.time), vocalsRex.re_CDP, 'Color', mySavedColors(18, 'fixed')); 
+end
 set(s2,'YColor', mySavedColors(18, 'fixed'));
 grid on; grid minor; 
 %xlabel('Time (Seconds since Takeoff)','Interpreter','latex')

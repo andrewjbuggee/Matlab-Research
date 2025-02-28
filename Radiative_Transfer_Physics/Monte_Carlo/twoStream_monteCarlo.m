@@ -212,23 +212,6 @@ for nn = 1:N_photons
             % t=0
             depth_travelled{nn}(end+1) = direction{nn}(end)*tau_sample + depth_travelled{nn}(end);
 
-            % ------------------------------------------------------
-            % ----- Check to see what layer is our photon in!! -----
-            % ------------------------------------------------------
-            if N_layers>1
-                I_lessThan = find(layerBoundaries<depth_travelled{nn}(end));
-                I_greaterThan = find(layerBoundaries>depth_travelled{nn}(end));
-
-                % set the index describing which layer the photon is in
-                index_layer = I_lessThan(end);
-
-            else
-
-                % the index layer is 1, since there is only 1
-                index_layer = 1;
-
-            end
-            % ------------------------------------------------------
 
 
         else
@@ -248,6 +231,25 @@ for nn = 1:N_photons
 
 
         end
+
+
+        % ------------------------------------------------------
+        % ----- Check to see what layer is our photon in!! -----
+        % ------------------------------------------------------
+        if N_layers>1
+            I_lessThan = find(layerBoundaries<depth_travelled{nn}(end));
+            I_greaterThan = find(layerBoundaries>depth_travelled{nn}(end));
+
+            % set the index describing which layer the photon is in
+            index_layer = I_lessThan(end);
+
+        else
+
+            % the index layer is 1, since there is only 1
+            index_layer = 1;
+
+        end
+        % ------------------------------------------------------
 
 
 

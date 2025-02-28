@@ -9,7 +9,7 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_lower_limit = 0;
-inputs.tau_upper_limit = 5;
+inputs.tau_upper_limit = 0.5;
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -31,7 +31,7 @@ inputs.N_layers = length(inputs.layerRadii);
 inputs.layerBoundaries = linspace(inputs.tau_lower_limit, inputs.tau_upper_limit, inputs.N_layers +1);
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e6;
+inputs.N_photons = 1e5;
 
 
 %%  MIE CALCULATIONS
@@ -112,7 +112,7 @@ inputs.g = ds.asymParam;
 % ----- Override ssa and g values ------
 % --------------------------------------
 inputs.ssa = 1;
-inputs.g = 0;
+inputs.g = 0.85;
 % --------------------------------------
 
 

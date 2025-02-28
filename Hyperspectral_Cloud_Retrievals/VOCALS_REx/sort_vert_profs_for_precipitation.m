@@ -22,9 +22,9 @@ function [index_precip_drizzle] = sort_vert_profs_for_precipitation(vert_profs, 
 
 index_precip_drizzle = [];
 
-for nn = 1:length(vert_profs.lwp_2DC)
+for nn = 1:length(vert_profs)
 
-    if vert_profs.lwp_2DC{nn}>precipitation_drizzle_threshold
+    if vert_profs(nn).lwp_2DC>precipitation_drizzle_threshold
         index_precip_drizzle = [index_precip_drizzle, nn];
     end
 
@@ -36,9 +36,9 @@ end
 
 % index_precipitation = [];
 % 
-% for nn = 1:length(vert_profs.lwp_2DC)
+% for nn = 1:length(vert_profs(nn).lwp_2DC)
 % 
-%     if vert_profs.lwp_2DC{nn}>vert_profs.lwp_CDP{ii}
+%     if vert_profs(nn).lwp_2DC{nn}>vert_profs(nn).lwp_CDP{ii}
 %         index_precipitation = [index_precipitation, nn];
 %     end
 % 

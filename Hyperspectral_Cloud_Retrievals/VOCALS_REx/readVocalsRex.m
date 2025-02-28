@@ -548,14 +548,21 @@ if flag_2DC_data_is_conforming==true
     droplet_matrix_center(index_r_cdp, :) = droplet_matrix_center(index_r_cdp,:)./...
                                 repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
 
+    % *** 0 divided by 0 gives NaN. Set these values to zero ****
     re = double(sum(droplet_matrix_center.^3 .* Nc, 1)./sum(droplet_matrix_center.^2 .* Nc,1) * 1e4);                 % microns
 
+    % set NaN values to 0
+    re(isnan(re)) = 0;
 
 
     % ------------------ Re CDP ---------------------
     % compute the effective radius using only CDP data
     re_CDP = double(sum(droplet_matrix_center(index_r_cdp,:).^3 .* Nc(index_r_cdp, :), 1)./...
         sum(droplet_matrix_center(index_r_cdp, :).^2 .* Nc(index_r_cdp, :),1) * 1e4);                 % microns
+
+    % *** 0 divided by 0 gives NaN. Set these values to zero ****
+    % set NaN values to 0
+    re_CDP(isnan(re_CDP)) = 0;
 
     %     if strcmp(filename(end-39:end-35), 'SPS_1')==true
     %             % If we wish to read in 1Hz data, take the median at each time
@@ -595,6 +602,10 @@ if flag_2DC_data_is_conforming==true
     re_2DC = double(sum(droplet_matrix_center(~index_r_cdp, :).^3 .* Nc(~index_r_cdp, :), 1)./...
         sum(droplet_matrix_center(~index_r_cdp, :).^2 .* Nc(~index_r_cdp, :),1) * 1e4);                 % microns
 
+    % *** 0 divided by 0 gives NaN. Set these values to zero ****
+    % set NaN values to 0
+    re_2DC(isnan(re_2DC)) = 0;
+
 
 
 
@@ -607,8 +618,8 @@ else
 
     if sum(num_concentration_2DC, "all")==0
 
-        % then the 2DC matrix was defined as an array of zeros
-        % we can compute the effective radius for the 2DC instrument and
+        % then the 2DC matrix was defined as an array of zeros.
+        % We can compute the effective radius for the 2DC instrument and
         % the CDP instrument seperately, but not together
 
         % HOWEVER, if the entire 2DC number concentration data set consists
@@ -641,7 +652,7 @@ else
         % CDP measurements.
         lwc_PV100 = reshape(ncread(filename, 'XGLWC'), 1, []);                         % g/m^3 - Gerber PV-100 Probe Liquid Water Content
 
-        % Set values less than 0 to be 0
+        % Set values less than 0 to be 0. No negative values allowed
         lwc_PV100(lwc_PV100<0) = 0;
         % ------------------------- CDP LWC ----------------------------
 
@@ -657,26 +668,18 @@ else
         % set NaN values to 1
         a(isnan(a)) = 1;
 
-        % compute the new LWC_CDP values
-        lwc_CDP = lwc_CDP./a;
+        % set the inf calues to 1
+        a(a==inf) = 1;
+
+        % set zero values to be 1
+        a(a==0) = 1;
+
+        % Compute the corrected LWC values for the CDP instrument
+        % According to Painemal and Zuidema 2011 pg 4, use a to correct the LWC
+        % bias by creating a modified center radius r' = (r/a^(1/3))
+        lwc_CDP = double( 4/3 * pi *  rho_lw * sum(Nc(index_r_cdp, :) .* (droplet_matrix_center(index_r_cdp, :)./a.^(1/3)).^3,1) );     % grams of liquid water/meter cubed of air
 
 
-
-
-        % we have to convert re to cm in order to have the finals units be in grams
-        % per meter cubed
-
-        %         if strcmp(filename(end-39:end-35), 'SPS_1')==true
-        %             % If we wish to read in 1Hz data, take the median at each time
-        %             % step.
-        %             lwc_CDP = ncread(filename, 'PLWCD_RWO');            % g/m^3
-        %             lwc_CDP = median(lwc_CDP, 1);
-        %
-        %         elseif strcmp(filename(end-40:end-35), 'SPS_25')==true
-        %             % If we wish to have 10 Hz data (of which the files are labeled
-        %             % SPS 25, then we simply read in all data
-        %             lwc_CDP = reshape(ncread(filename, 'PLWCD_RWO'), 1, []);
-        %         end
 
         % compute the total liquid water content
         % Check to see if the data is SPS1 or SPS10
@@ -696,25 +699,26 @@ else
         % CDP meausred LWC, which tends to be over estimated, and the King hot
         % wire probe LWC, which in our case is the Gerber PV-100 LWC. The
         % radius correction only applies for the CDP instrument bins.
-    
+
         droplet_matrix_center(index_r_cdp, :) = droplet_matrix_center(index_r_cdp,:)./...
-                                    repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
+            repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
+
+        % *** 0 divided by 0 gives NaN. Set these values to zero ****
+        re = double(sum(droplet_matrix_center.^3 .* Nc, 1)./sum(droplet_matrix_center.^2 .* Nc,1) * 1e4);                 % microns
+
+        % set NaN values to 0
+        re(isnan(re)) = 0;
 
 
-        re_CDP = double(sum(droplet_matrix_center.^3 .* Nc, 1)./sum(droplet_matrix_center.^2 .* Nc,1) * 1e4);      % microns
+        % ------------------ Re CDP ---------------------
+        % compute the effective radius using only CDP data
+        re_CDP = double(sum(droplet_matrix_center(index_r_cdp,:).^3 .* Nc(index_r_cdp, :), 1)./...
+            sum(droplet_matrix_center(index_r_cdp, :).^2 .* Nc(index_r_cdp, :),1) * 1e4);                 % microns
 
-        % reshape stacks columns. Check to see if this is sps1 or sps25
-        %         if strcmp(filename(end-39:end-35), 'SPS_1')==true
-        %             % If we wish to read in 1Hz data, take the median at each time
-        %             % step.
-        %             re_CDP = ncread(filename, 'REFFD_RWO');
-        %             re_CDP = median(re_CDP, 1);
-        %
-        %         elseif strcmp(filename(end-40:end-35), 'SPS_25')==true
-        %             % If we wish to have 10 Hz data (of which the files are labeled
-        %             % SPS 25, then we simply read in all data
-        %             re_CDP = reshape(ncread(filename, 'REFFD_RWO'), 1, []);
-        %         end
+        % *** 0 divided by 0 gives NaN. Set these values to zero ****
+        % set NaN values to 0
+        re_CDP(isnan(re_CDP)) = 0;
+
 
 
         % ------------------------------------------------------------------

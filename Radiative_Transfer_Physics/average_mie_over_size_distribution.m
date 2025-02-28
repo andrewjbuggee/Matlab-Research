@@ -151,8 +151,14 @@ if strcmp(distribution_type, 'gamma')==true
     % single mie calculation
     % set the total number concentration to be 1
     N0 = 1;
-    %r = linspace(min(r_eff)/100, max(r_eff)*10, 300);
-    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(1), distribution_var(1), N0);
+    
+    % Use the frsit value of r_eff, but make sure r_eff is non zero
+    rr = 1;
+    while r_eff(rr)==0
+            rr = rr+1;
+    end
+    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+
 
 
     % Define the size of the scatterer and its scattering properties
@@ -160,9 +166,11 @@ if strcmp(distribution_type, 'gamma')==true
     % The radius input is defined as [r_start, r_end, r_step].
     % where r_step is the interval between radii values (used only for
     % vectors of radii). A 0 tells the code there is no step. Finally, the
-    % radius values have to be in increasing order.
+    % radii values have to be in increasing order.
 
-    % **** This often creates a vector less than the original length ***
+    % **** The above r vector is often a different length than the vector created by libRadtran ****
+    % libRadtran creates a radius vector using three inputs. Sometimes the
+    % created vector is not the same length as the vector r.
     % This happens due to rounding errors. Check to make sure this doesn't
     % happen
 
