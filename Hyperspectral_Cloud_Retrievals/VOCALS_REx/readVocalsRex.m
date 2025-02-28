@@ -363,15 +363,15 @@ altitude = reshape(altitude, 1, length(altitude));
 % -------------------------------------------------------------------------
 % ------------------ Grab the ambient air temperature ---------------------
 % -------------------------------------------------------------------------
-ambient_air_temp = ncread(filename, 'ATX');                                          % C - ambient air tempertaure
+ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                                          % C - ambient air tempertaure
 
 
 % -------------------------------------------------------------------------
 % --------------- Grab different water vapor measurements ---------------
 % -------------------------------------------------------------------------
-water_vapor_pressure = ncread(filename, 'EDPUV');                                    % hPa - ambient water vapor pressure
-mixing_ratio = ncread(filename, 'MR');                                           % g of water vapor/kg of dry air - water vapor mixing ratio
-absolute_humidity = ncread(filename, 'RHODT');                                   % g of water vapor/m^3 of air - absolute humidity
+water_vapor_pressure = reshape(ncread(filename, 'EDPUV'), 1, []);                                % hPa - ambient water vapor pressure
+mixing_ratio = reshape(ncread(filename, 'MR'), 1, []);                                           % g of water vapor/kg of dry air - water vapor mixing ratio
+absolute_humidity = reshape(ncread(filename, 'RHODT'), 1, []);                                   % g of water vapor/m^3 of air - absolute humidity
 
 
 
@@ -768,10 +768,10 @@ vocalsRex.Nc_vapor = absolute_humidity .* (con.N_A/(con.Mol_mass_h20_vap*1e3)); 
 vocalsRex.Nc_vapor = vocalsRex.Nc_vapor ./ 1e6;                                             % # of molecules/cm^3
 
 % try computing number concentration from the partial pressure as well
-vocalsRex.Nc_vapor_pp = (water_vapor_pressure.*1e2) .* (con.N_A./(con.R_uni * (ambient_air_temp + 273.15)));     % # of molecules / m^3
+vocalsRex.Nc_vapor_partPres = (water_vapor_pressure.*1e2) .* (con.N_A./(con.R_uni * (ambient_air_temp + 273.15)));     % # of molecules / m^3
 
 % convert units to inverse cubic cm
-vocalsRex.Nc_vapor_pp = vocalsRex.Nc_vapor_pp ./ 1e6;                                       % # of molecules/cm^3
+vocalsRex.Nc_vapor_partPres = vocalsRex.Nc_vapor_partPres ./ 1e6;                            % # of molecules/cm^3
 
 
 

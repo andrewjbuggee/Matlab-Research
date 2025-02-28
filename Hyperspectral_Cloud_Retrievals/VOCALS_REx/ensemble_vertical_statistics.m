@@ -71,23 +71,23 @@ end
 % --------------------------------------------------------
 
 % define the LWC threshold
-ensemble_profiles.inputs.LWC_threshold = 0.03;       % g/m^3
+inputs.LWC_threshold = 0.03;       % g/m^3
 
 % do you want to cut off the profile at the maximum LWC value?
-ensemble_profiles.inputs.stop_at_max_LWC = false;
+inputs.stop_at_max_LWC = false;
 
 % define the total number concentration threshold
-ensemble_profiles.inputs.Nc_threshold = 25;       %  #-droplets/cm^3
+inputs.Nc_threshold = 25;       %  #-droplets/cm^3
 
 % if sorting for precipitation, provide a drizzle/precip threshold.
-ensemble_profiles.sort_for_precip_driz = true;
+inputs.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-ensemble_profiles.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
+inputs.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
-ensemble_profiles.precip_driz_threshold = 5;         % g/m^2
+inputs.precip_driz_threshold = 5;         % g/m^2
 
 % Load data
 
@@ -98,17 +98,17 @@ for nn = 1:length(filename)
     vocalsRex = readVocalsRex([foldername,filename{nn}]);
 
     % find the vertical profiles
-    vert_profs = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, ensemble_profiles.inputs.LWC_threshold,...
-        ensemble_profiles.inputs.stop_at_max_LWC, ensemble_profiles.inputs.Nc_threshold);
+    vert_profs = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, inputs.LWC_threshold,...
+        inputs.stop_at_max_LWC, inputs.Nc_threshold);
 
-    if ensemble_profiles.sort_for_precip_driz == true
+    if inputs.sort_for_precip_driz == true
         % sort profiles into those with drizzle/precipitaiton and those without
         % The index below indicates with profiles meet the threshold
         % requirements for precipitation
-        index_non_precip_drizzle = sort_vert_profs_for_precipitation(vert_profs, ensemble_profiles.precip_driz_threshold);
+        index_non_precip_drizzle = sort_vert_profs_for_precipitation(vert_profs, inputs.precip_driz_threshold);
         % Do you wish to keep the profiles with precipitation or those
         % without?
-        if ensemble_profiles.keep_precip_drizzle_profiles==false
+        if inputs.keep_precip_drizzle_profiles==false
             % We want the index values that only pertain to
             % non-precipitating profiles
             index_non_precip_drizzle = setxor((1:length(vert_profs)), index_non_precip_drizzle);
@@ -162,6 +162,8 @@ for nn = 1:length(filename)
             ensemble_profiles(nn*mm).lwc_2DC = vert_profs(index_non_precip_drizzle).lwc_2DC;
             ensemble_profiles(nn*mm).total_Nc = vert_profs(index_non_precip_drizzle).total_Nc;
             ensemble_profiles(nn*mm).time = vert_profs(index_non_precip_drizzle).time;
+            ensemble_profiles(nn*mm).Nc_vapor = vert_profs(index_non_precip_drizzle).Nc_vapor;
+            ensemble_profiles(nn*mm).Nc_vapor_partPres = vert_profs(index_non_precip_drizzle).Nc_vapor_partPres;
 
 
 
@@ -171,37 +173,56 @@ for nn = 1:length(filename)
 
 
     else
-    
+
         % *** FIX THIS SEGMENT FOR NEW PROFILES, WHICH ARE NOT CELL ARRAYS
         % ***
         % grab just the variables of interest for from each vertical profile
-        if nn==1
 
-            ensemble_profiles.altitude = vert_profs.altitude;
-            ensemble_profiles.tau = vert_profs.tau;
-            ensemble_profiles.re = vert_profs.re;
-            ensemble_profiles.re_CDP = vert_profs.re_CDP;
-            ensemble_profiles.re_2DC = vert_profs.re_2DC;
-            ensemble_profiles.lwc = vert_profs.lwc;
-            ensemble_profiles.lwc_CDP = vert_profs.lwc_CDP;
-            ensemble_profiles.lwc_2DC = vert_profs.lwc_2DC;
-            ensemble_profiles.total_Nc = vert_profs.total_Nc;
-            ensemble_profiles.time = vert_profs.time;
+        % we only have droplet effective radius from both instruments if the 2DC
+        % data is non-zero
+        if vert_profs(index_non_precip_drizzle(mm)).flag_2DC_data_is_conforming
+
+            % then we have an effective radius that uses data from both instruments
+            ensemble_profiles(nn*mm).re = vert_profs(index_non_precip_drizzle(mm)).re;                          % both instruments
+            % and we have an effective radius from just the 2DC data
+            ensemble_profiles(nn*mm).re_2DC = vert_profs(index_non_precip_drizzle(mm)).re_2DC;                   % from the 2DC instrument only
 
         else
 
-            ensemble_profiles.altitude = [ensemble_profiles.altitude, vert_profs.altitude];
-            ensemble_profiles.tau = [ensemble_profiles.tau, vert_profs.tau];
-            ensemble_profiles.re = [ensemble_profiles.re, vert_profs.re];
-            ensemble_profiles.re_CDP = [ensemble_profiles.re_CDP, vert_profs.re_CDP];
-            ensemble_profiles.re_2DC = [ensemble_profiles.re_2DC, vert_profs.re_2DC];
-            ensemble_profiles.lwc = [ensemble_profiles.lwc, vert_profs.lwc];
-            ensemble_profiles.lwc_CDP = [ensemble_profiles.lwc_CDP, vert_profs.lwc_CDP];
-            ensemble_profiles.lwc_2DC = [ensemble_profiles.lwc_2DC, vert_profs.lwc_2DC];
-            ensemble_profiles.total_Nc = [ensemble_profiles.total_Nc, vert_profs.total_Nc];
-            ensemble_profiles.time = [ensemble_profiles.time, vert_profs.time];
+            % we don't have an effective radius for the 2DC data
+            % What we we have is the first moment
+            % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
+            % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
+            % VERY LOW VALUE
+
+            % check to see if this field exists
+            if isfield(ensemble_profiles, 'mean_r_2DC')==true
+
+                % we don't have an effective radius for the 2DC data
+                % What we we have is the first moment
+                ensemble_profiles(nn*mm).mean_r_2DC = vert_profs(index_non_precip_drizzle(mm)).mean_r_2DC;            % from the 2DC instrument only
+
+            else
+
+                ensemble_profiles.mean_r_2DC = vert_profs(index_non_precip_drizzle).mean_r_2DC;
+
+            end
+
 
         end
+
+        ensemble_profiles(nn*mm).altitude = vert_profs.altitude;
+        ensemble_profiles(nn*mm).tau = vert_profs.tau;
+        ensemble_profiles(nn*mm).re_CDP = vert_profs.re_CDP;
+        ensemble_profiles(nn*mm).lwc = vert_profs.lwc;
+        ensemble_profiles(nn*mm).lwc_CDP = vert_profs.lwc_CDP;
+        ensemble_profiles(nn*mm).lwc_2DC = vert_profs.lwc_2DC;
+        ensemble_profiles(nn*mm).total_Nc = vert_profs.total_Nc;
+        ensemble_profiles(nn*mm).time = vert_profs.time;
+        ensemble_profiles(nn*mm).Nc_vapor = vert_profs.Nc_vapor;
+        ensemble_profiles(nn*mm).Nc_vapor_partPres = vert_profs.Nc_vapor_partPres;
+
+
 
     end
 
@@ -211,23 +232,23 @@ end
 
 
 % save the ensemble profiles
-if ensemble_profiles.sort_for_precip_driz==true
+if inputs.sort_for_precip_driz==true
 
-    if ensemble_profiles.keep_precip_drizzle_profiles==true
+    if inputs.keep_precip_drizzle_profiles==true
 
 
 
         save([foldername,'ensemble_profiles_with_precip_from_',num2str(length(filename)), '_files_LWC-threshold_',...
-            num2str(ensemble_profiles.inputs.LWC_threshold), '_Nc-threshold_',...
-            num2str(ensemble_profiles.inputs.Nc_threshold), '_',char(datetime("today")),'.mat'],...
+            num2str(inputs.LWC_threshold), '_Nc-threshold_',...
+            num2str(inputs.Nc_threshold), '_',char(datetime("today")),'.mat'],...
             'ensemble_profiles', 'filename')
 
     else
 
         save([foldername,'ensemble_profiles_without_precip_from_',num2str(length(filename)), '_files_LWC-threshold_',...
-            num2str(ensemble_profiles.inputs.LWC_threshold), '_Nc-threshold_',...
-            num2str(ensemble_profiles.inputs.Nc_threshold), '_drizzleLWP-threshold_',...
-            num2str(ensemble_profiles.precip_driz_threshold),'_',char(datetime("today")),'.mat'],...
+            num2str(inputs.LWC_threshold), '_Nc-threshold_',...
+            num2str(inputs.Nc_threshold), '_drizzleLWP-threshold_',...
+            num2str(precip_driz_threshold),'_',char(datetime("today")),'.mat'],...
             'ensemble_profiles', 'filename')
 
     end
@@ -236,8 +257,8 @@ else
 
 
     save([foldername,'ensemble_profiles_from_',num2str(length(filename)), '_files_LWC-threshold_',...
-        num2str(ensemble_profiles.inputs.LWC_threshold), '_Nc-threshold_',...
-        num2str(ensemble_profiles.inputs.Nc_threshold), '_',char(datetime("today")),'.mat'],...
+        num2str(inputs.LWC_threshold), '_Nc-threshold_',...
+        num2str(inputs.Nc_threshold), '_',char(datetime("today")),'.mat'],...
         'ensemble_profiles', 'filename')
 
 end
@@ -273,6 +294,8 @@ for nn = 1:length(ensemble_profiles.re)
             increasing_profiles.lwc = ensemble_profiles.lwc(nn);
             increasing_profiles.total_Nc = ensemble_profiles.total_Nc(nn);
             increasing_profiles.time = ensemble_profiles.time(nn);
+            increasing_profiles(nn*mm).Nc_vapor = vert_profs(index_non_precip_drizzle).Nc_vapor;
+            increasing_profiles(nn*mm).Nc_vapor_partPres = vert_profs(index_non_precip_drizzle).Nc_vapor_partPres;
 
         else
 
@@ -318,8 +341,8 @@ end
 
 % store the LWC threshold
 
-increasing_profiles.lwc_threshold = ensemble_profiles.inputs.LWC_threshold;
-decreasing_profiles.lwc_threshold = ensemble_profiles.inputs.LWC_threshold;
+increasing_profiles.lwc_threshold = inputs.LWC_threshold;
+decreasing_profiles.lwc_threshold = inputs.LWC_threshold;
 
 
 
