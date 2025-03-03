@@ -181,35 +181,35 @@ for nn = 1:length(idx_1)
         % grab those indices and store it as a vertical profile
         profile_num = profile_num+1;
 
-        vert_profs_vapor(profile_num) = vocalsRex;
+        vert_profs_cloud(profile_num) = vocalsRex;
 
         for ff = 1:length(fields)
 
             % now remove all data points outside of the vertical profile
 
-            if numel(vert_profs_vapor(profile_num).(fields{ff}))==length(idx_dz_dt)
+            if numel(vert_profs_cloud(profile_num).(fields{ff}))==length(idx_dz_dt)
 
                 % all the time data will have be a vector with the same
                 % length as our calculation of vertical velocity
 
                 % reshape all fields so that time increases with increasing
                 % column number (row vector)
-                vert_profs_vapor(profile_num).(fields{ff}) = reshape(vert_profs_vapor(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
+                vert_profs_cloud(profile_num).(fields{ff}) = reshape(vert_profs_cloud(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
                     1, []);
 
 
-            elseif numel(vert_profs_vapor(profile_num).(fields{ff}))>length(idx_dz_dt)
+            elseif numel(vert_profs_cloud(profile_num).(fields{ff}))>length(idx_dz_dt)
                 % only one field is a matrix with more values than the time
                 % vector, and thats the matrix for the size distribution,
                 % with rows representing different size bins and columns
                 % are along the time dimension
-                vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
+                vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
 
-            elseif numel(vert_profs_vapor(profile_num).(fields{ff}))<length(idx_dz_dt)
+            elseif numel(vert_profs_cloud(profile_num).(fields{ff}))<length(idx_dz_dt)
 
                 % some miscallaneous fields have non-timed information
                 % keep all this information
-                vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff});
+                vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff});
 
             end
 
@@ -281,35 +281,35 @@ for nn = 1:length(idx_1)
             % grab those indices and store it as a vertical profile
             profile_num = profile_num+1;
 
-            vert_profs_vapor(profile_num) = vocalsRex;
+            vert_profs_cloud(profile_num) = vocalsRex;
 
             for ff = 1:length(fields)
 
                 % now remove all data points outside of the vertical profile
 
-                if numel(vert_profs_vapor(profile_num).(fields{ff}))==length(idx_dz_dt)
+                if numel(vert_profs_cloud(profile_num).(fields{ff}))==length(idx_dz_dt)
 
                     % all the time data will have be a vector with the same
                     % length as our calculation of vertical velocity
 
                     % reshape all fields so that time increases with increasing
                     % column number (row vector)
-                    vert_profs_vapor(profile_num).(fields{ff}) = reshape(vert_profs_vapor(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary3),...
+                    vert_profs_cloud(profile_num).(fields{ff}) = reshape(vert_profs_cloud(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary3),...
                         1, []);
 
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))>length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))>length(idx_dz_dt)
                     % only one field is a matrix with more values than the time
                     % vector, and thats the matrix for the size distribution,
                     % with rows representing different size bins and columns
                     % are along the time dimension
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary3);
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary3);
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))<length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))<length(idx_dz_dt)
 
                     % some miscallaneous fields have non-timed information
                     % keep all this information
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff});
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff});
 
                 end
 
@@ -385,35 +385,35 @@ for nn = 1:length(idx_1)
             % grab those indices and store it as a vertical profile
             profile_num = profile_num+1;
 
-            vert_profs_vapor(profile_num) = vocalsRex;
+            vert_profs_cloud(profile_num) = vocalsRex;
 
             for ff = 1:length(fields)
 
                 % now remove all data points outside of the vertical profile
 
-                if numel(vert_profs_vapor(profile_num).(fields{ff}))==length(idx_dz_dt)
+                if numel(vert_profs_cloud(profile_num).(fields{ff}))==length(idx_dz_dt)
 
                     % all the time data will have be a vector with the same
                     % length as our calculation of vertical velocity
 
                     % reshape all fields so that time increases with increasing
                     % column number (row vector)
-                    vert_profs_vapor(profile_num).(fields{ff}) = reshape(vert_profs_vapor(profile_num).(fields{ff})(idx_cloud_boundary_minus1:idx_cloud_boundary),...
+                    vert_profs_cloud(profile_num).(fields{ff}) = reshape(vert_profs_cloud(profile_num).(fields{ff})(idx_cloud_boundary_minus1:idx_cloud_boundary),...
                         1, []);
 
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))>length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))>length(idx_dz_dt)
                     % only one field is a matrix with more values than the time
                     % vector, and thats the matrix for the size distribution,
                     % with rows representing different size bins and columns
                     % are along the time dimension
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff})(:, idx_cloud_boundary_minus1:idx_cloud_boundary);
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff})(:, idx_cloud_boundary_minus1:idx_cloud_boundary);
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))<length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))<length(idx_dz_dt)
 
                     % some miscallaneous fields have non-timed information
                     % keep all this information
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff});
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff});
 
                 end
 
@@ -431,35 +431,35 @@ for nn = 1:length(idx_1)
             % indexes
             profile_num = profile_num+1;
 
-            vert_profs_vapor(profile_num) = vocalsRex;
+            vert_profs_cloud(profile_num) = vocalsRex;
 
             for ff = 1:length(fields)
 
                 % now remove all data points outside of the vertical profile
 
-                if numel(vert_profs_vapor(profile_num).(fields{ff}))==length(idx_dz_dt)
+                if numel(vert_profs_cloud(profile_num).(fields{ff}))==length(idx_dz_dt)
 
                     % all the time data will have be a vector with the same
                     % length as our calculation of vertical velocity
 
                     % reshape all fields so that time increases with increasing
                     % column number (row vector)
-                    vert_profs_vapor(profile_num).(fields{ff}) = reshape(vert_profs_vapor(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
+                    vert_profs_cloud(profile_num).(fields{ff}) = reshape(vert_profs_cloud(profile_num).(fields{ff})(idx_1(nn):idx_cloud_boundary),...
                         1, []);
 
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))>length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))>length(idx_dz_dt)
                     % only one field is a matrix with more values than the time
                     % vector, and thats the matrix for the size distribution,
                     % with rows representing different size bins and columns
                     % are along the time dimension
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff})(:, idx_1(nn):idx_cloud_boundary);
 
-                elseif numel(vert_profs_vapor(profile_num).(fields{ff}))<length(idx_dz_dt)
+                elseif numel(vert_profs_cloud(profile_num).(fields{ff}))<length(idx_dz_dt)
 
                     % some miscallaneous fields have non-timed information
                     % keep all this information
-                    vert_profs_vapor(profile_num).(fields{ff}) = vert_profs_vapor(profile_num).(fields{ff});
+                    vert_profs_cloud(profile_num).(fields{ff}) = vert_profs_cloud(profile_num).(fields{ff});
 
                 end
 
@@ -492,14 +492,14 @@ idx2delete = [];
 for n1 = 1:profile_num
     for n2 = (n1+1):profile_num
 
-        if (vert_profs_vapor(n2).time(1) - vert_profs_vapor(n1).time(1)) <= buffer_length ||...
-                (vert_profs_vapor(n2).time(end) - vert_profs_vapor(n1).time(end)) <= buffer_length
+        if (vert_profs_cloud(n2).time(1) - vert_profs_cloud(n1).time(1)) <= buffer_length ||...
+                (vert_profs_cloud(n2).time(end) - vert_profs_cloud(n1).time(end)) <= buffer_length
 
             % If this is true, keep the longer profile
-            if length(vert_profs_vapor(n2).time)>length(vert_profs_vapor(n1).time)
+            if length(vert_profs_cloud(n2).time)>length(vert_profs_cloud(n1).time)
                 idx2delete = [idx2delete, n1];
 
-            elseif length(vert_profs_vapor(n2).time)<length(vert_profs_vapor(n1).time)
+            elseif length(vert_profs_cloud(n2).time)<length(vert_profs_cloud(n1).time)
                 idx2delete = [idx2delete, n2];
 
             else
@@ -520,10 +520,10 @@ end
 
 % detele indexes associated with profiles nearly identical to another
 % profile
-vert_profs_vapor(idx2delete) = [];
+vert_profs_cloud(idx2delete) = [];
 
 
-%% Now that all segments of the flight where the plane continuously sampled a cloud in the vertical dimension,
+%% Now that we've found all segments of the flight where the plane continuously sampled a cloud in the vertical dimension,
 % let's find the indexes before and after each vertical in-situ cloud
 % sampling where the plane started and ended it's ascent/descent
 
@@ -533,29 +533,87 @@ n_window = 5;
 dz_dt_mean = [movmean(dz_dt,n_window), 0];
 
 
-for nn = 1:length(vert_profs_vapor)
+for nn = 1:length(vert_profs_cloud)
 
     % find where the vertical velocity changes sign before and after each
     % profile
     
     % First, is the plane ascending or descending?
-    is_ascending = mean(diff(vert_profs_vapor(nn).altitude)./diff(vert_profs_vapor(nn).time))>0;
+    is_ascending = mean(diff(vert_profs_cloud(nn).altitude)./diff(vert_profs_cloud(nn).time))>0;
+    is_descending = mean(diff(vert_profs_cloud(nn).altitude)./diff(vert_profs_cloud(nn).time))<0;
 
     if is_ascending==true
 
         % find the first index prior to the start of our vertical profile
         % where the plane was not ascending (dz/dt<=0)
-        idx_dz_dt_less_than0_before = find(dz_dt_mean(1:vert_profs_vapor(nn).time(1))<=0);
+        idx_dz_dt_0_before = find(dz_dt_mean(1:vert_profs_cloud(nn).time(1))<=0);
+
+        idx_dz_dt_0_before = idx_dz_dt_0_before(end);
 
         % find the first index after to the end of our vertical profile
         % where the plane was not ascending (dz/dt<=0)
-        idx_dz_dt_less_than0_after = find(dz_dt_mean(vert_profs_vapor(nn).time(end):end)<=0);
+        idx_dz_dt_0_after = find(dz_dt_mean(vert_profs_cloud(nn).time(end):end)<=0);
 
+        idx_dz_dt_0_after = idx_dz_dt_0_after(1) + vert_profs_cloud(nn).time(end) -1;
+
+    
+    elseif is_descending==true
+
+
+        % find the first index prior to the start of our vertical profile
+        % where the plane was not descending (dz/dt>=0)
+        idx_dz_dt_0_before = find(dz_dt_mean(1:vert_profs_cloud(nn).time(1))>=0);
+
+        idx_dz_dt_0_before = idx_dz_dt_0_before(end);
+
+        % find the first index after to the end of our vertical profile
+        % where the plane was not descending (dz/dt>=0)
+        idx_dz_dt_0_after = find(dz_dt_mean(vert_profs_cloud(nn).time(end):end)>=0);
+
+        idx_dz_dt_0_after = idx_dz_dt_0_after(1) + vert_profs_cloud(nn).time(end) -1;
         
 
     end
 
 
+    % Now let's redefine each vertical profile so that they span the length
+    % of the new indexes found. But let's keep the indexes of the cloud
+    % found above so we can compute the optical depth for each
+
+    vert_profs_vapor(nn) = vocalsRex;
+
+            for ff = 1:length(fields)
+
+                % now remove all data points outside of the vertical profile
+
+                if numel(vert_profs_vapor(nn).(fields{ff}))==length(idx_dz_dt)
+
+                    % all the time data will have be a vector with the same
+                    % length as our calculation of vertical velocity
+
+                    % reshape all fields so that time increases with increasing
+                    % column number (row vector)
+                    vert_profs_vapor(nn).(fields{ff}) = reshape(vert_profs_vapor(nn).(fields{ff})...
+                        (idx_dz_dt_0_before:idx_dz_dt_0_after),1, []);
+
+
+                elseif numel(vert_profs_vapor(nn).(fields{ff}))>length(idx_dz_dt)
+                    % only one field is a matrix with more values than the time
+                    % vector, and thats the matrix for the size distribution,
+                    % with rows representing different size bins and columns
+                    % are along the time dimension
+                    vert_profs_vapor(nn).(fields{ff}) = vert_profs_vapor(nn).(fields{ff})...
+                        (:,idx_dz_dt_0_before:idx_dz_dt_0_after);
+                elseif numel(vert_profs_vapor(nn).(fields{ff}))<length(idx_dz_dt)
+
+                    % some miscallaneous fields have non-timed information
+                    % keep all this information
+                    vert_profs_vapor(nn).(fields{ff}) = vert_profs_vapor(nn).(fields{ff});
+
+                end
+
+
+            end
 
 
 
@@ -577,7 +635,7 @@ end
 
 
 
-%%
+%% For each cloud...
 % ----------------------------------------------------------------------
 % ------------------ Compute Liquid Water Path -------------------------
 % ----------------------------------------------------------------------
@@ -590,7 +648,7 @@ end
 % The 2DC probe measures radii between 31.25 and 793 microns
 
 % step through each profile
-for nn = 1:length(vert_profs_vapor)
+for nn = 1:length(vert_profs_cloud)
 
 
     % LWP is calculated by integrating from cloud bottom to
@@ -599,35 +657,35 @@ for nn = 1:length(vert_profs_vapor)
     % begining (cloud top). If the plane is ascending, we do
     % the opposite.
 
-    dz_dt = diff(vert_profs_vapor(nn).altitude,1)./diff(vert_profs_vapor(nn).time, 1);
+    dz_dt = diff(vert_profs_cloud(nn).altitude,1)./diff(vert_profs_cloud(nn).time, 1);
 
     if mean(dz_dt)>0
         % then the plane is ascending!
 
         % Compute the total LWP
-        vert_profs_vapor(nn).lwp = trapz(vert_profs_vapor(nn).altitude, vert_profs_vapor(nn).lwc);            % g/m^2
+        vert_profs_cloud(nn).lwp = trapz(vert_profs_cloud(nn).altitude, vert_profs_cloud(nn).lwc);            % g/m^2
 
         % ------ Compute the CDP LWP ---------
-        vert_profs_vapor(nn).lwp_CDP = trapz(vert_profs_vapor(nn).altitude, vert_profs_vapor(nn).lwc_CDP);
+        vert_profs_cloud(nn).lwp_CDP = trapz(vert_profs_cloud(nn).altitude, vert_profs_cloud(nn).lwc_CDP);
 
 
         % ------ Compute the 2DC LWP ---------
-        vert_profs_vapor(nn).lwp_2DC = trapz(vert_profs_vapor(nn).altitude, vert_profs_vapor(nn).lwc_2DC);
+        vert_profs_cloud(nn).lwp_2DC = trapz(vert_profs_cloud(nn).altitude, vert_profs_cloud(nn).lwc_2DC);
 
 
     elseif mean(dz_dt)<0
         % then the plane is descending!
 
         % Compute the total LWP
-        vert_profs_vapor(nn).lwp = trapz(flipud(vert_profs_vapor(nn).altitude), flipud(vert_profs_vapor(nn).lwc));            % g/m^2
+        vert_profs_cloud(nn).lwp = trapz(flipud(vert_profs_cloud(nn).altitude), flipud(vert_profs_cloud(nn).lwc));            % g/m^2
 
         % ------ Compute the CDP LWP ---------
-        vert_profs_vapor(nn).lwp_CDP = trapz(flipud(vert_profs_vapor(nn).altitude), flipud(vert_profs_vapor(nn).lwc_CDP));
+        vert_profs_cloud(nn).lwp_CDP = trapz(flipud(vert_profs_cloud(nn).altitude), flipud(vert_profs_cloud(nn).lwc_CDP));
 
 
         % ------ Compute the 2DC LWP ---------
         % compute the 2DC LWP by integration over the cloud depth
-        vert_profs_vapor(nn).lwp_2DC = trapz(flipud(vert_profs_vapor(nn).altitude), flipud(vert_profs_vapor(nn).lwc_2DC));
+        vert_profs_cloud(nn).lwp_2DC = trapz(flipud(vert_profs_cloud(nn).altitude), flipud(vert_profs_cloud(nn).lwc_2DC));
 
 
 
@@ -645,7 +703,7 @@ end
 
 
 
-
+%% For each cloud...
 % ----------------------------------------------------------------------
 % ----------- COMPUTE THE HORIZONTAL DISTANCE TRAVELLED ----------------
 % ----------------------------------------------------------------------
@@ -673,42 +731,42 @@ end
 wgs84 = wgs84Ellipsoid("m");        % units of meters
 
 
-for nn = 1:length(vert_profs_vapor)
+for nn = 1:length(vert_profs_cloud)
 
     % Step through each point to get the linear distance travelled as a
     % vector
-    horz_distance_travelled = zeros(1, length(vert_profs_vapor(nn).latitude));
+    horz_distance_travelled = zeros(1, length(vert_profs_cloud(nn).latitude));
 
-    for xx = 2:length(vert_profs_vapor(nn).latitude)
+    for xx = 2:length(vert_profs_cloud(nn).latitude)
 
         % Find the linear distance between the start and end of the horizontal profile.
         % When you specify a reference ellipsoid as input to the distance function,
         % the function returns linear distances in the units of the semimajor axis of the ellipsoid.
-        horz_distance_travelled(xx) = distance(vert_profs_vapor(nn).latitude(1), vert_profs_vapor(nn).longitude(1),...
-            vert_profs_vapor(nn).latitude(xx), vert_profs_vapor(nn).longitude(xx),wgs84);
+        horz_distance_travelled(xx) = distance(vert_profs_cloud(nn).latitude(1), vert_profs_cloud(nn).longitude(1),...
+            vert_profs_cloud(nn).latitude(xx), vert_profs_cloud(nn).longitude(xx),wgs84);
 
     end
 
-    vert_profs_vapor(nn).horz_dist = horz_distance_travelled;
+    vert_profs_cloud(nn).horz_dist = horz_distance_travelled;
 
     % Using the horizontal distance travelled, and the vertical depth of
     % the cloud, use pythagreous' theorem to estimate the slant path
     % travelled within the cloud
-    vert_profs_vapor(nn).cloud_depth = max(vert_profs_vapor(nn).altitude) - min(vert_profs_vapor(nn).altitude);
-    vert_profs_vapor(nn).slant_path = sqrt(vert_profs_vapor(nn).horz_dist(end)^2 + vert_profs_vapor(nn).cloud_depth^2);
+    vert_profs_cloud(nn).cloud_depth = max(vert_profs_cloud(nn).altitude) - min(vert_profs_cloud(nn).altitude);
+    vert_profs_cloud(nn).slant_path = sqrt(vert_profs_cloud(nn).horz_dist(end)^2 + vert_profs_cloud(nn).cloud_depth^2);
 
     % Compute the zenith angle of the slant path with respect to the cloud
     % base, assuming a plane-parallel cloud and a straight line for the
     % planes trajectory
 
-    vert_profs_vapor(nn).VR_zenith_angle = atand(vert_profs_vapor(nn).horz_dist(end)/vert_profs_vapor(nn).cloud_depth);
+    vert_profs_cloud(nn).VR_zenith_angle = atand(vert_profs_cloud(nn).horz_dist(end)/vert_profs_cloud(nn).cloud_depth);
 
 
 end
 
 
 
-
+%% For each cloud...
 % ------------------------------------------------------------------
 % ------------------ Compute optical depth -------------------------
 % ------------------------------------------------------------------
@@ -727,11 +785,11 @@ end
 
 
 % step through each profile
-for nn = 1:length(vert_profs_vapor)
+for nn = 1:length(vert_profs_cloud)
 
 
-    vector_length = length(vert_profs_vapor(nn).altitude);
-    vert_profs_vapor(nn).tau = zeros(1,vector_length-1);
+    vector_length = length(vert_profs_cloud(nn).altitude);
+    vert_profs_cloud(nn).tau = zeros(1,vector_length-1);
 
     % compute sec(theta) by first computing the hypotenuse
 
@@ -743,7 +801,7 @@ for nn = 1:length(vert_profs_vapor)
     % begining (cloud bottom). If the plane is descending, we do
     % the opposite.
 
-    dz_dt = diff(vert_profs_vapor(nn).altitude)./diff(vert_profs_vapor(nn).time);
+    dz_dt = diff(vert_profs_cloud(nn).altitude)./diff(vert_profs_cloud(nn).time);
 
 
     if mean(dz_dt)>0
@@ -758,7 +816,7 @@ for nn = 1:length(vert_profs_vapor)
             % which is in meters
 
             if vocalsRex.flag_2DC_data_is_conforming==true
-                re_meters = vert_profs_vapor(nn).re(vector_length-ii:vector_length)./1e6;                      % meters
+                re_meters = vert_profs_cloud(nn).re(vector_length-ii:vector_length)./1e6;                      % meters
             else
                 % What choice do we have? I guess we will just use the
                 % effevtive radius from the 2DC data, but this will
@@ -769,13 +827,13 @@ for nn = 1:length(vert_profs_vapor)
                     error([newline, 'I dont know how to handle SPS10 data!', newline])
 
                 else
-                    re_meters = vert_profs_vapor(nn).re_CDP(vector_length-ii:vector_length)./1e6;                      % meters
+                    re_meters = vert_profs_cloud(nn).re_CDP(vector_length-ii:vector_length)./1e6;                      % meters
                 end
 
             end
 
-            total_Nc_meters = vert_profs_vapor(nn).total_Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
-            altitude = vert_profs_vapor(nn).altitude(end) -  vert_profs_vapor(nn).altitude(vector_length-ii:vector_length); % meters
+            total_Nc_meters = vert_profs_cloud(nn).total_Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
+            altitude = vert_profs_cloud(nn).altitude(end) -  vert_profs_cloud(nn).altitude(vector_length-ii:vector_length); % meters
 
 
             % We assume the droplet size is appreciably larger than the
@@ -795,7 +853,7 @@ for nn = 1:length(vert_profs_vapor)
             [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
                 550, 'water', 'gamma', ii);
 
-            vert_profs_vapor(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
+            vert_profs_cloud(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
 
         end
 
@@ -809,16 +867,16 @@ for nn = 1:length(vert_profs_vapor)
             % we have to convert Nc and re to have the same units as the alitude,
             % which is in meters
             if vocalsRex.flag_2DC_data_is_conforming==true
-                re_meters = vert_profs_vapor(nn).re(1:ii+1)./1e6;                      % meters
+                re_meters = vert_profs_cloud(nn).re(1:ii+1)./1e6;                      % meters
             else
                 % What choice do we have? I guess we will just use the
                 % effevtive radius from the 2DC data, but this will
                 % underestimate the optical depth
-                re_meters = vert_profs_vapor(nn).re_CDP(1:ii+1)./1e6;                      % meters
+                re_meters = vert_profs_cloud(nn).re_CDP(1:ii+1)./1e6;                      % meters
             end
 
-            total_Nc_meters = vert_profs_vapor(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
-            altitude = vert_profs_vapor(nn).altitude(1) -  vert_profs_vapor(nn).altitude(1:ii+1);   % meters
+            total_Nc_meters = vert_profs_cloud(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
+            altitude = vert_profs_cloud(nn).altitude(1) -  vert_profs_cloud(nn).altitude(1:ii+1);   % meters
 
 
             % We assume the droplet size is appreciably larger than the
@@ -841,7 +899,7 @@ for nn = 1:length(vert_profs_vapor)
                 550, 'water', 'gamma', ii);
 
 
-            vert_profs_vapor(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
+            vert_profs_cloud(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
 
 
 
@@ -852,7 +910,7 @@ for nn = 1:length(vert_profs_vapor)
 
 
     % add a zero at the begining!
-    vert_profs_vapor(nn).tau = [0,vert_profs_vapor(nn).tau];
+    vert_profs_cloud(nn).tau = [0,vert_profs_cloud(nn).tau];
 
 end
 
@@ -860,7 +918,21 @@ end
 
 
 
+%% Now let's store the cloud optical depth, and LWP with each water vapor profile
+% Let's also store the indexes that define the cloud top and bottom
 
+for nn = 1:length(vert_profs_cloud)
+
+    vert_profs_vapor(nn).cloud_optical_depth = vert_profs_cloud(nn).tau(end);
+
+    vert_profs_vapor(nn).cloud_LWP = vert_profs_cloud(nn).lwp;
+
+    vert_profs_vapor(nn).cloud_idx = [find(vert_profs_vapor(nn).time==vert_profs_cloud(nn).time(1)),...
+        find(vert_profs_vapor(nn).time==vert_profs_cloud(nn).time(end))];
+
+
+
+end
 
 
 
