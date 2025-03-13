@@ -1172,7 +1172,7 @@ plot_probability_scat_top_maxDepth_with_changing_variable(filenames, probability
 
 
 
-%% TAKE 2 - Figure 3 - Weighting Functions
+%% Figure 3 - Weighting Functions - Take 2 - smooth curves
 
 
 clear variables
