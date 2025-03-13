@@ -9,19 +9,19 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 10;
+inputs.tau_y_upper_limit = 8;
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 0;                  % deg from zenith
+inputs.solar_zenith_angle = 49.45;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e4;
+inputs.N_photons = 1e6;
 
 
 % ----------------------------------------------------------------------
@@ -37,7 +37,7 @@ inputs.N_photons = 1e4;
 
 % ----- Do you want to create a non-linear droplet profile? -----
 
-inputs.createDropletProfile = false;
+inputs.createDropletProfile = true;
 
 
 
@@ -67,7 +67,8 @@ else
     % --------------------------------------------
 
     % Physical constraint that shapes the droplet profile
-    inputs.dropletProfile.constraint = 'adiabatic';
+    %inputs.dropletProfile.constraint = 'adiabatic';
+    inputs.dropletProfile.constraint = 'linear_with_z';
 
     % Define the radius value at cloud top and cloud bottom
     inputs.dropletProfile.r_top = 12;            % microns
@@ -86,7 +87,7 @@ else
     % layer
     inputs.dropletProfile.tau_layer_mid_points = inputs.dropletProfile.layerBoundaries(1:end-1) + diff(inputs.dropletProfile.layerBoundaries)/2;
 
-    % tell the code if the vertical dimension is define as altitude or
+    % tell the code if the vertical dimension is defined as altitude or
     % optical depth
     inputs.dropletProfile.independent_variable = 'optical_depth';                    % string that tells the code which independent variable we used
 
@@ -128,7 +129,7 @@ end
 % define the wavelength
 % The wavelength input is defined as follows:
 % [wavelength_start, wavelength_end, wavelength_step].
-inputs.mie.wavelength = [550, 550, 0];          % nanometers
+inputs.mie.wavelength = [2200, 2200, 0];          % nanometers
 
 % The first entry belows describes the type of droplet distribution
 % that should be used. The second describes the distribution width. If
@@ -265,7 +266,7 @@ elseif inputs.N_layers>1 && inputs.createDropletProfile==true
 
         % Create a mie file
         [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str);
+            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, nn);
 
         % run the mie file
         [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -335,10 +336,10 @@ end
 tic
 
 % ------- Without Live Plotting ---------
-% [F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs);
+[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo(inputs);
 
 % ---------- With Live Plotting ---------
-[F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
+% [F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
 
 toc
 
@@ -359,6 +360,31 @@ save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelen
     "inputs","F_norm", "final_state", "photon_tracking");
 cd ..
 
+
+%% Find the pdf of the number of scattering events
+
+figure; 
+histogram(photon_tracking.number_of_scattering_events, 'Normalization', 'pdf') 
+grid on; grid minor;
+ylabel('PDF', 'Interpreter', 'latex')
+xlabel('Number of Scattering Events', 'Interpreter', 'latex')
+title(['$\tau_c = $', num2str(inputs.tau_y_upper_limit)], 'Interpreter', 'latex')
+set(gcf, 'Position', [0 0 1000, 750])
+
+% This is a discrete PDF! Values can only be integers
+texBox_str = {['$\lambda$ = ',num2str(inputs.mie.wavelength(1)), ' $nm$'],...
+    ['$\varpi$ = ',num2str(inputs.ssa)],...
+    ['mean = ', num2str(mean(photon_tracking.number_of_scattering_events))],...
+    ['median = ', num2str(median(photon_tracking.number_of_scattering_events))],...
+    ['mode = ', num2str(mode(photon_tracking.number_of_scattering_events))]};
+
+dim = [0.6 0.85 0 0];
+t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
+t.Color = 'black';
+t.FontSize = 25;
+t.FontWeight = 'bold';
+t.EdgeColor = 'black';
+t.FitBoxToText = 'on';
 
 %% Lets plot the max depth reached by each photon normalized by the total number of photons
 

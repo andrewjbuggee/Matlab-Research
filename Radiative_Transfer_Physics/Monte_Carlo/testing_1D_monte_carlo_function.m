@@ -9,7 +9,7 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_lower_limit = 0;
-inputs.tau_upper_limit = 0.5;
+inputs.tau_upper_limit = 15;
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -112,7 +112,7 @@ inputs.g = ds.asymParam;
 % ----- Override ssa and g values ------
 % --------------------------------------
 inputs.ssa = 1;
-inputs.g = 0.85;
+inputs.g = 0.5;
 % --------------------------------------
 
 
