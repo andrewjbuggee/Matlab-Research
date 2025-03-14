@@ -9,19 +9,20 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 8;
+inputs.tau_y_upper_limit = 15; 
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 49.45;                  % deg from zenith
+%inputs.solar_zenith_angle = 49.45;                  % deg from zenith
+inputs.solar_zenith_angle = 27;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e6;
+inputs.N_photons = 1e7;
 
 
 % ----------------------------------------------------------------------
@@ -71,7 +72,7 @@ else
     inputs.dropletProfile.constraint = 'linear_with_z';
 
     % Define the radius value at cloud top and cloud bottom
-    inputs.dropletProfile.r_top = 12;            % microns
+    inputs.dropletProfile.r_top = 9;            % microns
     inputs.dropletProfile.r_bottom = 5;          % microns
 
     % define the number of layers to model within the cloud
@@ -128,7 +129,7 @@ end
 
 % define the wavelength
 % The wavelength input is defined as follows:
-% [wavelength_start, wavelength_end, wavelength_step].
+% [wavelength_start, wavelength_end, wavelength_step]
 inputs.mie.wavelength = [2200, 2200, 0];          % nanometers
 
 % The first entry belows describes the type of droplet distribution
@@ -307,7 +308,7 @@ clear ds
 %% Do you want to integrate over a size distribution?
 
 % --------------------------------------------------
-inputs.mie.integrate_over_size_distribution = false;
+inputs.mie.integrate_over_size_distribution = true;
 % --------------------------------------------------
 
 
@@ -323,9 +324,8 @@ if inputs.mie.integrate_over_size_distribution==true
 
     % Compute the average value for the single scattering albedo over a size
     % distribution
-    [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.ssa, inputs.g,...
-        inputs.Qe,inputs.layerRadii,inputs.mie.dist_var, inputs.mie.wavelength(1),...
-        inputs.mie.indexOfRefraction, inputs.mie.size_dist);
+    [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.layerRadii, inputs.mie.dist_var,...
+        inputs.mie.wavelength(1),inputs.mie.indexOfRefraction, inputs.mie.size_dist, 1);
 
 
 end
@@ -353,11 +353,30 @@ plot_2strm_2D_monteCarlo(inputs,F_norm);
 
 % save in the following folder
 inputs.folder_name_2save = 'Monte_Carlo_Simulation_Results';
-cd(inputs.folder_name_2save)
-save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
-    '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
-    '_Tau0_',num2str(inputs.tau_y_upper_limit),'_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
-    "inputs","F_norm", "final_state", "photon_tracking");
+if strcmp(pwd, '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results')
+    cd ..
+else
+    cd(inputs.folder_name_2save)
+end
+
+if inputs.N_layers==1
+
+    save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+        '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
+        '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_e_',num2str(inputs.dropletProfile.re),...
+        '_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
+        "inputs","F_norm", "final_state", "photon_tracking");
+
+elseif inputs.N_layers>1 && inputs.createDropletProfile==true
+
+    save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+        '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
+        '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_top_',num2str(inputs.dropletProfile.r_top),...
+        '_r_bot_',num2str(inputs.dropletProfile.r_bottom),'_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
+        "inputs","F_norm", "final_state", "photon_tracking");
+end
+
+
 cd ..
 
 
@@ -398,7 +417,7 @@ t.FitBoxToText = 'on';
 %% Let's plot the conditional probability of a photon that scattered out the cloud top
 % reaching a max depth of tau
 
-%plot_probability_scatterOutTop_maxDepth(inputs, final_state, photon_tracking, 'probability')
+plot_probability_scatterOutTop_maxDepth(inputs, final_state, photon_tracking, 'probability')
 
 
 %% Let's plot two conditional probabilities on the same plot

@@ -62,9 +62,9 @@ if inputs.N_layers==1
 
 
 
-elseif inputs.N_layers>1 && unique(inputs.layerRadii)>1
+elseif inputs.N_layers>1 && length(unique(inputs.layerRadii))>1
 
-    % There is more than 1 layer in the modeled medium!
+    % There is more than 1 unique layer in the modeled medium!
     % Let's ignore plotting the ssa and the asymmetry parameter for now
 
     figure;

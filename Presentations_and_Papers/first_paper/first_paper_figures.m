@@ -1193,17 +1193,42 @@ clear variables
 
 
 % ---------------------------------------------------------------------------------------
-filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_645_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_858.5_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-    '2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
-
-% define the wavelengths as the changing variables
-wavelength = modisBands(1:7);
+% filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_645_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_858.5_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+%     '2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
+% 
+% % define the wavelengths as the changing variables
+% wavelength = modisBands(1:7);
 % ---------------------------------------------------------------------------------------
+
+
+% ---------------------------------------------------------------------------------------
+% filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_49.45.mat',...
+%              '2D_MC_13-Mar-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_SZA_49.45.mat'};
+% 
+% wavelength = [1600, 2200];
+% ---------------------------------------------------------------------------------------
+
+
+% ---------------------------------------------------------------------------------------
+% filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_27.12.mat',...
+%              '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_27.12.mat'};
+% 
+% wavelength = [1600, 2200];
+% ---------------------------------------------------------------------------------------
+
+
+% ---------------------------------------------------------------------------------------
+filenames = {'2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_15_r_top_9_r_bot_5_SZA_27.12.mat',...
+             };
+
+wavelength = [2200];
+% ---------------------------------------------------------------------------------------
+
 
 % Do you want to plot the probability of a set of PDF's?
 probability_str = 'pdf';
@@ -1235,7 +1260,8 @@ if strcmp(whatComputer,'anbu8374')
 
 elseif strcmp(whatComputer,'andrewbuggee')
 
-    error([newline, 'Where is the new folder?', newline])
+    saved_simulations = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results'];
 
 else
     error('I dont recognize this computer user name')
@@ -1431,7 +1457,7 @@ t.FitBoxToText = 'on';
 legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
 
 
-set(gcf, 'Position',[0 0 1000 630])
+set(gcf, 'Position',[0 0 1400 800])
 
 
 %clear variables
@@ -1557,7 +1583,7 @@ for nn = 1:length(filenames)
 
 end
 
-set(gcf, 'Position',[0 0 1000 630])
+set(gcf, 'Position',[0 0 1300 750])
 
 
 
