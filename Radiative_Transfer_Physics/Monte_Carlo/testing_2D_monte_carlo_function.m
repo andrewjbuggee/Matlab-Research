@@ -9,13 +9,13 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_y_lower_limit = 0;
-inputs.tau_y_upper_limit = 15; 
+inputs.tau_y_upper_limit = 8; 
 
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-%inputs.solar_zenith_angle = 49.45;                  % deg from zenith
-inputs.solar_zenith_angle = 27;                  % deg from zenith
+inputs.solar_zenith_angle = 49.45;                  % deg from zenith
+%inputs.solar_zenith_angle = 27;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -32,7 +32,7 @@ inputs.createDropletProfile = true;
 %inputs.dropletProfile.constraint = 'adiabatic';
 inputs.dropletProfile.constraint = 'linear_with_z';
 % Define the radius value at cloud top and cloud bottom
-inputs.dropletProfile.r_top = 9;            % microns
+inputs.dropletProfile.r_top = 12;            % microns
 inputs.dropletProfile.r_bottom = 5;          % microns
 
 % --- else ---
@@ -41,12 +41,12 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.mie.wavelength = 2200;          % nanometers
+inputs.wavelength = 2200;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
 % with the re value defining the modal radius
-inputs.mie.integrate_over_size_distribution = false;
+inputs.mie.integrate_over_size_distribution = true;
 
 % --- if true... ---
 % Define the type of size distribution
@@ -54,7 +54,7 @@ inputs.mie.size_dist = 'gamma';
 
 % Define the distribution variance, depending on the distribution type used
 % Has to be the same length as the numer of layers in our medium
-inputs.mie.dist_var = 7;           % Typically value for liquid water clouds
+inputs.size_distribution_var = 7;           % Typically value for liquid water clouds
 
 
 
@@ -158,7 +158,7 @@ end
 
 % The wavelength input is defined as follows:
 % [wavelength_start, wavelength_end, wavelength_step]
-inputs.mie.wavelength = [inputs.mie.wavelength, inputs.mie.wavelength, 0];          % nanometers
+inputs.mie.wavelength = [inputs.wavelength, inputs.wavelength, 0];          % nanometers
 
 % The first entry belows describes the type of droplet distribution
 % that should be used. The second describes the distribution width. If
@@ -336,7 +336,7 @@ clear ds
 
 if inputs.mie.integrate_over_size_distribution==true
 
-    inputs.mie.dist_var = linspace(7,7, inputs.N_layers);           % Typically value for liquid water clouds
+    inputs.mie.dist_var = linspace(inputs.size_distribution_var, inputs.size_distribution_var, inputs.N_layers);           % Typically value for liquid water clouds
 
     % Compute the average value for the single scattering albedo over a size
     % distribution
