@@ -2357,7 +2357,7 @@ end
 
 
 % --- Define the horizontal length scale to compute statistics over ---
-length_scale = [1000, 5000];        % meters
+length_scale = [500, 1000, 5000];        % meters
 
 % Loop through each profile in the ensemble
 
@@ -2430,7 +2430,8 @@ for ll = 1:length(length_scale)
         'Color', mySavedColors(ll+2, 'fixed'), 'FontSize', 23, 'FontWeight','bold')
 
     legend_str{2*ll - 1} = ['Length Scale = ', num2str(length_scale(ll)/1e3), ' $km$'];
-    legend_str{2*ll} = ['$\left< \sigma_{r_e} \right> $ = ', num2str(round(mean(std_lengthScale{ll}), 2)), '$\mu m$'];
+    legend_str{2*ll} = ['$\left< \sigma_{r_e} \right> $ = ', num2str(round(mean(std_lengthScale{ll}), 2)), '$\mu m$,  ',...
+        '$STD(\sigma_{r_e})$ = ', num2str(round(std(std_lengthScale{ll}), 2)), '$\mu m$'];
 
     ylabel('Counts', 'Interpreter','latex')
 
@@ -2478,7 +2479,17 @@ set(gcf, 'Position', [0 0 1200 625])
 
 % ---------- Save figure --------------
 % save .fig file
-folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+if strcmp(whatComputer, 'andrewbuggee')==true
+
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+
+elseif strcmp(whatComputer, 'anbu8374')==true
+
+    folderpath_figs = '/Users/anbu8374/Documents/My Papers/Paper 1/First Paper Figures/';
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 1 Figures/';
+end
+
 f = gcf;
 saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.fig']);
 
@@ -2487,7 +2498,7 @@ saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 1
 % remove title
 title('')
 xlim([0,2])
-folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+legend({legend_str{1}, '', legend_str{3}, '', legend_str{5}}, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 25)
 exportgraphics(f,[folderpath_pngs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.png'],'Resolution', 400);
 
 
