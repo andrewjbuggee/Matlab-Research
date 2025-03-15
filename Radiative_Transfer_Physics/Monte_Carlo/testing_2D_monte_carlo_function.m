@@ -2,7 +2,7 @@
 
 % By Andrew John Buggee
 
-%% Define inputs
+%% ------ Define core inputs -----
 
 clear variables
 
@@ -20,11 +20,47 @@ inputs.solar_zenith_angle = 27;                  % deg from zenith
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
-
 % Define the number of photons to inject into the medium
 inputs.N_photons = 1e7;
 
 
+% ----- Do you want to create a non-linear droplet profile? -----
+inputs.createDropletProfile = true;
+
+% --- if true.... ---
+% Physical constraint that shapes the droplet profile
+%inputs.dropletProfile.constraint = 'adiabatic';
+inputs.dropletProfile.constraint = 'linear_with_z';
+% Define the radius value at cloud top and cloud bottom
+inputs.dropletProfile.r_top = 9;            % microns
+inputs.dropletProfile.r_bottom = 5;          % microns
+
+% --- else ---
+inputs.re = 10;
+
+
+
+% define the wavelength
+inputs.mie.wavelength = 2200;          % nanometers
+
+% do you want to compute average ssa and g at each cloud layer?
+% if so, the code will create a distribution of droplet sizes at each layer
+% with the re value defining the modal radius
+inputs.mie.integrate_over_size_distribution = false;
+
+% --- if true... ---
+% Define the type of size distribution
+inputs.mie.size_dist = 'gamma';
+
+% Define the distribution variance, depending on the distribution type used
+% Has to be the same length as the numer of layers in our medium
+inputs.mie.dist_var = 7;           % Typically value for liquid water clouds
+
+
+
+
+
+%%
 % ----------------------------------------------------------------------
 % ------------- DEFINE EACH LAYER'S DROPLET RADIUS ---------------------
 % ----------------------------------------------------------------------
@@ -36,25 +72,25 @@ inputs.N_photons = 1e7;
 % from top to bottom. If both are true, create a cell array for both the
 % changing radii and the changing index of refraction
 
-% ----- Do you want to create a non-linear droplet profile? -----
 
-inputs.createDropletProfile = true;
 
 
 
 
 if inputs.createDropletProfile==false
-
-    % This options creates a simple cloud with a linear droplet profile
-    % or a homogenous cloud with a single radii
-    inputs.layerRadii = linspace(10,10,1);      % radius of spheres in each layer
-
-
+    
     % Define the number of layers and the boundaries values for each tau
     % layer
 
     % Define the number of layers within the medium that differ
-    inputs.N_layers = length(inputs.layerRadii);
+    inputs.N_layers = 1;
+
+    % This options creates a simple cloud with a linear droplet profile
+    % or a homogenous cloud with a single radii
+    inputs.layerRadii = linspace(inputs.re,inputs.re, inputs.N_layers);      % radius of spheres in each layer
+
+
+    
 
     % Define the layer boundaries given the number of layers and the boundaries
     % of the entire medium
@@ -67,13 +103,6 @@ else
     % --------- create droplet profile -----------
     % --------------------------------------------
 
-    % Physical constraint that shapes the droplet profile
-    %inputs.dropletProfile.constraint = 'adiabatic';
-    inputs.dropletProfile.constraint = 'linear_with_z';
-
-    % Define the radius value at cloud top and cloud bottom
-    inputs.dropletProfile.r_top = 9;            % microns
-    inputs.dropletProfile.r_bottom = 5;          % microns
 
     % define the number of layers to model within the cloud
     inputs.dropletProfile.N_layers = 100;
@@ -127,10 +156,9 @@ end
 % parameter
 % ------------------------------------------------------------------
 
-% define the wavelength
 % The wavelength input is defined as follows:
 % [wavelength_start, wavelength_end, wavelength_step]
-inputs.mie.wavelength = [2200, 2200, 0];          % nanometers
+inputs.mie.wavelength = [inputs.mie.wavelength, inputs.mie.wavelength, 0];          % nanometers
 
 % The first entry belows describes the type of droplet distribution
 % that should be used. The second describes the distribution width. If
@@ -304,23 +332,11 @@ clear ds
 
 
 
-
-%% Do you want to integrate over a size distribution?
-
-% --------------------------------------------------
-inputs.mie.integrate_over_size_distribution = true;
-% --------------------------------------------------
-
-
+% Do you want to integrate over a size distribution?
 
 if inputs.mie.integrate_over_size_distribution==true
 
-    % Define the type of size distribution
-    inputs.mie.size_dist = 'gamma';
-
-    % Define the distribution variance, depending on the distribution type used
-    % Has to be the same length as the numer of layers in our medium
-    inputs.mie.dist_var = linspace(7,7,length(inputs.ssa));           % Typically value for liquid water clouds
+    inputs.mie.dist_var = linspace(7,7, inputs.N_layers);           % Typically value for liquid water clouds
 
     % Compute the average value for the single scattering albedo over a size
     % distribution
@@ -351,17 +367,23 @@ plot_2strm_2D_monteCarlo(inputs,F_norm);
 
 %% Do you want to save you results?
 
-% save in the following folder
-inputs.folder_name_2save = 'Monte_Carlo_Simulation_Results';
-if strcmp(pwd, '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_Simulation_Results')
-    cd ..
-else
-    cd(inputs.folder_name_2save)
+
+if strcmp(whatComputer, 'anbu8374')
+    % save in the following folder
+    inputs.folder_name_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/',...
+        'Monte_Carlo/Monte_Carlo_Simulation_Results/'];
+    
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    % save in the following folder
+    inputs.folder_name_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/',...
+        'Monte_Carlo/Monte_Carlo_Simulation_Results/'];
+
 end
 
 if inputs.N_layers==1
 
-    save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+    save([inputs.folder_name_2save, '2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
         '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
         '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_e_',num2str(inputs.dropletProfile.re),...
         '_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
@@ -369,7 +391,7 @@ if inputs.N_layers==1
 
 elseif inputs.N_layers>1 && inputs.createDropletProfile==true
 
-    save(['2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+    save([inputs.folder_name_2save, '2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
         '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
         '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_top_',num2str(inputs.dropletProfile.r_top),...
         '_r_bot_',num2str(inputs.dropletProfile.r_bottom),'_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
@@ -377,7 +399,7 @@ elseif inputs.N_layers>1 && inputs.createDropletProfile==true
 end
 
 
-cd ..
+
 
 
 %% Find the pdf of the number of scattering events
