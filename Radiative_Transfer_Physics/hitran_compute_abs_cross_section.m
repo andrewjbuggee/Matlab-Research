@@ -138,7 +138,7 @@ E_lower = lines.lowerStateEnergy(w_index);         % cm^-1
 
 % Compute the line intensity at some new temperature
 S = S0 .* (Q.ref * exp(-c2 * E_lower./T) .* (1 - exp(-c2*wavenumber_line_center./T))) ./...
-    (Q.T * exp(-c2 * E_lower./T_ref) .* (1 - exp(-c2*wavenumber_line_center./T_ref)));        % cm^(-1)/(cm^2 molecule)
+    (Q.T .* exp(-c2 * E_lower./T_ref) .* (1 - exp(-c2*wavenumber_line_center./T_ref)));        % cm^(-1)/(cm^2 molecule)
 
 
 %% Compute the absorption cross section using one of the defined solution types
@@ -256,7 +256,7 @@ elseif strcmp(solution_type, 'whitting')==true
     T_ref = 296;        % K
     
     % compute the pressure broadened half-width at half-max
-    f_pressure.hwhm = (T_ref/T).^lines.temperatureDependence(w_index) .*...
+    f_pressure.hwhm = (T_ref./T).^lines.temperatureDependence(w_index) .*...
         (lines.airBroadenedWidth(w_index) .* (P - P_self) +...
         lines.selfBroadenedWidth(w_index) .* P_self);
 
