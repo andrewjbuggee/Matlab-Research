@@ -5364,3 +5364,173 @@ xlabel('Effective Radius ($ \mu m $)', 'Interpreter','latex', 'Fontsize', 30)
 f = gcf;
 exportgraphics(f,[folderpath_pngs,'Fig 3c - retrieved vertical profile with in-situ - tau=19.png'],'Resolution', 400);
 
+
+%% For Reviewer 1 - Histogram of COD and CER retrieval uncertainty for pixels over Ocean
+
+clear variables
+
+
+% Determine which computer you're using
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(whatComputer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ***** Define the MODIS Folder *****
+
+    modisFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % ----- Define the MODIS folder name -----
+
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+elseif strcmp(whatComputer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % Define the MODIS folder name
+
+    modisFolder = '/projects/anbu8374/MODIS_data/';
+
+
+end
+
+
+% Loop through three MODIS scenes used in this analysis and store retrieved
+% effective radius and optical thickness
+
+% ----- November 9th at decimal time 0.611 (14:40) -----
+% ----- November 11th at decimal time 0.604 (14:30) -----
+% ----- November 11th at decimal time 0.784 (18:50) -----   
+modisData = {'2008_11_09/', '2008_11_11_1430/', '2008_11_11_1850/'};
+
+% variables to keep
+effRad_uncert_17 = [];
+optThickness_uncert_17 = [];
+
+effRad_uncert_17_percent = [];
+optThickness_uncert_17_precent = [];
+
+
+for nn = 1:length(modisData)
+
+    [modis,L1B_fileName] = retrieveMODIS_data([modisFolder, modisData{nn}]);
+
+
+    modis_lat = double(modis.geo.lat(:));
+    modis_long = double(modis.geo.long(:));
+    
+    isOcean = land_or_ocean(modis_lat, modis_long, 10, false);
+
+    % Show pixels over ocean
+    figure; 
+    geoscatter(modis_lat(isOcean), modis_long(isOcean), 100, modis.cloud.effRadius17(isOcean), '.');
+    colorbar
+
+
+    % store uncertainties and remove values less than 0 (applied to non-cloudy
+    % pixels)
+    
+    temp_effRad_uncert_17 = modis.cloud.effRadius17(isOcean) .* modis.cloud.effRad_uncert_17(isOcean) .* 0.01;          % microns
+    pix_lessThan0_or_Nan = temp_effRad_uncert_17<0 | isnan(temp_effRad_uncert_17);
+    temp_effRad_uncert_17(pix_lessThan0_or_Nan) = [];
+    % store final product
+    effRad_uncert_17 = [effRad_uncert_17; temp_effRad_uncert_17];        % microns
+
+    temp_effRad_uncert_17_percent = modis.cloud.effRad_uncert_17(isOcean);          % percent of retrieved effective radius
+    pix_lessThan0_or_Nan = temp_effRad_uncert_17_percent<0 | isnan(temp_effRad_uncert_17_percent);
+    temp_effRad_uncert_17_percent(pix_lessThan0_or_Nan) = [];
+    % store final product
+    effRad_uncert_17_percent = [effRad_uncert_17_percent; temp_effRad_uncert_17_percent];
+    
+
+
+    temp_optThickness_uncert_17 = modis.cloud.optThickness17(isOcean) .* modis.cloud.optThickness_uncert_17(isOcean) .* 0.01;                     % optical thickness
+    pix_lessThan0_or_Nan = temp_optThickness_uncert_17<0 | isnan(temp_optThickness_uncert_17);
+    temp_optThickness_uncert_17(pix_lessThan0_or_Nan) = [];
+    % store final product
+    optThickness_uncert_17 = [optThickness_uncert_17; temp_optThickness_uncert_17];
+
+    temp_optThickness_uncert_17_percent = modis.cloud.optThickness_uncert_17(isOcean);                     % optical thickness
+    pix_lessThan0_or_Nan = temp_optThickness_uncert_17_percent<0 | isnan(temp_optThickness_uncert_17_percent);
+    temp_optThickness_uncert_17_percent(pix_lessThan0_or_Nan) = [];
+    % store final product
+    optThickness_uncert_17_precent = [optThickness_uncert_17_precent; temp_optThickness_uncert_17_percent];
+
+end
+
+
+% create histogram of COD and CER uncertainty for pixels over ocean
+figure; 
+
+subplot(1,2,1)
+histogram(effRad_uncert_17)
+grid on; grid minor
+ylabel('Counts', 'interpreter', 'latex')
+xlabel('$\delta r_e$ $(\mu m)$', 'interpreter', 'latex')
+set(gca, 'YScale', 'log')
+
+subplot(1,2,2)
+histogram(optThickness_uncert_17)
+grid on; grid minor
+ylabel('Counts', 'interpreter', 'latex')
+xlabel('$\delta \tau_c$', 'interpreter', 'latex')
+set(gca, 'YScale', 'log')
+
+set(gcf, 'Position', [0,0, 1300, 750])
+
+
+figure; 
+
+subplot(1,2,1)
+histogram(effRad_uncert_17_percent)
+grid on; grid minor
+ylabel('Counts', 'interpreter', 'latex')
+xlabel('$\delta r_e$ $(\%)$', 'interpreter', 'latex')
+set(gca, 'YScale', 'log')
+
+subplot(1,2,2)
+histogram(optThickness_uncert_17_precent)
+grid on; grid minor
+ylabel('Counts', 'interpreter', 'latex')
+xlabel('$\delta \tau_c$  (\%)', 'interpreter', 'latex')
+set(gca, 'YScale', 'log')
+
+set(gcf, 'Position', [0,0, 1300, 750])
+
+% print the mean values of uncertainty as a percent for each variable
+disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
+    num2str(mean(effRad_uncert_17_percent)), ' %', newline])
+disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
+    num2str(mean(optThickness_uncert_17_precent)), ' %', newline])
+
+% print the mean values of uncertainty for each variable
+disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
+    num2str(mean(effRad_uncert_17)), ' microns', newline])
+disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
+    num2str(mean(optThickness_uncert_17)), newline])
+
+% Create plot of retireved effective radius versus retrieval uncertainaty
+% and include a one-to-one line
+
+
+
+clear variables
+    
