@@ -41,7 +41,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 2200;          % nanometers
+inputs.wavelength = 1600;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer

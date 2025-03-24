@@ -20,12 +20,12 @@ tau_upper_limit = 1:100;
 % We start by injecting a single photon into our medium.
 
 % define the number of photons that will run through our simulation
-N_photons = 5000;
+N_photons = 10000;
 
 
 % ***** Custom ssa and g *****
 ssa = 0.9;                % between 0 and 1
-g = 0.85;               % between -1 and 1
+g = 0.8;               % between -1 and 1
 % ----------------------------
 
 % reset the random number generator

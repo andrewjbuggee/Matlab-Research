@@ -96,7 +96,7 @@ computer_name = whatComputer;
 % find the folder where the water cloud files are stored.
 if strcmp(computer_name,'andrewbuggee')==true
 
-    atm_profile_folder = '/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Radiative_Transfer_Physics/';
+    atm_profile_folder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/atm_profiles/'
 
 elseif strcmp(computer_name,'anbu8374')==true
 

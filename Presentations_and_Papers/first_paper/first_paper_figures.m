@@ -1207,27 +1207,14 @@ clear variables
 
 
 % ---------------------------------------------------------------------------------------
-% filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_49.45.mat',...
-%              '2D_MC_13-Mar-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_SZA_49.45.mat'};
-% 
-% wavelength = [1600, 2200];
+% ----- recreating platnick weighting functions ----
+filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat',...
+             '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat'};
+
+wavelength = [1600, 2200];
 % ---------------------------------------------------------------------------------------
 
 
-% ---------------------------------------------------------------------------------------
-% filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_27.12.mat',...
-%              '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_8_SZA_27.12.mat'};
-% 
-% wavelength = [1600, 2200];
-% ---------------------------------------------------------------------------------------
-
-
-% ---------------------------------------------------------------------------------------
-filenames = {'2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_15_r_top_9_r_bot_5_SZA_27.12.mat',...
-             '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_15_r_top_9_r_bot_5_SZA_27.mat'};
-
-wavelength = [2200, 2200];
-% ---------------------------------------------------------------------------------------
 
 
 % Do you want to plot the probability of a set of PDF's?
@@ -2357,7 +2344,7 @@ end
 
 
 % --- Define the horizontal length scale to compute statistics over ---
-length_scale = [500, 1000, 5000];        % meters
+length_scale = [100, 250, 500, 1000, 5000, 7500];        % meters
 
 % Loop through each profile in the ensemble
 
@@ -2481,7 +2468,7 @@ set(gcf, 'Position', [0 0 1200 625])
 % save .fig file
 if strcmp(whatComputer, 'andrewbuggee')==true
 
-    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
     folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
 
 elseif strcmp(whatComputer, 'anbu8374')==true
