@@ -465,6 +465,7 @@ for pp = 1:num_pixels
     re_profile = create_droplet_profile2([retrieval{pp}(1,end), retrieval{pp}(2,end)],...
         z, 'altitude', GN_inputs.model.profile.type);                               % microns
 
+    % compute LWP
     GN_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,end) * trapz(z, (re_profile*1e-6).^3)/...
         trapz(z, (re_profile*1e-6).^2);           %g/m^2
     % -------------------------------------------------------------------
