@@ -36,13 +36,13 @@ yline(0,'LineWidth',0.5,'Color','black')
 
 
 
-% Create a new ste of unit vectors so that the new j vector points along v
+% Create a new set of unit vectors so that the new j vector points along v
 % The new unit vectors relate to the old unit vectors in the following way
 M_cc = @(T) [cosd(T), -sind(T);...
-            sind(T), cosd(T)];
+    sind(T), cosd(T)];
 
 M_c = @(T) [cosd(T),  sind(T);...
-            -sind(T), cosd(T)];
+    -sind(T), cosd(T)];
 
 
 
@@ -74,8 +74,8 @@ v2_newCoordinates = M_c(T1)*v(L2,T2)';
 
 
 % plot the next vector
-hold on;
-plot([0,v2_newCoordinates(1)],[0, v2_newCoordinates(2)])
+% hold on;
+% plot([0,v2_newCoordinates(1)],[0, v2_newCoordinates(2)])
 
 
 % Add the vectors together and plot them
@@ -107,8 +107,8 @@ v3_newCoordinates = M_c(T1)*M_c(T2)*v(L3,T3)';
 
 
 % plot the next vector
-hold on;
-plot([0,v3_newCoordinates(1)],[0, v3_newCoordinates(2)])
+% hold on;
+% plot([0,v3_newCoordinates(1)],[0, v3_newCoordinates(2)])
 
 
 % Add the vectors together and plot them
@@ -139,8 +139,8 @@ N_vectors = 2;
 
 V_positions = zeros(N_vectors, 2);
 tau_draw = zeros(1, N_vectors);
-mu_draw = zeros(1, N_vectors);
-
+%mu_draw = zeros(1, N_vectors);
+mu_draw = [cosd(0), cosd(45)];
 
 
 
@@ -152,8 +152,8 @@ yline(0,'LineWidth',0.5,'Color','black')
 
 for nn = 1:N_vectors
 
-    %tau_draw(nn) = tau(rand(1));
-    tau_draw(nn) = 1;
+    tau_draw(nn) = tau(rand(1));
+    %tau_draw(nn) = 1;
     %mu_draw(nn) = mu(0.001, rand(1));
 
 
@@ -182,6 +182,7 @@ grid on; grid minor
 
 %% Let's try a simulation using i and j coordniate transformation
 
+
 clear variables
 
 
@@ -195,11 +196,11 @@ v = @(L,Mu) L.*[rand_plusORminus_one(1,1)*sqrt(1 - Mu^2), Mu];
 
 % clockwise rotation
 M_c = @(Mu) [Mu, sqrt(1 - Mu^2);...
-             -sqrt(1 - Mu^2), Mu];
+    -sqrt(1 - Mu^2), Mu];
 
 % counter-clockwise rotation
 M_cc = @(Mu) [Mu, -sqrt(1 - Mu^2);...
-             sqrt(1 - Mu^2), Mu];
+    sqrt(1 - Mu^2), Mu];
 
 
 % Define a random variable that gives the length of each vector
@@ -207,13 +208,15 @@ tau = @(x) -log(1 - x);
 
 % Define a random variable that gives mu=cos(theta) at the end of each
 % vector
-mu = @(g, x) 1/(2*g) * (1 + g^2 - ((1 - g^2)./(1 - g + 2*g*x)).^2);
+mu = @(g, x) 1./(2*g) .* (1 + g.^2 - ((1 - g.^2)./(1 - g + 2*g*x)).^2);
 
 
 % Define the number of vectors you want to plot
 N_vectors = 100;
 
-% Plot them!
+
+
+% ----- Plot them! -----
 
 M_transformation = eye(2);
 position_in_new_coordinates = zeros(N_vectors, 2);
@@ -230,7 +233,9 @@ for nn = 1:N_vectors
 
     %tau_draw(nn) = tau(rand(1));
     tau_draw(nn) = 1;
+
     mu_draw(nn) = mu(0.85, rand(1));
+    %mu_draw(nn) = 1/sqrt(2);
 
     % Compute the position in the new coordinate system with respect to the
     % previous vector
@@ -240,22 +245,25 @@ for nn = 1:N_vectors
 
         % compute the x and y components with respect to the new coordinate system
         V_positions(nn,:) = position_in_new_coordinates(nn,:);
-        
 
 
-        % Plot 
+
+        % Plot
         plot([0, V_positions(nn,1)], [0, V_positions(nn,2)])
         hold on
+        grid on; grid minor;
+        xlabel('x', 'Interpreter','latex')
+        ylabel('y', 'Interpreter','latex')
         drawnow
         pause(0.5)
 
     else
-        
-       
 
-%         if nn ==2 || nn==4
-%             position_in_new_coordinates(nn,1) = -1*position_in_new_coordinates(nn,1);
-%         end
+
+
+        %         if nn ==2 || nn==4
+        %             position_in_new_coordinates(nn,1) = -1*position_in_new_coordinates(nn,1);
+        %         end
 
 
 
@@ -263,13 +271,13 @@ for nn = 1:N_vectors
             % If x is less than 0, we perform a counter-clockwise transformation
             M_transformation = M_transformation * M_cc(mu_draw(nn-1));
         else
-            % If x is greater than 0, we perform a clockwise transformation 
+            % If x is greater than 0, we perform a clockwise transformation
             M_transformation = M_transformation * M_c(mu_draw(nn-1));
         end
 
 
         V_positions(nn,:) = V_positions(nn-1,:) + (M_transformation * position_in_new_coordinates(nn,:)')';
-        
+
 
 
         % plot
@@ -292,3 +300,132 @@ grid on; grid minor
 
 
 
+
+
+
+%% --- 3-Dimensions! --- Let's try a simulation using i, j and k coordniate transformation
+
+clear variables
+
+
+% Define the function that determines the x, y and z components of a vector
+% due to some angle T with respect to Z and some angle P with respect to X
+% The magnitude of the vector is L
+
+% v = @(L, theta, phi) L.*[rand_plusORminus_one(1,1)*sin(theta)*cos(phi),...
+%                          rand_plusORminus_one(1,1)*sin(theta)*sin(phi), cos(theta)];
+
+v = @(L, mu, phi) L.*[sqrt(1 - mu.^2) * cos(phi), sqrt(1 - mu.^2) * sin(phi), mu];
+
+
+
+% clockwise rotation
+% M_c = @(theta, phi) [cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(phi);...
+%                      -sin(phi), cos(phi), 0;...
+%                      sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)];
+
+M_c = @(mu, phi) [mu*cos(phi), mu*sin(phi), -sqrt(1 - mu.^2);...
+                  -sin(phi), cos(phi), 0;...
+                  sqrt(1 - mu.^2)*cos(phi), sqrt(1 - mu.^2)*sin(phi), mu];
+
+
+
+% Define a random variable that gives the length of each vector
+tau = @(x) -log(1 - x);
+
+% Define a random variable that samples a scattering zenith angle, theta
+mu = @(g, x) 1./(2*g) .* (1 + g.^2 - ((1 - g.^2)./(1 - g + 2*g*x)).^2);
+
+% define a random variable the determines the azimuthal angle. We assume
+% azimuthal symmetry, so the distribution is uniform
+phi = @(n) (2*pi)*rand(1,n);
+
+% Define the number of vectors you want to plot
+N_vectors = 100;
+
+
+
+% ----- Plot them! -----
+
+M_transformation = eye(3);
+position_in_new_coordinates = zeros(N_vectors, 3);
+V_positions = zeros(N_vectors, 3);
+tau_draw = zeros(1, N_vectors);
+mu_draw = zeros(1, N_vectors);
+phi_draw = zeros(1, N_vectors);
+
+
+% --- define the asymmetry parameter
+g = 0.85;
+
+figure;
+
+
+for nn = 1:N_vectors
+
+    %tau_draw(nn) = tau(rand(1));
+    tau_draw(nn) = 1;
+
+    mu_draw(nn) = mu(g, rand(1));
+    %mu_draw(nn) = 1;
+
+    phi_draw(nn) = phi(1);
+    %phi_draw(nn) = 0;
+
+    % Compute the position in the new coordinate system with respect to the
+    % previous vector
+    position_in_new_coordinates(nn,:) = v(tau_draw(nn), mu_draw(nn), phi_draw(nn));
+
+    if nn == 1
+
+        % compute the x and y components with respect to the new coordinate system
+        V_positions(nn,:) = position_in_new_coordinates(nn,:);
+
+
+
+        % Plot
+        plot3([0, V_positions(nn,1)], [0, V_positions(nn,2)], [0, V_positions(nn,3)])
+        hold on
+        grid on; grid minor;
+        xlabel('x', 'Interpreter','latex')
+        ylabel('y', 'Interpreter','latex')
+        zlabel('z', 'Interpreter','latex')
+        set(gcf, 'Position', [500, 500, 1200, 750])
+        drawnow
+        pause(0.5)
+
+    else
+
+
+
+        % Rotate the reference frame (the set of unit vectors), so that
+        % Z is pointing along the last photon tracjectory
+        M_transformation = M_transformation * M_c(mu_draw(nn-1), phi_draw(nn-1));
+
+
+
+        V_positions(nn,:) = V_positions(nn-1,:) + (M_transformation * position_in_new_coordinates(nn,:)')';
+
+
+
+        % plot
+        plot3([V_positions(nn-1,1), V_positions(nn,1)], [V_positions(nn-1,2), V_positions(nn,2)],...
+            [V_positions(nn-1,3), V_positions(nn,3)])
+        hold on
+        drawnow
+        pause(0.5)
+
+
+    end
+
+
+
+end
+
+plot3(1.2.*[min(V_positions(:,1),[],"all"), max(V_positions(:,1),[],"all")],...
+    [0,0], [0,0], 'LineWidth',0.5,'Color','black')
+plot3([0,0], 1.2.*[min(V_positions(:,2),[],"all"), max(V_positions(:,2),[],"all")],...
+    [0,0],'LineWidth',0.5,'Color','black')
+plot3([0,0], [0, 0], 1.2.*[min(V_positions(:,3),[],"all"), max(V_positions(:,3),[],"all")],...
+    'LineWidth',0.5,'Color','black')
+grid on; grid minor

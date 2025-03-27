@@ -5415,6 +5415,9 @@ optThickness_uncert_17 = [];
 effRad_uncert_17_percent = [];
 optThickness_uncert_17_precent = [];
 
+% limit to only pixels over ocean with an optical depth of at least 3
+tau_min = 3;
+
 
 for nn = 1:length(modisData)
 
@@ -5432,34 +5435,70 @@ for nn = 1:length(modisData)
     colorbar
 
 
-    % store uncertainties and remove values less than 0 (applied to non-cloudy
-    % pixels)
     
+    % ------------- effective radius -------------------
+    % grab effective radius uncertainty over ocean and convert from percent uncertainty to microns
     temp_effRad_uncert_17 = modis.cloud.effRadius17(isOcean) .* modis.cloud.effRad_uncert_17(isOcean) .* 0.01;          % microns
-    pix_lessThan0_or_Nan = temp_effRad_uncert_17<0 | isnan(temp_effRad_uncert_17);
-    temp_effRad_uncert_17(pix_lessThan0_or_Nan) = [];
-    % store final product
+
+    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
+    % pixels) and with an optical depth of less than 3
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_effRad_uncert_17<0 | isnan(temp_effRad_uncert_17) | modis.cloud.optThickness17(isOcean) < tau_min;
+
+    % remove values found above
+    temp_effRad_uncert_17(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+
+    % store remaining values in a global variable
     effRad_uncert_17 = [effRad_uncert_17; temp_effRad_uncert_17];        % microns
 
+
+    % grab effective radius uncertainty over ocean 
     temp_effRad_uncert_17_percent = modis.cloud.effRad_uncert_17(isOcean);          % percent of retrieved effective radius
-    pix_lessThan0_or_Nan = temp_effRad_uncert_17_percent<0 | isnan(temp_effRad_uncert_17_percent);
-    temp_effRad_uncert_17_percent(pix_lessThan0_or_Nan) = [];
-    % store final product
+    
+    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
+    % pixels) and with an optical depth of less than 3
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_effRad_uncert_17_percent<0 | isnan(temp_effRad_uncert_17_percent) | modis.cloud.optThickness17(isOcean) < tau_min;
+
+    % remove values found above
+    temp_effRad_uncert_17_percent(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+
+    % store remaining values in global variable
     effRad_uncert_17_percent = [effRad_uncert_17_percent; temp_effRad_uncert_17_percent];
+
+
+
+    
+    % ------------- optical depth -------------------
+    % grab optical depth uncertainty over ocean and convert from percent
+    % uncertainty to opical depth
+    temp_optThickness_uncert_17 = modis.cloud.optThickness17(isOcean) .* modis.cloud.optThickness_uncert_17(isOcean) .* 0.01;          % optical depth
+
+    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
+    % pixels) and with an optical depth of less than 3
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_optThickness_uncert_17<0 | isnan(temp_optThickness_uncert_17) | modis.cloud.optThickness17(isOcean) < tau_min;
+
+    % remove values found above
+    temp_optThickness_uncert_17(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+
+    % store remaining values in a global variable
+    optThickness_uncert_17 = [optThickness_uncert_17; temp_optThickness_uncert_17];        % microns
+
+
+    % grab optical depth uncertainty over ocean 
+    temp_optThickness_uncert_17_percent = modis.cloud.optThickness_uncert_17(isOcean);           % percent of retrieved optical depth
+    
+    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
+    % pixels) and with an optical depth of less than 3
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_optThickness_uncert_17_percent<0 | isnan(temp_optThickness_uncert_17_percent) | modis.cloud.optThickness17(isOcean) < tau_min;
+
+    % remove values found above
+    temp_optThickness_uncert_17_percent(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+
+    % store remaining values in global variable
+    optThickness_uncert_17_precent = [optThickness_uncert_17_precent; temp_optThickness_uncert_17_percent];
     
 
-
-    temp_optThickness_uncert_17 = modis.cloud.optThickness17(isOcean) .* modis.cloud.optThickness_uncert_17(isOcean) .* 0.01;                     % optical thickness
-    pix_lessThan0_or_Nan = temp_optThickness_uncert_17<0 | isnan(temp_optThickness_uncert_17);
-    temp_optThickness_uncert_17(pix_lessThan0_or_Nan) = [];
-    % store final product
-    optThickness_uncert_17 = [optThickness_uncert_17; temp_optThickness_uncert_17];
-
-    temp_optThickness_uncert_17_percent = modis.cloud.optThickness_uncert_17(isOcean);                     % optical thickness
-    pix_lessThan0_or_Nan = temp_optThickness_uncert_17_percent<0 | isnan(temp_optThickness_uncert_17_percent);
-    temp_optThickness_uncert_17_percent(pix_lessThan0_or_Nan) = [];
-    % store final product
-    optThickness_uncert_17_precent = [optThickness_uncert_17_precent; temp_optThickness_uncert_17_percent];
+    
+  
 
 end
 
@@ -5504,15 +5543,19 @@ set(gcf, 'Position', [0,0, 1300, 750])
 
 % print the mean values of uncertainty as a percent for each variable
 disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
-    num2str(mean(effRad_uncert_17_percent)), ' %', newline])
+    num2str(mean(effRad_uncert_17_percent)), '%, with a standard deviation of: ',...
+    num2str(std(effRad_uncert_17_percent)), '%', newline])
 disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
-    num2str(mean(optThickness_uncert_17_precent)), ' %', newline])
+    num2str(mean(optThickness_uncert_17_precent)), '%, with a standard deviation of: ',...
+    num2str(std(optThickness_uncert_17_precent)), '%', newline])
 
 % print the mean values of uncertainty for each variable
 disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
-    num2str(mean(effRad_uncert_17)), ' microns', newline])
+    num2str(mean(effRad_uncert_17)), ' microns, with a standard deviation of: ',...
+    num2str(std(effRad_uncert_17)), ' microns', newline])
 disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
-    num2str(mean(optThickness_uncert_17)), newline])
+    num2str(mean(optThickness_uncert_17)), ', with a standard deviation of: ',...
+    num2str(std(optThickness_uncert_17)), newline])
 
 % Create plot of retireved effective radius versus retrieval uncertainaty
 % and include a one-to-one line
