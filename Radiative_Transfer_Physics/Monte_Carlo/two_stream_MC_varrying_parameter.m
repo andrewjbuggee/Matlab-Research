@@ -1,4 +1,4 @@
-%% Testing 2-stream monte carlo
+%% loop through 2-stream monte carlo with varrying parameters
 
 % By Andrew John Buggee
 
@@ -6,12 +6,10 @@
 
 clear variables
 
-% Define the number of photons to inject into the medium
-inputs.N_photons = 1e6;
 
 % Define the boundaries of the medium
 inputs.tau_lower_limit = 0;
-inputs.tau_upper_limit = 5;
+total_tau = logspace(-1, 2, 20);
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -28,11 +26,9 @@ inputs.layerRadii = 10;      % microns - radius of the spheres in each layer
 % Define the number of layers within the medium that differ
 inputs.N_layers = length(inputs.layerRadii);
 
-% Define the layer boundaries given the number of layers and the boundaries
-% of the entire medium
-inputs.layerBoundaries = linspace(inputs.tau_lower_limit, inputs.tau_upper_limit, inputs.N_layers +1);
 
-
+% Define the number of photons to inject into the medium
+inputs.N_photons = 1e6;
 
 % Do you want to compute the internal upwelling and downwelling fluxes?
 inputs.compute_internal_fluxes = false;
@@ -70,7 +66,7 @@ inputs.mie.indexOfRefraction = 'water';
 % Define the size of the scatterer and its scattering properties
 % Assuming a pure homogenous medium composed of a single substance.
 % The radius input is defined as [r_start, r_end, r_step].
-% where r_step is the interval between radii values (used only for 
+% where r_step is the interval between radii values (used only for
 % vectors of radii). A 0 tells the code there is no step. Finally, the
 % radius values have to be in increasing order.
 if inputs.N_layers==1
@@ -78,7 +74,7 @@ if inputs.N_layers==1
 else
     % define the min, max, and step. Record the vector because these are
     % the exact values used in the mie calculations
-    
+
     % min value
     inputs.mie.radius(1) = min(inputs.layerRadii);
     % max value
@@ -106,63 +102,132 @@ runMIE(mie_folder,input_filename,output_filename);
 % Outputs vary by radii along the column dimension
 % --------------------------------------------------
 
-% Define the single scattering albedo 
+% Define the single scattering albedo
 inputs.ssa = ds.ssa;
 
 % Define the asymmetry parameter
 inputs.g = ds.asymParam;
 
-% --------------------------------------
-% ----- Override ssa and g values ------
-% --------------------------------------
-inputs.ssa = 0.7;
-inputs.g = 0.5;
-% --------------------------------------
+
 
 
 
 %% Run 2 stream 1D monte carlo code
 
-% ------- Without Live Plotting ---------
+
+% --------------------------------------
+% ----- Override ssa and g values ------
+% --------------------------------------
+ssa = [1];
+inputs.g = 0.85;
+% --------------------------------------
+
+R = zeros(length(ssa), length(total_tau));
+T = zeros(length(ssa), length(total_tau));
+A = zeros(length(ssa), length(total_tau));
+
+
+legend_str = cell(1, length(ssa));
+
 tic
-[F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo(inputs);
+for ss = 1:length(ssa)
+
+
+
+    inputs.ssa = ssa(ss);
+
+    legend_str{ss} = ['$\varpi = $', num2str(inputs.ssa)];
+
+    for nn = 1:length(total_tau)
+
+        disp(['[ss,nn] = [' num2str(ss),',',num2str(nn),'] ...'])
+
+        inputs.tau_upper_limit = total_tau(nn);
+
+        % Define the layer boundaries given the number of layers and the boundaries
+        % of the entire medium
+        inputs.layerBoundaries = linspace(inputs.tau_lower_limit, inputs.tau_upper_limit, inputs.N_layers +1);
+
+
+        % ------- Without Live Plotting ---------
+
+        [F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo(inputs);
+
+
+        R(ss, nn) = final_state.scatter_out_top/inputs.N_photons;
+        T(ss, nn) = final_state.scatter_out_bottom/inputs.N_photons;
+        A(ss, nn) = final_state.absorbed/inputs.N_photons;
+
+
+
+
+
+
+    end
+end
 toc
 
-% ------- With Live Plotting ---------
+%% Plot
 
-% do you want to save the live figure for as a video file?
-% inputs.saveLivePlot_asVideo = false;    % --- doesn't work
-% [F_norm, final_state, photon_tracking, inputs] = twoStream_monteCarlo_with_livePlot(inputs);
+figure;
 
-%% Compare the monte carlo solution with the analytical solution
+plotx(total_tau, R, '.-')
 
-plot_2strm_monteCarlo_with_analytical(inputs,F_norm);
+% Label axes
+xlabel('Optical Thickness');
+ylabel('Reflectivity');
+
+% Improve plot aesthetics
+grid on; grid minor
+title('1D Monte Carlo with Absorption', ['g=', num2str(inputs.g)]);
+legend(legend_str, 'Location','best', 'Interpreter','latex')
+
+% plot the theoretical values on top 
+R_theory = zeros(length(ssa), length(total_tau));
+
+for ss = 1:length(ssa)
+
+    R_theory(ss,:) = two_stream_RT(total_tau, linspace(ssa(ss), ssa(ss), length(total_tau)),...
+        linspace(inputs.g, inputs.g, length(total_tau)), 0);
+
+end
+
+hold on
+semilogx(total_tau, R_theory, '--', 'Color', 'k')
+
+%% Make a plot of just the two-stream theory
+
+% vary optical thickness and single scattering albedo
 
 
-%% Lets plot the max depth reached by each photon normalized by the total number of photons
 
-plot_probability_maxDepth(inputs, photon_tracking, 'probability')
+% plot the theoretical values on top 
+R_theory = zeros(length(ssa), length(total_tau));
 
+for ss = 1:length(ssa)
 
-%% Let's plot the conditional probability of an absorbed photon reach a max depth of tau
+    R_theory(ss,:) = two_stream_RT(total_tau, linspace(ssa(ss), ssa(ss), length(total_tau)),...
+        linspace(inputs.g, inputs.g, length(total_tau)), 0);
 
-%plot_probability_absorbedDepth(inputs, final_state, photon_tracking, 'probability')
+end
 
-%% Let's plot the conditional probability of a photon that scattered out the cloud top
-% reaching a max depth of tau
+figure;
 
-%plot_probability_scatterOutTop_maxDepth(inputs, final_state, photon_tracking, 'probability')
+semilogx(total_tau, R_theory, '-')
 
+% Label axes
+xlabel('Optical Thickness');
+ylabel('Reflectivity');
 
-%% Let's plot two conditional probabilities on the same plot
-% Plot the probability of a photon reaching a max depth of tau if it was
-% scattered out the cloud top, and plot the probability of a photon being
-% absorbed at a depth tau given that it was absorbed.
+% Improve plot aesthetics
+grid on; grid minor
+title('1D Monte Carlo with Absorption', ['g=', num2str(inputs.g)]);
+legend(legend_str, 'Location','best', 'Interpreter','latex')
 
-plot_probability_absANDscatTop_maxDepth(inputs, final_state, photon_tracking, 'probability')
+%% The reflectivity of a pile of parallel plates
 
+% Bohren and Clothiaux Chapter 5.1
 
-%% Plot a bar chart showing the probability of each final state
+R = total_tau./(1 + total_tau);
 
-plot_probability_finalStates(final_state,inputs)
 

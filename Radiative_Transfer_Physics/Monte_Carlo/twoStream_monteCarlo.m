@@ -129,7 +129,7 @@ absorbed_index = [];
 
 
 
-for nn = 1:N_photons
+parfor nn = 1:N_photons
 
 
 
@@ -522,174 +522,183 @@ end
 
 %%
 
-% ----------------------------------------------------------------------------------
-% *** Divide the tau space into a grid and compute reflectance and transmittance ***
-% ----------------------------------------------------------------------------------
 
-% Set up the tau grid first
+if inputs.compute_internal_fluxes==true
+    % ----------------------------------------------------------------------------------
+    % *** Divide the tau space into a grid and compute reflectance and transmittance ***
+    % ----------------------------------------------------------------------------------
 
-N_bins = 100;
+    % Set up the tau grid first
 
-if tau_upper_limit==inf
-    binEdges = logspace(-3, ceil(log10(max(max_depth))),N_bins+1);
+    N_bins = 100;
 
-else
-    binEdges = linspace(tau_lower_limit, tau_upper_limit,N_bins+1);
-end
+    if tau_upper_limit==inf
+        binEdges = logspace(-3, ceil(log10(max(max_depth))),N_bins+1);
 
-
-% Create the bins that will keep tally
-N_counts_moving_up = zeros(1, N_bins);
-N_counts_moving_down = zeros(1, N_bins);
-
-% We want to tally the direction a photon moves through each bin defined
-% above
-
-% Check to see if we switched directions. If we did, we want to
-% make sure we tally that a photon was moving in both
-% directions in the bin where it turned around
+    else
+        binEdges = linspace(tau_lower_limit, tau_upper_limit,N_bins+1);
+    end
 
 
-% assign each x to one of our bins
-for nn=1:N_photons
+    % Create the bins that will keep tally
+    N_counts_moving_up = zeros(1, N_bins);
+    N_counts_moving_down = zeros(1, N_bins);
+
+    % We want to tally the direction a photon moves through each bin defined
+    % above
+
+    % Check to see if we switched directions. If we did, we want to
+    % make sure we tally that a photon was moving in both
+    % directions in the bin where it turned around
+
+
+    % assign each x to one of our bins
+    for nn=1:N_photons
 
 
 
-    for tt = 1:length(depth_travelled{nn})-1
+        for tt = 1:length(depth_travelled{nn})-1
 
-        % Check to see if the photon is moving down or up and check to see
-        % if its continuing along the same direction, or it it's switched
-        % directions
+            % Check to see if the photon is moving down or up and check to see
+            % if its continuing along the same direction, or it it's switched
+            % directions
 
-        % ----------------------------------------
-        % **** Photon continuing to move down ****
-        % ----------------------------------------
-        if direction{nn}(tt+1)==1 && direction{nn}(tt)==1
-            % *** the photon is moving down ***
-            % Check the see which tau bins the photon moves through. Tally each
-            % bin that is found
-
-
-            % If the photon is moving down and was already heading
-            % down, we don't need to account for an additional bin
-
-            % If the photon is moving down, then when it cross bin-edge 3,
-            % its in bucket 3.
-            bins_photon_moves_through = binEdges>=depth_travelled{nn}(tt) & ...
-                binEdges<depth_travelled{nn}(tt+1);
-
-            N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
+            % ----------------------------------------
+            % **** Photon continuing to move down ****
+            % ----------------------------------------
+            if direction{nn}(tt+1)==1 && direction{nn}(tt)==1
+                % *** the photon is moving down ***
+                % Check the see which tau bins the photon moves through. Tally each
+                % bin that is found
 
 
-            % --------------------------------------------
-            % **** Photon moving down after moving up ****
-            % --------------------------------------------
-        elseif direction{nn}(tt+1)==1 && direction{nn}(tt)==-1
-            % If the photon is moving down, then when it cross bin-edge 3,
-            % its in bucket 3.
-            bins_photon_moves_through = binEdges>=depth_travelled{nn}(tt) & ...
-                binEdges<depth_travelled{nn}(tt+1);
+                % If the photon is moving down and was already heading
+                % down, we don't need to account for an additional bin
 
-            % Just make sure the first bin is not 1! We can't have a 0
-            % index in matlab
-            if find(bins_photon_moves_through,1)~=1
-                bins_photon_moves_through(find(bins_photon_moves_through,1)-1) = 1;
+                % If the photon is moving down, then when it cross bin-edge 3,
+                % its in bucket 3.
+                bins_photon_moves_through = binEdges>=depth_travelled{nn}(tt) & ...
+                    binEdges<depth_travelled{nn}(tt+1);
+
+                N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
+
+
+                % --------------------------------------------
+                % **** Photon moving down after moving up ****
+                % --------------------------------------------
+            elseif direction{nn}(tt+1)==1 && direction{nn}(tt)==-1
+                % If the photon is moving down, then when it cross bin-edge 3,
+                % its in bucket 3.
+                bins_photon_moves_through = binEdges>=depth_travelled{nn}(tt) & ...
+                    binEdges<depth_travelled{nn}(tt+1);
+
+                % Just make sure the first bin is not 1! We can't have a 0
+                % index in matlab
+                if find(bins_photon_moves_through,1)~=1
+                    bins_photon_moves_through(find(bins_photon_moves_through,1)-1) = 1;
+                end
+
+                N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
+
+
+
+                % --------------------------------------
+                % **** Photon continuing to move up ****
+                % --------------------------------------
+            elseif direction{nn}(tt+1)==-1 && direction{nn}(tt)==-1
+                % *** the photon is moving up ***
+                % When this is true, depth_travlled{nn}(tt+1) is always less
+                % than depth_travelled{nn}(tt) so we need to determine the tau
+                % bins that the photon passes through between
+                % depth_travlled{nn}(tt) and depth_travlled{nn}(tt+1)
+
+
+                % If the photon is continuing up then we only have to count
+                % the bins it passes through
+                bins_photon_moves_through = binEdges<=depth_travelled{nn}(tt) & ...
+                    binEdges>=depth_travelled{nn}(tt+1);
+
+                bins_photon_moves_through = find(bins_photon_moves_through)-1;
+
+
+                % Just make sure the first bin is not 1! We can't have a 0
+                % index in matlab
+                bins_photon_moves_through(bins_photon_moves_through<1)=[];
+
+
+                N_counts_moving_up(bins_photon_moves_through) = N_counts_moving_up(bins_photon_moves_through) +1;
+
+
+
+
+                % --------------------------------------------
+                % **** Photon moving up after moving down ****
+                % --------------------------------------------
+            elseif direction{nn}(tt+1)==-1 && direction{nn}(tt)==1
+
+
+                % If the photon switched direction, we have to account for
+                % the final bin it ends up in
+
+                bins_photon_moves_through = binEdges<=depth_travelled{nn}(tt) & ...
+                    binEdges>=depth_travelled{nn}(tt+1);
+
+                % Just make sure the first bin is not 1! We can't have a 0
+                % index in matlab
+                if find(bins_photon_moves_through,1)~=1
+                    bins_photon_moves_through(find(bins_photon_moves_through,1)-1) = 1;
+                end
+
+                % Some photons in the category will reflect off the bottom
+                % boudnary. If this happened, we simply need to remove the
+                % logical true value for the binEdge equal to tau_upper_limit.
+                % If we don't we get an error, and all we need to keep track of
+                % is whether or not the photon passed through this bin
+                if bins_photon_moves_through(end)==true && (depth_travelled{nn}(tt)==tau_upper_limit || depth_travelled{nn}(tt+1)==tau_upper_limit)
+                    bins_photon_moves_through(end) = 0;
+                end
+
+
+                N_counts_moving_up(bins_photon_moves_through) = N_counts_moving_up(bins_photon_moves_through) +1;
+
+
+
+            else
+
+
+                error([newline,'Im not sure what the photon is doing',newline])
+
             end
 
-            N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
-
-
-
-            % --------------------------------------
-            % **** Photon continuing to move up ****
-            % --------------------------------------
-        elseif direction{nn}(tt+1)==-1 && direction{nn}(tt)==-1
-            % *** the photon is moving up ***
-            % When this is true, depth_travlled{nn}(tt+1) is always less
-            % than depth_travelled{nn}(tt) so we need to determine the tau
-            % bins that the photon passes through between
-            % depth_travlled{nn}(tt) and depth_travlled{nn}(tt+1)
-
-
-            % If the photon is continuing up then we only have to count
-            % the bins it passes through
-            bins_photon_moves_through = binEdges<=depth_travelled{nn}(tt) & ...
-                binEdges>=depth_travelled{nn}(tt+1);
-
-            bins_photon_moves_through = find(bins_photon_moves_through)-1;
-
-
-            % Just make sure the first bin is not 1! We can't have a 0
-            % index in matlab
-            bins_photon_moves_through(bins_photon_moves_through<1)=[];
-
-
-            N_counts_moving_up(bins_photon_moves_through) = N_counts_moving_up(bins_photon_moves_through) +1;
-
-
-
-
-            % --------------------------------------------
-            % **** Photon moving up after moving down ****
-            % --------------------------------------------
-        elseif direction{nn}(tt+1)==-1 && direction{nn}(tt)==1
-
-
-            % If the photon switched direction, we have to account for
-            % the final bin it ends up in
-
-            bins_photon_moves_through = binEdges<=depth_travelled{nn}(tt) & ...
-                binEdges>=depth_travelled{nn}(tt+1);
-
-            % Just make sure the first bin is not 1! We can't have a 0
-            % index in matlab
-            if find(bins_photon_moves_through,1)~=1
-                bins_photon_moves_through(find(bins_photon_moves_through,1)-1) = 1;
-            end
-
-            % Some photons in the category will reflect off the bottom
-            % boudnary. If this happened, we simply need to remove the
-            % logical true value for the binEdge equal to tau_upper_limit.
-            % If we don't we get an error, and all we need to keep track of
-            % is whether or not the photon passed through this bin
-            if bins_photon_moves_through(end)==true && (depth_travelled{nn}(tt)==tau_upper_limit || depth_travelled{nn}(tt+1)==tau_upper_limit)
-                bins_photon_moves_through(end) = 0;
-            end
-
-
-            N_counts_moving_up(bins_photon_moves_through) = N_counts_moving_up(bins_photon_moves_through) +1;
-
-
-
-        else
-
-
-            error([newline,'Im not sure what the photon is doing',newline])
 
         end
-
 
     end
 
 end
 
 
-
-
-
+%%
 % ----------------------------------------------
 % *** Let's collect all the output variables ***
 % ----------------------------------------------
 
-% compute the normalized upward moving irradiance
-F_norm.up = N_counts_moving_up./N_photons;
+if inputs.compute_internal_fluxes==true
 
+    % compute the normalized upward moving irradiance
+    F_norm.up = N_counts_moving_up./N_photons;
 
-% compute the normalized downward moving irradiance
-F_norm.down = N_counts_moving_down./N_photons;
+    % compute the normalized downward moving irradiance
+    F_norm.down = N_counts_moving_down./N_photons;
 
-% save the bin edges
-F_norm.binEdges = binEdges;
+    % save the bin edges
+    F_norm.binEdges = binEdges;
+
+else
+
+    F_norm = [];
+
+end
 
 
 % output all final states of each photon
