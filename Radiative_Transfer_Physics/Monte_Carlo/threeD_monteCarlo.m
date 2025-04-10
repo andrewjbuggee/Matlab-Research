@@ -9,22 +9,22 @@ function [F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo(inpu
 % ---------------------------------------
 
 % --- Define the boundaries of the medium ---
-if isfield(inputs, tau_y_upper_limit)
+if isfield(inputs, 'tau_y_upper_limit')
 
     tau_y_upper_limit = inputs.tau_y_upper_limit;
     tau_y_lower_limit = inputs.tau_y_lower_limit;
 
 end
 
-if isfield(inputs, tau_x_upper_limit)
-    
+if isfield(inputs, 'tau_x_upper_limit')
+
     tau_x_upper_limit = inputs.tau_x_upper_limit;
     tau_x_lower_limit = inputs.tau_x_lower_limit;
 
 end
 
-if isfield(inputs, tau_z_upper_limit)
-    
+if isfield(inputs, 'tau_z_upper_limit')
+
     tau_z_upper_limit = inputs.tau_z_upper_limit;
     tau_z_lower_limit = inputs.tau_z_lower_limit;
 
@@ -58,9 +58,9 @@ N_photons = inputs.N_photons;
 
 % asymmetry parameter for each layer
 if inputs.mie.integrate_over_size_distribution==false
-    
+
     % then we use the values directly computed by the mie program
-    
+
     % define the asymmetry parameter
     g = inputs.g;
 
@@ -128,17 +128,18 @@ phi = @(n) (2*pi)*rand(1,n);
 % Define the rotation matrix that rotates the reference frame (set of unit
 % vectors) so that each new photon trajectory aligns with the z direction
 M = @(mu, phi) [mu*cos(phi), mu*sin(phi), -sqrt(1 - mu.^2);...
-                  -sin(phi), cos(phi), 0;...
-                  sqrt(1 - mu.^2)*cos(phi), sqrt(1 - mu.^2)*sin(phi), mu];
+    -sin(phi), cos(phi), 0;...
+    sqrt(1 - mu.^2)*cos(phi), sqrt(1 - mu.^2)*sin(phi), mu];
 
 
 
 
-% ---------------------------------------------------------------------------------------------
+% -------------------------------------------------------------------------------------------------
 % *** Define the function that computes the x, y, and z components in the new coordinate system ***
-% ---------------------------------------------------------------------------------------------
+% -------------------------------------------------------------------------------------------------
 % the new trajectory is always with respect to the old trajectory. This is
 % the local position with respect to the previous position
+% mu = cos(theta). sqrt(1 - mu^2) = sin(theta)
 photon_position_local = @(tau, mu, phi) tau.*[sqrt(1 - mu.^2) * cos(phi), sqrt(1 - mu.^2) * sin(phi), mu];
 
 
@@ -153,11 +154,11 @@ rng('default');
 % -------------------------------------------------------------
 
 % we have to keep track of how our photon travels within the medium
-photon_tau_position = cell(1,N_photons);
+photon_tau_absolute_position = cell(1,N_photons);
 
 
 % Store the values of the maximum depth reached along each axis for each photon
-max_position_reached = zeros(3, N_photons);
+max_position_reached = zeros(N_photons, 3);
 
 % Store the value of the depth at which a photon is absorbed
 position_absorbed = [];
@@ -179,10 +180,10 @@ absorbed = 0;
 % photon. We set these to be 0 to start in case the vector is empty when it
 % is probed in a logical question. We then delete the zero value in the
 % end, because matlab indices start with 1.
-scatter_out_top_index = 0;
-scatter_out_bottom_index = 0;
-scatter_out_side_index = 0;
-absorbed_index = 0;
+scatter_out_top_index = [];
+scatter_out_bottom_index = [];
+scatter_out_side_index = [];
+absorbed_index = [];
 
 
 % ----------------------------------------------------------------------
@@ -193,6 +194,7 @@ absorbed_index = 0;
 
 
 parfor nn = 1:N_photons
+%for nn = 1:N_photons
 
 
 
@@ -209,14 +211,14 @@ parfor nn = 1:N_photons
 
     % Set the transformation matrix to be the identity matrix for the first
     % photon. After that, for each scattering event we will multiply the
-    % transformation matrix used in the previous transformation with the 
+    % transformation matrix used in the previous transformation with the
     % transformation of the lateset scattering event.
     M_transformation = eye(3);
-    
+
     % We need to keep track of the current mu sample and the previous one. The
-    % new coordinate system depends on the current mu and the previous mu. 
+    % new coordinate system depends on the current mu and the previous mu.
     mu_vector = cosd(solar_zenith_angle);
-    %mu_vector = 0;   
+    %mu_vector = 0;
 
 
 
@@ -241,15 +243,15 @@ parfor nn = 1:N_photons
     % only need to keep track of the current and previous position. The
     % first column is the x position in tau space, the second column is the
     % y position in tau space.
-    photon_position_in_new_coordniates = photon_position_local(tau_sample, mu_vector(end), phi_vector);
-    
-    
+    photon_position_in_local_coordniates = photon_position_local(tau_sample, mu_vector(end), phi_vector);
+
+
     % we need to keep track of where the photon is within our medium
     % Start by giving each vector a 0 to show the starting point at time
     % t=0. The first column is the x position in tau space. The second
     % column is the y position in tau space.
-    photon_tau_position{nn} = [0, 0, 0;...
-                               photon_position_in_new_coordniates];
+    photon_tau_absolute_position{nn} = [0, 0, 0;...
+        photon_position_in_local_coordniates];
 
 
     % -----------------------------------------
@@ -259,7 +261,7 @@ parfor nn = 1:N_photons
     % There is a chance we draw a number that causes the photon to transmit
     % through without any scattering events!
 
-    if photon_tau_position{nn}(end,3)>tau_z_upper_limit
+    if photon_tau_absolute_position{nn}(end,3)>tau_z_upper_limit
 
         % The photon has transmitted right through our medium without any
         % scattering or absorption events.
@@ -282,14 +284,14 @@ parfor nn = 1:N_photons
             % First, set the distance travelled to be the boundary
             % condition value, since we are treating this as a hard
             % boundary
-            photon_tau_position{nn}(end,3) = tau_z_upper_limit;
+            photon_tau_absolute_position{nn}(end,3) = tau_z_upper_limit;
 
 
             % ------------------------------------------------------
             % ----- Check to see what layer is our photon in!! -----
             % ------------------------------------------------------
             if N_layers>1
-                I_lessThan = find(layerBoundaries<photon_tau_position{nn}(end,3));
+                I_lessThan = find(layerBoundaries<photon_tau_absolute_position{nn}(end,3));
 
                 % set the index describing which layer the photon is in
                 index_layer = I_lessThan(end);
@@ -347,13 +349,14 @@ parfor nn = 1:N_photons
 
 
             % record where the photon along the y axis and along the x axis
-            photon_tau_position{nn}(end+1,:) = photon_tau_position{nn}(end,:) + (M_transformation * photon_position_in_new_coordniates(end,:)')';
+            photon_tau_absolute_position{nn}(end+1,:) = photon_tau_absolute_position{nn}(end,:) + (M_transformation * photon_position_in_local_coordniates(end,:)')';
+
 
             % ------------------------------------------------------
             % ----- Check to see what layer is our photon in!! -----
             % ------------------------------------------------------
             if N_layers>1
-                I_lessThan = find(layerBoundaries<photon_tau_position{nn}(end,2));
+                I_lessThan = find(layerBoundaries<photon_tau_absolute_position{nn}(end,3));
 
                 % set the index describing which layer the photon is in
                 index_layer = I_lessThan(end);
@@ -376,7 +379,7 @@ parfor nn = 1:N_photons
 
             % let's set the final depth_travelled value to be the
             % tau limit
-            photon_tau_position{nn}(end,2) = tau_y_upper_limit;
+            photon_tau_absolute_position{nn}(end,3) = tau_z_upper_limit;
             % Let's record which boundary the photon surpassed
             scatter_out_bottom = scatter_out_bottom + 1;
 
@@ -399,7 +402,7 @@ parfor nn = 1:N_photons
         % ----- Check to see what layer is our photon in!! -----
         % ------------------------------------------------------
         if N_layers>1
-            I_lessThan = find(layerBoundaries<photon_tau_position{nn}(end,2));
+            I_lessThan = find(layerBoundaries<photon_tau_absolute_position{nn}(end,3));
 
             % set the index describing which layer the photon is in
             index_layer = I_lessThan(end);
@@ -422,7 +425,7 @@ parfor nn = 1:N_photons
         % equal to the single scattering albedo, the photon scattered.
         % Otherwise we assume it absorbed
 
-         scat_or_abs = rand(1,1);
+        scat_or_abs = rand(1,1);
 
         while scat_or_abs<=ssa(index_layer)
 
@@ -435,11 +438,15 @@ parfor nn = 1:N_photons
             % ---------------------------------------------------------
 
             % draw a random mu value
-            mu_vector(end+1) = mu(g(index_layer), rand(1,1)); 
+            mu_vector(end+1) = mu(g(index_layer), rand(1,1));
+
+            % draw a new phi
+            phi_vector(end+1) = phi(1);
 
             % Is our photon continuing to move down, or is it moving
-            % up, despite the angle between the direction of motion and
-            % the plane parallel layers?
+            % up? mu (cos(theta)) is with respect to the current
+            % trajectory. We need to determine if the photon is moving
+            % along the positive or negative z direction.
 
 
             % -----------------------------------------------------------
@@ -449,23 +456,17 @@ parfor nn = 1:N_photons
             % travels
             tau_sample = tau(rand(1,1));
 
-            photon_position_in_new_coordniates(end+1,:) = XandY(tau_sample, mu_vector(end)); 
+            photon_position_in_local_coordniates(end+1, :) = photon_position_local(tau_sample, mu_vector(end), phi_vector(end));
 
 
             % ---------------------------------------------------------------------------------
-            % ** Determine if the previous transformation was clockwise or coutner-clockwise **
+            % ** Rotate coordinate system so Z points along previous photon trajectory **
             % ---------------------------------------------------------------------------------
-            if photon_position_in_new_coordniates(end-1,1)<0
-                % If the x position is less than 0, we perform a counter-clockwise transformation
-                M_transformation = M_transformation * M_counterClockwise(mu_vector(end-1));
-            else
-                % If the x position is greater than 0, we perform a clockwise transformation
-                M_transformation = M_transformation * M_clockwise(mu_vector(end-1));
-            end
+            M_transformation = M_transformation * M(mu_vector(end-1), phi_vector(end-1));
 
-            
+
             % record where the photon along the y axis and along the x axis
-            photon_tau_position{nn}(end+1,:) = photon_tau_position{nn}(end,:) + (M_transformation * photon_position_in_new_coordniates(end,:)')';
+            photon_tau_absolute_position{nn}(end+1,:) = photon_tau_absolute_position{nn}(end,:) + (M_transformation * photon_position_in_local_coordniates(end,:)')';
 
 
 
@@ -474,139 +475,147 @@ parfor nn = 1:N_photons
             % **** Has the photon breached any boundaries? ****
             % -------------------------------------------------
 
-            if photon_tau_position{nn}(end,2)<tau_y_lower_limit
+            if isfield(inputs, 'tau_z_upper_limit')
 
-                % The photon has scattered out the top of our medium
-                % if so, let's set the final depth_travelled value to be 0
-                photon_tau_position{nn}(end,2) = 0;
+                if photon_tau_absolute_position{nn}(end,3)<tau_z_lower_limit
 
-                % Let's record which boundary the photon surpassed
-                scatter_out_top = scatter_out_top + 1;
+                    % The photon has scattered out the top of our medium
+                    % if so, let's set the final depth_travelled value to be 0
+                    photon_tau_absolute_position{nn}(end,3) = 0;
 
-                % record the index
-                scatter_out_top_index = [scatter_out_top_index, nn];
-
-
-                break
-
-            elseif photon_tau_position{nn}(end,2)>tau_y_upper_limit
-
-                % The photon has scattered out the bottom of our medium
-
-
-                % ------------------------------------------------------
-                % **** Did our photon reflect back into our medium? ****
-                % ------------------------------------------------------
-
-                % When our photon reaches the lower boudnary, we will check to see
-                % if the photon is absorbed or scattered back into the medium by
-                % comparing a random uniform number drawing with the albedo
-
-                scat_or_abs = rand(1,1);
-
-                if scat_or_abs<=albedo_maxTau
-                    % The photon is scattered back into the medium!!
-
-                    % First, set the distance travelled to be the boundary
-                    % condition value, since we are treating this as a hard
-                    % boundary
-                    photon_tau_position{nn}(end,2) = tau_y_upper_limit;
-
-                    % ---------------------------------------------------------
-                    % *** Determine which direction the photon scattered in ***
-                    % ---------------------------------------------------------
-
-                    % The photon has scattered back into the medium, because the
-                    % albedo is defined as the fraction of irradiance (light from
-                    % all directions) that is reflected. So we draw a mu value
-                    % until we have one that is between [-1,0] since we know our
-                    % photon back scatters into the medium
-
-                    % draw a random number and compute a random mu value but make
-                    % sure it is between -1 and 0
-                    mu_vector(end+1) = mu(g(index_layer), rand(1,1));
-
-                    while mu_vector(end)>0
-                        mu_vector(end) = mu(g(index_layer), rand(1,1));
-                    end
-
-                    % Now that we have a value that represents a backscattering
-                    % event, record the new Y position
-
-                    % Is our photon continuing to move down, or is it moving
-                    % up, despite the angle between the direction of motion and
-                    % the plane parallel layers?
-
-
-                    % --------------------------------------------------------
-                    % *****----- Roll dice and move photon forward -----******
-                    % --------------------------------------------------------
-
-                    % Determine how far the photon travels after being scattered
-                    % back into our medium
-                    tau_sample = tau(rand(1,1));
-
-
-                    % Compute the new position
-                    photon_position_in_new_coordniates(end+1,:) = XandY(tau_sample, mu_vector(end));
-
-                    % ---------------------------------------------------------------------------------
-                    % ** Determine if the previous transformation was clockwise or coutner-clockwise **
-                    % ---------------------------------------------------------------------------------
-                    if photon_position_in_new_coordniates(end-1,1)<0
-                        % If the x position is less than 0, we perform a counter-clockwise transformation
-                        M_transformation = M_transformation * M_counterClockwise(mu_vector(end-1));
-                    else
-                        % If the x position is greater than 0, we perform a clockwise transformation
-                        M_transformation = M_transformation * M_clockwise(mu_vector(end-1));
-                    end
-
-
-                    % record where the photon along the y axis and along the x axis
-                    photon_tau_position{nn}(end+1,:) = photon_tau_position{nn}(end,:) + (M_transformation * photon_position_in_new_coordniates(end,:)')';
-
-
-                   
-
-                    % ------------------------------------------------------
-                    % ----- Check to see what layer is our photon in!! -----
-                    % ------------------------------------------------------
-                    if N_layers>1
-                        I_lessThan = find(layerBoundaries<photon_tau_position{nn}(end,2));
-
-                        % set the index describing which layer the photon is in
-                        index_layer = I_lessThan(end);
-
-                    else
-
-                        % the index layer is 1, since there is only 1
-                        index_layer = 1;
-
-                    end
-                    % ------------------------------------------------------
-
-
-
-                else
-                    % ---------------------------------------------
-                    % Our photon was absorbed by the lower boundary
-                    % ---------------------------------------------
-
-                    % let's set the final depth_travelled value to be the
-                    % tau limit
-                    photon_tau_position{nn}(end,2) = tau_y_upper_limit;
                     % Let's record which boundary the photon surpassed
-                    scatter_out_bottom = scatter_out_bottom + 1;
+                    scatter_out_top = scatter_out_top + 1;
 
                     % record the index
-                    scatter_out_bottom_index = [scatter_out_bottom_index, nn];
+                    scatter_out_top_index = [scatter_out_top_index, nn];
 
 
                     break
 
 
+                elseif photon_tau_absolute_position{nn}(end,3)>tau_z_upper_limit
+
+                    % The photon has scattered out the bottom of our medium
+
+
+                    % ------------------------------------------------------
+                    % **** Did our photon reflect back into our medium? ****
+                    % ------------------------------------------------------
+
+                    % When our photon reaches the lower boudnary, we will check to see
+                    % if the photon is absorbed or scattered back into the medium by
+                    % comparing a random uniform number drawing with the albedo
+
+                    scat_or_abs = rand(1,1);
+
+                    if scat_or_abs<=albedo_maxTau
+                        % The photon is scattered back into the medium!!
+
+                        % First, set the distance travelled to be the boundary
+                        % condition value, since we are treating this as a hard
+                        % boundary
+                        photon_tau_absolute_position{nn}(end,3) = tau_z_upper_limit;
+
+                        % ---------------------------------------------------------
+                        % *** Determine which direction the photon scattered in ***
+                        % ---------------------------------------------------------
+
+                        % The photon has scattered back into the medium, because the
+                        % albedo is defined as the fraction of irradiance (light from
+                        % all directions) that is reflected. So we draw a mu value
+                        % until we have one that is between [-1,0] since we know our
+                        % photon back scatters into the medium
+
+                        % draw a random number and compute a random mu value but make
+                        % sure it is between -1 and 0
+                        mu_vector(end+1) = mu(g(index_layer), rand(1,1));
+
+                        while mu_vector(end)>0
+                            mu_vector(end) = mu(g(index_layer), rand(1,1));
+                        end
+
+                        % Now that we have a value that represents a backscattering
+                        % event, record the new Y position
+
+                        % Is our photon continuing to move down, or is it moving
+                        % up, despite the angle between the direction of motion and
+                        % the plane parallel layers?
+
+
+                        % --------------------------------------------------------
+                        % *****----- Roll dice and move photon forward -----******
+                        % --------------------------------------------------------
+
+                        % Determine how far the photon travels after being scattered
+                        % back into our medium
+                        tau_sample = tau(rand(1,1));
+
+
+                        % Compute the new position
+                        photon_position_in_local_coordniates(end+1,:) = photon_position_local(tau_sample, mu_vector(end), phi_vector(end));
+
+                        % ---------------------------------------------------------------------------------
+                        % ** Rotate coordinate system so Z points along previous photon trajectory **
+                        % ---------------------------------------------------------------------------------
+                        M_transformation = M_transformation * M(mu_vector(end-1), phi_vector(end-1));
+
+
+                        % record where the photon along the y axis and along the x axis
+                        photon_tau_absolute_position{nn}(end+1,:) = photon_tau_absolute_position{nn}(end,:) + (M_transformation * photon_position_in_local_coordniates(end,:)')';
+
+
+
+
+                        % ------------------------------------------------------
+                        % ----- Check to see what layer is our photon in!! -----
+                        % ------------------------------------------------------
+                        if N_layers>1
+                            I_lessThan = find(layerBoundaries<photon_tau_absolute_position{nn}(end,3));
+
+                            % set the index describing which layer the photon is in
+                            index_layer = I_lessThan(end);
+
+                        else
+
+                            % the index layer is 1, since there is only 1
+                            index_layer = 1;
+
+                        end
+                        % ------------------------------------------------------
+
+
+
+                    else
+                        % ---------------------------------------------
+                        % Our photon was absorbed by the lower boundary
+                        % ---------------------------------------------
+
+                        % let's set the final depth_travelled value to be the
+                        % tau limit
+                        photon_tau_absolute_position{nn}(end,3) = tau_z_upper_limit;
+                        % Let's record which boundary the photon surpassed
+                        scatter_out_bottom = scatter_out_bottom + 1;
+
+                        % record the index
+                        scatter_out_bottom_index = [scatter_out_bottom_index, nn];
+
+
+                        break
+
+
+
+                    end
+
 
                 end
+
+
+                % ---- check the x and y boundaries! -----
+
+            elseif isfield(inputs, 'tau_y_upper_limit')
+
+
+                error([newline, 'I dont know how to check x and y boundaries!', newline])
 
 
             end
@@ -616,7 +625,7 @@ parfor nn = 1:N_photons
             % ----- Check to see what layer is our photon in!! -----
             % ------------------------------------------------------
             if N_layers>1
-                I_lessThan = find(layerBoundaries<photon_tau_position{nn}(end,2));
+                I_lessThan = find(layerBoundaries<photon_tau_absolute_position{nn}(end,3));
 
                 % set the index describing which layer the photon is in
                 index_layer = I_lessThan(end);
@@ -641,12 +650,12 @@ parfor nn = 1:N_photons
 
 
 
-    % --------------------------------------------------
-    % **** Did the photon perish due to absorption? ****
-    % --------------------------------------------------
+    % -----------------------------------------------------------------------------
+    % **** Did the photon perish due to absorption somwhere within the medium? ****
+    % -----------------------------------------------------------------------------
     % If the photon ended in absorption, record it!
 
-    if photon_tau_position{nn}(end,2)>tau_y_lower_limit && photon_tau_position{nn}(end,2)<tau_y_upper_limit
+    if photon_tau_absolute_position{nn}(end,3)>tau_z_lower_limit && photon_tau_absolute_position{nn}(end,3)<tau_z_upper_limit
 
         % Make sure both conditions are met!
         % The random number, scat_or_abs is greater than the ssa
@@ -658,15 +667,15 @@ parfor nn = 1:N_photons
         absorbed_index = [absorbed_index, nn];
 
         % record the depth of absorption
-        position_absorbed = [position_absorbed, photon_tau_position{nn}(end,2)];
+        position_absorbed = [position_absorbed, photon_tau_absolute_position{nn}(end,3)];
 
     end
 
 
 
-    % Save the maximum y position reached.
-    max_position_reached(nn) = max(photon_tau_position{nn}(:,2));
-    max_horizontal_position(nn) = max(photon_tau_position{nn}(:,1));
+    % Save the maximum z position reached.
+    max_position_reached(nn, :) = [max(photon_tau_absolute_position{nn}(:,1)), max(photon_tau_absolute_position{nn}(:, 2)),...
+                                        max(photon_tau_absolute_position{nn}(:,3))];
 
     % Save the number of scattering events
     % (1) If the final event was absorption, we substract two from the
@@ -675,7 +684,7 @@ parfor nn = 1:N_photons
     % first entry in depth_travlled, since it is a boundary condition.
     % We also must ignore the last entry, since we are no longer
     % tracking scattering events outside the medium
-    number_of_scattering_events(nn) = size(photon_tau_position{nn},1)-2;
+    number_of_scattering_events(nn) = size(photon_tau_absolute_position{nn},1)-2;
 
 
 
@@ -683,6 +692,7 @@ end
 
 
 %%
+
 
 % ----------------------------------------------------------------------------------
 % *** Divide the tau space into a grid and compute reflectance and transmittance ***
@@ -692,11 +702,11 @@ end
 
 N_bins = 500;
 
-if tau_y_upper_limit==inf
+if tau_z_upper_limit==inf
     binEdges = logspace(-3, ceil(log10(max(max_position_reached))),N_bins+1);
 
 else
-    binEdges = linspace(tau_y_lower_limit, tau_y_upper_limit,N_bins+1);
+    binEdges = linspace(tau_z_lower_limit, tau_z_upper_limit, N_bins+1);
 end
 
 
@@ -715,29 +725,29 @@ N_counts_moving_down = zeros(1, N_bins);
 % assign each x to one of our bins
 for nn=1:N_photons
 
-    
 
-    % Compute whether or not the photon was moving in the positive y
-    % direction or the negative y direction. A value of 1 tells the code
-    % that the photon was increasing in tau along the y axis, and a value
+
+    % Compute whether or not the photon was moving in the positive z
+    % direction or the negative z direction. A value of 1 tells the code
+    % that the photon was increasing in tau along the z axis, and a value
     % of negative 1 tells the code the photon was decreasing in tau along
     % the y axis. The first value is always 1 since the photons starts its
-    % journey by moving down, increasing its value of tau along the y axis
-    y_direction = [1; sign(diff(photon_tau_position{nn}(:,2)))];
+    % journey by moving down, increasing its value of tau along the z axis
+    z_direction = [1; sign(diff(photon_tau_absolute_position{nn}(:,3)))];
 
 
-    for tt = 1:size(photon_tau_position{nn},1)-1
+    for tt = 1:size(photon_tau_absolute_position{nn},1)-1
 
         % Check to see if the photon is moving down or up and check to see
         % if its continuing along the same direction, or if it's switched
         % directions
-        
+
         %[nn,tt]
 
         % ----------------------------------------
         % **** Photon continuing to move down ****
         % ----------------------------------------
-        if y_direction(tt+1)==1 && y_direction(tt)==1
+        if z_direction(tt+1)==1 && z_direction(tt)==1
             % *** the photon is moving down ***
             % Check the see which tau bins the photon moves through. Tally each
             % bin that is found
@@ -748,8 +758,8 @@ for nn=1:N_photons
 
             % If the photon is moving down, then when it cross bin-edge 3,
             % its in bucket 3.
-            bins_photon_moves_through = binEdges>=photon_tau_position{nn}(tt,2) & ...
-                binEdges<photon_tau_position{nn}(tt+1,2);
+            bins_photon_moves_through = binEdges>=photon_tau_absolute_position{nn}(tt,3) & ...
+                binEdges<photon_tau_absolute_position{nn}(tt+1,3);
 
             N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
 
@@ -757,23 +767,23 @@ for nn=1:N_photons
             % --------------------------------------------
             % **** Photon moving down after moving up ****
             % --------------------------------------------
-        elseif y_direction(tt+1)==1 && y_direction(tt)==-1
+        elseif z_direction(tt+1)==1 && z_direction(tt)==-1
             % In this case the photon has turned around in the bin it was
             % left off in. Therefore we have to count this as a photon
             % moving down in this bin.
-            
+
             % Photon is moving down, so the starting bin will be smaller
             % than, or equal to, the final bin
-            bin_edges_less_than_start_position = find(binEdges<=photon_tau_position{nn}(tt,2));
-            
+            bin_edges_less_than_start_position = find(binEdges<=photon_tau_absolute_position{nn}(tt,3));
+
             % This bin should be greater than, or equal to, the starting
             % bin
-            bin_edges_less_than_end_position = find(binEdges<photon_tau_position{nn}(tt+1,2));
+            bin_edges_less_than_end_position = find(binEdges<photon_tau_absolute_position{nn}(tt+1,3));
 
             bins_photon_moves_through = zeros(1,N_bins+1);
             bins_photon_moves_through(bin_edges_less_than_start_position(end):bin_edges_less_than_end_position(end)) = 1;
             bins_photon_moves_through = logical(bins_photon_moves_through);
-            
+
 
             N_counts_moving_down(bins_photon_moves_through) = N_counts_moving_down(bins_photon_moves_through) +1;
 
@@ -782,7 +792,7 @@ for nn=1:N_photons
             % --------------------------------------
             % **** Photon continuing to move up ****
             % --------------------------------------
-        elseif y_direction(tt+1)==-1 && y_direction(tt)==-1
+        elseif z_direction(tt+1)==-1 && z_direction(tt)==-1
             % *** the photon is moving up ***
             % When this is true, depth_travlled{nn}(tt+1) is always less
             % than depth_travelled{nn}(tt) so we need to determine the tau
@@ -792,20 +802,20 @@ for nn=1:N_photons
 
             % If the photon is continuing up then we only have to count
             % the bins it passes through
-            
+
             % Photon is moving up, so the starting bin will be larger
             % than, or equal to, the final bin
-            bin_edges_less_than_start_position = find(binEdges<=photon_tau_position{nn}(tt,2));
-            
+            bin_edges_less_than_start_position = find(binEdges<=photon_tau_absolute_position{nn}(tt,3));
+
             % This bin should be less than, or equal to, the starting
             % bin
-            bin_edges_less_than_end_position = find(binEdges<=photon_tau_position{nn}(tt+1,2));
+            bin_edges_less_than_end_position = find(binEdges<=photon_tau_absolute_position{nn}(tt+1,3));
 
             bins_photon_moves_through = zeros(1,N_bins+1);
 
             % let's check to see if the photon is still in the same bin. If
             % it is, we've already accounted for it's upward motion, so we
-            % don't want to double count this. 
+            % don't want to double count this.
             if bin_edges_less_than_end_position(end)==bin_edges_less_than_start_position(end)
                 % If this is true, the photon is continuing to move upward
                 % in the same bin, and we don't count it
@@ -819,7 +829,7 @@ for nn=1:N_photons
                 % above will count the bin its currently in, so we need to
                 % remove this value. We do this by subtracting 1 from the
                 % star position.
-                bins_photon_moves_through(bin_edges_less_than_end_position(end):bin_edges_less_than_start_position(end-1)) = 1;           
+                bins_photon_moves_through(bin_edges_less_than_end_position(end):bin_edges_less_than_start_position(end-1)) = 1;
 
             end
 
@@ -833,30 +843,30 @@ for nn=1:N_photons
             % --------------------------------------------
             % **** Photon moving up after moving down ****
             % --------------------------------------------
-        elseif y_direction(tt+1)==-1 && y_direction(tt)==1
+        elseif z_direction(tt+1)==-1 && z_direction(tt)==1
 
             % If the photon switched direction, we have to account for
             % the final bin it ends up in
 
             % Photon is moving up, so the starting bin will be larger
             % than, or equal to, the final bin
-            bin_edges_less_than_start_position = find(binEdges<=photon_tau_position{nn}(tt,2));
+            bin_edges_less_than_start_position = find(binEdges<=photon_tau_absolute_position{nn}(tt,3));
 
             % The final bin will be smaller than, or equal to, to starting
             % bin
-            bin_edges_less_than_end_position = find(binEdges<=photon_tau_position{nn}(tt+1,2));
+            bin_edges_less_than_end_position = find(binEdges<=photon_tau_absolute_position{nn}(tt+1,3));
 
             bins_photon_moves_through = zeros(1,N_bins+1);
             bins_photon_moves_through(bin_edges_less_than_end_position(end):bin_edges_less_than_start_position(end)) = 1;
             bins_photon_moves_through = logical(bins_photon_moves_through);
-            
+
 
             % Some photons in this category will reflect off the bottom
             % boudnary. If this happened, we simply need to remove the
             % logical true value for the binEdge equal to tau_upper_limit.
             % If we don't we get an error, and all we need to keep track of
             % is whether or not the photon passed through this bin
-            if bins_photon_moves_through(end)==true && (photon_tau_position{nn}(tt,2)==tau_y_upper_limit || photon_tau_position{nn}(tt+1,2)==tau_y_upper_limit)
+            if bins_photon_moves_through(end)==true && (photon_tau_absolute_position{nn}(tt,3)==tau_z_upper_limit || photon_tau_absolute_position{nn}(tt+1,3)==tau_z_upper_limit)
                 bins_photon_moves_through(end) = 0;
             end
 
@@ -904,21 +914,25 @@ final_state.scatter_out_top = scatter_out_top;
 final_state.scatter_out_bottom = scatter_out_bottom;
 final_state.absorbed = absorbed;
 
+% compute fraction that reflects, transmits and is absorbed
+final_state.reflectance = scatter_out_top/N_photons;
+final_state.transmittance = scatter_out_bottom/N_photons;
+final_state.absorptance = absorbed/N_photons;
+
 % output the indices for each final state
 % *** delete the zero indices, they were simply place holders ***
-scatter_out_top_index(1) = [];
-scatter_out_bottom_index(1) = [];
-absorbed_index(1) = [];
-final_state.scatter_out_top_INDEX = scatter_out_top_index;
-final_state.scatter_out_bottom_INDEX = scatter_out_bottom_index;
-final_state.absorbed_INDEX = absorbed_index;
+% scatter_out_top_index(1) = [];
+% scatter_out_bottom_index(1) = [];
+% absorbed_index(1) = [];
+final_state.scatter_out_top_index = scatter_out_top_index;
+final_state.scatter_out_bottom_index = scatter_out_bottom_index;
+final_state.absorbed_index = absorbed_index;
 
 
 % output other photon tracking variables that I've computed
 
 % keep track of the maximum penetration depth of each photon
-photon_tracking.maxDepth = max_position_reached;
-photon_tracking.max_horizontal_position = max_horizontal_position;
+photon_tracking.maxPosition = max_position_reached;
 
 % Count how many times a scatter/absorption event occurs during a photons
 % lifetime. A value of 1 means it was absorbed right away or transmitted

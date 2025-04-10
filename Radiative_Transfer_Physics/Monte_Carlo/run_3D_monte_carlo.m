@@ -18,7 +18,7 @@ clear variables
 % inputs.tau_x_upper_limit = 8; 
 
 inputs.tau_z_lower_limit = 0;
-inputs.tau_z_upper_limit = 8; 
+inputs.tau_z_upper_limit = 50; 
 
 % --------------------------------------------------
 
@@ -26,14 +26,14 @@ inputs.tau_z_upper_limit = 8;
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 49.45;                  % deg from zenith
+inputs.solar_zenith_angle = 0;                  % deg from zenith
 %inputs.solar_zenith_angle = 27;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e7;
+inputs.N_photons = 20;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----
@@ -53,7 +53,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 1600;          % nanometers
+inputs.wavelength = 500;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
@@ -92,7 +92,8 @@ inputs.size_distribution_var = 7;           % Typically value for liquid water c
 if inputs.createDropletProfile==false
     
     % Define the number of layers and the boundaries values for each tau
-    % layer
+    % layer. Properties are homogeneous in the X and Y plane, but vary in
+    % the Z plane
 
     % Define the number of layers within the medium that differ
     inputs.N_layers = 1;
@@ -106,7 +107,7 @@ if inputs.createDropletProfile==false
 
     % Define the layer boundaries given the number of layers and the boundaries
     % of the entire medium
-    inputs.layerBoundaries = linspace(inputs.tau_y_lower_limit, inputs.tau_y_upper_limit, inputs.N_layers +1);
+    inputs.layerBoundaries = linspace(inputs.tau_z_lower_limit, inputs.tau_z_upper_limit, inputs.N_layers +1);
 
 
 else
@@ -361,20 +362,29 @@ end
 
 %% Run 3D monte carlo code
 
+% --- OVERRIDE SCATTERING PARAMETERS ----
+% inputs.g = 0.85;
+% inputs.g_avg = 0.85;
+% 
+% inputs.ssa = 1;
+% inputs.ssa_avg = 1;
+% ----------------------------------------
+
+
 tic
 
 % ------- Without Live Plotting ---------
-[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo(inputs);
+%[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo(inputs);
 
 % ---------- With Live Plotting ---------
-% [F_norm, final_state, photon_tracking, inputs] = twoD_monteCarlo_withLivePlot(inputs);
+[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo_withLivePlot(inputs);
 
 toc
 
 
-%% Compare the 2D monte carlo solution with the 2-stream analytical solution
+%% Compare the 3D monte carlo solution with the 2-stream analytical solution
 
-plot_2strm_2D_monteCarlo(inputs,F_norm);
+plot_2strm_and_3D_monteCarlo(inputs,F_norm)
 
 
 %% Do you want to save you results?

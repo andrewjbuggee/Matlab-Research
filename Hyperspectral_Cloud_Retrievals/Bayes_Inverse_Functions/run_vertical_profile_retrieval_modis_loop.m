@@ -90,17 +90,17 @@ end
 
 
 
-%% LOAD MODIS AND VOCALS-REX DATA
+%% LOAD MODIS DATA
 
 % Load modis data and create input structure
 
 
 % ----- November 9th at decimal time 0.611 (14:40) -----
-modisData = '2008_11_09/';
+%modisData = '2008_11_09/';
 
 
 % ----- November 11th at decimal time 0.604 (14:30) -----
-%modisData = '2008_11_11_1430/';
+modisData = '2008_11_11_1430/';
 
 
 % ----- November 11th at decimal time 0.784 (18:50) -----
@@ -118,11 +118,11 @@ modisInputs = create_modis_inputs([modisFolder, modisData], L1B_fileName);
 
 
 % ----- November 9 data -----
-vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
+%vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
 
 
 % ----- November 11 data -----
-%vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
+vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
 
 
 

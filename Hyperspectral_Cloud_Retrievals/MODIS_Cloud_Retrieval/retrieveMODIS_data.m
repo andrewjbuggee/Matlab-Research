@@ -37,6 +37,13 @@ for ii = 1:length(files)
         modis.time = [str2double(file_ii(19:20)), str2double(file_ii(21:22))];        % UTC time of data recording
         modis.time_decimal = modis.time(1) + modis.time(2)/60;                        % UTC time in decimal format
 
+        if strcmp(file_ii(1:8),'MOD02QKM') == true || strcmp(file_ii(1:8),'MYD02QKM') == true
+            % 250m resolution calibrated data
+            
+            L1B_fileNames{ii} = file_ii;
+            modis.EV250m = compute_MODIS_sub_pixel_heterogeneity(file_ii);
+
+        
         if strcmp(file_ii(1:8),'MOD02HKM') == true || strcmp(file_ii(1:8),'MYD02HKM') == true
             % 500m resolution calibrated data
             

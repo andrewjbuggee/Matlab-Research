@@ -1594,7 +1594,7 @@ clear variables
 
 if strcmp(whatComputer, 'anbu8374')==true
 
-    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    folder_path = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
 
 elseif strcmp(whatComputer, 'andrewbuggee')==true
@@ -1823,6 +1823,9 @@ indices_2_plot = [3, 4, 10,];
 % define the colors of each curve
 C = mySavedColors([5, 17, 8], 'fixed');
 
+% Plot the re, Nc, and LWC for the curves defined by indices_2_plot 
+plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, indices_2_plot, normalize_distance)
+
 N_cuvres = length(indices_2_plot);
 
 legend_str = cell(1, 2*N_cuvres);
@@ -1988,6 +1991,8 @@ title('')
 % *** do this manually ***
 folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
 exportgraphics(f,[folderpath_pngs,'Fig 5 - 3 horizontal in-situ profiles.png'],'Resolution', 400);
+
+
 
 
 
@@ -5564,3 +5569,91 @@ disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
 
 clear variables
     
+
+%% RBG Image of the MODIS scene and the VOCALS-REx flight path
+% Compute the time difference between the MODIS pixel and the VOCALS-REx
+% in-situ measurement
+
+
+clear variables
+
+
+% Determine which computer you're using
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(whatComputer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ***** Define the MODIS Folder *****
+
+    modisFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % ----- Define the MODIS folder name -----
+
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+elseif strcmp(whatComputer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % Define the MODIS folder name
+
+    modisFolder = '/projects/anbu8374/MODIS_data/';
+
+
+end
+
+
+% Loop through three MODIS scenes used in this analysis and store retrieved
+% effective radius and optical thickness
+
+% ----- November 9th at decimal time 0.611 (14:40) -----
+% ----- November 11th at decimal time 0.604 (14:30) -----
+% ----- November 11th at decimal time 0.784 (18:50) -----   
+%modisData = {'2008_11_09/', '2008_11_11_1430/', '2008_11_11_1850/'};
+modisData = {'2008_11_11_1850/'};
+
+
+% Include the output file for the retrieval to ensure the same pixel and
+% profile that are used in the retrieval are used to compute the time
+% differences
+retrievalFiles = {'GN_inputs_outputs_withAdvection_rt-cov_8.76_rb-cov_100_tc-cov_100_28-Feb-2025_rev1.mat'};
+
+for nn = 1:length(modisData)
+
+
+    % load modis data
+    [modis,L1B_fileName] = retrieveMODIS_data([modisFolder, modisData{nn}]);
+
+
+    % load retrieval file
+    load(retrievalFiles(nn));
+
+
+    % create an RGB image of the MODIS scene used in the analysis
+
+
+end
+
+
+
+t = Tiff('MYD021KM.A2008316.1850.061.2018039033053.hdf_reprojected.tif', 'r');
+imageData = read(t);
+

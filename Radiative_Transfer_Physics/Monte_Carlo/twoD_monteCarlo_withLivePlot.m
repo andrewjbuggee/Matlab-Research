@@ -738,7 +738,8 @@ for nn = 1:N_photons
     % Clear figure and draw a new photon path
     delete(p)
 
-
+    % ----------------------------------------
+    % ----------------------------------------
 
 
 
