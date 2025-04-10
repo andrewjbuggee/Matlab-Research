@@ -106,6 +106,12 @@ pixels2use.res1km.geometry.saz = modis.solar.azimuth(pixels2use.res1km.linearInd
 pixels2use.res1km.geometry.umu = round(cosd(double(modis.sensor.zenith(pixels2use.res1km.linearIndex))),3); % values are in degrees
 pixels2use.res1km.geometry.phi = modis.sensor.azimuth(pixels2use.res1km.linearIndex);
 
+
+% --- Store the inhomoegeneity index for each pixel ---
+% use the 0.86 micron channel, MODIS channel 2
+H_86 = modis.cloud.inhomogeneity_index(:,:,2);
+pixels2use.res1km.inhomogeneity_index = H_86(pixels2use.res1km.linearIndex) .* 0.01;    % convert from percent to decimal
+
 % Save the pixels to a file, and save the geometry in the pixels2use
 % structure
 
