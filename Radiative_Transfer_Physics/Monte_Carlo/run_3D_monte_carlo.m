@@ -18,7 +18,7 @@ clear variables
 % inputs.tau_x_upper_limit = 8; 
 
 inputs.tau_z_lower_limit = 0;
-inputs.tau_z_upper_limit = 50; 
+inputs.tau_z_upper_limit = 5; 
 
 % --------------------------------------------------
 
@@ -33,7 +33,7 @@ inputs.solar_zenith_angle = 0;                  % deg from zenith
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 20;
+inputs.N_photons = 1e3;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----
@@ -67,6 +67,13 @@ inputs.mie.size_dist = 'gamma';
 % Define the distribution variance, depending on the distribution type used
 % Has to be the same length as the numer of layers in our medium
 inputs.size_distribution_var = 7;           % Typically value for liquid water clouds
+
+
+
+% Do you want to compute the internal fluxes within the medium? If not, and
+% you only care about total absorption, transmission and reflectance, set
+% this flag to false
+inputs.compute_internal_fluxes = false;
 
 
 
@@ -374,10 +381,10 @@ end
 tic
 
 % ------- Without Live Plotting ---------
-%[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo(inputs);
+[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo(inputs);
 
 % ---------- With Live Plotting ---------
-[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo_withLivePlot(inputs);
+%[F_norm, final_state, photon_tracking, inputs] = threeD_monteCarlo_withLivePlot(inputs);
 
 toc
 

@@ -155,7 +155,7 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.albedo = 0.05;
+inputs.RT.albedo = 0.04;
 
 % ------------------------------------------------------------------------
 
@@ -170,7 +170,7 @@ inputs.RT.yesCloud = true;
 inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [3, 2];          % km above surface
+inputs.RT.z_topBottom = [1.5, 1];          % km above surface
 
 
 % Water Cloud depth
@@ -218,7 +218,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % inputs.RT.tau_c = [1, 2, 3, 4, 5, 7, 10:5:50];
 
 inputs.RT.re = 10;      % microns
-inputs.RT.tau_c = [50];
+inputs.RT.tau_c = [10];
 
 
 % ------------------------------------------------------------------------
@@ -316,6 +316,9 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 
 
 
+
+
+
 %% Write each INP file and Calculate Reflectance
 
 
@@ -352,10 +355,10 @@ wc_filename = write_wc_file(inputs.RT.re, inputs.RT.tau_c, inputs.RT.z_topBottom
 wc_filename = wc_filename{1};
 
 
-for ww = 1:length(inputs.RT.wavelength)
+parfor ww = 1:length(inputs.RT.wavelength)
 
 
-    disp(['Iteration: [re, tc] = [ww = ', num2str(ww), '/', num2str(num_wl),']...', newline])
+    disp(['Iteration: [ww = ', num2str(ww), '/', num2str(num_wl),']...', newline])
 
 
 
@@ -450,11 +453,6 @@ for ww = 1:length(inputs.RT.wavelength)
         %fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename{rr,tc}{1}], ' ', '# Location of water cloud file');
 
 
-        % Define the percentage of horizontal cloud cover
-        % This is a number between 0 and 1
-        % ------------------------------------------------
-        formatSpec = '%s %f %5s %s \n';
-        fprintf(fileID, formatSpec,'cloudcover wc', inputs.RT.percent_cloud_cover, ' ', '# Cloud cover percentage');
 
 
         % Define the technique or parameterization used to convert liquid cloud
@@ -657,6 +655,37 @@ save(filename,"inputs", "lgnd_str", "Refl_model");
 
 
 toc
+
+
+%% Plot the results!
+
+figure;
+
+plot(inputs.RT.wavelength, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
+    'linewidth', 3)
+
+
+
+hold on
+
+
+plot(emit.radiance.wavelength(inputs.bands2run), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
+    '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+hold on
+
+
+
+
+grid on; grid minor
+xlabel('Wavelength (nm)','Interpreter', 'latex')
+ylabel('Reflectance (1/sr)','Interpreter', 'latex')
+set(gcf, 'Position', [0 0 1000 1000])
+legend('EMIT Measurements', 'Calculated',  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
+    num2str(tau_2plot)], 'Interpreter', 'latex')
+
+
 
 
 

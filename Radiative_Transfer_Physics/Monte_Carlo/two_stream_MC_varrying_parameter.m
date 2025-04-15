@@ -9,7 +9,8 @@ clear variables
 
 % Define the boundaries of the medium
 inputs.tau_lower_limit = 0;
-total_tau = logspace(-1, 2, 20);
+total_tau = logspace(-1, 2, 25);
+%total_tau = 1:10;
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
@@ -28,7 +29,7 @@ inputs.N_layers = length(inputs.layerRadii);
 
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e6;
+inputs.N_photons = 1e2;
 
 % Do you want to compute the internal upwelling and downwelling fluxes?
 inputs.compute_internal_fluxes = false;
@@ -119,7 +120,7 @@ inputs.g = ds.asymParam;
 % ----- Override ssa and g values ------
 % --------------------------------------
 ssa = [1];
-inputs.g = 0.85;
+inputs.g = 0;
 % --------------------------------------
 
 R = zeros(length(ssa), length(total_tau));
@@ -169,31 +170,57 @@ toc
 
 %% Plot
 
+
 figure;
 
-plotx(total_tau, R, '.-')
+plot(total_tau, R, '.-', 'Color', mySavedColors(1, 'fixed'))
 
 % Label axes
 xlabel('Optical Thickness');
 ylabel('Reflectivity');
+set(gca, 'YColor', mySavedColors(1, 'fixed'))
 
 % Improve plot aesthetics
 grid on; grid minor
 title('1D Monte Carlo with Absorption', ['g=', num2str(inputs.g)]);
-legend(legend_str, 'Location','best', 'Interpreter','latex')
+
+% plot the transmissivity
+yyaxis right
+plot(total_tau, T, '.-', 'Color', mySavedColors(2, 'fixed'))
+ylabel('Transmissivity');
+set(gca, 'YColor', mySavedColors(2, 'fixed'))
 
 % plot the theoretical values on top 
 R_theory = zeros(length(ssa), length(total_tau));
+T_theory = zeros(length(ssa), length(total_tau));
 
 for ss = 1:length(ssa)
 
-    R_theory(ss,:) = two_stream_RT(total_tau, linspace(ssa(ss), ssa(ss), length(total_tau)),...
+    [R_theory(ss,:), T_theory(ss,:), ~] = two_stream_RT(total_tau, linspace(ssa(ss), ssa(ss), length(total_tau)),...
         linspace(inputs.g, inputs.g, length(total_tau)), 0);
 
 end
 
 hold on
-semilogx(total_tau, R_theory, '--', 'Color', 'k')
+semilogx(total_tau, T_theory, ':', 'Color', 'k')
+
+yyaxis left
+semilogx(total_tau, R_theory, ':', 'Color', 'k')
+
+% Compute the root-mean-square error
+
+rmse = sqrt(mean((R_theory - R).^2))
+
+rmse_percent = sqrt(mean((1 - R./R_theory).^2))*100
+
+
+
+% legend([legend_str, {'Analytical'}], 'Location','best', 'Interpreter','latex')
+legend('$R_{MC}$', '$T_{MC}$', '$T_{theory}$', '$R_{theory}$', 'Location','best', 'Interpreter','latex')
+
+
+
+
 
 %% Make a plot of just the two-stream theory
 
@@ -229,5 +256,8 @@ legend(legend_str, 'Location','best', 'Interpreter','latex')
 % Bohren and Clothiaux Chapter 5.1
 
 R = total_tau./(1 + total_tau);
+
+
+%
 
 
