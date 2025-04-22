@@ -584,8 +584,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
             wc_filename = wc_filename{1};
 
 
-            % parfor ww = 1:size(inputs.RT.wavelength, 1)
-            for ww = 1:size(inputs.RT.wavelength, 1)
+            parfor ww = 1:size(inputs.RT.wavelength, 1)
+            % for ww = 1:size(inputs.RT.wavelength, 1)
 
 
                 disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
