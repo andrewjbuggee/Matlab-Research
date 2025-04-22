@@ -29,11 +29,11 @@ phi = inputSettings{3}; % sensor aziumuth angle
 sza = inputSettings{4}; % solar zenith angle
 phi0 = inputSettings{5}; % solar azimuth angle
 sensorAlt = inputSettings{6}; % sensor altitude in km
-source = inputSettings{7}; % - mW/(m^2 nm) - source irradiance
+source = inputSettings{7}; % - (W/nm/m^2) - source irradiance
 
 % radiative transfer solutions
 wavelength = ds.wavelength;     % nm
-irrad0 = source(:,2); % - mW/(m^2 nm) -  source irradiance
+irrad0 = source(:,2) .* 1e3; % - mW/(m^2 nm) -  source irradiance
 
 
 % a few other constants calculated from the inputs

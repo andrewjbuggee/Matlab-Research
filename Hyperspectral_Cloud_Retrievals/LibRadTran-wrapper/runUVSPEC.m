@@ -243,7 +243,7 @@ if numFiles2Run==1
     inputSettings{1,4} = 'Solar Zenith Angle';
     inputSettings{1,5} = 'Solar Azimuthal Angle';
     inputSettings{1,6} = 'Sensor Altitude (km)';
-    inputSettings{1,7} = 'Source Wavelength (nm) and Irradiance';
+    inputSettings{1,7} = 'Source Wavelength (nm) and Irradiance (W/nm/m^2)';
 
     inputSettings{2,1} = rte_solver;
     inputSettings{2,2} = umuVec;
