@@ -59,7 +59,7 @@ if length(wavelength)==1
     
     for ii = 1:geomSets
         
-        R_lambda(ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr - reflectance function for monochromatic calculation
+        R_lambda(ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr/nm - reflectance function for monochromatic calculation
         
     end
     

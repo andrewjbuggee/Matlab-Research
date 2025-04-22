@@ -4,6 +4,7 @@
 
 %% ------ Define core inputs -----
 
+
 clear variables
 
 
@@ -18,9 +19,10 @@ clear variables
 % inputs.tau_x_upper_limit = 8; 
 
 inputs.tau_z_lower_limit = 0;
-inputs.tau_z_upper_limit = 5; 
+inputs.tau_z_upper_limit = 8; 
 
 % --------------------------------------------------
+
 
 
 % define the solar zenith angle
@@ -33,16 +35,16 @@ inputs.solar_zenith_angle = 0;                  % deg from zenith
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e3;
+inputs.N_photons = 1e6;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----
-inputs.createDropletProfile = false;
+inputs.createDropletProfile = true;
 
 % --- if true.... ---
 % Physical constraint that shapes the droplet profile
-%inputs.dropletProfile.constraint = 'adiabatic';
-inputs.dropletProfile.constraint = 'linear_with_z';
+inputs.dropletProfile.constraint = 'adiabatic';
+%inputs.dropletProfile.constraint = 'linear_with_z';
 % Define the radius value at cloud top and cloud bottom
 inputs.dropletProfile.r_top = 12;            % microns
 inputs.dropletProfile.r_bottom = 5;          % microns
@@ -53,7 +55,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 500;          % nanometers
+inputs.wavelength = 3700;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
@@ -131,7 +133,7 @@ else
     % Define the boundaries of each tau layer
     % Define the layer boundaries given the number of layers and the boundaries
     % of the entire medium
-    inputs.dropletProfile.layerBoundaries = linspace(inputs.tau_y_lower_limit, inputs.tau_y_upper_limit, inputs.dropletProfile.N_layers +1);
+    inputs.dropletProfile.layerBoundaries = linspace(inputs.tau_z_lower_limit, inputs.tau_z_upper_limit, inputs.dropletProfile.N_layers +1);
 
     % Define the optical depth vector that defines the mid point of each
     % layer
@@ -412,17 +414,17 @@ end
 
 if inputs.N_layers==1
 
-    save([inputs.folder_name_2save, '2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+    save([inputs.folder_name_2save, '3D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
         '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
-        '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_e_',num2str(inputs.dropletProfile.re),...
+        '_Tau0_',num2str(inputs.tau_z_upper_limit),'_r_e_',num2str(inputs.dropletProfile.re),...
         '_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
         "inputs","F_norm", "final_state", "photon_tracking");
 
 elseif inputs.N_layers>1 && inputs.createDropletProfile==true
 
-    save([inputs.folder_name_2save, '2D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+    save([inputs.folder_name_2save, '3D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
         '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
-        '_Tau0_',num2str(inputs.tau_y_upper_limit),'_r_top_',num2str(inputs.dropletProfile.r_top),...
+        '_Tau0_',num2str(inputs.tau_z_upper_limit),'_r_top_',num2str(inputs.dropletProfile.r_top),...
         '_r_bot_',num2str(inputs.dropletProfile.r_bottom),'_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
         "inputs","F_norm", "final_state", "photon_tracking");
 end

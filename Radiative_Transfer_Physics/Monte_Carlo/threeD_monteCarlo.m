@@ -194,7 +194,7 @@ absorbed_index = [];
 
 
 parfor nn = 1:N_photons
-    %for nn = 1:N_photons
+%for nn = 1:N_photons
 
 
 

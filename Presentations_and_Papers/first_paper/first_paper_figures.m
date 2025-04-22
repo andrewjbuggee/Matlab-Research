@@ -1208,10 +1208,16 @@ clear variables
 
 % ---------------------------------------------------------------------------------------
 % ----- recreating platnick weighting functions ----
-filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat',...
-             '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat'};
-
-wavelength = [1600, 2200];
+% filenames = {'2D_MC_14-Mar-2025_Wavelength_1600_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat',...
+%              '2D_MC_14-Mar-2025_Wavelength_2200_N-Photons_10000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.45.mat'};
+% filenames = {'3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
+%              '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.4584.mat',...
+%              '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_63.2563.mat'};
+filenames = {'3D_MC_17-Apr-2025_Wavelength_1600_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
+             '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
+             '3D_MC_17-Apr-2025_Wavelength_3700_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat'};
+wavelength = [1600, 2200, 3700];
+%sza = [0, 49, 63];
 % ---------------------------------------------------------------------------------------
 
 
@@ -1293,7 +1299,11 @@ if smooth_curves==false
 
 
         % Create legend string
-        legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+        if exist('wavelength', 'var')==true
+            legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+        elseif exist('sza', 'var')==true
+            legend_str{nn} = ['$\theta_0 = ',num2str((sza(nn))),'^{\circ}$'];
+        end
 
 
 
@@ -1318,11 +1328,22 @@ else
 
 
         % First select those photons that were scattered out the top
+        if isfield(final_state, 'scatter_out_top_index')==true
+            index_scatter_out_top = final_state.scatter_out_top_index;
+        else
+            index_scatter_out_top = final_state.scatter_out_top_INDEX;
+        end
 
-        index_scatter_out_top = final_state.scatter_out_top_INDEX;
+        if isfield(photon_tracking, 'maxPosition')==true
+
+            [scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_tau_edges] = ...
+            histcounts(photon_tracking.maxPosition(index_scatter_out_top, 3),'Normalization',probability_str);
+
+        elseif isfield(photon_tracking, 'maxDepth')==true
 
         [scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_tau_edges] = ...
             histcounts(photon_tracking.maxDepth(index_scatter_out_top),'Normalization',probability_str);
+        end
 
 
 
@@ -1355,7 +1376,11 @@ else
 
 
         % Create legend string
-        legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+        if exist('wavelength', 'var')==true
+            legend_str{nn} = ['$\lambda = ',num2str((wavelength(nn))),'$ nm'];
+        elseif exist('sza', 'var')==true
+            legend_str{nn} = ['$\theta_0 = ',num2str((sza(nn))),'^{\circ}$'];
+        end
 
 
 
@@ -1367,11 +1392,15 @@ else
     horizontal_linewidth = 4;
     line_font_size = 23;
 
-    for nn = 1:length(filenames)
-        % Plot line of constant tau associated with retrieval depth
-        yline(tau_avg(nn),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color',C(nn,:),'Label',...
-            ['Depth of retrieved $r_e$ for ',num2str(wavelength(nn)/1e3),' $\mu m$'], 'Interpreter','latex',...
-            'FontSize',line_font_size,'LabelVerticalAlignment','middle')
+    if exist("wavelength", 'var')==true
+
+        for nn = 1:length(filenames)
+            % Plot line of constant tau associated with retrieval depth
+            yline(tau_avg(nn),'LineWidth',horizontal_linewidth, 'LineStyle',':','Color',C(nn,:),'Label',...
+                ['Depth of retrieved $r_e$ for ',num2str(wavelength(nn)/1e3),' $\mu m$'], 'Interpreter','latex',...
+                'FontSize',line_font_size,'LabelVerticalAlignment','middle')
+
+        end
 
     end
 
@@ -1425,6 +1454,8 @@ title({'Conditional probability of photons that scatter out cloud top',...
 % Textbox
 dim = [0.685 0.5 0 0];
 
+if isfield(inputs, 'tau_y_upper_limit')==true
+
 texBox_str = {['$N_{photons}^{total} = 10^{', num2str(log10(inputs.N_photons)),'}$'],...
     ['N layers = ', num2str(inputs.N_layers)],...
     ['$\mu_0$ = ',num2str(round(cosd(inputs.solar_zenith_angle),2))],...
@@ -1432,6 +1463,18 @@ texBox_str = {['$N_{photons}^{total} = 10^{', num2str(log10(inputs.N_photons)),'
     ['$r_{bot}$ = ',num2str(round(inputs.layerRadii(end))), ' $\mu m$'],...
     ['$\tau_0$ = ', num2str(inputs.tau_y_upper_limit)],...
     ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
+
+elseif isfield(inputs, 'tau_z_upper_limit')==true
+
+texBox_str = {['$N_{photons}^{total} = 10^{', num2str(log10(inputs.N_photons)),'}$'],...
+    ['N layers = ', num2str(inputs.N_layers)],...
+    ['$\mu_0$ = ',num2str(round(cosd(inputs.solar_zenith_angle),2))],...
+    ['$r_{top}$ = ',num2str(round(inputs.layerRadii(1))), ' $\mu m$'],...
+    ['$r_{bot}$ = ',num2str(round(inputs.layerRadii(end))), ' $\mu m$'],...
+    ['$\tau_0$ = ', num2str(inputs.tau_z_upper_limit)],...
+    ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
+end
+    
 t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
 t.Color = 'black';
 t.FontSize = 25;
