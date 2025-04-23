@@ -104,6 +104,8 @@ T = zeros(1, length(total_tau));
 A = zeros(1, length(total_tau));
 
 
+tic
+
 for nn = 1:length(total_tau)
 
 
@@ -393,12 +395,12 @@ for nn = 1:length(total_tau)
     % ----------------------------------------
 
 
-    tic
+    
 
     % ------- Without Live Plotting ---------
     [~, final_state, ~, inputs] = threeD_monteCarlo(inputs);
 
-    toc
+   
 
     % Keep just the reflectance, transmittance and absorptance
     R(nn) = final_state.reflectance;
@@ -408,6 +410,8 @@ for nn = 1:length(total_tau)
 
 
 end
+
+toc
 
 %% Plot
 
@@ -425,7 +429,7 @@ xlabel('Optical Thickness', "Interpreter","latex");
 % Improve plot aesthetics
 grid on; grid minor
 title('3D Monte Carlo with Absorption ', ['$g=$', num2str(inputs.g_avg), ',   $\varpi = $',...
-    num2str(inputs.ssa_avg)], 'Interpreter','latex', 'FontSize', 20);
+    num2str(inputs.ssa_avg), ',   $N = 10^{',num2str(log10(inputs.N_photons)),'}$'], 'Interpreter','latex', 'FontSize', 20);
 
 % plot the transmissivity
 plot(total_tau, T, '.-', 'Color', mySavedColors(2, 'fixed'), 'MarkerSize', 20, 'LineWidth', 1.5)
@@ -439,23 +443,25 @@ legend('$R_{3D}$', '$T_{3D}$', '$A_{3D}$',...
      'Location','best', 'Interpreter','latex')
 
 
-% % ------ plot the 2-stream theoretical values ------
-% 
-% [R_theory, T_theory, A_theory] = two_stream_RT(total_tau, linspace(inputs.ssa_avg, inputs.ssa_avg, length(total_tau)),...
-%     linspace(inputs.g_avg, inputs.g_avg, length(total_tau)), 0);
-% 
-% 
-% hold on
-% 
-% semilogx(total_tau, R_theory, 'Color', mySavedColors(1, 'fixed'), 'LineWidth', 1);
-% 
-% semilogx(total_tau, T_theory, 'Color', mySavedColors(2, 'fixed'), 'LineWidth', 1);
-% 
-% semilogx(total_tau, A_theory, 'Color', mySavedColors(3, 'fixed'), 'LineWidth', 1)
-% 
-% 
-% 
-% % legend([legend_str, {'Analytical'}], 'Location','best', 'Interpreter','latex')
-% legend('$R_{3D}$', '$T_{3D}$', '$A_{3D}$', '$R_{2-stream}$', '$T_{2-stream}$', '$A_{2-stream}$',...
-%     'Location','best', 'Interpreter','latex')
+
+
+% ------ plot the 2-stream theoretical values ------
+
+[R_theory, T_theory, A_theory] = two_stream_RT(total_tau, linspace(inputs.ssa_avg, inputs.ssa_avg, length(total_tau)),...
+    linspace(inputs.g_avg, inputs.g_avg, length(total_tau)), 0);
+
+
+hold on
+
+semilogx(total_tau, R_theory, 'Color', mySavedColors(1, 'fixed'), 'LineWidth', 1);
+
+semilogx(total_tau, T_theory, 'Color', mySavedColors(2, 'fixed'), 'LineWidth', 1);
+
+semilogx(total_tau, A_theory, 'Color', mySavedColors(3, 'fixed'), 'LineWidth', 1)
+
+
+
+% legend([legend_str, {'Analytical'}], 'Location','best', 'Interpreter','latex')
+legend('$R_{3D}$', '$T_{3D}$', '$A_{3D}$', '$R_{2-stream}$', '$T_{2-stream}$', '$A_{2-stream}$',...
+    'Location','best', 'Interpreter','latex')
 
