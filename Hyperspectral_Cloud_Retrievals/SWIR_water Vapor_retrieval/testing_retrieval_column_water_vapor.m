@@ -94,6 +94,8 @@ end
 
 
 % Define the parameters of the INP file
+clear inputs
+
 
 % Define the number of streams to use in your radiative transfer model
 inputs.RT.num_streams = 16;
@@ -120,27 +122,111 @@ inputs.RT.source_file_resolution = 1;         % nm
 % ------------------------------------------------------------------------
 
 
+% ------- Define the instrument being modeled ---------
+inputs.RT.instrument = 'HySICS';
+% inputs.RT.instrument = 'EMIT';
+% inputs.RT.instrument = 'arbitrary';
 
 
+% ------------------------------------------------------------------------
+% ---------------------- DEFINE THE WAVELENGTHS! -------------------------
+% ------------------------------------------------------------------------
 % define the wavelength range. If monochromatic, enter the same number
 % twice
+
+if strcmp(inputs.RT.instrument, 'arbitrary')==true
+
+    % --- Compute reflectance from from 350 to 2500 nanometers ---
+    inputs.RT.wavelength = 350:2500;
+
+
+elseif strcmp(inputs.RT.instrument, 'EMIT')==true
+    % ----------------- Simulating EMIT spectral channels ------------------
+
+    % define the wavelength channels that cover the range between 1615 and 1730
+    % microns
+    % inputs.bands2run = find(emit.radiance.wavelength>=1615 & emit.radiance.wavelength<=1730)';
+
+
+    % --- New New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
+    % libRadtran estimates of reflectance below 500 nm consistently
+    % overestimate the measured values from EMIT. Let's ignore wavelengths
+    % below 500
+    inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+        94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+        231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
+
+elseif strcmp(inputs.RT.instrument, 'HySICS')==true
+    % ----------------- Simulating HySICS spectral channels ------------------
+    % number of channels = 460
+    inputs.bands2run = (1:1:460)';
+
+end
+
+% ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
-% --- Compute reflectance from from 350 to 2500 nanometers ---
 
-inputs.RT.wavelength = 350:2500;
+
+
+% ------------------------------------------------------------------------
+% -------------- Create the spectral response functions ------------------
 % ------------------------------------------------------------------------
 
+if strcmp(inputs.RT.instrument, 'arbitrary')==true
+    % ---------------------------------------
+    % If you're not modeling an instrument...
+    % ---------------------------------------
+    spec_response = ones(1, length(inputs.RT.wavelength));
 
-% -----------------------------------------------------------------
-% ---------- Define the spectral response functions ---------------
+elseif strcmp(inputs.RT.instrument, 'EMIT')==true
+    % ------------------------------------
+    % If modeling the EMIT instrument...
+    % ------------------------------------
+    % Define the EMIT spectral response functions
+    spec_response = create_EMIT_specResponse(emit, inputs);
+    % keep only the response functions for the wavelengths we care about
+    spec_response.value = spec_response.value(inputs.bands2run, :);
+    spec_response.wavelength = spec_response.wavelength(inputs.bands2run, :);
 
-% Define the EMIT spectral response functions
-spec_response = ones(1, length(inputs.RT.wavelength));
-% keep only the response functions for the wavelengths we care about
-% spec_response_2run.value = spec_response.value(inputs.bands2run, :);
-% spec_response_2run.wavelength = spec_response.wavelength(inputs.bands2run, :);
-% -----------------------------------------------------------------
+    % now define the wavelength range of each spectral channel
+    inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+
+    for ww = 1:length(inputs.bands2run)
+
+        % The wavelength vector for libRadTran is simply the lower and upper
+        % bounds
+        inputs.RT.wavelength(ww,:) = [spec_response.wavelength(ww, 1),...
+            spec_response.wavelength(ww, end)];
+
+    end
+
+elseif strcmp(inputs.RT.instrument, 'HySICS')==true
+
+    % ------------------------------------
+    % if modeling the HySICS instrument...
+    % ------------------------------------
+    % Define the HySICS spectral response functions
+    spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file_resolution);
+
+    % now define the wavelength range of each spectral channel
+    inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);
+
+    for ww = 1:length(inputs.bands2run)
+        % The wavelength vector for libRadTran is simply the lower and upper
+        % bounds
+        inputs.RT.wavelength(ww,:) = [spec_response{ww}(1, 1),...
+            spec_response{ww}(end, 1)];
+
+    end
+
+end
+
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
 
 
 
@@ -161,13 +247,15 @@ inputs.RT.band_parameterization = 'reptran coarse';
 
 
 
-
+% ------------------------------------------------------------------------
 % define the atmospheric data file
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
 inputs.RT.albedo = 0.04;
 
+% day of the year
+inputs.RT.day_of_year = 100;
 % ------------------------------------------------------------------------
 
 
@@ -189,15 +277,13 @@ inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);              
 % ------------------------------------------------------------------------
 
 
-
 % ------------------------------------------------------------------------
-% ---------- Do you want use your custom mie calculation file? -----------
+% --------------------- Various Cloud modeling inputs --------------------
+% ------------------------------------------------------------------------
+% Do you want use your custom mie calculation file?
 inputs.RT.use_custom_mie_calcs = false;
-% ------------------------------------------------------------------------
 
 
-
-% ------------------------------------------------------------------------
 % define how liquid water content will be computed in the write_wc_file
 % function.
 inputs.RT.parameterization_str = 'mie';
@@ -229,6 +315,9 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     %   properties mie table precomputed by libRadtran, use a gamma
     %   distribution alpha parameter of 7 ***
     inputs.RT.dist_var = 7;              % distribution variance
+
+    % define the type of droplet distribution
+    inputs.RT.distribution_str = 'gamma';
 
     inputs.RT.re = 10.79;      % microns
     inputs.RT.tau_c = 7;
@@ -278,7 +367,6 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 end
 
-
 % ------------------------------------------------------------------------
 
 
@@ -300,11 +388,13 @@ end
 % --------------------------------------------------------------
 
 
+
 % --------------------------------------------------------------
 % ----------- Define the Solar and Viewing Gemometry -----------
+% --------------------------------------------------------------
 
 % define the solar zenith angle
-inputs.RT.sza = 0;           % degree
+inputs.RT.sza = 19.5688;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -312,10 +402,10 @@ inputs.RT.sza = 0;           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = 113.8140;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 0; % values are in degrees;                        % degree
+inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -324,7 +414,7 @@ inputs.RT.vza = 0; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 0;     % degree
+inputs.RT.vaz = 70.0849;     % degree
 % --------------------------------------------------------------
 
 
@@ -356,7 +446,7 @@ inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = true;
+inputs.RT.modify_waterVapor = false;
 
 inputs.RT.waterVapor_column = 20;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
@@ -391,7 +481,16 @@ inputs.RT.errMsg = 'verbose';
 
 
 % num wavelengths
-num_wl = length(inputs.RT.wavelength);
+if size(inputs.RT.wavelength,1)>1 && size(inputs.RT.wavelength,2)>1
+
+    wl_flag_range = true;
+    num_wl = size(inputs.RT.wavelength,1);
+
+else
+
+    wl_flag_range = false;
+    num_wl = length(inputs.RT.wavelength);
+end
 
 
 idx = 0;
@@ -404,20 +503,17 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
     % ----------------------------------------
     % --------- HOMOGENOUS CLOUD -------------
-    % --------------------------------------------
+    % ----------------------------------------
 
 
     % create a legend string
     lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
-    
+
     % store the reflectances
-    Refl_model = zeros(length(inputs.RT.wavelength), length(inputs.RT.re), length(inputs.RT.tau_c));
+    Refl_model = zeros(num_wl, length(inputs.RT.re), length(inputs.RT.tau_c));
 
 
     for rr = 1:length(inputs.RT.re)
-
-        %lgnd_str{rr} = ['$r_e = $', num2str(inputs.RT.re(rr)), ' $\mu m$'];
-
 
 
 
@@ -441,13 +537,14 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
             disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
-                    num2str(tc), '/', num2str(length(inputs.RT.tau_c)), newline])
+                num2str(tc), '/', num2str(length(inputs.RT.tau_c)), ']', newline])
 
 
             parfor ww = 1:size(inputs.RT.wavelength, 1)
+            % for ww = 1:size(inputs.RT.wavelength, 1)
 
 
-                
+                disp(['ww = ', num2str(ww),'/',num2str(num_wl), newline])
 
 
                 % ------------------------------------------------
@@ -547,12 +644,29 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
                 end
 
 
+                if wl_flag_range==true
 
-                % Define the wavelengths for which the equation of radiative transfer will
-                % be solve
+                    % Define the wavelengths for which the equation of radiative transfer will
+                    % be solve
+                    % -------------------------------------------------------------------------
+                    formatSpec = '%s %f %f %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww, 1), inputs.RT.wavelength(ww, 2), ' ', '# Wavelength range');
+
+                else
+
+                    % Define the wavelengths for which the equation of radiative transfer will
+                    % be solve
+                    % -------------------------------------------------------------------------
+                    formatSpec = '%s %f %f %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww), inputs.RT.wavelength(ww), ' ', '# Wavelength range');
+
+                end
+
+                % Spline interpolate the calculated spectrum between wavelengths lambda_0
+                % and lambda_1 in steps of lambda_step, in nm.
                 % -------------------------------------------------------------------------
-                formatSpec = '%s %f %f %5s %s \n\n';
-                fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww, 1), inputs.RT.wavelength(ww, 2), ' ', '# Wavelength range');
+                % formatSpec = '%s %f %f %5s %s \n\n';
+                % fprintf(fileID, formatSpec,'spline', inputs.RT.wavelength(ww, 1), inputs.RT.wavelength(ww, 2), ' ', '# Wavelength range');
 
 
 
@@ -701,9 +815,9 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
                 % compute the reflectance
                 % Refl_model(ww, rr, tc) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
-                %     spec_response_2run.value(ww, :)');
+                %     spec_response.value(ww, :)');
 
-                [Refl_model(ww, rr, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response)
+                [Refl_model(ww, rr, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww}(:,2));
 
 
 
@@ -732,10 +846,10 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % create a legend string
     lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
-    
+
     % store the reflectances
-    Refl_model = zeros(length(inputs.RT.wavelength), length(inputs.RT.r_top), length(inputs.RT.r_bot),...
-                       length(inputs.RT.tau_c));
+    Refl_model = zeros(num_wl, length(inputs.RT.r_top), length(inputs.RT.r_bot),...
+        length(inputs.RT.tau_c));
 
 
     for rt = 1:length(inputs.RT.r_top)
@@ -784,7 +898,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
                 parfor ww = 1:length(inputs.RT.wavelength)
-                %for ww = 1:length(inputs.RT.wavelength)
+                % for ww = 1:length(inputs.RT.wavelength)
 
 
 
@@ -889,12 +1003,31 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                     end
 
 
+                    if wl_flag_range==true
 
-                    % Define the wavelengths for which the equation of radiative transfer will
-                    % be solve
+                        % Define the wavelengths for which the equation of radiative transfer will
+                        % be solve
+                        % -------------------------------------------------------------------------
+                        formatSpec = '%s %f %f %5s %s \n\n';
+                        fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww, 1), inputs.RT.wavelength(ww, 2), ' ', '# Wavelength range');
+
+                    else
+
+                        % Define the wavelengths for which the equation of radiative transfer will
+                        % be solve
+                        % -------------------------------------------------------------------------
+                        formatSpec = '%s %f %f %5s %s \n\n';
+                        fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww), inputs.RT.wavelength(ww), ' ', '# Wavelength range');
+
+                    end
+
+                    % Spline interpolate the calculated spectrum between wavelengths lambda_0
+                    % and lambda_1 in steps of lambda_step, in nm.
                     % -------------------------------------------------------------------------
-                    formatSpec = '%s %f %f %5s %s \n\n';
-                    fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelength(ww), inputs.RT.wavelength(ww), ' ', '# Wavelength range');
+                    % formatSpec = '%s %f %f %5s %s \n\n';
+                    % fprintf(fileID, formatSpec,'spline', inputs.RT.wavelength(ww, 1), inputs.RT.wavelength(ww, 2), ' ', '# Wavelength range');
+
+
 
 
 
@@ -1041,11 +1174,23 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                     % Store the Radiance
                     %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
-                    % compute the reflectance
-                    % Refl_model(ww, rt, rb, tc) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
-                    %     spec_response_2run.value(ww, :)');
 
-                    [~, Refl_model(ww, rt, rb, tc)] = reflectanceFunction(inputSettings(2,:), ds, spec_response);
+
+                    if strcmp(inputs.RT.instrument, 'HySICS')
+
+                        % compute the reflectance
+                        [Refl_model(ww, rt, rb, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response{ww}(:,2));
+
+                    elseif strcmp(inputs.RT.instrument, 'EMIT')
+
+                        % compute the reflectance
+                        Refl_model(ww, rt, rb, tc) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
+                            spec_response.value(ww, :)');
+
+                    elseif strcmp(inputs.RT.instrument, 'arbitrary')
+
+
+                    end
 
 
 
@@ -1075,9 +1220,17 @@ toc
 %% Plot the results!
 
 figure;
+if size(inputs.RT.wavelength,1)>1 && size(inputs.RT.wavelength,2)>1
 
-plot(inputs.RT.wavelength, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
-    'linewidth', 3)
+    plot(mean(inputs.RT.wavelength,2), Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
+        'linewidth', 3)
+
+else
+
+    plot(inputs.RT.wavelength, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
+        'linewidth', 3)
+
+end
 
 hold on
 

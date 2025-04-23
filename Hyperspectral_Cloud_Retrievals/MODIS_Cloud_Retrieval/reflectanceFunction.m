@@ -21,7 +21,7 @@
 % By Andrew J. Buggee
 %% ------ Read input settings and output data from uv_spec -----
 
-function [R,R_lambda] = reflectanceFunction(inputSettings,ds, spec_response)
+function [R,R_lambda] = reflectanceFunction(inputSettings, ds, spec_response)
 
 % Geometry values from input Settings -
 mu = inputSettings{2}; % cosine of the viewing zenith angle

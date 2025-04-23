@@ -20,7 +20,7 @@
 
 %%
 
-function spec_response = create_HySICS_specResponse(band_number, wavelength_resolution)
+function spec_response = create_HySICS_specResponse(band_number, sourceFile_wavelength_resolution)
 
 
 % Check inputs
@@ -32,12 +32,12 @@ else
 
 end
 
-if length(band_number)>36
-    error('MODIS has 36 spectral bands. You requested more than 36. You may pull any of of them')
+if length(band_number)>460
+    error('HySICS has 460 spectral bands. You requested more than 460.')
 end
 
-if sum(band_number>36)>0
-    error('You requested a band number that is higher than 36, which doesnt exist')
+if sum(band_number>460)>0
+    error('You requested a band number that is higher than 460, which doesnt exist')
 end
 
 
@@ -86,56 +86,45 @@ file_id = fopen([folderPath,filename_centerWavelength], 'r');   % 'r' tells the 
 format_spec = '%f';                                  % two floating point numbers
 wl_center = textscan(file_id, format_spec, 'Delimiter',',',...
     'MultipleDelimsAsOne',1, 'CommentStyle',';');
+wl_center = wl_center{1};
 
 
 
-
-% The displacement steps are in 0.1 nm, so span a range from -20 to +20 nm around the center wavelength
-sr_length = length(-20:0.1:20);
-
-% ---- Open the center wavelength File ----
+% ---- Open the spectral resposne function File ----
 file_id = fopen([folderPath,filename_specResponse], 'r');   % 'r' tells the function to open the file for reading
-% Use the textscan() function instead, which allows us to define comments to ignore
-format_spec = '%f';                                  % two floating point numbers
-specResponse = textscan(file_id, format_spec, 'Delimiter',{',','\n'},...
-    'Whitespace', '\b\t', 'LineEnding', {'\n'  '\r'  '\r\n'}, 'CommentStyle',';');
-
-fclose(file_id)
 
 % determine the file formatting properties
 file_prop = detectImportOptions([folderPath,filename_specResponse]);
 
-% define the columns according to the MODIS band number
-var_names = string({'Wavelength (nm)', 'Band 8', 'Band 9', 'Band 3',...
-    'Band 10', 'Band 11', 'Band 12', 'Band 4', 'Band 1',...
-    'Band 13', 'Band 14', 'Band 15', 'Band 2', 'Band 16', ...
-    'Band 5', 'Band 6', 'Band 7'}); %#ok<STRCLQT>
+% define the columns according to the band number and define the wavelength
+% range for each spectral response function
+native_resolution = 0.1;     % nm
+
+wavelength = cell(1, length(wl_center));
+
+for nn = 1:length(wl_center)
+
+    var_names(nn) = string({['Band ', num2str(nn)]});
+
+    % The displacement steps are in 0.1 nm, so span a range from -20 to +20 nm around the center wavelength
+    wavelength{nn} = (-20:0.1:20) + wl_center(nn);    % nm
+
+end
 
 % read in table
 data = readtable(filename_specResponse, file_prop);
+
+fclose(file_id);
 
 % reset the variable names
 data.Properties.VariableNames = var_names;
 
 
-% The last column needs to be fixed. It's read in as a cell vector of
-% string characters
 
 
-
-% % open the file for reading
-% file_id = fopen(filename, 'r');   % 'r' tells the function to open the file for reading
-%
-% format_spec = '%f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f';                                  % two floating point numbers
-% data = textscan(file_id, format_spec, 'Delimiter',' ',...
-% 'MultipleDelimsAsOne',1, 'CommentStyle','/', 'EndOfLine','\');
 
 %% Read in the correct response function
 
-% Store the wavelength data in a vector. Values associated with non-zero
-% responses will be thrown out
-
-wavelength = data.("Wavelength (nm)");
 
 % define an empty cell aray
 spec_response = cell(1, length(band_number));
@@ -145,46 +134,58 @@ spec_response_temporary = cell(1, length(band_number));
 
 for nn = 1:length(band_number)
 
-    for bb = 1:(length(data.Properties.VariableNames)-1)
 
-        if strcmp(['Band ',num2str(band_number(nn))], data.Properties.VariableNames{bb+1})==true
+    % Select this spectral response function
+    data2keep = data{:, band_number(nn)};
 
-            % Select this spectral response function
-            data2keep = data{:,bb+1};
+    % only keep the non-zero values
+    index_nonZero = find(data2keep);
 
-            % only keep the non-zero values
-            index_nonZero = find(data2keep);
-
-            spec_response_temporary{nn}(:,1) = wavelength(index_nonZero);
-            spec_response_temporary{nn}(:,2) = data2keep(index_nonZero);
+    spec_response_temporary{nn}(:,1) = wavelength{band_number(nn)}(index_nonZero);
+    spec_response_temporary{nn}(:,2) = data2keep(index_nonZero);
 
 
-            % ------ Check the wavelength resolution desired -------
-            native_resolution = spec_response_temporary{nn}(2,1) - spec_response_temporary{nn}(1,1);
+    % ------ Check the wavelength resolution desired -------
 
-            if native_resolution~=wavelength_resolution
-                % then we linear interpolate!
-                new_wavelength = spec_response_temporary{nn}(1,1):wavelength_resolution:spec_response_temporary{nn}(end,1);
-                new_spec_response = interp1(spec_response_temporary{nn}(:,1), spec_response_temporary{nn}(:,2), new_wavelength);
+    if native_resolution~=sourceFile_wavelength_resolution
+        % then we linear interpolate!
 
+        % round the wavelength grid to the source file resolution
+        if sourceFile_wavelength_resolution==1
 
-                spec_response{nn}(:,1) = new_wavelength;
-                spec_response{nn}(:,2) = new_spec_response;
+            new_wavelength_grid = ceil(spec_response_temporary{nn}(1,1)):sourceFile_wavelength_resolution:...
+                floor(spec_response_temporary{nn}(end,1));
 
-            else
+        elseif sourceFile_wavelength_resolution==0.1
 
-                % if the resolution of the spectral response functions are
-                % equal to the resolution of the source file, keep the
-                % temporary spectral response function
+            new_wavelength_grid = round(spec_response_temporary{nn}(2,1),1):sourceFile_wavelength_resolution:...
+                spec_response_temporary{nn}(end-1,1);
 
-                spec_response{nn}(:,1) = spec_response_temporary{nn}(:,1);
-                spec_response{nn}(:,2) = spec_response_temporary{nn}(:,2);
-            end
+        else
 
-
-
+            error([newline, 'I dont know how to work with the wavelength resolution', newline])
         end
+
+
+        new_spec_response = interp1(spec_response_temporary{nn}(:,1), spec_response_temporary{nn}(:,2), new_wavelength_grid);
+
+
+        spec_response{nn}(:,1) = new_wavelength_grid;
+        spec_response{nn}(:,2) = new_spec_response;
+
+    else
+
+        % if the resolution of the spectral response functions are
+        % equal to the resolution of the source file, keep the
+        % temporary spectral response function
+
+        spec_response{nn}(:,1) = spec_response_temporary{nn}(:,1);
+        spec_response{nn}(:,2) = spec_response_temporary{nn}(:,2);
     end
+
+
+
+
 
 end
 
