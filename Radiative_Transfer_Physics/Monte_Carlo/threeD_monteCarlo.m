@@ -463,6 +463,7 @@ parfor nn = 1:N_photons
             % ** Rotate coordinate system so Z points along previous photon trajectory **
             % ---------------------------------------------------------------------------------
             M_transformation = M_transformation * M(mu_vector(end-1), phi_vector(end-1));
+            %M_transformation = M(mu_vector(end-1), phi_vector(end-1)) * M_transformation;
 
 
             % record where the photon along the y axis and along the x axis
