@@ -119,7 +119,37 @@ fclose(file_id);
 % reset the variable names
 data.Properties.VariableNames = var_names;
 
+% ------------------------------------------
+% ----------- IMPORTANT ADDITION -----------
+% ------------------------------------------
 
+% The above files only include center wavelengths and the associated
+% spectral response fucntions from 407 - 1813 nm, but HySICS has a spectral
+% range from 350 to 2300 nm. Using the file above, fit a spline the FWHM's
+% in the range provided to extend this to the full spectral range. The
+% spectral response functions are then defined using the FWHM and the
+% center wavelengths
+
+% Use the mean difference to find the center wavelengths for the remaining
+% spectral range
+mean_wl_diff = mean(diff(wl_center));        % nm
+full_center_wl = [(350:mean_wl_diff:wl_center(1)-mean_wl_diff)'; wl_center; (wl_center(end)+mean_wl_diff:mean_wl_diff:2300)'];
+
+
+% Compute the FWHM of the file provided
+% For a normal distribution, FWHM = 2*sqrt(2*log(2))*std
+fwhm = zeros(length(wl_center), 1);
+
+for nn = 1:size(wl_center)
+
+    f = fit(wavelength{nn}', data.(string(['Band ', num2str(nn)])), 'gauss1');
+
+    std = f.c1/sqrt(2);
+
+    fwhm(nn) = 2*sqrt(2*log(2))*std;
+
+
+end
 
 
 
