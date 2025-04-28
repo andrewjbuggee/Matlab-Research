@@ -138,7 +138,7 @@ inputs.RT.source_file_resolution = 1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 460
-inputs.bands2run = (1:10:460)';
+inputs.bands2run = (1:1:460)';
 
 
 
@@ -814,14 +814,14 @@ toc
 
 
 figure;
-if size(inputs.RT.wavelength,1)>1 && size(inputs.RT.wavelength,2)>1
+if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
-    plot(mean(inputs.RT.wavelength,2), Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
+    plot(mean(inputs.RT.wavelengths2run,2), Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
         'linewidth', 3)
 
 else
 
-    plot(inputs.RT.wavelength, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
+    plot(inputs.RT.wavelengths2run, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
         'linewidth', 3)
 
 end
