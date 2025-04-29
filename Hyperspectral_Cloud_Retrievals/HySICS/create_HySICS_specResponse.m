@@ -281,7 +281,7 @@ end
 %% Read in the correct response function
 
 % ****** For when I have the response functions across to the full
-% spectrum *****
+% spectrum ******
 
 
 
