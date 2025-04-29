@@ -137,7 +137,7 @@ inputs.RT.source_file_resolution = 1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:20:636)';
+inputs.bands2run = (1:1:636)';
 
 
 
