@@ -41,6 +41,10 @@ mu0 = cosd(sza); % cosine of the solar zenith angle
 geomSets = length(mu)*length(phi);
 
 
+% make sure the spectral response is a column vector
+spec_response = reshape(spec_response, [], 1);
+
+
 
 %% ----- CALCULATE REFLECTANCE FUNCTION -----
 

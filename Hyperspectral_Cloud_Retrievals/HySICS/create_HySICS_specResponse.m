@@ -79,11 +79,11 @@ else
 
 end
 
-if length(band_number)>460
-    error('HySICS has 460 spectral bands. You requested more than 460.')
+if length(band_number)>636
+    error('HySICS has 636 spectral bands. You requested more than 460.')
 end
 
-if sum(band_number>460)>0
+if sum(band_number>636)>0
     error('You requested a band number that is higher than 460, which doesnt exist')
 end
 
@@ -248,15 +248,15 @@ for nn = 1:length(band_number)
     % the output for values at the wavelength values of the source grid. 
 
     % compute the standard deviation from the FWHM
-    sigma = fwhm_extrapolated(nn)/(2*sqrt(2*log(2)));      % std
+    sigma = fwhm_extrapolated(band_number(nn))/(2*sqrt(2*log(2)));      % std
         
     % define the high-resolution grid to compute the spectral response
     % function
-    wl_grid_hiRes = specResponse_wavelength_grid + full_center_wl(nn);
+    wl_grid_hiRes = specResponse_wavelength_grid + full_center_wl(band_number(nn));
 
     % Find source wavelength closest to each center wavelength of the
     % HySICS spectrometer
-    [~, center_wavelength_idx] = min(abs(source_wavelength - full_center_wl(nn)));
+    [~, center_wavelength_idx] = min(abs(source_wavelength - full_center_wl(band_number(nn))));
 
     % define the wavelength grid for each spectral channel
     % This should be defined as part of the source wavelength grid
@@ -267,7 +267,7 @@ for nn = 1:length(band_number)
     spec_response.wavelength(nn, :) = source_wavelength_grid + source_wavelength(center_wavelength_idx);
 
     % compute the gaussian spectral response function
-    response_hiRes = pdf('Normal', wl_grid_hiRes, full_center_wl(nn), sigma);
+    response_hiRes = pdf('Normal', wl_grid_hiRes, full_center_wl(band_number(nn)), sigma);
 
     % interpolate on the lower resolution source grid to get the values of
     % the spectral response function
