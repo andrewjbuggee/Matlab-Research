@@ -71,6 +71,10 @@ spec_response.wavelength = zeros(length(emit.radiance.wavelength), length_spec_r
 
 for ww = 1:length(emit.radiance.wavelength)
 
+    % In libRadtran, everything is computed on the source wavelength grid.
+    % So if the source is defined at integer values of wavelength (100,
+    % 101, ...), then the computations must be done at those wavelengths 
+
     % Find solar flux wavelength closest to each center wavelength of the
     % EMIT spectrometer
     [~, center_wavelength_idx] = min(abs(wavelength_source - emit.radiance.wavelength(ww)));

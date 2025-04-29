@@ -144,8 +144,12 @@ inputs.RT.num_streams = 16;
 
 % these data have 0.1nm sampling resolution, despite what the file name
 % suggests
-inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-inputs.RT.source_file_resolution = 0.1;         % nm
+% inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% inputs.RT.source_file_resolution = 0.1;         % nm
+
+% these data have 1nm sampling resolution
+inputs.RT.source_file = 'kurudz_1.0nm.dat';
+inputs.RT.source_file_resolution = 1;         % nm
 
 % ------------------------------------------------------------------------
 
