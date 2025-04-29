@@ -195,16 +195,16 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.bands2run = find(emit.radiance.wavelength<=650)';
 
 % plot all EMIT wavelengths
-%inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 
 
 % --- New New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
-    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+%     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+%     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 % ------------------------------------------------------------------------
 
 % Define the EMIT spectral response functions
@@ -321,10 +321,10 @@ inputs.RT.yesCloud = true;
 % if false, define the cloud cover percentage
 %inputs.RT.percent_cloud_cover = 1;
 
-inputs.RT.cloud_depth = 1000;                % meters
+inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [3, 2];          % km above surface
+inputs.RT.z_topBottom = [1.5, 1];          % km above surface
 
 
 % Water Cloud depth
@@ -357,7 +357,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -485,7 +485,7 @@ inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = true;
+inputs.RT.modify_waterVapor = false;
 
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;              % mm - milimeters of water condensed in a column
@@ -532,17 +532,6 @@ emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
 %% Write each INP file and Calculate Reflectance
 
 
-% store the Radiances
-%Rad_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1), size(spec_response_2run.wavelength, 2));
-
-
-
-% store the reflectances
-Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
-
-
-
-
 
 
 idx = 0;
@@ -556,7 +545,8 @@ tic
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
     % --------- HOMOGENOUS CLOUD -------------
-
+    % store the reflectances
+    Refl_model = zeros(length(inputs.RT.re), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
 
     for rr = 1:length(inputs.RT.re)
 
@@ -585,7 +575,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
             parfor ww = 1:size(inputs.RT.wavelength, 1)
-            % for ww = 1:size(inputs.RT.wavelength, 1)
+                % for ww = 1:size(inputs.RT.wavelength, 1)
 
 
                 disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
@@ -872,6 +862,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % --------- NON-HOMOGENOUS CLOUD -------------
+    % store the Radiances
+    Rad_model = zeros(length(inputs.RT.r_top), length(inputs.RT.r_bot), length(inputs.RT.tau_c), size(inputs.RT.wavelength, 1));
 
 
     for rt = 1:length(inputs.RT.r_top)
@@ -903,7 +895,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                 % and 10 percent. So lets round off all re values to the 1000th decimal
                 % place
 
-                re = create_droplet_profile2([r_top(rt), r_bot(rb)],...
+                re = create_droplet_profile2([inputs.RT.r_top(rt), inputs.RT.r_bot(rb)],...
                     inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
 
@@ -922,9 +914,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                 parfor ww = 1:size(inputs.RT.wavelength, 1)
 
 
-                    disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
-                        num2str(tc), '/', num2str(length(inputs.RT.tau_c)), ', ',...
-                        num2str(ww), '/', num2str(size(inputs.RT.wavelength, 1)),']...', newline])
+                    disp(['Iteration: ww = [',num2str(ww), '/', num2str(size(inputs.RT.wavelength, 1)),']...', newline])
 
 
 
@@ -1181,7 +1171,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                     %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
                     % compute the reflectance
-                    Refl_model(rr, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
+                    Refl_model(rt, rb, tc, ww) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
                         spec_response_2run.value(ww, :)');
 
 
@@ -1256,22 +1246,50 @@ save(filename,"inputs", "Refl_model", "Refl_model_with_noise");
 
 %%  Plot Reflectance Spectrum
 
-re_2plot = inputs.RT.re(1); % microns
-tau_2plot = inputs.RT.tau_c(1);
-
 
 figure;
 
 plot(emit.radiance.wavelength, emit.reflectance.value, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
     'linewidth', 3)
 
-
-
 hold on
 
 
-plot(emit.radiance.wavelength(inputs.bands2run), reshape(Refl_model(inputs.RT.re==re_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
+
+if isfield(inputs.RT, 're')
+
+    re_2plot = inputs.RT.re(1); % microns
+    tau_2plot = inputs.RT.tau_c(1);
+
+
+    plot(emit.radiance.wavelength(inputs.bands2run), reshape(Refl_model(inputs.RT.re==re_2plot,...
+        inputs.RT.tau_c==tau_2plot, :), [], 1),...
     '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+    title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
+    num2str(tau_2plot)], 'Interpreter', 'latex')
+
+else
+
+    rTop_2plot = inputs.RT.r_top(1); % microns
+    rBot_2plot = inputs.RT.r_bot(1); % microns
+    tau_2plot = inputs.RT.tau_c(1);
+
+    plot(emit.radiance.wavelength(inputs.bands2run), reshape(Refl_model(inputs.RT.r_top==rTop_2plot,...
+        inputs.RT.r_bot==rBot_2plot, inputs.RT.tau_c==tau_2plot, :), [], 1),...
+    '.-', 'linewidth', 2, 'markersize', 27, 'Color', mySavedColors(2, 'fixed'))
+
+    title(['Simulated EMIT Reflectance - liquid water cloud - $r_{top} = $', num2str(rTop_2plot),...
+        ' $\mu m$, $r_{bot} = $', num2str(rBot_2plot),' $\mu m$, $\tau_c = $',...
+    num2str(tau_2plot)], 'Interpreter', 'latex')
+
+end
+
+
+
+
+
+
 
 hold on
 
@@ -1283,6 +1301,5 @@ xlabel('Wavelength (nm)','Interpreter', 'latex')
 ylabel('Reflectance (1/sr)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
 legend('EMIT Measurements', 'Calculated',  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
-title(['Simulated EMIT Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
-    num2str(tau_2plot)], 'Interpreter', 'latex')
+
 
