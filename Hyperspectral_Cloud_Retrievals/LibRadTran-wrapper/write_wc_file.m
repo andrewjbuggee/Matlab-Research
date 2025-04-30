@@ -105,7 +105,7 @@
 %%
 
 function [fileName] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type, distribution_var,...
-    vert_homogeneous_str, parameterization_str, index)
+    vert_homogeneous_str, parameterization_str, computer_name, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -115,10 +115,11 @@ function [fileName] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution
 % depth, and the altitude vector associated with this cloud
 
 
-if nargin~=9
-    error([newline,'Not enough inputs. Need 8: droplet effective radius, optical depth, altitude,',...
-        [' wavelength, droplet distribution type, variance of the droplet distribution,' ...
-        ' homogeneity type, the parameterization used to compute LWC, and the unique file index.'], newline])
+if nargin~=10
+    error([newline,'Should be 10 inputs: droplet effective radius, optical depth, altitude,',...
+        [' wavelength, droplet distribution type, variance of the droplet distribution,',...
+        ' homogeneity type, the parameterization used to compute LWC, the computer name,',...
+        'and the unique file index.'], newline])
 end
 
 % Check to make sure re is the same length as the altitude vector
@@ -228,8 +229,7 @@ end
 
 
 
-% Determine which computer you're using
-computer_name = whatComputer;
+
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.

@@ -93,21 +93,29 @@ headerLine = 0; % 0 if no header
 data = [];
 
 if numFiles2Read==1
-    data = importdata([path,fileName,'.OUT'],delimeter,headerLine);
+
+    % old way of reading the data
+    %data = importdata([path,fileName,'.OUT'],delimeter,headerLine);
     
+
+    % new way of readng the data. cuts the time in half
+    data_char = fileread([path,fileName,'.OUT']);
+    data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
+    
+
 elseif numFiles2Read>1
-    
+
     for ii = 1:numFiles2Read
-        
+
         data = cat(3,data,importdata([path,fileName{ii},'.OUT'],delimeter,headerLine));
-        
+
     end
-    
+
 else
-    
+
     error('There are no files to read! Check .OUT files to see if it ran properly')
-    
-    
+
+
 end
 
 % Check to see if the data structure is empty

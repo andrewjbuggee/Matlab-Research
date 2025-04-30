@@ -62,11 +62,11 @@
 
 %%
 
-function spec_response = create_HySICS_specResponse(band_number, sourceFile)
+function spec_response = create_HySICS_specResponse(band_number, sourceFile, computer_name)
 
-if nargin ~=2
+if nargin ~=3
 
-    error([newline, 'Need two inputs: the band numbers, and the source file.', newline])
+    error([newline, 'Need three inputs: the band numbers, the source file, and the computer name', newline])
 
 end
 
@@ -91,7 +91,7 @@ end
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(whatComputer,'anbu8374')==true
+if strcmp(computer_name,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
@@ -99,7 +99,7 @@ if strcmp(whatComputer,'anbu8374')==true
 
 
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(computer_name,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
 
@@ -108,7 +108,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
 
-elseif strcmp(whatComputer,'curc')==true
+elseif strcmp(computer_name,'curc')==true
 
     % ------ Folders on the CU Supercomputer /projects folder --------
 
@@ -213,7 +213,8 @@ source_wavelength_grid = -20:sourceFile_wavelength_resolution:20;     % nm
 % For a normal distribution, FWHM = 2*sqrt(2*log(2))*std
 fwhm = zeros(length(wl_center), 1);
 
-parfor nn = 1:length(wl_center)
+%parfor nn = 1:length(wl_center)
+for nn = 1:length(wl_center)
 
     f = fit(wavelength{nn}', data.(string(['Band ', num2str(nn)])), 'gauss1');
 

@@ -10,9 +10,12 @@ clear variables
 
 %% Define the path location where INP files will be stored, and where Reflectances will be stored
 
+% Determine which computer this is being run on
+which_computer = whatComputer;
+
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(whatComputer,'anbu8374')==true
+if strcmp(which_computer,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
@@ -31,7 +34,7 @@ if strcmp(whatComputer,'anbu8374')==true
 
 
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
 
@@ -54,7 +57,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
 
-elseif strcmp(whatComputer,'curc')==true
+elseif strcmp(which_computer,'curc')==true
 
     % ------ Folders on the CU Supercomputer /projects folder --------
 
@@ -96,6 +99,10 @@ end
 
 % Define the parameters of the INP file
 clear inputs
+
+% Determine which computer this is being run on
+inputs.which_computer = which_computer;
+
 
 
 % Define the number of streams to use in your radiative transfer model
@@ -208,7 +215,8 @@ elseif strcmp(inputs.RT.instrument, 'HySICS')==true
     % if modeling the HySICS instrument...
     % ------------------------------------
     % Define the HySICS spectral response functions
-    spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file_resolution);
+    spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file_resolution,...
+        inputs.which_computer);
 
     % now define the wavelength range of each spectral channel
     inputs.RT.wavelength = zeros(length(inputs.bands2run), 2);

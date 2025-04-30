@@ -10,9 +10,12 @@ clear variables
 
 %% Define the path location where INP files will be stored, and where Reflectances will be stored
 
+% Determine which computer this is being run on
+which_computer = whatComputer;
+
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(whatComputer,'anbu8374')==true
+if strcmp(which_computer,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
@@ -31,7 +34,7 @@ if strcmp(whatComputer,'anbu8374')==true
 
 
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
 
@@ -54,7 +57,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
 
-elseif strcmp(whatComputer,'curc')==true
+elseif strcmp(which_computer,'curc')==true
 
     % ------ Folders on the CU Supercomputer /projects folder --------
 
@@ -97,7 +100,8 @@ end
 % Define the parameters of the INP file
 clear inputs
 
-
+% Determine which computer this is being run on
+inputs.which_computer = which_computer;
 
 % Define the RTE Solver
 inputs.RT.rte_solver = 'disort';
@@ -137,8 +141,14 @@ inputs.RT.source_file_resolution = 1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
 
+% Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
+% and other gaseous absorbers
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    618, 620, 623, 625]';
 
 
 % ------------------------------------------------------------------------
@@ -155,7 +165,8 @@ inputs.bands2run = (1:1:636)';
 % modeling the HySICS instrument...
 % ------------------------------------
 % Define the HySICS spectral response functions
-spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file);
+spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file, ...
+    inputs.which_computer);
 
 % now define the wavelength range of each spectral channel
 inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
@@ -297,9 +308,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.dist_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    inputs.RT.r_top = 12.565;     % microns
-    inputs.RT.r_bot = 4.135;        % microns
-    inputs.RT.tau_c = 6.424;
+    %     inputs.RT.r_top = 12.565;     % microns
+    %     inputs.RT.r_bot = 4.135;        % microns
+    %     inputs.RT.tau_c = 6.424;
+
+    inputs.RT.r_top = 9:10;     % microns
+    inputs.RT.r_bot = 4:5;        % microns
+    inputs.RT.tau_c = [5,10];
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -419,7 +434,7 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 
 % --------------------------------------------------------------
 % Do you want to print an error message?
-inputs.RT.errMsg = 'verbose';
+inputs.RT.errMsg = 'quiet';
 % --------------------------------------------------------------
 
 
@@ -452,15 +467,19 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % --------- HOMOGENOUS CLOUD -------------
     % ----------------------------------------
 
-    inputFileName = cell(length(inputs.RT.re), length(inputs.RT.tau_c), num_wl);
-    outputFileName = cell(length(inputs.RT.re), length(inputs.RT.tau_c), num_wl);
+    % length of each independent variable
+    num_rEff = length(inputs.RT.re);
+    num_tauC = length(inputs.RT.tau_c);
+
+    inputFileName = cell(num_rEff, num_tauC, num_wl);
+    outputFileName = cell(num_rEff, num_tauC, num_wl);
 
 
-    for rr = 1:length(inputs.RT.re)
+    for rr = 1:num_rEff
 
 
 
-        for tc = 1:length(inputs.RT.tau_c)
+        for tc = 1:num_tauC
 
 
             idx = idx + 1;
@@ -474,24 +493,24 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
             % ------------------------------------------------------
             wc_filename = write_wc_file(inputs.RT.re(rr), inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
                 inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
-                inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, idx);
+                inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                inputs.which_computer, idx);
 
             inputs.RT.wc_filename = wc_filename{1};
 
 
-            disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
-                num2str(tc), '/', num2str(length(inputs.RT.tau_c)), ']', newline])
+
 
 
             for ww = 1:num_wl
 
 
 
+
+
                 % ---- Define the wavelengths ----
                 inputs.RT.wavelengths = inputs.RT.wavelengths2run(ww,:);
 
-
-                disp(['ww = ', num2str(ww),'/',num2str(num_wl), newline])
 
 
                 % ------------------------------------------------
@@ -500,7 +519,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
                 % input_names need a unique identifier. Let's give them the nn value so
                 % they can be traced, and are writen over in memory
 
-                inputFileName{rr, tc, ww} = [num2str(inputs.RT.wavelengths(ww, 1)), '-', num2str(inputs.RT.wavelengths(ww, 2)), 'nm_',...
+                inputFileName{rr, tc, ww} = [num2str(inputs.RT.wavelengths(ww, 1)), '-', num2str(inputs.RT.wavelengths(ww, 2)),...
+                    'nm_re_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
                     inputs.RT.atm_file(1:end-4),'.INP'];
 
 
@@ -532,8 +552,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % --------- NON-HOMOGENOUS CLOUD -------------
     % --------------------------------------------
 
-    inputFileName = cell(length(inputs.RT.r_top), length(inputs.RT.r_bot), length(inputs.RT.tau_c), num_wl);
-    outputFileName = cell(length(inputs.RT.r_top), length(inputs.RT.r_bot), length(inputs.RT.tau_c), num_wl);
+    % length of each independent variable
+    num_rTop = length(inputs.RT.r_top);
+    num_rBot = length(inputs.RT.r_bot);
+    num_tauC = length(inputs.RT.tau_c);
+
+
+    inputFileName = cell(num_rTop, num_rBot, num_tauC, num_wl);
+    outputFileName = cell(num_rTop, num_rBot, num_tauC, num_wl);
 
 
 
@@ -541,20 +567,20 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
 
     % store the reflectances
-    Refl_model = zeros(num_wl, length(inputs.RT.r_top), length(inputs.RT.r_bot),...
-        length(inputs.RT.tau_c));
+    Refl_model = zeros(num_wl, num_rTop, num_rBot, num_tauC);
 
 
-    for rt = 1:length(inputs.RT.r_top)
 
 
-        for rb = 1:length(inputs.RT.r_bot)
+    for rt = 1:num_rTop
 
 
-            for tc = 1:length(inputs.RT.tau_c)
+        for rb = 1:num_rBot
 
 
-                disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
+            for tc = 1:num_tauC
+
+
 
 
                 idx = idx + 1;
@@ -584,7 +610,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                 % ------------------------------------------------------
                 wc_filename = write_wc_file(re, inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
                     inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
-                    inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, rt*rb);
+                    inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                    inputs.which_computer, rt*rb);
 
                 inputs.RT.wc_filename = wc_filename{1};
 
@@ -598,17 +625,15 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
 
-                    disp(['ww = ', num2str(ww),'/',num2str(num_wl), newline])
-
-
-
                     % ------------------------------------------------
                     % ---- Define the input and output filenames! ----
                     % ------------------------------------------------
                     % input_names need a unique identifier. Let's give them the nn value so
                     % they can be traced, and are writen over in memory
 
-                    inputFileName{rt, rb, tc, ww} = [num2str(inputs.RT.wavelengths2run(ww)), 'nm_',...
+                    inputFileName{rt, rb, tc, ww} = [num2str(mean(inputs.RT.wavelengths2run(ww, :),2)), '_',...
+                        'nm_rTop_', num2str(inputs.RT.r_top(rt)), '_rBot_', num2str(inputs.RT.r_bot(rb)),...
+                        '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
                         inputs.RT.atm_file(1:end-4),'.INP'];
 
 
@@ -663,26 +688,26 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
 
     % store the reflectances
-    Refl_model = zeros(num_wl, length(inputs.RT.re), length(inputs.RT.tau_c));
+    Refl_model = zeros(num_wl, num_rEff, num_tauC);
 
 
-    for rr = 1:length(inputs.RT.re)
-
-
-
-        for tc = 1:length(inputs.RT.tau_c)
+    for rr = 1:num_rEff
 
 
 
-            disp(['Iteration: [re, tc] = [', num2str(rr), '/', num2str(length(inputs.RT.re)),', ',...
-                num2str(tc), '/', num2str(length(inputs.RT.tau_c)), ']', newline])
+        for tc = 1:num_tauC
 
 
-            parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
-             %for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
-                disp(['ww = ', num2str(ww),'/',num2str(num_wl), newline])
+
+            %             parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
+            for ww = 1:size(inputs.RT.wavelengths2run, 1)
+
+
+                disp(['Iteration: [re, tc, ww] = [', num2str(rr), '/', num2str(num_rEff),', ',...
+                    num2str(tc), '/', num2str(num_tauC), ', ', num2str(ww),'/',num2str(num_wl),...
+                    ']', newline])
 
 
                 % ----------------------------------------------------
@@ -736,29 +761,32 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
 
     % store the reflectances
-    Refl_model = zeros(num_wl, length(inputs.RT.r_top), length(inputs.RT.r_bot),...
-        length(inputs.RT.tau_c));
-
-
-    for rt = 1:length(inputs.RT.r_top)
-
-
-        for rb = 1:length(inputs.RT.r_bot)
-
-
-            for tc = 1:length(inputs.RT.tau_c)
-
-
-                disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
+    Refl_model = zeros(num_wl, num_rTop, num_rBot, num_tauC);
 
 
 
-                parfor ww = 1:length(inputs.RT.wavelengths2run)
-                %for ww = 1:length(inputs.RT.wavelengths2run)
+
+    for rt = 1:num_rTop
+
+
+        for rb = 1:num_rBot
+
+
+            for tc = 1:num_tauC
 
 
 
-                    disp(['ww = ', num2str(ww),'/',num2str(num_wl), newline])
+
+
+
+                %                 parfor ww = 1:length(inputs.RT.wavelengths2run)
+                for ww = 1:length(inputs.RT.wavelengths2run)
+
+
+
+                    disp(['Iteration: [rt, rb, tc, ww] = [', num2str(rt), '/', num2str(num_rTop),', ',...
+                        num2str(rb), '/', num2str(num_rBot),', ', num2str(tc), '/', num2str(num_tauC),...
+                        ', ', num2str(ww),'/',num2str(num_wl), ']', newline])
 
 
 
@@ -768,7 +796,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
                     % compute INP file
-                    [inputSettings] = runUVSPEC(folderpath_inp, inputFileName{rt, rb, tc, ww}, outputFileName{rt, rb, tc, ww});
+                    [inputSettings] = runUVSPEC(folderpath_inp, inputFileName{rt, rb, tc, ww},...
+                                      outputFileName{rt, rb, tc, ww}, inputs.which_computer);
 
                     % read .OUT file
                     % radiance is in units of mW/nm/m^2/sr
@@ -777,7 +806,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
                     % compute the reflectance
-                    [Refl_model(ww, rt, rb, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(ww,:));
+                    [Refl_model(ww, rt, rb, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(ww,:));    % 1/sr
 
 
 
@@ -805,7 +834,114 @@ end
 toc
 
 
-%% Add Gaussian random noise
+%% Add Gaussian Noise to the measurements
+
+% --- meausrement uncertainty ---
+% define this as a fraction of the measurement
+inputs.measurement.uncert = 0.01;
+
+% Define a gaussian where the mean value is the true measurement, and twice
+% the standard deviation is the product of the measurement uncertainty and
+% the true measurements.
+% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+%           +/- 2*sigma = 95% of the area under the gaussian curve
+%           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+% Compute the new synethtic measurement with gaussian noise
+% *** Gaussian noise can be either positive or negative. Meaning, an
+% uncertainty of 5% implies the true value can lie anywhere between
+% +/- 5% of the measured value
+
+% To sample a normal distribution with mean mu, and standard deviation s,
+% we compute the following: y = s * randn() + mu
+
+% We define the standard deviation as the measurement uncertainty divided
+% by three. Therefore, after sample a large number of times, 99% of
+% measurements will be within +/- measurement uncertainy of the mean
+
+if inputs.measurement.uncert > 0
+
+    inputs.measurement.standard_dev = inputs.measurement.uncert/3;       % this is still just a fraction
+
+    Refl_model_with_noise = (inputs.measurement.standard_dev .* Refl_model) .* randn(size(Refl_model))...
+        + Refl_model;
+
+
+    % define the synthetic relfectance uncertainty
+    Refl_model_uncert = inputs.measurement.uncert .* Refl_model_with_noise;    % 1/sr
+
+end
+
+
+
+
+%%
+% ----------------------------------------------
+% ---------- SAVE REFLECTANCE OUTPUT! ----------
+% ----------------------------------------------
+
+
+
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    warning([newline, 'No folder to store things in!', newline])
+
+
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folderpath_2save, 'dir')
+
+    mkdir(folderpath_2save)
+
+end
+
+
+
+rev = 1;
+filename = [folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
+    char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+while isfile(filename)
+    rev = rev+1;
+    filename = [folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
+        char(datetime("today")), '_rev', num2str(rev),'.mat'];
+end
+
+if inputs.measurement.uncert > 0
+
+    save(filename, "Refl_model", "Refl_model_with_noise", "Refl_model_uncert","inputs");
+
+else
+    save(filename, "Refl_model","inputs");
+end
 
 
 
@@ -815,13 +951,44 @@ toc
 figure;
 if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
-    plot(mean(inputs.RT.wavelengths2run,2), Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
-        'linewidth', 3)
+    if size(Refl_model,2)>1 && size(Refl_model,3)>1 && size(Refl_model,4)>1
 
-else
+        % indexes to plot
+        r_top_2Plot = 1;
+        r_bot_2Plot = 1;
 
-    plot(inputs.RT.wavelengths2run, Refl_model, '-', 'linewidth', 5, 'markersize', 27, 'Color', mySavedColors(1, 'fixed'),...
-        'linewidth', 3)
+        for nn = 1:size(Refl_model,4)
+
+            plot(mean(inputs.RT.wavelengths2run,2),...
+                reshape(Refl_model(:,r_top_2Plot, r_bot_2Plot, nn), 1, []),...
+                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
+
+            hold on
+
+            legend_str{nn} = ['$\tau_c = $', num2str(inputs.RT.tau_c(nn))];
+
+        end
+
+
+
+    elseif size(Refl_model,2)==1 && size(Refl_model,3)==1 && size(Refl_model,4)>1
+
+
+        for nn = 1:size(Refl_model,4)
+
+            plot(mean(inputs.RT.wavelengths2run,2),...
+                reshape(Refl_model(:,1, 1, nn), length(inputs.bands2run), []),...
+                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
+
+            hold on
+
+            legend_str{nn} = ['$\tau_c = $', num2str(inputs.RT.tau_c(nn))];
+
+        end
+
+
+
+    end
 
 end
 
@@ -831,6 +998,6 @@ grid on; grid minor
 xlabel('Wavelength (nm)','Interpreter', 'latex')
 ylabel('Reflectance (1/sr)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
-legend('Simulated Reflectance',  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+legend(legend_str,  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 % title(['Simulated Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
 %     num2str(tau_2plot)], 'Interpreter', 'latex')

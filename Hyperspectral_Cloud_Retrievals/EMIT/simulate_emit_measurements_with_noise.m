@@ -195,16 +195,16 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %inputs.bands2run = find(emit.radiance.wavelength<=650)';
 
 % plot all EMIT wavelengths
-inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
+% inputs.bands2run = find(emit.radiance.wavelength>=300 & emit.radiance.wavelength<=2600)';
 
 
 % --- New New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-%     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
-%     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 % ------------------------------------------------------------------------
 
 % Define the EMIT spectral response functions

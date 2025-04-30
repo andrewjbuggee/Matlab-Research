@@ -12,7 +12,7 @@
 % --- By Andrew J. Buggee ---
 %% Creating the .INP file
 
-function [inputSettings] = runUVSPEC(folderName_INP_OUT,inputName,outputName)
+function [inputSettings] = runUVSPEC(folderName_INP_OUT,inputName,outputName, computer_name)
 %% ---- A Few Checks are Needed ----
 
 if iscell(inputName)==true && iscell(outputName)==false
@@ -28,23 +28,7 @@ elseif iscell(inputName)==true && iscell(outputName)==true
 end
 
 % -------------------------------------------
-% -----
 
-% % Determine which computer you're using
-% computer_name = whatComputer;
-
-% % Find the folder where the mie calculations are stored
-% % find the folder where the water cloud files are stored.
-% if strcmp(computer_name,'anbu8374')==true
-%
-%
-%     folderSolar = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/solar_flux/';
-%
-% elseif strcmp(computer_name,'andrewbuggee')==true
-%
-%     folderSolar = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-%         'LibRadTran/libRadtran-2.0.4/data/solar_flux/'];
-% end
 
 
 
@@ -432,19 +416,19 @@ end
 % To run uvspec in the command line we have to point to its full location.
 % To do this we will check to see what computer we are using
 
-usrName = whatComputer;
 
-if strcmp('anbu8374',usrName)
+
+if strcmp('anbu8374',computer_name)
 
     uvspec_folderName = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/bin/';
 
-elseif strcmp('andrewbuggee',usrName)
+elseif strcmp('andrewbuggee',computer_name)
 
     uvspec_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
         'Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/bin/'];
 
-elseif strcmp('curc', usrName)
+elseif strcmp('curc', computer_name)
     % location of the mie program
     uvspec_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
 
@@ -499,7 +483,7 @@ if numFiles2Run==1
 
 
     % run all commands in the terminal window
-    if strcmp('curc', usrName)
+    if strcmp('curc', computer_name)
 
         [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
         %[status] = system([cmnd_modules, ' ; ', cmnd2]);
@@ -529,7 +513,7 @@ elseif numFiles2Run>1
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
-        if strcmp('curc', usrName)
+        if strcmp('curc', computer_name)
 
             [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
 
