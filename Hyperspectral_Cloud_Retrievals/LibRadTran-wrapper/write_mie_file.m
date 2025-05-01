@@ -60,7 +60,7 @@
 %%
 
 function [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_refraction,...
-            re, wavelength, distribution, err_msg_str, index)
+            re, wavelength, distribution, err_msg_str, computer_name, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -90,8 +90,7 @@ if strcmp(mie_program, 'MIEV0')==false && strcmp(mie_program, 'BH')==false
 end
 
 
-% Determine which computer you're using
-computer_name = whatComputer;
+
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.

@@ -463,10 +463,10 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
 
                 % Create a mie file
                 [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, index);
+                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index);
 
                 % run the mie file
-                [~] = runMIE(mie_folder,input_filename,output_filename);
+                [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
 
                 % Read the output of the mie file
                 [ds,~,~] = readMIE(mie_folder,output_filename);
@@ -586,10 +586,10 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
                 % Create a mie file
                 [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, index);
+                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index);
 
                 % run the mie file
-                [~] = runMIE(mie_folder,input_filename,output_filename);
+                [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
 
                 % Read the output of the mie file
                 [ds,~,~] = readMIE(mie_folder,output_filename);

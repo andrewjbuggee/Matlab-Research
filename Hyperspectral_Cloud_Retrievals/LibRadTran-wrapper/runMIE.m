@@ -13,7 +13,7 @@
 % --- By Andrew J. Buggee ---
 %%
 
-function [droplet_settings] = runMIE(folderName,inputName,outputName)
+function [droplet_settings] = runMIE(folderName,inputName,outputName, computer_name)
 %% ---- A Few Checks are Needed ----
 
 if iscell(inputName)==true && iscell(outputName)==false
@@ -232,19 +232,19 @@ end
 % binary directory where the mie program resides.
 % To do this we will check to see what computer we are using
 
-usrName = whatComputer;
 
-if strcmp('anbu8374',usrName)
+
+if strcmp('anbu8374', computer_name)
 
     mie_folderName = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/bin/';
 
-elseif strcmp('andrewbuggee',usrName)
+elseif strcmp('andrewbuggee',computer_name)
 
     mie_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
         'Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/bin/'];
 
-elseif strcmp('curc', usrName)
+elseif strcmp('curc', computer_name)
 
     mie_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
 
@@ -280,7 +280,7 @@ if numFiles2Run==1
     % an unsuccessful command will return a status of 1
 
 
-    if strcmp('curc', usrName)
+    if strcmp('curc', computer_name)
 
         [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
 
@@ -306,7 +306,7 @@ elseif numFiles2Run>1
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
-        if strcmp('curc', usrName)
+        if strcmp('curc', computer_name)
 
             [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
 
