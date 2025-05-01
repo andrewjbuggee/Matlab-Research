@@ -213,8 +213,8 @@ source_wavelength_grid = -20:sourceFile_wavelength_resolution:20;     % nm
 % For a normal distribution, FWHM = 2*sqrt(2*log(2))*std
 fwhm = zeros(length(wl_center), 1);
 
-%parfor nn = 1:length(wl_center)
-for nn = 1:length(wl_center)
+parfor nn = 1:length(wl_center)
+%for nn = 1:length(wl_center)
 
     f = fit(wavelength{nn}', data.(string(['Band ', num2str(nn)])), 'gauss1');
 

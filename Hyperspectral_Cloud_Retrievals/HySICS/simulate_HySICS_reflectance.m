@@ -121,12 +121,12 @@ inputs.RT.num_streams = 16;
 
 % these data have 0.1nm sampling resolution, despite what the file name
 % suggests
-% inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-% inputs.RT.source_file_resolution = 0.1;         % nm
+inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+inputs.RT.source_file_resolution = 0.1;         % nm
 
 % these data have 1nm sampling resolution
-inputs.RT.source_file = 'kurudz_1.0nm.dat';
-inputs.RT.source_file_resolution = 1;         % nm
+% inputs.RT.source_file = 'kurudz_1.0nm.dat';
+% inputs.RT.source_file_resolution = 1;         % nm
 
 % ------------------------------------------------------------------------
 
@@ -312,9 +312,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %     inputs.RT.r_bot = 4.135;        % microns
     %     inputs.RT.tau_c = 6.424;
 
-    inputs.RT.r_top = 9:10;     % microns
-    inputs.RT.r_bot = 4:5;        % microns
-    inputs.RT.tau_c = [5,10];
+    % inputs.RT.r_top = 9:10;     % microns
+    % inputs.RT.r_bot = 4:5;        % microns
+    % inputs.RT.tau_c = [5,10];
+
+    inputs.RT.r_top = 3:20;       % microns
+    inputs.RT.r_bot = 2:14;        % microns
+    inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -357,7 +361,7 @@ end
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 19.5688;           % degree
+inputs.RT.sza = 0;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -365,10 +369,10 @@ inputs.RT.sza = 19.5688;           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-inputs.RT.phi0 = 113.8140;         % degree
+inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
+inputs.RT.vza = 0; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -377,7 +381,7 @@ inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 70.0849;     % degree
+inputs.RT.vaz = 0;     % degree
 % --------------------------------------------------------------
 
 
@@ -701,8 +705,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
 
-            %             parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
-            for ww = 1:size(inputs.RT.wavelengths2run, 1)
+            parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
+                % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
                 disp(['Iteration: [re, tc, ww] = [', num2str(rr), '/', num2str(num_rEff),', ',...
@@ -779,8 +783,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
 
-                %                 parfor ww = 1:length(inputs.RT.wavelengths2run)
-                for ww = 1:length(inputs.RT.wavelengths2run)
+                parfor ww = 1:length(inputs.RT.wavelengths2run)
+                    % for ww = 1:length(inputs.RT.wavelengths2run)
 
 
 
@@ -797,7 +801,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
                     % compute INP file
                     [inputSettings] = runUVSPEC(folderpath_inp, inputFileName{rt, rb, tc, ww},...
-                                      outputFileName{rt, rb, tc, ww}, inputs.which_computer);
+                        outputFileName{rt, rb, tc, ww}, inputs.which_computer);
 
                     % read .OUT file
                     % radiance is in units of mW/nm/m^2/sr
