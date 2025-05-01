@@ -258,7 +258,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -276,8 +276,11 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
 
-    inputs.RT.re = 10.79;      % microns
-    inputs.RT.tau_c = 7;
+    % inputs.RT.re = 10.79;      % microns
+    % inputs.RT.tau_c = 7;
+
+    inputs.RT.re = 1:2:51;      % microns
+    inputs.RT.tau_c = [1:15, 20:5:100];
 
 
 elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
@@ -319,6 +322,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.r_top = 3:20;       % microns
     inputs.RT.r_bot = 2:14;        % microns
     inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -523,9 +527,10 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
                 % input_names need a unique identifier. Let's give them the nn value so
                 % they can be traced, and are writen over in memory
 
-                inputFileName{rr, tc, ww} = [num2str(inputs.RT.wavelengths(ww, 1)), '-', num2str(inputs.RT.wavelengths(ww, 2)),...
-                    'nm_re_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
-                    inputs.RT.atm_file(1:end-4),'.INP'];
+
+                inputFileName{rr, tc, ww} = [num2str(mean(inputs.RT.wavelengths2run(ww, :),2)), '_',...
+                        'nm_rEff_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
+                        inputs.RT.atm_file(1:end-4),'.INP'];
 
 
 
@@ -842,7 +847,7 @@ toc
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-inputs.measurement.uncert = 0.01;
+inputs.measurement.uncert = 0;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -930,8 +935,19 @@ end
 
 
 rev = 1;
-filename = [folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
-    char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+
+    filename = [folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
+        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+else
+
+    filename = [folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
+        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+end
+
 
 while isfile(filename)
     rev = rev+1;
