@@ -45,14 +45,23 @@ end
 % ------------------------------------------------------------
 
 wavelengths = 300:5:305;       % HySICS range
-radius_groups = [1,10;...
-    11,20;...
-    21,30;...
-    31,40;...
-    41,50];
+
+radius_range = [1, 50];
+num_radius_groups = 10;
+radius_groups = zeros(num_radius_groups, 2);
+for nn = 1:num_radius_groups
+    if nn == 1
+        radius_groups(nn,:) = [1, nn*(radius_range(end)/num_radius_groups)];
+    else
+        radius_groups(nn,:) = [radius_groups(nn-1,2)+1, nn*(radius_range(end)/num_radius_groups)];
+    end
+end
+
+
+% wavelengths = 300:5:305;       % HySICS range
+% radius_groups = [1,2];
 
 num_wavelengths = length(wavelengths);
-num_radius_groups = size(radius_groups, 1);
 
 
 % Create comments for each line
@@ -64,6 +73,7 @@ comments = {'# Mie code to use', '# refractive index to use', '# specify effecti
 
 input_filename = cell(num_wavelengths*num_radius_groups, 1);
 output_filename = cell(num_wavelengths*num_radius_groups, 1);
+foldername = cell(num_wavelengths*num_radius_groups, 1);
 
 idx = 0;
 
@@ -82,13 +92,28 @@ for rr = 1:num_radius_groups
         % *** create the input and output filename ***
         % --------------------------------------------
 
-
         input_filename{idx} = ['Mie_calc_water_GammaDist_HySICS_',num2str(wavelengths(ww)),...
             'nm_re_', num2str(radius_groups(rr, 1)), '-', num2str(radius_groups(rr,2)),'microns.INP'];
         output_filename{idx} = ['OUTPUT_', input_filename{idx}(1:end-4)];
 
+
+        % --------------------------------------------
+        % *** create a unique folder for each file ***
+        % --------------------------------------------
+        % This has to be done because otherwise libRadtran writes over each
+        % netCDF file created
+        foldername{idx} = [mie_folder,input_filename{idx}(1:end-4), '/'];
+
+        if ~exist(foldername{idx}, 'dir')
+
+            mkdir(foldername{idx})
+
+        end
+
+
+
         % Create the water cloud file
-        fileID = fopen([mie_folder, input_filename{idx}], 'w');
+        fileID = fopen([foldername{idx}, input_filename{idx}], 'w');
 
 
 
@@ -178,8 +203,9 @@ for rr = 1:num_radius_groups
         % ----- define the multiplicative factor for the upper range of the sixe distribution -----
         % ---------------------------------------
 
-        % if wavelength has only a single entry, then this is a monochromatic
-        fprintf(fileID, '%s          %s \n\n','n_r_max 8 ', comments{9});
+        % How many radii do you wish to calculated when defining the
+        % droplet distribution? 8 takes a long time! 
+        fprintf(fileID, '%s          %s \n\n','n_r_max 5 ', comments{9});
 
 
 
@@ -222,7 +248,7 @@ parfor nn = 1:length(input_filename)
 
     disp(['nn = ', num2str(nn), newline])
 
-    runMIE(mie_folder,input_filename{nn},output_filename{nn}, computer_name);
+    runMIE(foldername{nn},input_filename{nn},output_filename{nn}, computer_name);
 
 end
 toc

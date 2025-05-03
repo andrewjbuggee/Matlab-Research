@@ -1806,10 +1806,18 @@ if strcmp(whatComputer, 'anbu8374')==true
 
     folder_path = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
 
+    folderpath_figs = '/Users/anbu8374/Documents/My Papers/Paper 1/First Paper Figures/';
+
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
+
 elseif strcmp(whatComputer, 'andrewbuggee')==true
 
     folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 2 Figures/';
 
 
 end
@@ -1853,7 +1861,7 @@ horz_profs = find_horizontalProfiles_VOCALS_REx(vocalsRex, LWC_threshold, Nc_thr
 
 % ---- Plot the properties of all horizontal profiles collected ---
 normalize_distance = false;
-plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, 1:length(horz_profs.re), normalize_distance)
+plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, 1:length(horz_profs.re), normalize_distance, [])
 
 
 % ----- Plot JUST the effective radius as a function of distance ----
@@ -1867,7 +1875,8 @@ indices_2_plot = [3, 4, 10,];
 C = mySavedColors([5, 17, 8], 'fixed');
 
 % Plot the re, Nc, and LWC for the curves defined by indices_2_plot 
-plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, indices_2_plot, normalize_distance)
+plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, indices_2_plot, normalize_distance, C)
+
 
 N_cuvres = length(indices_2_plot);
 
@@ -2015,24 +2024,36 @@ end
 
 
 
-% in the third subplot, define the indices_2_plot being plotted
+% Include a legend
 legend(legend_str, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
-
 % set plot size
 set(gcf, 'Position', [0 0 1200 625])
 
+
+% Clean up figure 2
+% Also use this legend for the second figure
+figure(2); hold on
+subplot(3,1,2)
+legend(legend_str{1}, legend_str{3}, legend_str{5}, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
+% remove title for the PNG
+title('')
+% get rid of the legend on subplot 3
+subplot(3,1,3)
+legend()
+set(gcf, 'Position', [0 0 2000 1225])
+
+
+% ** Save figure 2! **
+figure(2);
 % save .fig file
-folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
 f = gcf;
 saveas(f,[folderpath_figs,'Fig 5 - 3 horizontal in-situ profiles.fig']);
-
 
 % save .png with 400 DPI resolution
 % remove title for the PNG
 title('')
 % remove horizontal lines
 % *** do this manually ***
-folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
 exportgraphics(f,[folderpath_pngs,'Fig 5 - 3 horizontal in-situ profiles.png'],'Resolution', 400);
 
 
