@@ -16,15 +16,22 @@ if strcmp(computer_name,'anbu8374')==true
 
     mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_netCDF_files/';
 
+    master_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_netCDF_files/master_netCDF_folder/';
+
 elseif strcmp(computer_name,'andrewbuggee')==true
 
     mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/Mie_netCDF_files/'];
 
+    master_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/Mie_netCDF_files/master_netCDF_folder/'];
+
 elseif strcmp(computer_name,'curc')==true
 
 
-    mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
+    mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/Mie_netCDF_files/';
+
+    master_folder = '/scratch/alpine/anbu8374/Mie_Calculations/master_netCDF_folder/';
 
 end
 
@@ -32,6 +39,11 @@ end
 if ~exist(mie_folder, 'dir')
 
     mkdir(mie_folder)
+end
+
+if ~exist(master_folder, 'dir')
+
+    mkdir(master_folder)
 end
 
 
@@ -204,7 +216,7 @@ for rr = 1:num_radius_groups
         % ---------------------------------------
 
         % How many radii do you wish to calculated when defining the
-        % droplet distribution? 8 takes a long time! 
+        % droplet distribution? 8 takes a long time!
         fprintf(fileID, '%s          %s \n\n','n_r_max 5 ', comments{9});
 
 
@@ -255,5 +267,204 @@ toc
 
 
 
-%% Stitch the netCDF files into one
+%% step through each folder, rename the netCDF file, and move it into a
+% master folder
+
+
+for nn = 1:length(foldername)
+
+    % Find all files that end with .cdf
+    contents = dir([foldername{nn}, '*.cdf']);
+
+    if isempty(contents)==false
+
+
+        % Rename and move the netCDF file
+        old_folder_file = [foldername{nn}, contents.name];
+        new_folder_file = [master_folder, input_filename{nn}(1:end-4),'.mie.cdf'];
+
+        cmd = ['mv ', old_folder_file, ' ', new_folder_file];
+        system(cmd);
+
+
+    end
+
+
+end
+
+
+
+
+
+%% Take 3 - I think I'll have to do it myslef
+
+contents_master = dir([master_folder, '*.cdf']);
+
+% info1 = ncinfo([contents_master(1).folder,'/', contents_master(1).name]);
+% info2 = ncinfo([contents_master(2).folder,'/', contents_master(2).name]);
+
+% Concatenate the vairables from each file
+% Each file computes the mie variables for a unique r_eff and wavelength
+
+% this variable is the spread of wavelengths according to 
+wavelen = wavelengths;
+reff = (1:50)';
+
+% theta is a 4-D matrix [angles, stokes parameters, effective radii,wavelengths]
+% I've hard coded my mie files to compute 1000 scattering angles, the first
+% stokes parameter, 50 effective radii over some set of wavelengths
+theta = zeros(1000, 1, 50, length(wavelengths));
+
+% Number of scattering angles is a 3-D matrix
+% [stokes parameters, effective radii,wavelengths]
+ntheta = zeros(1, 50, length(wavelengths));
+
+% Scattering Phase matrix
+% a 4-D matrix [angles, stokes parameters, effective radii, wavelengths]
+% I've hard coded my mie files to compute 1000 scattering angles, the first
+% stokes parameter, 50 effective radii over some set of wavelengths
+phase = zeros(1000, 1, 50, length(wavelengths));
+
+% Legendre Polynomials
+% a 4-D matrix [moments, stokes parameters, effective radii, wavelengths]
+% I've hard coded my mie files to compute 10000 polynomials, the first
+% stokes parameter, 50 effective radii over some set of wavelengths
+pmom = zeros(10000, 1, 50, length(wavelengths));
+
+% The number of Legendre polynomials
+% a 3-D matrix [stokes parameters, effective radii, wavelengths]
+% Only computing the first stokes parameter so get rid of the first
+% dimension
+% The maximum possible number of Legendre polynomials my files will store
+% is 10,000. But they may not all compute this many!
+nmom = zeros(1, 50, length(wavelengths));
+
+% Extinction efficiency
+% a 2-D matrix [effective radii, wavelengths]
+ext = zeros(50, length(wavelengths));
+
+% Single Scattering Albedo
+% a 2-D matrix [effective radii, wavelengths]
+ssa = zeros(50, length(wavelengths));
+
+% Asymmetry Parameter
+% a 2-D matrix [effective radii, wavelengths]
+gg = zeros(50, length(wavelengths));
+
+% Real part of the refractive index
+% varies with number of wavelengths
+% row vector 
+refre = zeros(length(wavelengths), 1);
+
+% Real part of the refractive index
+% varies with number of wavelengths
+% row vector 
+refim = zeros(length(wavelengths), 1);
+
+% Density of liquid water (g/cm^3)
+rho = 1;
+
+
+for nn = 1:length(contents_master)
+
+    info = ncinfo([contents_master(nn).folder,'/', contents_master(nn).name]);
+
+    % This is just one value per file - raw value is in microns
+    wavelen_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'wavelen') * 1e3;  % nanometers
+
+    % find the wavelength indexes
+    wl_idx = find(wavelen_temp==wavelen);
+
+    % read these values to know where the variables below need to be
+    % indexed
+    reff_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'reff');
+
+    % find the effective radii indexes
+    % Because the effective radii range from 1-50 microns, the indexes are
+    % simply the effective radii computed for the file in question
+    re_idx = reff_temp;
+
+    % % find the effective radii indexes
+    % clear re_idx
+    % if length(reff_temp)>1
+    % 
+    %     for rr = 1:length(reff_temp)
+    % 
+    %         re_idx(rr) = find(reff_temp(rr)==reff);
+    %     end
+    % 
+    % elseif isscalar(reff_temp)
+    %     re_idx = find(reff_temp==reff);
+    % end
+
+
+    
+
+    % Theta never changes ?
+    theta_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'theta');
+
+    % ntheta deffinitely donest change, this is hard coded
+    ntheta_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'ntheta');
+
+
+    phase_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'phase');
+    pmom_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'pmom');
+    nmom_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'nmom');
+    ext_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'ext');
+    ssa_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'ssa');
+    refre_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'refre');
+    refim_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'refim');
+    rho_temp = ncread([contents_master(nn).folder,'/', contents_master(nn).name], 'rho');
+
+
+
+    % --- Concatenate! ---
+
+    % Theta is a four dimensional variable of scattering angles
+    
+
+    % concatenate ntheta
+    ntheta(1, re_idx, wl_idx) = ntheta_temp;
+
+    % concatenate nmom
+    nmom(1, re_idx, wl_idx) = nmom_temp;
+
+
+
+
+
+
+    
+end
+
+
+
+
+% % Write the schema for a new .CDF file using the first file schema
+% ncwriteschema('test_merge.cdf',info1)
+% 
+% % add the schema from the second file
+% ncwriteschema('test_merge.cdf',info2)
+
+%%
+
+% The code creates 3 NetCDF Files and combine them.
+numFiles = 3;
+dimSize = 10;
+% Step 1: Create Multiple NetCDF Files
+for i = 1:numFiles
+    filename = sprintf('test_file_%d.nc', i);
+    nccreate(filename, 'data', 'Dimensions', {'x', dimSize, 'y', dimSize})
+    data = rand(dimSize, dimSize);
+    ncwrite(filename, 'data', data);
+end
+% Step 2: Combine NetCDF Files into One
+outputFile = 'combined_file.nc';
+% 'data' is the variable name in the NetCDF file
+nccreate(outputFile, 'data', 'Dimensions', {'x', dimSize, 'y', dimSize, 'file', numFiles});
+for i = 1:numFiles
+    filename = sprintf('test_file_%d.nc', i);
+    data = ncread(filename, 'data');
+    ncwrite(outputFile, 'data', data, [1, 1, i]);
+end
 
