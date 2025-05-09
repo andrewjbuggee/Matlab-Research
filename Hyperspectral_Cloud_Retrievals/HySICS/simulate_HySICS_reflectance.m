@@ -10,6 +10,8 @@ clear variables
 
 %% Define the path location where INP files will be stored, and where Reflectances will be stored
 
+clear inputs
+
 % Determine which computer this is being run on
 which_computer = whatComputer;
 
@@ -20,16 +22,16 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+    inputs.folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
+    inputs.folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+    inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
 
 
 
@@ -39,17 +41,17 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    inputs.folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'HySICS/Simulated_spectra/'];
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    inputs.folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/HySICS/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/data/'];
 
 
@@ -62,33 +64,33 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
 
 
 
     % Define the folder path where all .INP files will be saved
-    folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+    inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 
 end
 
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folderpath_inp, 'dir')
+if ~exist(inputs.folderpath_inp, 'dir')
 
-    mkdir(folderpath_inp)
+    mkdir(inputs.folderpath_inp)
 
 end
 
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folderpath_reflectance, 'dir')
+if ~exist(inputs.folderpath_reflectance, 'dir')
 
-    mkdir(folderpath_reflectance)
+    mkdir(inputs.folderpath_reflectance)
 
 end
 
@@ -98,7 +100,11 @@ end
 
 
 % Define the parameters of the INP file
-clear inputs
+
+% Are you simulating a measurement, or making forward model calculations
+% for the retrieval? 
+inputs.calc_type = 'simulated_measurement';
+%inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
@@ -141,14 +147,14 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
 
 
 % ------------------------------------------------------------------------
@@ -208,10 +214,10 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.albedo = 0.04;
+inputs.RT.surface_albedo = 0.04;
 
 % day of the year
-inputs.RT.day_of_year = 100;
+%inputs.RT.day_of_year = 100;
 % ------------------------------------------------------------------------
 
 
@@ -258,7 +264,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -271,7 +277,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % *** To match the optical
     %   properties mie table precomputed by libRadtran, use a gamma
     %   distribution alpha parameter of 7 ***
-    inputs.RT.dist_var = 7;              % distribution variance
+    inputs.RT.distribution_var = 7;              % distribution variance
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -309,19 +315,19 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-    inputs.RT.dist_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
+    inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    %     inputs.RT.r_top = 12.565;     % microns
-    %     inputs.RT.r_bot = 4.135;        % microns
-    %     inputs.RT.tau_c = 6.424;
+    inputs.RT.r_top = 12.565;     % microns
+    inputs.RT.r_bot = 4.135;        % microns
+    inputs.RT.tau_c = 6.424;
 
     % inputs.RT.r_top = 9:10;     % microns
     % inputs.RT.r_bot = 4:5;        % microns
     % inputs.RT.tau_c = [5,10];
 
-    inputs.RT.r_top = 3:20;       % microns
-    inputs.RT.r_bot = 2:14;        % microns
-    inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+    %     inputs.RT.r_top = 3:20;       % microns
+    %     inputs.RT.r_bot = 2:14;        % microns
+    %     inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
 
 
     % define the type of droplet distribution
@@ -331,7 +337,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % *** To match the optical
     %   properties mie table precomputed by libRadtran, use a gamma
     %   distribution alpha parameter of 7 ***
-    inputs.RT.dist_var = 7;              % distribution variance
+    inputs.RT.distribution_var = 7;              % distribution variance
 
 
 end
@@ -429,7 +435,7 @@ inputs.RT.waterVapor_column = 20;              % mm - milimeters of water conden
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 410;       % ppm
+inputs.RT.CO2_mixing_ratio = 416;       % ppm
 % ------------------------------------------------------------------------
 
 
@@ -500,7 +506,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
             % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
             % ------------------------------------------------------
             wc_filename = write_wc_file(inputs.RT.re(rr), inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
-                inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
+                inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.distribution_var,...
                 inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
                 inputs.which_computer, idx);
 
@@ -529,8 +535,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
                 inputFileName{rr, tc, ww} = [num2str(mean(inputs.RT.wavelengths2run(ww, :),2)), '_',...
-                        'nm_rEff_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
-                        inputs.RT.atm_file(1:end-4),'.INP'];
+                    'nm_rEff_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
+                    inputs.RT.atm_file(1:end-4),'.INP'];
 
 
 
@@ -538,7 +544,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
                 % ------------------ Write the INP File --------------------
-                write_INP_file(folderpath_inp, libRadtran_data_path, inputFileName{rr, tc, ww}, inputs);
+                write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{rr, tc, ww}, inputs);
 
 
 
@@ -618,7 +624,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
                 % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
                 % ------------------------------------------------------
                 wc_filename = write_wc_file(re, inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
-                    inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.dist_var,...
+                    inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.distribution_var,...
                     inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
                     inputs.which_computer, rt*rb);
 
@@ -653,7 +659,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
                     % ------------------ Write the INP File --------------------
-                    write_INP_file(folderpath_inp, libRadtran_data_path, inputFileName{rt, rb, tc, ww}, inputs);
+                    write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{rt, rb, tc, ww}, inputs);
 
 
 
@@ -725,11 +731,11 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
                 % compute INP file
-                [inputSettings] = runUVSPEC(folderpath_inp, inputFileName{rr, tc, ww}, outputFileName{rr, tc, ww});
+                [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{rr, tc, ww}, outputFileName{rr, tc, ww});
 
                 % read .OUT file
                 % radiance is in units of mW/nm/m^2/sr
-                [ds,~,~] = readUVSPEC(folderpath_inp, outputFileName{rr, tc, ww},inputSettings(2,:),...
+                [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{rr, tc, ww},inputSettings(2,:),...
                     inputs.RT.compute_reflectivity_uvSpec);
 
                 % Store the Radiance
@@ -805,12 +811,12 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
                     % compute INP file
-                    [inputSettings] = runUVSPEC(folderpath_inp, inputFileName{rt, rb, tc, ww},...
+                    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{rt, rb, tc, ww},...
                         outputFileName{rt, rb, tc, ww}, inputs.which_computer);
 
                     % read .OUT file
                     % radiance is in units of mW/nm/m^2/sr
-                    [ds,~,~] = readUVSPEC(folderpath_inp, outputFileName{rt, rb, tc, ww}, inputSettings(2,:),...
+                    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{rt, rb, tc, ww}, inputSettings(2,:),...
                         inputs.RT.compute_reflectivity_uvSpec);
 
 
@@ -843,11 +849,107 @@ end
 toc
 
 
+%%
+% ----------------------------------------------
+% ---------- SAVE REFLECTANCE OUTPUT! ----------
+% ----------------------------------------------
+
+% Save the version without an measurement uncertainty. Then we can add
+% uncertainty and save the new file
+
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    warning([newline, 'No folder to store things in!', newline])
+
+
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folderpath_2save, 'dir')
+
+    mkdir(inputs.folderpath_2save)
+
+end
+
+
+
+rev = 1;
+
+if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+
+    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+    filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+        'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+
+    filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
+        'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    end
+
+
+else
+
+    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+    filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+        'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+
+    filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
+        'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    end
+
+end
+
+
+while isfile(filename)
+    rev = rev+1;
+    filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
+        char(datetime("today")), '_rev', num2str(rev),'.mat'];
+end
+
+
+save(filename, "Refl_model","inputs");
+
+
+
 %% Add Gaussian Noise to the measurements
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-inputs.measurement.uncert = 0;
+inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -868,100 +970,56 @@ inputs.measurement.uncert = 0;
 % by three. Therefore, after sample a large number of times, 99% of
 % measurements will be within +/- measurement uncertainy of the mean
 
-if inputs.measurement.uncert > 0
+if any(inputs.measurement.uncert > 0)
 
     inputs.measurement.standard_dev = inputs.measurement.uncert/3;       % this is still just a fraction
 
-    Refl_model_with_noise = (inputs.measurement.standard_dev .* Refl_model) .* randn(size(Refl_model))...
-        + Refl_model;
+    for uu = 1:length(inputs.measurement.uncert)
+
+        clear Refl_model_with_noise Refl_model_uncert
 
 
-    % define the synthetic relfectance uncertainty
-    Refl_model_uncert = inputs.measurement.uncert .* Refl_model_with_noise;    % 1/sr
-
-end
+        Refl_model_with_noise = (inputs.measurement.standard_dev(uu) .* Refl_model) .* randn(size(Refl_model))...
+            + Refl_model;
 
 
-
-
-%%
-% ----------------------------------------------
-% ---------- SAVE REFLECTANCE OUTPUT! ----------
-% ----------------------------------------------
+        % define the synthetic relfectance uncertainty
+        Refl_model_uncert = inputs.measurement.uncert(uu) .* Refl_model_with_noise;    % 1/sr
 
 
 
-if strcmp(inputs.which_computer,'anbu8374')==true
+        % Save the output with added measurement uncertainty
+        ver = 1;
 
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
+        if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
-    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+            filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
+                'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
+                char(datetime("today")), '_rev', num2str(ver),'.mat'];
 
+        else
 
+            filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
+                'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
+                char(datetime("today")), '_rev', num2str(ver),'.mat'];
 
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+        end
 
 
-elseif strcmp(inputs.which_computer,'curc')==true
-
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
-
-    warning([newline, 'No folder to store things in!', newline])
+        while isfile(filename)
+            ver = ver+1;
+            filename = [filename(1:end-5), num2str(ver), '.mat'];
+        end
 
 
+        save(filename, "Refl_model_with_noise", "Refl_model_uncert","inputs");
 
-end
-
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(folderpath_2save, 'dir')
-
-    mkdir(folderpath_2save)
+    end
 
 end
 
 
 
-rev = 1;
-
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-
-    filename = [folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
-        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-else
-
-    filename = [folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
-        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-end
-
-
-while isfile(filename)
-    rev = rev+1;
-    filename = [folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
-        char(datetime("today")), '_rev', num2str(rev),'.mat'];
-end
-
-if inputs.measurement.uncert > 0
-
-    save(filename, "Refl_model", "Refl_model_with_noise", "Refl_model_uncert","inputs");
-
-else
-    save(filename, "Refl_model","inputs");
-end
 
 
 

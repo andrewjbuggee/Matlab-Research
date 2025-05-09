@@ -65,7 +65,7 @@ fprintf(fileID, formatSpec,'source solar', inputs.RT.source_file, ' ', '# Bounds
 % Define the surface albedo
 % ------------------------------------------------
 formatSpec = '%s %s %5s %s \n\n';
-fprintf(fileID, formatSpec,'albedo', inputs.RT.albedo, ' ', '# Surface albedo of the ocean');
+fprintf(fileID, formatSpec,'albedo', inputs.RT.surface_albedo, ' ', '# Surface albedo of the ocean');
 
 
 % Define the Water Cloud properties, if you want a cloud in your model

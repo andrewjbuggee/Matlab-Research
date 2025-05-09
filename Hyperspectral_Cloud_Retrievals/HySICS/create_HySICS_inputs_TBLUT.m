@@ -2,11 +2,11 @@
 
 
 % INPUTS:
-%   (1) folderName - 
+%   (1) data_folder -
 
 %   (2) folderpaths - folder path where the EMIT data is located
 
-%   (3) emit - 
+%   (3) emit -
 
 
 % OUTPUTS:
@@ -16,35 +16,73 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, emitDataPath, folder2save, emit)
+function inputs = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements)
+
+
+%% Find computer and folders
+
+% Determine which computer this is being run on
+inputs.which_computer = whatComputer;
+
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/data/'];
+
+
+
+
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------ Folders on the CU Supercomputer /projects folder --------
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+
+
+end
+
+
+
 
 
 %%
 
-% --- SAVE THE EMIT FILE NAME ----
-inputs.emitDataFolder = emitDataFolder;
-
-% read the contents of the EMIT data folder
-folder_contents = dir([emitDataPath, emitDataFolder]);
-
-% ----- Save the L1B file name -----
-for nn = 1:length(folder_contents)
-
-    if length(folder_contents(nn).name)>5 && strcmp(folder_contents(nn).name(1:12), 'EMIT_L1B_RAD')==true
-
-        inputs.L1B_filename = folder_contents(nn).name;
-
-    end
-
-end 
- 
 
 
-% Define which EMIT bands to run
-% band 38 has a center wavelength of 656 nm
-% band 235 has a center wavelength of 2123 nm
-inputs.bands2run = [38, 235]; % these are the bands that we will run uvspec with
-inputs.bands2plot = [38, 235]; % these are the EMIT bands that will be plotted, both the modis calcualted stuff and the stuff I calcualte
+
+
+% Define which HySICS bands to run
+% number of channels = 636 ranging from center wavelengths: [351, 2297]
+% band 98 has a center wavelength of 649 nm
+% band 582 has a center wavelength of 2131 nm
+inputs.bands2run = [98, 582]; % these are the bands that we will run uvspec with
+inputs.bands2plot = inputs.bands2run;
+
+% We're running calculations over spectral bands
+inputs.RT.monochromatic_calc = true;
 
 % if interpGridScaleFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
@@ -55,21 +93,9 @@ inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase 
 % Create a new folder to save all calculations
 % --------------------------------------------
 
-% Define the folder that stores the inputs and calculated reflectanes
-% using todays date
-data_date = datetime([inputs.L1B_filename(18:21), '-', inputs.L1B_filename(22:23), '-', inputs.L1B_filename(24:25)],...
-    'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
-inputs.folder2save.libRadTran_INP_OUT = [folder2save.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
-    '_time_', inputs.L1B_filename(27:30), '/'];
-
-
-% This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = [folder2save.reflectance_calcs, emitDataFolder]; 
-
-% This is the name of the .mat file with the reflectance calcs
-inputs.reflectance_calculations_fileName = ['TBLUT_reflectance_calculations_', char(datetime("today")),'.mat'];
+inputs.save_inp_files = [folder_paths.libRadtran_inp, 'TBLUT_retrieval_',char(datetime("today")),'/'];
 
 
 
@@ -81,14 +107,9 @@ inputs.reflectance_calculations_fileName = ['TBLUT_reflectance_calculations_', c
 % define flags that tell the codes to either run certain things, or don't
 % run certain things
 
-inputs.flags.findSuitablePixels = false; % if true, this will search the modis data set for pixels to use
-
-% if true, the code will load an older set of pixels that has already been used before, and 
-% likely has INP files. If false, it tells the code to find a new random subset of pixels
-inputs.flags.loadPixelSet = true; 
 inputs.flags.writeINPfiles = true; % if true, this will create inp files for each the length of vector pixel.row
 inputs.flags.runUVSPEC = true; % if true, this will run all of the inp files create from the above flag through uvspec
-inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot 
+inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot
 
 
 
@@ -98,6 +119,8 @@ inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch
 % ----- Define Radiative Transfer Model Parameters -----
 % ------------------------------------------------------
 
+% Define the RTE Solver
+inputs.RT.rte_solver = 'disort';
 
 % Define the number of streams to use in your radiative transfer model
 inputs.RT.num_streams = 16;
@@ -156,7 +179,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.surface_albedo = 0.05;
 
 % day of the year
-inputs.RT.day_of_year = emit.day_of_year;
+%inputs.RT.day_of_year = simulated_measurements.day_of_year;
 
 
 
@@ -165,24 +188,19 @@ inputs.RT.day_of_year = emit.day_of_year;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-inputs.RT.cloud_cover = 1;
-% ------------------------------------------------------------------------
+inputs.RT.re = 3:2:24;      % microns
+inputs.RT.tau_c = [1:10, 15:5:60];
+
+% define the cloud geometric depth
+inputs.RT.cloud_depth = 500;                % meters
+
+% define the geometric location of the cloud top and cloud bottom
+inputs.RT.z_topBottom = [1.5, 1];          % km above surface
 
 
+% Water Cloud depth
+inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 % ------------------------------------------------------------------------
-% ------ Do you want to use the MODIS cloud top height estimate? ---------
-inputs.RT.use_MODIS_cloudTopHeight = false;
-% ------------------------------------------------------------------------
-
-
-% ------------------------------------------------------------------------
-% ------ Do you want to use the MODIS above cloud water vapor? ---------
-inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
-% ------------------------------------------------------------------------
-
 
 
 % ------------------------------------------------------------------------
@@ -193,26 +211,20 @@ inputs.RT.use_custom_mie_calcs = false;
 % can be 'hu' or 'mie interpolate'
 inputs.RT.wc_parameterization = 'mie interpolate';        % use the hu and stamnes parameterization for converting cloud properties to optical properties
 % define the type of droplet distribution
-inputs.RT.drop_distribution_str = 'gamma';
+inputs.RT.distribution_str = 'gamma';
 % define the distribution varaince
 % 7 is the value libRadTran uses for liquid water clouds
-inputs.RT.drop_distribution_var = 7;
+inputs.RT.distribution_var = 7;
 % define whether this is a vertically homogenous cloud or not
 inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 % define how liquid water content will be computed
 % can either be 'mie' or '2limit'
 inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
 
-
-% -----------------------------------------------------------------------
-% -------------- Define the grid of r_e and tau_c values ----------------
-% -----------------------------------------------------------------------
-% MODIS only considers homogenous plane parallel clouds. Lets construct the
-% re matrix needed to create homogenous water clouds using write_wc_file
-re = 3:3:24;     % microns - values of re that we wish to model
-
-tau_c = [1, 2, 3, 4, 5, 7.5, 10:5:50];      % values of tau that we wish to model
-
+% define the wavelength used for the optical depth as the 650 nm
+% band1 = modisBands(1);
+% lambda_forTau = band1(1);            % nm
+inputs.RT.lambda_forTau = 500;            % nm
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -221,7 +233,7 @@ tau_c = [1, 2, 3, 4, 5, 7.5, 10:5:50];      % values of tau that we wish to mode
 
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
-inputs.RT.modify_waterVapor = true;
+inputs.RT.modify_waterVapor = false;
 
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column
@@ -235,7 +247,7 @@ inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 410;       % ppm - concentration of CO2
+inputs.RT.CO2_mixing_ratio = 416;       % ppm - concentration of CO2
 % ------------------------------------------------------------------------
 
 

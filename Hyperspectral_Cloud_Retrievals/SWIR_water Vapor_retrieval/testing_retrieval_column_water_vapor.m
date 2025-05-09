@@ -322,7 +322,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % *** To match the optical
     %   properties mie table precomputed by libRadtran, use a gamma
     %   distribution alpha parameter of 7 ***
-    inputs.RT.dist_var = 7;              % distribution variance
+    inputs.RT.distribution_var = 7;              % distribution variance
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -357,7 +357,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
 
-    inputs.RT.dist_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
+    inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
     inputs.RT.r_top = 12.565;     % microns
     inputs.RT.r_bot = 4.135;        % microns
@@ -366,11 +366,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
 
-    % define the spread of the droplet distribution
-    % *** To match the optical
-    %   properties mie table precomputed by libRadtran, use a gamma
-    %   distribution alpha parameter of 7 ***
-    inputs.RT.dist_var = 7;              % distribution variance
+
 
 
 end
