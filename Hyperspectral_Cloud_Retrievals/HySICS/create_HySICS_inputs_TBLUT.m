@@ -16,7 +16,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements)
+function inputs = create_HySICS_inputs_TBLUT(folder_paths)
 
 
 %% Find computer and folders
@@ -82,7 +82,7 @@ inputs.bands2run = [98, 582]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands
-inputs.RT.monochromatic_calc = true;
+inputs.RT.monochromatic_calc = false;
 
 % if interpGridScaleFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
@@ -191,6 +191,9 @@ inputs.RT.yesCloud = true;
 inputs.RT.re = 3:2:24;      % microns
 inputs.RT.tau_c = [1:10, 15:5:60];
 
+% inputs.RT.re = 3:2:9;      % microns
+% inputs.RT.tau_c = [1:5];
+
 % define the cloud geometric depth
 inputs.RT.cloud_depth = 500;                % meters
 
@@ -231,6 +234,40 @@ inputs.RT.lambda_forTau = 500;            % nm
 
 
 
+% --------------------------------------------------------------
+% ----------- Define the Solar and Viewing Gemometry -----------
+% --------------------------------------------------------------
+
+% Define the altitude of the sensor
+inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
+
+% define the solar zenith angle
+inputs.RT.sza = 0;           % degree
+
+% Define the solar azimuth measurement between values 0 and 360
+% The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
+% due north. The libRadTran solar azimuth is defined as 0-360 degrees
+% clockwise from due south. So they are separated by 180 degrees. To map
+% the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
+% 360
+inputs.RT.phi0 = 0;         % degree
+
+% define the viewing zenith angle
+inputs.RT.vza = 0; % values are in degrees;                        % degree
+
+% define the viewing azimuth angle
+% The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
+% due north. The libRadTran sensor azimuth is defined as 0-360 degrees
+% clockwise from due North as well. So they are separated by 180 degrees. A
+% sensor azimuth angle of 0 means the sensor is in the North, looking
+% south. No transformation is needed
+
+inputs.RT.vaz = 0;     % degree
+% --------------------------------------------------------------
+
+
+
+
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
 inputs.RT.modify_waterVapor = false;
@@ -268,10 +305,21 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
 
 
+% --------------------------------------------------------------
+% --- Do you want to uvSpec to compute reflectivity for you? ---
+inputs.RT.compute_reflectivity_uvSpec = false;
+% --------------------------------------------------------------
+
+
+% --------------------------------------------------------------
+
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.err_msg = 'verbose';
+inputs.RT.errMsg = 'verbose';
+% --------------------------------------------------------------
+
+% --------------------------------------------------------------
 
 
 

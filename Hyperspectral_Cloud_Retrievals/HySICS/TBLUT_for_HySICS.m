@@ -23,7 +23,7 @@ function tblut_retrieval = TBLUT_for_HySICS(simulated_reflectance, folder_paths)
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_HySICS_inputs_TBLUT(folder_paths, simulated_reflectance);
+inputs = create_HySICS_inputs_TBLUT(folder_paths);
 
 
 
@@ -49,6 +49,9 @@ else
     inputs.bands2run_from_set_of_measurements = [idx_1, idx_2];
     inputs.bands2plot = inputs.bands2run;
 
+    % ---- Define the wavelengths ----
+    inputs.RT.wavelengths2run = simulated_reflectance.inputs.RT.wavelengths2run(inputs.bands2run_from_set_of_measurements,:);
+
     
 
 end
@@ -64,6 +67,7 @@ end
 
 idx = 0;
 
+
 if inputs.flags.writeINPfiles == true
 
 
@@ -75,6 +79,7 @@ if inputs.flags.writeINPfiles == true
     % length of each independent variable
     num_rEff = length(inputs.RT.re);
     num_tauC = length(inputs.RT.tau_c);
+    num_wl = length(inputs.bands2run);
 
     inputFileName = cell(num_rEff, num_tauC, 2);
     outputFileName = cell(num_rEff, num_tauC, 2);
@@ -107,16 +112,12 @@ if inputs.flags.writeINPfiles == true
 
 
             % step through each band
-            for ww = 1:2
+            for ww = 1:num_wl
 
 
-
-
-
-                % ---- Define the wavelengths ----
-                inputs.RT.wavelengths = simulated_reflectance.inputs.RT.wavelengths2run(inputs.bands2run_from_set_of_measurements(ww),:);
-
-
+                % set the wavelengths for each file
+                inputs.RT.wavelengths = inputs.RT.wavelengths2run(ww,:);
+                
 
                 % ------------------------------------------------
                 % ---- Define the input and output filenames! ----
@@ -125,7 +126,7 @@ if inputs.flags.writeINPfiles == true
                 % they can be traced, and are writen over in memory
 
 
-                inputFileName{rr, tc, ww} = [num2str(mean(inputs.RT.wavelengths,2)), '_',...
+                inputFileName{rr, tc, ww} = [num2str(mean(inputs.RT.wavelengths)), '_',...
                     'nm_rEff_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
                     inputs.RT.atm_file(1:end-4),'.INP'];
 
@@ -166,7 +167,7 @@ end
 %%
 
 % store the reflectances
-Refl_model = zeros(num_wl, num_rEff, num_tauC);
+Refl_model = zeros(num_wladfdsf, num_rEff, num_tauC);
 
 
 for rr = 1:num_rEff
@@ -179,7 +180,7 @@ for rr = 1:num_rEff
 
 
 
-        parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
+        parfor ww = 1:num_wl
             % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
