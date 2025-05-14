@@ -96,7 +96,7 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-    'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-03-May-2025_rev1.mat']);
+    'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true

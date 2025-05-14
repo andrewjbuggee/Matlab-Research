@@ -191,8 +191,8 @@ inputs.RT.yesCloud = true;
 inputs.RT.re = 3:2:24;      % microns
 inputs.RT.tau_c = [1:10, 15:5:60];
 
-% inputs.RT.re = 3:2:9;      % microns
-% inputs.RT.tau_c = [1:5];
+% inputs.RT.re = 3:2:11;      % microns
+% inputs.RT.tau_c = [1:10];
 
 % define the cloud geometric depth
 inputs.RT.cloud_depth = 500;                % meters

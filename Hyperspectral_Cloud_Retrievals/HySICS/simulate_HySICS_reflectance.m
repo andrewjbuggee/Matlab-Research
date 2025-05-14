@@ -699,6 +699,10 @@ toc
 %% Calculate Reflectance
 
 
+% define only the spec_response so the wavelengths are passed into the
+% memory of the parallel for loop
+spec_response_value = spec_response.value;
+
 
 tic
 
@@ -734,7 +738,7 @@ parfor nn = 1:num_INP_files
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
     [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        spec_response.value(changing_variables(nn,end),:));
+        spec_response_value(changing_variables(nn,end),:));
 
 
 

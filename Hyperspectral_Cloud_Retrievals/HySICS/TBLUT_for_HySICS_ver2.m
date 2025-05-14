@@ -86,6 +86,10 @@ if inputs.flags.writeINPfiles == true
         repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
         repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
 
+    % Add a final column that includes the index for the spectral response
+    % function. These always increase chronologically
+    changing_variables = [changing_variables, repmat((1:num_wl)', num_rEff*num_tauC, 1)];
+
 
     % First, write all the wc files
     temp_names = cell(num_rEff*num_tauC, 1);
@@ -119,7 +123,7 @@ if inputs.flags.writeINPfiles == true
 
 
         % set the wavelengths for each file
-        wavelengths = changing_variables(nn, 3:4);
+        wavelengths = changing_variables(nn, end-2:end-1);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -170,6 +174,7 @@ end
 
 if inputs.flags.runUVSPEC == true
 
+    spec_response = simulated_reflectance.spec_response.value;
 
 
     % store the reflectances
@@ -189,7 +194,8 @@ if inputs.flags.runUVSPEC == true
 
 
         % compute INP file
-        [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn});
+        [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+            inputs.which_computer);
 
         % read .OUT file
         % radiance is in units of mW/nm/m^2/sr
@@ -199,15 +205,16 @@ if inputs.flags.runUVSPEC == true
         % Store the Radiance
         %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
-        % compute the reflectance
-        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(nn,:));
+        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+            spec_response(changing_variables(nn,end),:));
 
 
 
     end
 
 
-    
+
     % save the calculated reflectances and the inputs
     save(inputs.save_mat_filename, "inputs", "Refl_model"); % save inputSettings to the same folder as the input and output file
 
@@ -228,7 +235,7 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-tblut_retrieval = leastSquaresGridSearch_EMIT(simulated_reflectance.reflectance, R, inputs);
+tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model, inputs);
 
 
 
