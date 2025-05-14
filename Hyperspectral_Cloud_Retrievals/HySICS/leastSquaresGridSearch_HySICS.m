@@ -8,7 +8,7 @@
 
 %%
 
-function [minVals] = leastSquaresGridSearch_HySICS(simulated_reflectance, modelRefl, inputs)
+function [tblut_retrieval] = leastSquaresGridSearch_HySICS(simulated_reflectance, modelRefl, inputs)
 
 
 
@@ -94,16 +94,16 @@ leastSquaresGrid = sqrt(mean((cat(3, interp_modelRefl_band1, interp_modelRefl_ba
 % using the minimum function. If we have more complicated scenario we need
 % to use the optimization tools to search for global and local minima
 
-[minVals.minLSD,index] = min(leastSquaresGrid,[],'all','linear');
+[tblut_retrieval.minLSD,index] = min(leastSquaresGrid,[],'all','linear');
 [row,col] = ind2sub(size(leastSquaresGrid),index);
 
 % Save the effective radius and optical depth associated with the
 % minimum RMS difference
-minVals.minRe = Re(row,col);
-minVals.minTau = T(row,col);
+tblut_retrieval.minRe = Re(row,col);
+tblut_retrieval.minTau = T(row,col);
 
 % Save the reflectance associated with the minimum RMS difference
-minVals.reflectance = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
+tblut_retrieval.reflectance = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
 
 
 % lets look at the least squares grid
@@ -144,7 +144,7 @@ if inputs.flags.plotMLS_figures == true
     clabel(c1,h1)
 
     % plot the global minimum
-    hold on; plot(minVals.minTau(pp), minVals.minRe(pp), 'k.', 'MarkerSize', 25)
+    hold on; plot(tblut_retrieval.minTau(pp), tblut_retrieval.minRe(pp), 'k.', 'MarkerSize', 25)
 
     % make a legend
     legend('RMS differences', 'Global Minimum', 'Location', 'best', 'Interpreter', 'latex');
@@ -179,7 +179,7 @@ end
 
 
 
-save(inputs.save_mat_filename,"minVals",'-append'); % save inputSettings to the same folder as the input and output file
+save(inputs.save_mat_filename,"tblut_retrieval",'-append'); % save inputSettings to the same folder as the input and output file
 
 
 

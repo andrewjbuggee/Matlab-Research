@@ -15,16 +15,15 @@
 
 %%
 
-function [] = plot2ReflectanceFuncBands(modis,R,modisInputs, pixels2use, kingORsurf)
+function [] = nakajima_king_reflectance_plot_HySICS(simulated_measurement, modeled_reflectance, inputs, kingORsurf)
 
 % extract inputs
 
-re = modisInputs.RT.re;
-tau_c = modisInputs.RT.tau_c;
-pixel_row = pixels2use.res1km.row;
-pixel_col = pixels2use.res1km.col;
-bands2run = modisInputs.bands2run;
-bands2plot = modisInputs.bands2plot;
+re = inputs.RT.re;
+tau_c = inputs.RT.tau_c;
+
+bands2run = inputs.bands2run;
+bands2plot = inputs.bands2plot;
 
 
 
@@ -35,13 +34,17 @@ if length(bands2plot)~=2
 end
 
 
-modis_band_vals = modisBands([modisInputs.bands2plot]);
+band_vals = mean(inputs.RT.wavelengths2run, 2);
 
-% find the indices needed to plot the bands listed above
-for ii = 1:length(bands2plot)
-    index_bands(ii) = find(bands2run==bands2plot(ii));
-end
 
+
+% reshape the libRadTran forward modeled reflectance to be an array where one
+% dimension varies with optical depth and another varies with
+% effective radius
+modelRefl_band1 = reshape(modeled_reflectance(1:2:length(modeled_reflectance)),...
+    length(tau_c), length(re));
+modelRefl_band2 = reshape(modeled_reflectance(2:2:length(modeled_reflectance)),...
+    length(tau_c), length(re));
 
 % Create a legend string
 legend_str = cell(1, length(tau_c) + 1 + length(re));
@@ -61,28 +64,11 @@ end
 
 % Plot values with constant particle radius, and vary the optical thickness
 
-% Only plot 3 pixels at a time
-if size(R,1)>3
-
-    % if there are a bunch of pixels, we will just grab a random subset of
-    % 3 to plot
-    index_2plot = randsample(size(R,1),3); % random sampling without replacement
-
-    % 3 examples will be run
-    num_pixels_2run = 3;
-
-else
-
-    index_2plot = 1:size(R,1);
-    num_pixels_2run = size(R,1);
-
-end
 
 
 if strcmp(kingORsurf, 'king')==true
 
-    % Plot across pixels
-    for pp = 1:num_pixels_2run
+
 
         figure;
 
@@ -90,7 +76,7 @@ if strcmp(kingORsurf, 'king')==true
         % at a constant droplet size, with varrying optical thickness.
         for rr = 1:length(re)
 
-            plot(reshape(R(index_2plot(pp),rr,:,index_bands(1)),1,[]), reshape(R(index_2plot(pp),rr,:,index_bands(2)),1,[]),...
+            plot(modelRefl_band1(:,rr), modelRefl_band2(:,rr),...
                 '.-', 'MarkerSize',50,'LineWidth',1.5);
             hold on
 
@@ -102,9 +88,9 @@ if strcmp(kingORsurf, 'king')==true
         % set up color order for each curve
         colororder(mySavedColors(1:length(re),'fixed'));
 
-        % Now plot the MODIS measurement on top
-        plot(modis.EV1km.reflectance(pixel_row(index_2plot(pp)), pixel_col(index_2plot(pp)),modisInputs.bands2run(index_bands(1))),...
-            modis.EV1km.reflectance(pixel_row(index_2plot(pp)), pixel_col(index_2plot(pp)),modisInputs.bands2run(index_bands(2))), 'x',...
+        % Now plot the simulated HySICS measurement on top
+        plot(simulated_measurement.Refl_model(inputs.bands2run_from_set_of_measurements(1)),...
+            simulated_measurement.Refl_model(inputs.bands2run_from_set_of_measurements(2)), 'x',...
             'MarkerSize',10, 'Color','black');
 
 
@@ -113,17 +99,17 @@ if strcmp(kingORsurf, 'king')==true
         % at a constant optical depth, with varrying effective radius.
         for tt = 1:length(tau_c)
 
-            x = reshape(R(index_2plot(pp),:,tt,index_bands(1)),1,[]);
-            y = reshape(R(index_2plot(pp),:,tt,index_bands(2)),1,[]);
+            x = modelRefl_band1(tt,:);
+            y = modelRefl_band2(tt,:);
 
             t = plot(x, y, 'LineStyle','--', 'Color','k');
 
             % add line label on plot
             if tt==1
-                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",20, "FontWeight","bold")
+                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",25, "FontWeight","bold")
                 hold on
             else
-                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",20, "FontWeight","bold")
+                text(0.995*x(end), 0.8*y(end), num2str(tau_c(tt)),'Interpreter','latex',"FontSize",25, "FontWeight","bold")
                 hold on
             end
 
@@ -134,20 +120,19 @@ if strcmp(kingORsurf, 'king')==true
 
         % Add text to indicate the black lines are lines of constant optical
         % thickness
-        text(1.05*x(end), 0.85*y(end), '$\tau_c$','Interpreter','latex',"FontSize",20, "FontWeight","bold")
+        text(1.05*x(end), 0.85*y(end), '$\tau_c$','Interpreter','latex',"FontSize",25, "FontWeight","bold")
 
 
 
         % set up plot stuff
         grid on; grid minor
-        xlabel(['Reflectance ', num2str(modis_band_vals(1,1)), ' $nm$'],Interpreter='latex')
-        ylabel(['Reflectance ', num2str(modis_band_vals(2,1)), ' $nm$'],Interpreter='latex')
+        xlabel(['Reflectance ', num2str(round(band_vals(1))), ' $nm$'],Interpreter='latex')
+        ylabel(['Reflectance ', num2str(round(band_vals(2))), ' $nm$'],Interpreter='latex')
 
         % Create textbox
     annotation('textbox',[0.3 0.8 0.131464712269273 0.0623003194888175],...
-        'String',{['vza = ',num2str(modis.sensor.zenith(index_2plot(pp))), '$^{\circ}$  sza = ',...
-        num2str(modis.solar.zenith(index_2plot(pp))), '$$^{\circ}$', ...
-        '  pixel-idx = ', num2str(pixels2use.res1km.index(index_2plot(pp)))]},...
+        'String',{['vza = ',num2str(simulated_measurement.inputs.RT.vza), '$^{\circ}$  sza = ',...
+        num2str(simulated_measurement.inputs.RT.sza), '$$^{\circ}$']}, ...
         'FontSize', 20,...
         'Interpreter','latex',...
         'FitBoxToText','on');
@@ -155,17 +140,15 @@ if strcmp(kingORsurf, 'king')==true
 
 
         % set the last string entry to be MODIS value
-        legend_str{end} = 'MODIS';
+        legend_str{end} = 'HySICS';
 
         legend(legend_str, 'Interpreter','latex','Location','best' , 'FontSize', 20, 'FontWeight','bold')
-        title('Simulated Reflectance','Interpreter','latex')
+        title('Simulated HySICS Reflectance for a vertically homogeneous cloud','Interpreter','latex')
         set(gcf,"Position", [0 0 1300 800])
 
 
 
 
-
-    end
 
 
 
@@ -184,7 +167,7 @@ elseif strcmp(kingORsurf, 'surf')==true
         f =figure;
         subplot(1,2,1)
         % plot the first band
-        surf(tau_c_mat, re_mat, reshape(R(index_2plot(pp),:,:,index_bands(1)),length(re),[]));
+        surf(tau_c_mat, re_mat, reshape(modeled_reflectance(index_2plot(pp),:,:,index_bands(1)),length(re),[]));
         
         % interpolate between points to smooth the surface
         shading interp
@@ -195,14 +178,14 @@ elseif strcmp(kingORsurf, 'surf')==true
         xlabel('$\tau_c$' ,Interpreter='latex')
 
 
-        title(['Reflectance ', num2str(modis_band_vals(1,1)), ' $nm$'],Interpreter='latex')
+        title(['Reflectance ', num2str(band_vals(1,1)), ' $nm$'],Interpreter='latex')
 
 
 
         % Create textbox
         annotation('textbox',[0.4 0.8 0.131464712269273 0.0623003194888175],...
-            'String',{['vza = ',num2str(modis.sensor.zenith(index_2plot(pp))), '$^{\circ}$  sza = ',...
-            num2str(modis.solar.zenith(index_2plot(pp))), '$$^{\circ}$', ...
+            'String',{['vza = ',num2str(simulated_measurement.sensor.zenith(index_2plot(pp))), '$^{\circ}$  sza = ',...
+            num2str(simulated_measurement.solar.zenith(index_2plot(pp))), '$$^{\circ}$', ...
             'pixel idx = ', num2str(pixels2use.res1km.index(index_2plot(pp)))]},...
             'FontSize', 20,...
             'Interpreter','latex',...
@@ -211,7 +194,7 @@ elseif strcmp(kingORsurf, 'surf')==true
 
         subplot(1,2,2)
         % plot the second band
-        surf(tau_c_mat, re_mat, reshape(R(index_2plot(pp),:,:,index_bands(2)),length(re),[]));
+        surf(tau_c_mat, re_mat, reshape(modeled_reflectance(index_2plot(pp),:,:,index_bands(2)),length(re),[]));
 
         % interpolate between points to smooth the surface
         shading interp
@@ -222,7 +205,7 @@ elseif strcmp(kingORsurf, 'surf')==true
         xlabel('$\tau_c$' ,Interpreter='latex')
 
 
-        title(['Reflectance ', num2str(modis_band_vals(2,1)), ' $nm$'],Interpreter='latex')
+        title(['Reflectance ', num2str(band_vals(2,1)), ' $nm$'],Interpreter='latex')
 
 
         set(gcf,"Position", [0 0 1300 800])

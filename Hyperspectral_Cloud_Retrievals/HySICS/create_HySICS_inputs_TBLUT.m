@@ -189,7 +189,7 @@ inputs.RT.surface_albedo = 0.05;
 inputs.RT.yesCloud = true;
 
 inputs.RT.re = 3:2:24;      % microns
-inputs.RT.tau_c = [1:10, 15:5:60];
+inputs.RT.tau_c = [1:10, 12.5, 15:5:60];
 
 % inputs.RT.re = 3:2:11;      % microns
 % inputs.RT.tau_c = [1:10];

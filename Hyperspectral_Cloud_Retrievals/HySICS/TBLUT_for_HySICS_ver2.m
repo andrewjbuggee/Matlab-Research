@@ -178,7 +178,7 @@ if inputs.flags.runUVSPEC == true
 
 
     % store the reflectances
-    Refl_model = zeros(num_INP_files, 1);
+    Refl_model_tblut = zeros(num_INP_files, 1);
 
 
     parfor nn = 1:num_INP_files
@@ -206,7 +206,7 @@ if inputs.flags.runUVSPEC == true
         %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
         % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+        [Refl_model_tblut(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
             spec_response(changing_variables(nn,end),:));
 
 
@@ -216,13 +216,13 @@ if inputs.flags.runUVSPEC == true
 
 
     % save the calculated reflectances and the inputs
-    save(inputs.save_mat_filename, "inputs", "Refl_model"); % save inputSettings to the same folder as the input and output file
+    save(inputs.save_mat_filename, "inputs", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file
 
 
 
 elseif inputs.flags.runUVSPEC == false
 
-    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','Refl_model');
+    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','Refl_model_tblut');
 
 end
 
@@ -235,7 +235,7 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model, inputs);
+tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs);
 
 
 
