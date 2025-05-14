@@ -16,7 +16,7 @@
 
 %%
 
-function tblut_retrieval = TBLUT_for_HySICS(simulated_reflectance, folder_paths)
+function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_paths)
 
 
 
@@ -61,9 +61,6 @@ end
 if inputs.flags.writeINPfiles == true
 
 
-    % First, delete files in the HySICS folder
-    delete([folder_paths.libRadtran_inp, '*.INP'])
-    delete([folder_paths.libRadtran_inp, '*.OUT'])
 
     % ----------------------------------------
     % --------- HOMOGENOUS CLOUD -------------
@@ -90,28 +87,35 @@ if inputs.flags.writeINPfiles == true
         repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
 
 
-    for nn = 1:num_INP_files
+    % First, write all the wc files
+    temp_names = cell(num_rEff*num_tauC, 1);
+    wc_filename = cell(num_INP_files, 1);
+
+    % only jump on indexes where there is a unique r and tau pair
+
+    parfor nn = 1:num_rEff*num_tauC
 
         % -----------------------------------
         % ---- Write a Water Cloud file! ----
         % -----------------------------------
-        % each unique r and tau need a water cloud file.
-        if rem(nn, num_wl)==1
-
-            % ------------------------------------------------------
-            % --------------------VERY IMPORTANT ------------------
-            % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-            % ------------------------------------------------------
-            wc_filename = write_wc_file(changing_variables(nn, 1), changing_variables(nn,2), inputs.RT.z_topBottom,...
-                inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.distribution_var,...
-                inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-                inputs.which_computer, (nn+1)/2);
-
-            wc_filename = wc_filename{1};
 
 
+        temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
+            inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+            inputs.which_computer, nn+(nn-1));
 
-        end
+        temp_names{nn} = temp{1};
+
+    end
+
+    % set the odd and even values to have the same file names
+    wc_filename(1:num_wl:num_INP_files, 1) = temp_names;
+    wc_filename(2:num_wl:num_INP_files, 1) = temp_names;
+
+
+    % Now write all the INP files
+    parfor nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -135,7 +139,7 @@ if inputs.flags.writeINPfiles == true
 
         % ------------------ Write the INP File --------------------
         write_INP_file(folder_paths.libRadtran_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                        wavelengths, wc_filename);
+            wavelengths, wc_filename{nn});
 
 
     end
@@ -146,74 +150,16 @@ if inputs.flags.writeINPfiles == true
 else
 
     % if the files already exist, just grab the names!
-    [names.inp, inputs] = getMODIS_INPnames_withClouds(simulated_reflectance.solar, inputs, pixels2use);
-    names.out = writeOutputNames(names.inp);
+    error([newline, 'Dont know how to do this!', newline])
+
+    % [names.inp, inputs] = getMODIS_INPnames_withClouds(simulated_reflectance.solar, inputs, pixels2use);
+    % names.out = writeOutputNames(names.inp);
 
 end
 
 
 
-%%
 
-% store the reflectances
-Refl_model = zeros(num_wladfdsf, num_rEff, num_tauC);
-
-
-for rr = 1:num_rEff
-
-
-
-    for tc = 1:num_tauC
-
-
-
-
-
-        parfor ww = 1:num_wl
-            % for ww = 1:size(inputs.RT.wavelengths2run, 1)
-
-
-            disp(['Iteration: [re, tc, ww] = [', num2str(rr), '/', num2str(num_rEff),', ',...
-                num2str(tc), '/', num2str(num_tauC), ', ', num2str(ww),'/',num2str(num_wl),...
-                ']', newline])
-
-
-            % ----------------------------------------------------
-            % --------------- RUN RADIATIVE TRANSFER -------------
-            % ----------------------------------------------------
-
-
-            % compute INP file
-            [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{rr, tc, ww}, outputFileName{rr, tc, ww});
-
-            % read .OUT file
-            % radiance is in units of mW/nm/m^2/sr
-            [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{rr, tc, ww},inputSettings(2,:),...
-                inputs.RT.compute_reflectivity_uvSpec);
-
-            % Store the Radiance
-            %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
-
-            % compute the reflectance
-            % Refl_model(ww, rr, tc) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
-            %     spec_response.value(ww, :)');
-
-            [Refl_model(ww, rr, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(ww,:));
-
-
-
-
-
-
-
-
-        end
-
-
-
-    end
-
-end
 
 
 
@@ -224,19 +170,52 @@ end
 
 if inputs.flags.runUVSPEC == true
 
-    % 1st output - R is the reflectance integrated over a bandwidth
-    % 2nd output - Rl is the reflectance at each spectral bin
-    tic
-    [R,~, inputs] = runReflectanceFunction_4EMIT(inputs, names, simulated_reflectance.spec_response.value);
-    toc
 
-    % Save the pixels2use structure
-    save([inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName],...
-        "pixels2use", "-append"); % save inputSettings to the same folder as the input and output file
+
+    % store the reflectances
+    Refl_model = zeros(num_INP_files, 1);
+
+
+    parfor nn = 1:num_INP_files
+        % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+
+
+        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
+
+
+        % ----------------------------------------------------
+        % --------------- RUN RADIATIVE TRANSFER -------------
+        % ----------------------------------------------------
+
+
+        % compute INP file
+        [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn});
+
+        % read .OUT file
+        % radiance is in units of mW/nm/m^2/sr
+        [ds,~,~] = readUVSPEC(folder_paths.libRadtran_inp, outputFileName{nn},inputSettings(2,:),...
+            inputs.RT.compute_reflectivity_uvSpec);
+
+        % Store the Radiance
+        %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+
+        % compute the reflectance
+        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(nn,:));
+
+
+
+    end
+
+
+    
+    % save the calculated reflectances and the inputs
+    save(inputs.save_mat_filename, "inputs", "Refl_model"); % save inputSettings to the same folder as the input and output file
+
+
 
 elseif inputs.flags.runUVSPEC == false
 
-    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','R');
+    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','Refl_model');
 
 end
 

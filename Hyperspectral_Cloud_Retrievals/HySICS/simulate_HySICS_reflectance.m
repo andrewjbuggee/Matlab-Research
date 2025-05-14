@@ -95,6 +95,12 @@ if ~exist(inputs.folderpath_reflectance, 'dir')
 end
 
 
+%%  Delete old files?
+% First, delete files in the HySICS folder
+delete([inputs.folderpath_inp, '*.INP'])
+delete([inputs.folderpath_inp, '*.OUT'])
+
+
 
 %% ---- First, let's simulate water clouds ----
 
@@ -102,9 +108,9 @@ end
 % Define the parameters of the INP file
 
 % Are you simulating a measurement, or making forward model calculations
-% for the retrieval? 
-inputs.calc_type = 'simulated_measurement';
-%inputs.calc_type = 'forward_model_calcs_forRetrieval';
+% for the retrieval?
+%inputs.calc_type = 'simulated_measurement';
+inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
@@ -147,7 +153,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -155,6 +161,9 @@ inputs.bands2run = (1:1:636)';
 %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
 %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
 %     618, 620, 623, 625]';
+
+% test bands
+inputs.bands2run = [49, 57, 69]';
 
 
 % ------------------------------------------------------------------------
@@ -264,7 +273,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -282,11 +291,11 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
 
-    % inputs.RT.re = 10.79;      % microns
-    % inputs.RT.tau_c = 7;
+    inputs.RT.re = 9:10;      % microns
+    inputs.RT.tau_c = 6:6:24;
 
-    inputs.RT.re = 1:2:51;      % microns
-    inputs.RT.tau_c = [1:15, 20:5:100];
+    % inputs.RT.re = 1:2:51;      % microns
+    % inputs.RT.tau_c = [1:15, 20:5:100];
 
 
 elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
@@ -317,13 +326,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    inputs.RT.r_top = 12.565;     % microns
-    inputs.RT.r_bot = 4.135;        % microns
-    inputs.RT.tau_c = 6.424;
+    % inputs.RT.r_top = 12.565;     % microns
+    % inputs.RT.r_bot = 4.135;        % microns
+    % inputs.RT.tau_c = 6.424;
 
-    % inputs.RT.r_top = 9:10;     % microns
-    % inputs.RT.r_bot = 4:5;        % microns
-    % inputs.RT.tau_c = [5,10];
+    inputs.RT.r_top = 9;     % microns
+    inputs.RT.r_bot = 4:5;        % microns
+    inputs.RT.tau_c = [10,20];
 
     %     inputs.RT.r_top = 3:20;       % microns
     %     inputs.RT.r_bot = 2:14;        % microns
@@ -477,6 +486,8 @@ tic
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
+
+
     % ----------------------------------------
     % --------- HOMOGENOUS CLOUD -------------
     % ----------------------------------------
@@ -484,78 +495,87 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % length of each independent variable
     num_rEff = length(inputs.RT.re);
     num_tauC = length(inputs.RT.tau_c);
+    num_wl = length(inputs.bands2run);
 
-    inputFileName = cell(num_rEff, num_tauC, num_wl);
-    outputFileName = cell(num_rEff, num_tauC, num_wl);
+    num_INP_files = num_rEff*num_tauC*num_wl;
 
-
-    for rr = 1:num_rEff
-
-
-
-        for tc = 1:num_tauC
+    inputFileName = cell(num_INP_files, 1);
+    outputFileName = cell(num_INP_files, 1);
 
 
-            idx = idx + 1;
-            % -----------------------------------
-            % ---- Write a Water Cloud file! ----
-            % -----------------------------------
-
-            % ------------------------------------------------------
-            % --------------------VERY IMPORTANT ------------------
-            % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-            % ------------------------------------------------------
-            wc_filename = write_wc_file(inputs.RT.re(rr), inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
-                inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.distribution_var,...
-                inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-                inputs.which_computer, idx);
-
-            inputs.RT.wc_filename = wc_filename{1};
+    % changing variable steps through reff, tauC, and wavelength
+    % in for loop speak, it would be:
+    % for rr = 1:num_rEff
+    %   for tt = 1:num_tauC
+    %       for ww = 1:num_wl
+    changing_variables = [reshape(repmat(inputs.RT.re, num_tauC*num_wl,1), [],1),...
+        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
+        repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
 
 
+    % First, write all the wc files
+    temp_names = cell(num_rEff*num_tauC, 1);
+    wc_filename = cell(num_INP_files, 1);
 
+    % only jump on indexes where there is a unique r and tau pair
+    idx_unique_indVars = 1:num_wl:num_INP_files;
 
+    parfor nn = 1:length(idx_unique_indVars)
 
-            for ww = 1:num_wl
+        % -----------------------------------
+        % ---- Write a Water Cloud file! ----
+        % -----------------------------------
 
+        temp = write_wc_file(changing_variables(idx_unique_indVars(nn), 1),...
+            changing_variables(idx_unique_indVars(nn), 2),inputs.RT.z_topBottom,...
+            inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+            inputs.which_computer, idx_unique_indVars(nn));
 
-
-
-
-                % ---- Define the wavelengths ----
-                inputs.RT.wavelengths = inputs.RT.wavelengths2run(ww,:);
-
-
-
-                % ------------------------------------------------
-                % ---- Define the input and output filenames! ----
-                % ------------------------------------------------
-                % input_names need a unique identifier. Let's give them the nn value so
-                % they can be traced, and are writen over in memory
-
-
-                inputFileName{rr, tc, ww} = [num2str(mean(inputs.RT.wavelengths2run(ww, :),2)), '_',...
-                    'nm_rEff_', num2str(inputs.RT.re(rr)), '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
-                    inputs.RT.atm_file(1:end-4),'.INP'];
-
-
-
-                outputFileName{rr, tc, ww} = ['OUTPUT_',inputFileName{rr,tc,ww}(1:end-4)];
-
-
-                % ------------------ Write the INP File --------------------
-                write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{rr, tc, ww}, inputs);
-
-
-
-
-            end
-
-
-
-        end
+        temp_names{nn} = temp{1};
 
     end
+
+    % the wc_filenames should be the same for different wavelengths
+    for ww = 0:num_wl-1
+        wc_filename(idx_unique_indVars+ww) = temp_names;
+    end
+
+
+
+
+
+    % Now write all the INP files
+    parfor nn = 1:num_INP_files
+
+
+        % set the wavelengths for each file
+        wavelengths = changing_variables(nn, end-1:end);
+
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
+        % input_names need a unique identifier. Let's give them the nn value so
+        % they can be traced, and are writen over in memory
+
+
+        inputFileName{nn} = [num2str(mean(wavelengths)), '_',...
+            'nm_rEff_', num2str(changing_variables(nn,1)), '_tauC_', num2str(changing_variables(nn,2)), '_',...
+            inputs.RT.atm_file(1:end-4),'.INP'];
+
+
+
+        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+        % ------------------ Write the INP File --------------------
+        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+            wavelengths, wc_filename{nn});
+
+
+    end
+
+
 
 
 
@@ -567,113 +587,96 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % --------- NON-HOMOGENOUS CLOUD -------------
     % --------------------------------------------
 
+
+
+    % length of each independent variable
     % length of each independent variable
     num_rTop = length(inputs.RT.r_top);
     num_rBot = length(inputs.RT.r_bot);
     num_tauC = length(inputs.RT.tau_c);
+    num_wl = length(inputs.bands2run);
+
+    num_INP_files = num_rTop*num_rBot*num_tauC*num_wl;
+
+    inputFileName = cell(num_INP_files, 1);
+    outputFileName = cell(num_INP_files, 1);
 
 
-    inputFileName = cell(num_rTop, num_rBot, num_tauC, num_wl);
-    outputFileName = cell(num_rTop, num_rBot, num_tauC, num_wl);
+    % changing variable steps through reff, tauC, and wavelength
+    % in for loop speak, it would be:
+    % for rt = 1:num_rTop
+    %   for rb = 1:num_rBot
+    %       for tt = 1:num_tauC
+    %           for ww = 1:num_wl
+    changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
+        repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
+        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot, 1),...
+        repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
 
 
+    % First, write all the wc files
+    temp_names = cell(num_rTop*num_rBot*num_tauC, 1);
+    wc_filename = cell(num_INP_files, 1);
 
-    % create a legend string
-    lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
+    % only jump on indexes where there is a unique r and tau pair
+    idx_unique_indVars = 1:num_wl:num_INP_files;
 
-    % store the reflectances
-    Refl_model = zeros(num_wl, num_rTop, num_rBot, num_tauC);
+    parfor nn = 1:length(idx_unique_indVars)
 
+        % -----------------------------------
+        % ---- Write a Water Cloud file! ----
+        % -----------------------------------
 
-
-
-    for rt = 1:num_rTop
-
-
-        for rb = 1:num_rBot
-
-
-            for tc = 1:num_tauC
-
+        re = create_droplet_profile2([changing_variables(idx_unique_indVars(nn), 1),...
+            changing_variables(idx_unique_indVars(nn), 2)],...
+            inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
 
+        temp = write_wc_file(re, changing_variables(idx_unique_indVars(nn), 3),...
+            inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+            inputs.which_computer, idx_unique_indVars(nn));
 
-                idx = idx + 1;
-                % -----------------------------------
-                % ---- Write a Water Cloud file! ----
-                % -----------------------------------
-
-                % ------------------------------------------------------
-                % --------------------VERY IMPORTANT ------------------
-                % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-                % ------------------------------------------------------
-
-                % -----------------------------------
-                % ---- Write a Water Cloud file! ----
-                % -----------------------------------
-                % most uncertainties for the modis optical retrieval are between 2
-                % and 10 percent. So lets round off all re values to the 1000th decimal
-                % place
-
-                re = create_droplet_profile2([inputs.RT.r_top(rt), inputs.RT.r_bot(rb)],...
-                    inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
-
-
-                % ------------------------------------------------------
-                % --------------------VERY IMPORTANT ------------------
-                % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
-                % ------------------------------------------------------
-                wc_filename = write_wc_file(re, inputs.RT.tau_c(tc), inputs.RT.z_topBottom,...
-                    inputs.RT.lambda_forTau, inputs.RT.distribution_str, inputs.RT.distribution_var,...
-                    inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-                    inputs.which_computer, rt*rb);
-
-                inputs.RT.wc_filename = wc_filename{1};
-
-
-
-                for ww = 1:num_wl
-
-
-                    % ---- Define the wavelengths ----
-                    inputs.RT.wavelengths = inputs.RT.wavelengths2run(ww,:);
-
-
-
-                    % ------------------------------------------------
-                    % ---- Define the input and output filenames! ----
-                    % ------------------------------------------------
-                    % input_names need a unique identifier. Let's give them the nn value so
-                    % they can be traced, and are writen over in memory
-
-                    inputFileName{rt, rb, tc, ww} = [num2str(mean(inputs.RT.wavelengths2run(ww, :),2)), '_',...
-                        'nm_rTop_', num2str(inputs.RT.r_top(rt)), '_rBot_', num2str(inputs.RT.r_bot(rb)),...
-                        '_tauC_', num2str(inputs.RT.tau_c(tc)), '_',...
-                        inputs.RT.atm_file(1:end-4),'.INP'];
-
-
-
-                    outputFileName{rt, rb, tc, ww} = ['OUTPUT_',inputFileName{rt,rb,tc,ww}(1:end-4)];
-
-
-
-
-                    % ------------------ Write the INP File --------------------
-                    write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{rt, rb, tc, ww}, inputs);
-
-
-
-
-
-                end
-
-
-
-            end
-
-        end
+        temp_names{nn} = temp{1};
 
     end
+
+    % the wc_filenames should be the same for different wavelengths
+    for ww = 0:num_wl-1
+        wc_filename(idx_unique_indVars+ww) = temp_names;
+    end
+
+
+    % Now write all the INP files
+    parfor nn = 1:num_INP_files
+
+
+        % set the wavelengths for each file
+        wavelengths = changing_variables(nn, end-1:end);
+
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
+        % input_names need a unique identifier. Let's give them the nn value so
+        % they can be traced, and are writen over in memory
+
+
+        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
+            '_rBot_', num2str(changing_variables(nn,2)),'_tauC_', num2str(changing_variables(nn,3)), '_',...
+            inputs.RT.atm_file(1:end-4),'.INP'];
+
+
+
+        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+        % ------------------ Write the INP File --------------------
+        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+            wavelengths, wc_filename{nn});
+
+
+    end
+
 
 
 end
@@ -699,66 +702,42 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % ----------------------------------------
 
 
-    % create a legend string
-    lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
+
+
 
     % store the reflectances
-    Refl_model = zeros(num_wl, num_rEff, num_tauC);
+    Refl_model = zeros(num_INP_files, 1);
 
 
-    for rr = 1:num_rEff
+    parfor nn = 1:num_INP_files
+        % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
-
-        for tc = 1:num_tauC
-
+        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
 
+        % ----------------------------------------------------
+        % --------------- RUN RADIATIVE TRANSFER -------------
+        % ----------------------------------------------------
 
 
-            parfor ww = 1:size(inputs.RT.wavelengths2run, 1)
-                % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+        % compute INP file
+        [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
+                                    inputs.which_computer);
+
+        % read .OUT file
+        % radiance is in units of mW/nm/m^2/sr
+        [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
+            inputs.RT.compute_reflectivity_uvSpec);
+
+        % Store the Radiance
+        %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+
+        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+            spec_response.value(changing_variables(nn,end),:));
 
 
-                disp(['Iteration: [re, tc, ww] = [', num2str(rr), '/', num2str(num_rEff),', ',...
-                    num2str(tc), '/', num2str(num_tauC), ', ', num2str(ww),'/',num2str(num_wl),...
-                    ']', newline])
-
-
-                % ----------------------------------------------------
-                % --------------- RUN RADIATIVE TRANSFER -------------
-                % ----------------------------------------------------
-
-
-                % compute INP file
-                [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{rr, tc, ww}, outputFileName{rr, tc, ww});
-
-                % read .OUT file
-                % radiance is in units of mW/nm/m^2/sr
-                [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{rr, tc, ww},inputSettings(2,:),...
-                    inputs.RT.compute_reflectivity_uvSpec);
-
-                % Store the Radiance
-                %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
-
-                % compute the reflectance
-                % Refl_model(ww, rr, tc) = reflectanceFunction_4EMIT(inputSettings(2,:), ds,...
-                %     spec_response.value(ww, :)');
-
-                [Refl_model(ww, rr, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(ww,:));
-
-
-
-
-
-
-
-
-            end
-
-
-
-        end
 
     end
 
@@ -906,13 +885,13 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
     if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
 
-    filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-        'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
 
-    filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
-        'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
+            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     end
 
@@ -921,13 +900,13 @@ else
 
     if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
 
-    filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-        'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
 
-    filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
-        'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
+            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     end
 
@@ -941,7 +920,7 @@ while isfile(filename)
 end
 
 
-save(filename, "Refl_model","inputs");
+save(filename, "Refl_model","inputs", "spec_response");
 
 
 

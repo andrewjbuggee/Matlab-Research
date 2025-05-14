@@ -20,10 +20,11 @@ scriptPlotting_wht;
 
 
 % Determine which computer you're using
+which_computer = whatComputer();
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
-if strcmp(whatComputer,'anbu8374')==true
+if strcmp(which_computer,'anbu8374')==true
 
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
@@ -42,7 +43,7 @@ if strcmp(whatComputer,'anbu8374')==true
 
 
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
 
 
@@ -52,12 +53,20 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
     % ***** Define the HySICS Folder with the simulated measurements *****
-    folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/'];
 
 
 
-elseif strcmp(whatComputer,'curc')==true
+elseif strcmp(which_computer,'curc')==true
 
 
     % ------------------------------------------------
@@ -80,15 +89,52 @@ end
 %% LOAD SIMULATED HYSICS DATA
 
 % Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
 
-simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
     'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-03-May-2025_rev1.mat']);
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
+    'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-12-May-2025_rev1.mat']);
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    error([newline, 'No simulated measurements stored on the CURC!', newline])
+  
+
+
+end
+
+
+
+%%   Delete old files?
+% First, delete files in the HySICS folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
 
 
 
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
-tblut_retrieval = TBLUT_for_HySICS(simulated_measurements, folder_paths);
+%tblut_retrieval = TBLUT_for_HySICS(simulated_measurements, folder_paths);
+tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
 
 
 %% CREATE GAUSS-NEWTON INPUTS

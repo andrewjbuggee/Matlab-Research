@@ -3,7 +3,7 @@
 % By Andrew John Buggee
 %%
 
-function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs)
+function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs, wavelengths, wc_filename)
 
 
 
@@ -75,7 +75,7 @@ if inputs.RT.yesCloud==true
     % Define the water cloud file
     % ------------------------------------------------
     formatSpec = '%s %s %5s %s \n';
-    fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', inputs.RT.wc_filename], ' ', '# Location of water cloud file');
+    fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename], ' ', '# Location of water cloud file');
     %fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename{rr,tc}{1}], ' ', '# Location of water cloud file');
 
 
@@ -95,7 +95,7 @@ if inputs.RT.monochromatic_calc==false
     % be solve
     % -------------------------------------------------------------------------
     formatSpec = '%s %f %f %5s %s \n\n';
-    fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelengths(1), inputs.RT.wavelengths(2), ' ', '# Wavelength range');
+    fprintf(fileID, formatSpec,'wavelength', wavelengths(1), wavelengths(2), ' ', '# Wavelength range');
 
 else
 
@@ -103,7 +103,7 @@ else
     % be solve
     % -------------------------------------------------------------------------
     formatSpec = '%s %f %f %5s %s \n\n';
-    fprintf(fileID, formatSpec,'wavelength', inputs.RT.wavelengths, inputs.RT.wavelengths, ' ', '# Wavelength range');
+    fprintf(fileID, formatSpec,'wavelength', wavelengths, wavelengths, ' ', '# Wavelength range');
 
 end
 
