@@ -61,6 +61,16 @@ formatSpec = '%s %s %5s %s \n\n';
 fprintf(fileID, formatSpec,'source solar', inputs.RT.source_file, ' ', '# Bounds between 250 and 10000 nm');
 
 
+% Define the day of the calendar year to account for Earth-Sun distance
+% ---------------------------------------------------------------------
+if isfield(inputs.RT, 'day_of_year')
+
+    formatSpec = '%s %u %5s %s \n\n';
+    fprintf(fileID, formatSpec,'day_of_year', inputs.RT.day_of_year, ' ', '# accounts for changing Earth-Sun distance');
+
+end
+
+
 
 % Define the surface albedo
 % ------------------------------------------------

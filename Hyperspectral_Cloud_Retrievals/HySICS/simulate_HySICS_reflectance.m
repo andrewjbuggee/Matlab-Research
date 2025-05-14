@@ -226,7 +226,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.surface_albedo = 0.04;
 
 % day of the year
-%inputs.RT.day_of_year = 100;
+inputs.RT.day_of_year = 17;
 % ------------------------------------------------------------------------
 
 
@@ -273,7 +273,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -291,8 +291,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
 
-    inputs.RT.re = 9:10;      % microns
-    inputs.RT.tau_c = 6:6:24;
+    inputs.RT.re = 5:2:9;      % microns
+    inputs.RT.tau_c = 5:3:20;
 
     % inputs.RT.re = 1:2:51;      % microns
     % inputs.RT.tau_c = [1:15, 20:5:100];
@@ -380,7 +380,7 @@ end
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 0;           % degree
+inputs.RT.sza = 19.5688;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -388,10 +388,11 @@ inputs.RT.sza = 0;           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = mod(293.8140 + 180, 360);
+%inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 0; % values are in degrees;                        % degree
+inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -400,7 +401,7 @@ inputs.RT.vza = 0; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 0;     % degree
+inputs.RT.vaz = 70.0849;     % degree
 % --------------------------------------------------------------
 
 
