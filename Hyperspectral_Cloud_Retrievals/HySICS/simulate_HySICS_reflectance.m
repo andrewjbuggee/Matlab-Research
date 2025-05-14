@@ -109,8 +109,8 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-%inputs.calc_type = 'simulated_measurement';
-inputs.calc_type = 'forward_model_calcs_forRetrieval';
+inputs.calc_type = 'simulated_measurement';
+%inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
@@ -157,13 +157,13 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-%     618, 620, 623, 625]';
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    618, 620, 623, 625]';
 
 % test bands
-inputs.bands2run = [49, 57, 69]';
+% inputs.bands2run = [49, 57, 69]';
 
 
 % ------------------------------------------------------------------------
@@ -273,7 +273,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -326,13 +326,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    % inputs.RT.r_top = 12.565;     % microns
-    % inputs.RT.r_bot = 4.135;        % microns
-    % inputs.RT.tau_c = 6.424;
+    inputs.RT.r_top = 12.565;     % microns
+    inputs.RT.r_bot = 4.135;        % microns
+    inputs.RT.tau_c = 6.424;
 
-    inputs.RT.r_top = 9;     % microns
-    inputs.RT.r_bot = 4:5;        % microns
-    inputs.RT.tau_c = [10,20];
+%     inputs.RT.r_top = 9;     % microns
+%     inputs.RT.r_bot = 4:5;        % microns
+%     inputs.RT.tau_c = [10,20];
 
     %     inputs.RT.r_top = 3:20;       % microns
     %     inputs.RT.r_bot = 2:14;        % microns
@@ -512,6 +512,10 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
         repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
         repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
 
+    % Add a final column that includes the index for the spectral response
+    % function. These always increase chronologically
+    changing_variables = [changing_variables, repmat((1:num_wl)', num_rEff*num_tauC, 1)];
+
 
     % First, write all the wc files
     temp_names = cell(num_rEff*num_tauC, 1);
@@ -550,7 +554,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
         % set the wavelengths for each file
-        wavelengths = changing_variables(nn, end-1:end);
+        wavelengths = changing_variables(nn, end-2:end-1);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -613,6 +617,9 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot, 1),...
         repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
 
+    % Add a final column that includes the index for the spectral response
+    % function. These always increase chronologically
+    changing_variables = [changing_variables, repmat((1:num_wl)', num_rTop*num_rBot*num_tauC, 1)];
 
     % First, write all the wc files
     temp_names = cell(num_rTop*num_rBot*num_tauC, 1);
@@ -652,7 +659,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
         % set the wavelengths for each file
-        wavelengths = changing_variables(nn, end-1:end);
+        wavelengths = changing_variables(nn, end-2:end-1);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -695,133 +702,45 @@ toc
 tic
 
 
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
-    % ----------------------------------------
-    % --------- HOMOGENOUS CLOUD -------------
-    % ----------------------------------------
+% store the reflectances
+Refl_model = zeros(num_INP_files, 1);
 
 
+parfor nn = 1:num_INP_files
+    % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
+    disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
-    % store the reflectances
-    Refl_model = zeros(num_INP_files, 1);
 
+    % ----------------------------------------------------
+    % --------------- RUN RADIATIVE TRANSFER -------------
+    % ----------------------------------------------------
 
-    parfor nn = 1:num_INP_files
-        % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
+    % compute INP file
+    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
+        inputs.which_computer);
 
-        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
+    % read .OUT file
+    % radiance is in units of mW/nm/m^2/sr
+    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
+        inputs.RT.compute_reflectivity_uvSpec);
 
+    % Store the Radiance
+    %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
-        % ----------------------------------------------------
-        % --------------- RUN RADIATIVE TRANSFER -------------
-        % ----------------------------------------------------
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+        spec_response.value(changing_variables(nn,end),:));
 
-
-        % compute INP file
-        [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
-                                    inputs.which_computer);
-
-        % read .OUT file
-        % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
-            inputs.RT.compute_reflectivity_uvSpec);
-
-        % Store the Radiance
-        %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
-
-        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-            spec_response.value(changing_variables(nn,end),:));
-
-
-
-    end
-
-
-
-
-
-elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
-
-    % --------------------------------------------
-    % --------- NON-HOMOGENOUS CLOUD -------------
-    % --------------------------------------------
-
-    % create a legend string
-    lgnd_str = cell(1, length(inputs.RT.waterVapor_column));
-
-    % store the reflectances
-    Refl_model = zeros(num_wl, num_rTop, num_rBot, num_tauC);
-
-
-
-
-    for rt = 1:num_rTop
-
-
-        for rb = 1:num_rBot
-
-
-            for tc = 1:num_tauC
-
-
-
-
-
-
-                parfor ww = 1:length(inputs.RT.wavelengths2run)
-                    % for ww = 1:length(inputs.RT.wavelengths2run)
-
-
-
-                    disp(['Iteration: [rt, rb, tc, ww] = [', num2str(rt), '/', num2str(num_rTop),', ',...
-                        num2str(rb), '/', num2str(num_rBot),', ', num2str(tc), '/', num2str(num_tauC),...
-                        ', ', num2str(ww),'/',num2str(num_wl), ']', newline])
-
-
-
-                    % ----------------------------------------------------
-                    % --------------- RUN RADIATIVE TRANSFER -------------
-                    % ----------------------------------------------------
-
-
-                    % compute INP file
-                    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{rt, rb, tc, ww},...
-                        outputFileName{rt, rb, tc, ww}, inputs.which_computer);
-
-                    % read .OUT file
-                    % radiance is in units of mW/nm/m^2/sr
-                    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{rt, rb, tc, ww}, inputSettings(2,:),...
-                        inputs.RT.compute_reflectivity_uvSpec);
-
-
-                    % compute the reflectance
-                    [Refl_model(ww, rt, rb, tc), ~] = reflectanceFunction(inputSettings(2,:), ds, spec_response.value(ww,:));    % 1/sr
-
-
-
-
-
-
-
-
-
-                end
-
-
-
-            end
-
-        end
-
-    end
 
 
 end
+
+
+
 
 
 
@@ -920,7 +839,7 @@ while isfile(filename)
 end
 
 
-save(filename, "Refl_model","inputs", "spec_response");
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
 
 
 
@@ -991,7 +910,8 @@ if any(inputs.measurement.uncert > 0)
         end
 
 
-        save(filename, "Refl_model_with_noise", "Refl_model_uncert","inputs");
+        save(filename, "Refl_model_with_noise", "Refl_model_uncert","inputs",...
+            "changing_variables", "spec_response");
 
     end
 
