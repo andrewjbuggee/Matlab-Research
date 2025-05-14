@@ -928,11 +928,27 @@ end
 figure;
 if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
-    if size(Refl_model,2)>1 && size(Refl_model,3)>1 && size(Refl_model,4)>1
+    if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true && ...
+            num_rTop==1 && num_rBot==1 && num_tauC==1
+
+            % There is one state vector computed for a range of wavelengths
+            plot(mean(inputs.RT.wavelengths2run,2),Refl_model,...
+                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(1, 'fixed'))
+
+
+   title('Simulated Reflectance - liquid water cloud','Interpreter', 'latex')
+   subtitle(['$r_{top} = $',num2str(round(inputs.RT.r_top,1)), ' $\mu m$, $r_{bot} = $',...
+       num2str(round(inputs.RT.r_bot,1)), ' $\mu m$, $\tau_c = $', num2str(round(inputs.RT.tau_c,1))],...
+       'Interpreter', 'latex')
+
+
+
+    elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true && ...
+            num_rTop>1 && num_rBot>1 && num_tauC>1
 
         % indexes to plot
-        r_top_2Plot = 1;
-        r_bot_2Plot = 1;
+        r_top_2Plot = changing_variables(:,1)==9;
+        r_bot_2Plot = changing_variables(:,2)==4;
 
         for nn = 1:size(Refl_model,4)
 
