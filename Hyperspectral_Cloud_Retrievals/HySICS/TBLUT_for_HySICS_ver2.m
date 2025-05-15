@@ -23,15 +23,15 @@ function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_p
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_HySICS_inputs_TBLUT(folder_paths);
+inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths);
 
 
 
 %% Find the measurements closest to the bands to run
 
-[~, idx_1] = min(abs(simulated_reflectance.inputs.bands2run - inputs.bands2run(1)));
+[~, idx_1] = min(abs(simulated_reflectance.inputs.bands2run - inputs_tblut.bands2run(1)));
 
-[~, idx_2] = min(abs(simulated_reflectance.inputs.bands2run - inputs.bands2run(2)));
+[~, idx_2] = min(abs(simulated_reflectance.inputs.bands2run - inputs_tblut.bands2run(2)));
 
 % error if the values found are at least 15nm from the intended wavlengths
 if abs(mean(simulated_reflectance.inputs.RT.wavelengths2run(idx_1,:)) - 650)>15
@@ -46,11 +46,11 @@ else
 
     % Then we set the bands to run to be to ones found to be closest to the
     % desired bands out of the measurement bands provided
-    inputs.bands2run_from_set_of_measurements = [idx_1, idx_2];
-    inputs.bands2plot = inputs.bands2run;
+    inputs_tblut.bands2run_from_set_of_measurements = [idx_1, idx_2];
+    inputs_tblut.bands2plot = inputs_tblut.bands2run;
 
     % ---- Define the wavelengths ----
-    inputs.RT.wavelengths2run = simulated_reflectance.inputs.RT.wavelengths2run(inputs.bands2run_from_set_of_measurements,:);
+    inputs_tblut.RT.wavelengths2run = simulated_reflectance.inputs.RT.wavelengths2run(inputs_tblut.bands2run_from_set_of_measurements,:);
 
 
 
@@ -58,7 +58,7 @@ end
 %% ----- Create .INP files for HySICS TBLUT -----
 
 
-if inputs.flags.writeINPfiles == true
+if inputs_tblut.flags.writeINPfiles == true
 
 
 
@@ -67,9 +67,9 @@ if inputs.flags.writeINPfiles == true
     % ----------------------------------------
 
     % length of each independent variable
-    num_rEff = length(inputs.RT.re);
-    num_tauC = length(inputs.RT.tau_c);
-    num_wl = length(inputs.bands2run);
+    num_rEff = length(inputs_tblut.RT.re);
+    num_tauC = length(inputs_tblut.RT.tau_c);
+    num_wl = length(inputs_tblut.bands2run);
 
     num_INP_files = num_rEff*num_tauC*num_wl;
 
@@ -82,9 +82,9 @@ if inputs.flags.writeINPfiles == true
     % for rr = 1:num_rEff
     %   for tt = 1:num_tauC
     %       for ww = 1:num_wl
-    changing_variables = [reshape(repmat(inputs.RT.re, num_tauC*num_wl,1), [],1),...
-        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
-        repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
+    changing_variables = [reshape(repmat(inputs_tblut.RT.re, num_tauC*num_wl,1), [],1),...
+        repmat(reshape(repmat(inputs_tblut.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
+        repmat(inputs_tblut.RT.wavelengths2run, num_rEff*num_tauC, 1)];
 
     % Add a final column that includes the index for the spectral response
     % function. These always increase chronologically
@@ -105,9 +105,9 @@ if inputs.flags.writeINPfiles == true
 
 
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
-            inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.which_computer, nn+(nn-1));
+            inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
+            inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
+            inputs_tblut.which_computer, nn+(nn-1));
 
         temp_names{nn} = temp{1};
 
@@ -134,7 +134,7 @@ if inputs.flags.writeINPfiles == true
 
         inputFileName{nn} = [num2str(mean(wavelengths)), '_',...
             'nm_rEff_', num2str(changing_variables(nn,1)), '_tauC_', num2str(changing_variables(nn,2)), '_',...
-            inputs.RT.atm_file(1:end-4),'.INP'];
+            inputs_tblut.RT.atm_file(1:end-4),'.INP'];
 
 
 
@@ -142,7 +142,7 @@ if inputs.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folder_paths.libRadtran_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+        write_INP_file(folder_paths.libRadtran_inp, inputs_tblut.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
             wavelengths, wc_filename{nn});
 
 
@@ -172,7 +172,7 @@ end
 % geometry stays the same, but we calculate the radiative transfer equation
 % for different values of effective radius and optical depth
 
-if inputs.flags.runUVSPEC == true
+if inputs_tblut.flags.runUVSPEC == true
 
     spec_response = simulated_reflectance.spec_response.value;
 
@@ -195,12 +195,12 @@ if inputs.flags.runUVSPEC == true
 
         % compute INP file
         [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
-            inputs.which_computer);
+            inputs_tblut.which_computer);
 
         % read .OUT file
         % radiance is in units of mW/nm/m^2/sr
         [ds,~,~] = readUVSPEC(folder_paths.libRadtran_inp, outputFileName{nn},inputSettings(2,:),...
-            inputs.RT.compute_reflectivity_uvSpec);
+            inputs_tblut.RT.compute_reflectivity_uvSpec);
 
         % Store the Radiance
         %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
@@ -216,13 +216,13 @@ if inputs.flags.runUVSPEC == true
 
 
     % save the calculated reflectances and the inputs
-    save(inputs.save_mat_filename, "inputs", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file
+    save(inputs_tblut.save_mat_filename, "inputs_tblut", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file
 
 
 
-elseif inputs.flags.runUVSPEC == false
+elseif inputs_tblut.flags.runUVSPEC == false
 
-    load([inputs.savedCalculations_folderName,inputs.saveCalculations_fileName] ,'inputs','Refl_model_tblut');
+    load([inputs_tblut.savedCalculations_folderName,inputs_tblut.saveCalculations_fileName] ,'inputs_tblut','Refl_model_tblut');
 
 end
 
@@ -235,7 +235,7 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs);
+tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs_tblut);
 
 
 
