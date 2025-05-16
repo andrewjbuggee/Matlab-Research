@@ -2,11 +2,15 @@
 
 
 % INPUTS:
-%   (1) data_folder -
+%   (1) folder_paths - folder path where the files should be written and
+%   the caluclations stored
 
-%   (2) folderpaths - folder path where the EMIT data is located
+%   (2) inputs_measurement - we need to set up the inputs of the TBLUT
+%   retrieval to be the same as those defined by the inputs of the
+%   measurement. When we have true measurements, all we know is the
+%   geometry of the sun and sensor. So this is the only information that
+%   should be passed along. 
 
-%   (3) emit -
 
 
 % OUTPUTS:
@@ -16,7 +20,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(folder_paths)
+function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement)
 
 
 %% Find computer and folders
@@ -242,7 +246,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 0;           % degree
+inputs.RT.sza = inputs_measurement.RT.sza;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -250,10 +254,10 @@ inputs.RT.sza = 0;           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = inputs_measurement.RT.phi0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 0; % values are in degrees;                        % degree
+inputs.RT.vza = inputs_measurement.RT.vza; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -262,7 +266,7 @@ inputs.RT.vza = 0; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 0;     % degree
+inputs.RT.vaz = inputs_measurement.RT.vaz;     % degree
 % --------------------------------------------------------------
 
 

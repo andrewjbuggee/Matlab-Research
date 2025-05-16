@@ -226,7 +226,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.surface_albedo = 0.04;
 
 % day of the year
-inputs.RT.day_of_year = 17;
+%inputs.RT.day_of_year = 17;
 % ------------------------------------------------------------------------
 
 
@@ -273,7 +273,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % ------------------------------------------------------------------------
 
 % define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -330,13 +330,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.r_bot = 4.135;        % microns
     inputs.RT.tau_c = 6.424;
 
-%     inputs.RT.r_top = 9;     % microns
-%     inputs.RT.r_bot = 4:5;        % microns
-%     inputs.RT.tau_c = [10,20];
+    % inputs.RT.r_top = [9,10];     % microns
+    % inputs.RT.r_bot = [4:6];        % microns
+    % inputs.RT.tau_c = [10:5:25];
 
-    %     inputs.RT.r_top = 3:20;       % microns
-    %     inputs.RT.r_bot = 2:14;        % microns
-    %     inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+    % inputs.RT.r_top = 3:20;       % microns
+    % inputs.RT.r_bot = 2:14;        % microns
+    % inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
 
 
     % define the type of droplet distribution
@@ -380,7 +380,7 @@ end
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 19.5688;           % degree
+inputs.RT.sza = 60;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -388,11 +388,11 @@ inputs.RT.sza = 19.5688;           % degree
 % clockwise from due south. So they are separated by 180 degrees. To map
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
-inputs.RT.phi0 = mod(293.8140 + 180, 360);
-%inputs.RT.phi0 = 0;         % degree
+%inputs.RT.phi0 = mod(293.8140 + 180, 360);
+inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
+inputs.RT.vza = 0; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -401,7 +401,7 @@ inputs.RT.vza = 8.3134; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 70.0849;     % degree
+inputs.RT.vaz = 0;     % degree
 % --------------------------------------------------------------
 
 
@@ -615,7 +615,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %           for ww = 1:num_wl
     changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
         repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
-        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot, 1),...
+        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
         repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
 
     % Add a final column that includes the index for the spectral response
@@ -839,8 +839,11 @@ end
 
 while isfile(filename)
     rev = rev+1;
-    filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_sim-ran-on-',...
-        char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
 end
 
 
@@ -852,7 +855,8 @@ save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
+% inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
+inputs.measurement.uncert = 0;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -896,15 +900,38 @@ if any(inputs.measurement.uncert > 0)
 
         if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
-            filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
-                'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
-                char(datetime("today")), '_rev', num2str(ver),'.mat'];
+            if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+                filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+                    'inhomogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
+                    '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
+
+            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+
+                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
+                    'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
+                    char(datetime("today")), '_rev', num2str(ver),'.mat'];
+
+            end
+
+
 
         else
 
-            filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
-                'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
-                char(datetime("today")), '_rev', num2str(ver),'.mat'];
+            if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+                filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+                    'homogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
+                    '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
+
+            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+
+                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
+                    'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
+                    char(datetime("today")), '_rev', num2str(ver),'.mat'];
+
+            end
+
 
         end
 
@@ -936,15 +963,15 @@ if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
     if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true && ...
             num_rTop==1 && num_rBot==1 && num_tauC==1
 
-            % There is one state vector computed for a range of wavelengths
-            plot(mean(inputs.RT.wavelengths2run,2),Refl_model,...
-                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(1, 'fixed'))
+        % There is one state vector computed for a range of wavelengths
+        plot(mean(inputs.RT.wavelengths2run,2),Refl_model,...
+            '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(1, 'fixed'))
 
 
-   title('Simulated Reflectance - liquid water cloud','Interpreter', 'latex')
-   subtitle(['$r_{top} = $',num2str(round(inputs.RT.r_top,1)), ' $\mu m$, $r_{bot} = $',...
-       num2str(round(inputs.RT.r_bot,1)), ' $\mu m$, $\tau_c = $', num2str(round(inputs.RT.tau_c,1))],...
-       'Interpreter', 'latex')
+        title('Simulated Reflectance - liquid water cloud','Interpreter', 'latex')
+        subtitle(['$r_{top} = $',num2str(round(inputs.RT.r_top,1)), ' $\mu m$, $r_{bot} = $',...
+            num2str(round(inputs.RT.r_bot,1)), ' $\mu m$, $\tau_c = $', num2str(round(inputs.RT.tau_c,1))],...
+            'Interpreter', 'latex')
 
 
 
@@ -996,6 +1023,6 @@ grid on; grid minor
 xlabel('Wavelength (nm)','Interpreter', 'latex')
 ylabel('Reflectance (1/sr)','Interpreter', 'latex')
 set(gcf, 'Position', [0 0 1000 1000])
-legend(legend_str,  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
+%legend(legend_str,  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
 % title(['Simulated Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
 %     num2str(tau_2plot)], 'Interpreter', 'latex')

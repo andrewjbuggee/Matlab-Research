@@ -23,7 +23,7 @@ function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_p
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths);
+inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_reflectance.inputs);
 
 
 
