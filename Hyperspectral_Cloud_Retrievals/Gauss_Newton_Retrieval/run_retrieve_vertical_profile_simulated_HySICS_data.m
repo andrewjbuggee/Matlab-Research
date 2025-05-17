@@ -106,14 +106,15 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev6.mat']); % sza = 60, vza = 0
+        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
 
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-12-May-2025_rev1.mat']); % sza = 0, vza = 0
-    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
+    
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev2.mat']); % sza = 20, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev3.mat']); % sza = 30, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev4.mat']); % sza = 40, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev5.mat']); % sza = 50, vza = 0
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev6.mat']); % sza = 60, vza = 0
     
 
 
@@ -141,9 +142,10 @@ delete([folder_paths.libRadtran_inp, '*.OUT'])
 
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
+tic
 %tblut_retrieval = TBLUT_for_HySICS(simulated_measurements, folder_paths);
 tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
-
+toc
 
 %% CREATE GAUSS-NEWTON INPUTS
 
