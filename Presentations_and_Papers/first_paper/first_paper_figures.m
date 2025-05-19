@@ -4544,7 +4544,7 @@ exportgraphics(f,[folderpath_pngs,'Fig 4 - Jacobian with respect to radius at cl
 
 
 
-%% Subplot comparing l2 norm residual for synthetic data bewteen different measurement uncertainty scenarios
+%% FIGURE 7 --- Subplot comparing l2 norm residual for synthetic data bewteen different measurement uncertainty scenarios
 
 for nn = 1:1
 
@@ -4912,7 +4912,7 @@ end
 
 
 
-%% Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
+%% FIGURE 8 --- Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
 
 for nn = 1:25
 

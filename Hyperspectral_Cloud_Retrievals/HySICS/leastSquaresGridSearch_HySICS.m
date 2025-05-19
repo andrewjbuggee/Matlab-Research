@@ -8,7 +8,7 @@
 
 %%
 
-function [tblut_retrieval] = leastSquaresGridSearch_HySICS(simulated_reflectance, modelRefl, inputs)
+function [tblut_retrieval] = leastSquaresGridSearch_HySICS(simulated_measurement, modelRefl, inputs)
 
 
 
@@ -68,10 +68,10 @@ interp_modelRefl_band2 = interp2(Re0, T0, modelRefl_band2_array, Re, T);
 % interpolated array, but where every value is the observed
 % reflectance
 % for band 1...
-observations_newGrid_band1 = repmat(simulated_reflectance(bands2run(1)),...
+observations_newGrid_band1 = repmat(simulated_measurement(bands2run(1)),...
                   length(newTau_c), length(new_re));
 % for band 2...
-observations_newGrid_band2 = repmat(simulated_reflectance(bands2run(2)),...
+observations_newGrid_band2 = repmat(simulated_measurement(bands2run(2)),...
                   length(newTau_c), length(new_re));
 
 %% ---- lets view the surfaces of the model -----
