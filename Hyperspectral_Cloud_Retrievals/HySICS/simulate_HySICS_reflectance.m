@@ -326,9 +326,9 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    inputs.RT.r_top = 12.565;     % microns
-    inputs.RT.r_bot = 4.135;        % microns
-    inputs.RT.tau_c = 6.424;
+    inputs.RT.r_top = 8.62913;     % microns
+    inputs.RT.r_bot = 3.64102;        % microns
+    inputs.RT.tau_c = 10.96721;
 
     % inputs.RT.r_top = [9,10];     % microns
     % inputs.RT.r_bot = [4:6];        % microns
@@ -337,6 +337,10 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % inputs.RT.r_top = 3:20;       % microns
     % inputs.RT.r_bot = 2:14;        % microns
     % inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+
+    % inputs.RT.r_top = 3:20;       % microns
+    % inputs.RT.r_bot = 2:14;        % microns
+    % inputs.RT.tau_c = 7.5:0.5:15;
 
 
     % define the type of droplet distribution
@@ -380,7 +384,7 @@ end
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 60;           % degree
+inputs.RT.sza = 0;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from

@@ -14,15 +14,27 @@ if strcmp(which_computer, 'anbu8374')==true
 
     foldername = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
-    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+    % tauC = [5.5 : 0.5 : 7.5]
+    %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
+    % tauC = [7.5 : 0.5 : 15]
+    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error([newline, 'Where are these files?!', newline])
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % tauC = [5.5 : 0.5 : 7.5]
+    %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+    % tauC = [7.5 : 0.5 : 15]
+    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    fm = load([foldername,filename]);
+
 
 end
 % -----------------------------------------------------
@@ -52,8 +64,8 @@ end
 
 % Create the new fine grid to interpolate on
 % define the discrete step length of each variable
-d_r_top = 0.1;      % microns
-d_r_bot = 0.1;      % microns
+d_r_top = 0.05;      % microns
+d_r_bot = 0.05;      % microns
 d_tau_c = 0.05;
 
 r_top_fine = fm.inputs.RT.r_top(1):d_r_top:fm.inputs.RT.r_top(end);
@@ -105,7 +117,13 @@ if strcmp(which_computer, 'anbu8374')==true
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error([newline, 'Where are these files?!', newline])
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+
+
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    sim = load([foldername,filename]);
 
 end
 % -----------------------------------------------------
@@ -166,10 +184,13 @@ which_computer = whatComputer();
 % ------------ LOAD DATA SET -----------------------
 if strcmp(which_computer, 'anbu8374')==true
 
-    foldername = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
-    filename = 'interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+    % tauC = [5.5 : 0.5 : 7.5]
+    %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
+    % tauC = [7.5 : 0.5 : 15]
+    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
@@ -196,7 +217,28 @@ if strcmp(which_computer, 'anbu8374')==true
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error([newline, 'Where are these files?!', newline])
+
+    % --- Load forward Model ---
+
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % tauC = [5.5 : 0.5 : 7.5]
+    %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+    % tauC = [7.5 : 0.5 : 15]
+    % filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    fm = load([foldername,filename]);
+
+    
+    % --- Load simulated measurement ---
+
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+
+
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    sim = load([foldername,filename]);
 
 end
 % -----------------------------------------------------
