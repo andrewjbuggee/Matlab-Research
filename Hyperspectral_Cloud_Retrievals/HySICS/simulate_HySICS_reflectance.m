@@ -109,8 +109,8 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'simulated_measurement';
-%inputs.calc_type = 'forward_model_calcs_forRetrieval';
+%inputs.calc_type = 'simulated_measurement';
+inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
@@ -326,17 +326,17 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
 
-    inputs.RT.r_top = 8.62913;     % microns
-    inputs.RT.r_bot = 3.64102;        % microns
-    inputs.RT.tau_c = 10.96721;
+    % inputs.RT.r_top = 8.62913;     % microns
+    % inputs.RT.r_bot = 3.64102;        % microns
+    % inputs.RT.tau_c = 10.96721;
 
     % inputs.RT.r_top = [9,10];     % microns
     % inputs.RT.r_bot = [4:6];        % microns
     % inputs.RT.tau_c = [10:5:25];
 
-    % inputs.RT.r_top = 3:20;       % microns
-    % inputs.RT.r_bot = 2:14;        % microns
-    % inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+    inputs.RT.r_top = 3:20;       % microns
+    inputs.RT.r_bot = 2:14;        % microns
+    inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
 
     % inputs.RT.r_top = 3:20;       % microns
     % inputs.RT.r_bot = 2:14;        % microns
@@ -384,7 +384,7 @@ end
 inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
 
 % define the solar zenith angle
-inputs.RT.sza = 0;           % degree
+inputs.RT.sza = 31;           % degree
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -393,10 +393,10 @@ inputs.RT.sza = 0;           % degree
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = -84 + 180;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 0; % values are in degrees;                        % degree
+inputs.RT.vza = 4; % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -405,7 +405,7 @@ inputs.RT.vza = 0; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = 0;     % degree
+inputs.RT.vaz = -103+360;     % degree
 % --------------------------------------------------------------
 
 
