@@ -51,7 +51,10 @@
 %       (b) 'verbose' - this prints a very long and detailed message about
 %       the calculation.
 
-%   (7) index - a value to append at the end of the file name so that no
+%   (7) computer_name - a string with the name of the computer this code on
+%   which this code is running
+
+%   (8) index - a value to append at the end of the file name so that no
 %   two filenames are the same while parallel computing is going on
 
 
@@ -66,7 +69,7 @@ function [input_filename, output_filename, mie_folder] = write_mie_file(mie_prog
 % ---------------------- CHECK INPUTS ------------------------
 % ------------------------------------------------------------
 
-% Check to make sure there are 7 inputs
+% Check to make sure there are 8 inputs
 
 
 if nargin~=8

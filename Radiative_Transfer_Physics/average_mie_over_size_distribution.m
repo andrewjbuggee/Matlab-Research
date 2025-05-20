@@ -30,6 +30,9 @@
 %   of size distribution to integrate over. The options are:
 %       (a) 'gamma' - gamma droplet distribution
 
+%   (7) computer_name - a string with the name of the computer this code on
+%   which this code is running
+
 %   (6) index - the number associated with the file that is being written.
 %   This is for naming purposes so that there are unique files written, but
 %   only just enough.
@@ -54,7 +57,7 @@
 %%
 
 function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, distribution_var, wavelength,...
-    index_of_refraction, distribution_type, index)
+    index_of_refraction, distribution_type, which_computer, index)
 
 % ---------------------------
 % ----- CHECK INPUTS --------
@@ -190,10 +193,10 @@ if strcmp(distribution_type, 'gamma')==true
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-        mie_radius, wavelength, size_distribution, err_msg_str, index);
+        mie_radius, wavelength, size_distribution, err_msg_str, which_computer, index);
 
     % run the mie file
-    [~] = runMIE(mie_folder,input_filename,output_filename);
+    [~] = runMIE(mie_folder,input_filename,output_filename, which_computer);
 
     % Read the output of the mie file
     [ds,~,~] = readMIE(mie_folder,output_filename);

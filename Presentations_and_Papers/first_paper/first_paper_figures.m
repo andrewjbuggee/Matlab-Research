@@ -2346,7 +2346,7 @@ annotation('textbox',[0.134 0.802 0.142 0.114],...
 
 
 
-%% FIGURE 8 - Standard Deviation of effective radius for all horizontal profiles for different length scales
+%% FIGURE 6 - Standard Deviation of effective radius for all horizontal profiles for different length scales
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -2413,7 +2413,7 @@ end
 
 
 % --- Define the horizontal length scale to compute statistics over ---
-length_scale = [100, 250, 500, 1000, 5000, 7500];        % meters
+length_scale = [500, 1000, 5000];        % meters
 
 % Loop through each profile in the ensemble
 
@@ -2561,7 +2561,7 @@ exportgraphics(f,[folderpath_pngs,'Fig 6- histogram of std of horizontal profile
 
 
 
-%% FIGURE 8 - Mean value of effective radius for all horizontal profiles for different length scales
+%% FIGURE - Mean value of effective radius for all horizontal profiles for different length scales
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -2734,7 +2734,7 @@ set(gcf, 'Position', [0 0 1200 625])
 
 
 
-%% FIGURE 9 - Standard Deviation of all ensemble profiles for different length scales and for different mean droplet sizes
+%% FIGURE - Standard Deviation of all ensemble profiles for different length scales and for different mean droplet sizes
 % Sort by mean droplet size over the entire horizontal profile
 
 clear variables
@@ -2954,7 +2954,7 @@ end
 
 
 
-%% FIGURE 10 - Standard Deviation of all ensemble profiles for different length scales and for different mean droplet sizes
+%% FIGURE - Standard Deviation of all ensemble profiles for different length scales and for different mean droplet sizes
 % Sort by mean droplet size of the length segment
 
 clear variables
@@ -3168,7 +3168,7 @@ end
 
 
 
-%% FIGURE 11 - Standard Deviation of all ensemble profiles as a function of length
+%% FIGURE - Standard Deviation of all ensemble profiles as a function of length
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -3309,7 +3309,7 @@ set(gcf, 'Position', [0 0 1200 625])
 
 
 
-%% FIGURE 12 - Compute the spread of each STD distribution for all ensemble profiles as a function of length
+%% FIGURE - Compute the spread of each STD distribution for all ensemble profiles as a function of length
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -5478,7 +5478,7 @@ end
 modisData = {'2008_11_09/', '2008_11_11_1430/', '2008_11_11_1850/'};
 
 % variables to keep
-H_sp = [];
+sig_Refl = [];
 optThickness_uncert_17 = [];
 
 effRad_uncert_17_percent = [];
@@ -5507,17 +5507,17 @@ for nn = 1:length(modisData)
     
     % ------------- effective radius -------------------
     % grab effective radius uncertainty over ocean and convert from percent uncertainty to microns
-    temp_effRad_uncert_17 = modis.cloud.effRadius17(isOcean) .* modis.cloud.effRad_uncert_17(isOcean) .* 0.01;          % microns
+    temp_sig_Refl = modis.cloud.effRadius17(isOcean) .* modis.cloud.effRad_uncert_17(isOcean) .* 0.01;          % microns
 
     % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
     % pixels) and with an optical depth of less than 3
-    pix_lessThan0_or_Nan_or_tauLessThan = temp_effRad_uncert_17<0 | isnan(temp_effRad_uncert_17) | modis.cloud.optThickness17(isOcean) < tau_min;
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_sig_Refl<0 | isnan(temp_sig_Refl) | modis.cloud.optThickness17(isOcean) < tau_min;
 
     % remove values found above
-    temp_effRad_uncert_17(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+    temp_sig_Refl(pix_lessThan0_or_Nan_or_tauLessThan) = [];
 
     % store remaining values in a global variable
-    H_sp = [H_sp; temp_effRad_uncert_17];        % microns
+    sig_Refl = [sig_Refl; temp_sig_Refl];        % microns
 
 
     % grab effective radius uncertainty over ocean 
@@ -5576,7 +5576,7 @@ end
 figure; 
 
 subplot(1,2,1)
-histogram(H_sp)
+histogram(sig_Refl)
 grid on; grid minor
 ylabel('Counts', 'interpreter', 'latex')
 xlabel('$\delta r_e$ $(\mu m)$', 'interpreter', 'latex')
@@ -5620,8 +5620,8 @@ disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
 
 % print the mean values of uncertainty for each variable
 disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
-    num2str(mean(H_sp)), ' microns, with a standard deviation of: ',...
-    num2str(std(H_sp)), ' microns', newline])
+    num2str(mean(sig_Refl)), ' microns, with a standard deviation of: ',...
+    num2str(std(sig_Refl)), ' microns', newline])
 disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
     num2str(mean(optThickness_uncert_17)), ', with a standard deviation of: ',...
     num2str(std(optThickness_uncert_17)), newline])
@@ -5723,7 +5723,10 @@ imageData = read(t);
 
 
 
-%% For Zhibo Zhang - Histogram of sub-pixel inhomogeneity for all cloud pixels over ocean
+
+
+
+%% For Reviewer 1 - Histogram of reflectance uncertainty for all cloud pixels over ocean
 
 clear variables
 
@@ -5780,7 +5783,7 @@ end
 modisData = {'2008_11_09/', '2008_11_11_1430/', '2008_11_11_1850/'};
 
 % variables to keep
-H_sp = [];
+sig_Refl = [];
 
 
 % limit to only pixels over ocean with an optical depth of at least 3
@@ -5798,74 +5801,34 @@ for nn = 1:length(modisData)
     isOcean = land_or_ocean(modis_lat, modis_long, 15, false);
 
     % Show pixels over ocean
-    figure; 
-    geoscatter(modis_lat(isOcean), modis_long(isOcean), 100, modis.cloud.effRadius17(isOcean), '.');
-    colorbar
+%     figure; 
+%     geoscatter(modis_lat(isOcean), modis_long(isOcean), 100, modis.cloud.effRadius17(isOcean), '.');
+%     colorbar
 
 
     
-    % ------------- effective radius -------------------
-    % grab effective radius uncertainty over ocean and convert from percent uncertainty to microns
-    temp_effRad_uncert_17 = modis.cloud.effRadius17(isOcean) .* modis.cloud.effRad_uncert_17(isOcean) .* 0.01;          % microns
+    % ------------- reflectance uncertainty -------------------
+    % grab the reflectance uncertainty over ocean 
+    temp_sig_Refl = double(modis.EV1km.reflectanceUncert(isOcean));     
 
     % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
     % pixels) and with an optical depth of less than 3
-    pix_lessThan0_or_Nan_or_tauLessThan = temp_effRad_uncert_17<0 | isnan(temp_effRad_uncert_17) | modis.cloud.optThickness17(isOcean) < tau_min ...
+    pix_lessThan0_or_Nan_or_tauLessThan = temp_sig_Refl<0 | isnan(temp_sig_Refl) | modis.cloud.optThickness17(isOcean) < tau_min ...
                                           | modis.cloud.phase~=1;
 
     % remove values found above
-    temp_effRad_uncert_17(pix_lessThan0_or_Nan_or_tauLessThan) = [];
+    temp_sig_Refl(pix_lessThan0_or_Nan_or_tauLessThan) = [];
 
     % store the sub-pixel inhomogeneity index for warm cloud pixels with an
     % optical depth of at least 3, and a positive non-NAN effective radius
     % uncertainty
-    H_sp = [];
-
-
-    % grab effective radius uncertainty over ocean 
-    temp_effRad_uncert_17_percent = modis.cloud.effRad_uncert_17(isOcean);          % percent of retrieved effective radius
-    
-    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
-    % pixels) and with an optical depth of less than 3
-    pix_lessThan0_or_Nan_or_tauLessThan = temp_effRad_uncert_17_percent<0 | isnan(temp_effRad_uncert_17_percent) | modis.cloud.optThickness17(isOcean) < tau_min;
-
-    % remove values found above
-    temp_effRad_uncert_17_percent(pix_lessThan0_or_Nan_or_tauLessThan) = [];
-
-    % store remaining values in global variable
-    effRad_uncert_17_percent = [effRad_uncert_17_percent; temp_effRad_uncert_17_percent];
+    temp_H = [];
 
 
 
-    
-    % ------------- optical depth -------------------
-    % grab optical depth uncertainty over ocean and convert from percent
-    % uncertainty to opical depth
-    temp_optThickness_uncert_17 = modis.cloud.optThickness17(isOcean) .* modis.cloud.optThickness_uncert_17(isOcean) .* 0.01;          % optical depth
-
-    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
-    % pixels) and with an optical depth of less than 3
-    pix_lessThan0_or_Nan_or_tauLessThan = temp_optThickness_uncert_17<0 | isnan(temp_optThickness_uncert_17) | modis.cloud.optThickness17(isOcean) < tau_min;
-
-    % remove values found above
-    temp_optThickness_uncert_17(pix_lessThan0_or_Nan_or_tauLessThan) = [];
-
-    % store remaining values in a global variable
-    optThickness_uncert_17 = [optThickness_uncert_17; temp_optThickness_uncert_17];        % microns
-
-
-    % grab optical depth uncertainty over ocean 
-    temp_optThickness_uncert_17_percent = modis.cloud.optThickness_uncert_17(isOcean);           % percent of retrieved optical depth
-    
-    % find values whose uncertainty is less than 0 or nan (applied to non-cloudy
-    % pixels) and with an optical depth of less than 3
-    pix_lessThan0_or_Nan_or_tauLessThan = temp_optThickness_uncert_17_percent<0 | isnan(temp_optThickness_uncert_17_percent) | modis.cloud.optThickness17(isOcean) < tau_min;
-
-    % remove values found above
-    temp_optThickness_uncert_17_percent(pix_lessThan0_or_Nan_or_tauLessThan) = [];
 
     % store remaining values in global variable
-    optThickness_uncert_17_precent = [optThickness_uncert_17_precent; temp_optThickness_uncert_17_percent];
+    sig_Refl = [sig_Refl; temp_sig_Refl];
     
 
     
@@ -5874,43 +5837,20 @@ for nn = 1:length(modisData)
 end
 
 
-% create histogram of COD and CER uncertainty for pixels over ocean
+% create histogram of reflectance uncertainty for liquid water cloud pixels
+% over ocean with an optical depth of atleast 3
 figure; 
 
-subplot(1,2,1)
-histogram(H_sp)
+histogram(sig_Refl)
 grid on; grid minor
 ylabel('Counts', 'interpreter', 'latex')
-xlabel('$\delta r_e$ $(\mu m)$', 'interpreter', 'latex')
-set(gca, 'YScale', 'log')
-
-subplot(1,2,2)
-histogram(optThickness_uncert_17)
-grid on; grid minor
-ylabel('Counts', 'interpreter', 'latex')
-xlabel('$\delta \tau_c$', 'interpreter', 'latex')
+xlabel('$\sigma_R$ $(1/sr)$', 'interpreter', 'latex')
 set(gca, 'YScale', 'log')
 
 set(gcf, 'Position', [0,0, 1300, 750])
 
 
-figure; 
 
-subplot(1,2,1)
-histogram(effRad_uncert_17_percent)
-grid on; grid minor
-ylabel('Counts', 'interpreter', 'latex')
-xlabel('$\delta r_e$ $(\%)$', 'interpreter', 'latex')
-set(gca, 'YScale', 'log')
-
-subplot(1,2,2)
-histogram(optThickness_uncert_17_precent)
-grid on; grid minor
-ylabel('Counts', 'interpreter', 'latex')
-xlabel('$\delta \tau_c$  (\%)', 'interpreter', 'latex')
-set(gca, 'YScale', 'log')
-
-set(gcf, 'Position', [0,0, 1300, 750])
 
 % print the mean values of uncertainty as a percent for each variable
 disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
@@ -5922,8 +5862,8 @@ disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
 
 % print the mean values of uncertainty for each variable
 disp([newline, 'Average CER uncertainty for pixels over ocean: ', ...
-    num2str(mean(H_sp)), ' microns, with a standard deviation of: ',...
-    num2str(std(H_sp)), ' microns', newline])
+    num2str(mean(sig_Refl)), ' microns, with a standard deviation of: ',...
+    num2str(std(sig_Refl)), ' microns', newline])
 disp([newline, 'Average COD uncertainty for pixels over ocean: ', ...
     num2str(mean(optThickness_uncert_17)), ', with a standard deviation of: ',...
     num2str(std(optThickness_uncert_17)), newline])

@@ -17,6 +17,9 @@
 function inputs = create_modis_inputs(folderName, L1B_fileNames)
 
 
+% Save the computer name
+inputs.which_computer = whatComputer();
+
 % --- SAVE THE MODIS FILE NAME ----
 inputs.modisDataFolder = folderName;
 

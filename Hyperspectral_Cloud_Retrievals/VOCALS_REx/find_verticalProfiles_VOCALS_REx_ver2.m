@@ -36,7 +36,7 @@
 
 
 
-function [vert_profs] = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold)
+function [vert_profs] = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold, which_computer)
 
 
 % Create an new structure for the vertical profiles
@@ -808,7 +808,7 @@ for nn = 1:length(vert_profs)
             % Or we could compute the average extinction efficiency
             % over a droplet size distrubution
             [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                550, 'water', 'gamma', ii);
+                550, 'water', 'gamma', which_computer, ii);
 
             vert_profs(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
 
@@ -853,7 +853,7 @@ for nn = 1:length(vert_profs)
             % Or we could compute the average extinction efficiency
             % over a droplet size distrubution
             [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                550, 'water', 'gamma', ii);
+                550, 'water', 'gamma', which_computer, ii);
 
 
             vert_profs(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
