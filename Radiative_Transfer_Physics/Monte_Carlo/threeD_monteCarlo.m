@@ -703,7 +703,8 @@ if inputs.compute_internal_fluxes==true
 
     % Set up the tau grid first
 
-    N_bins = 500;
+    %N_bins = 500;
+    N_bins = 100;
 
     if tau_z_upper_limit==inf
         binEdges = logspace(-3, ceil(log10(max(max_position_reached))),N_bins+1);
@@ -711,6 +712,12 @@ if inputs.compute_internal_fluxes==true
     else
         binEdges = linspace(tau_z_lower_limit, tau_z_upper_limit, N_bins+1);
     end
+
+    % we need to define the binEdges between the bounds of our cloud layer,
+    % but we don't need the final edge. If the photon moves past the
+    % (end-1) edge, it's in the final bucket. There is not counting
+    % happening after the final edge. So let's remove this 
+    binEdges = binEdges(1:end-1);
 
 
     % Create the bins that will keep tally
@@ -734,11 +741,11 @@ if inputs.compute_internal_fluxes==true
         % direction or the negative z direction. A value of 1 tells the code
         % that the photon was increasing in tau along the z axis, and a value
         % of negative 1 tells the code the photon was decreasing in tau along
-        % the y axis. The first value is always 1 since the photons starts its
+        % the y axis. The first value is always 1 since the photons starts it's
         % journey by moving down, increasing its value of tau along the z axis
         z_direction = [1; sign(diff(photon_tau_absolute_position{nn}(:,3)))];
 
-
+        % step through each scattering event...
         for tt = 1:size(photon_tau_absolute_position{nn},1)-1
 
             % Check to see if the photon is moving down or up and check to see
@@ -783,7 +790,7 @@ if inputs.compute_internal_fluxes==true
                 % bin
                 bin_edges_less_than_end_position = find(binEdges<photon_tau_absolute_position{nn}(tt+1,3));
 
-                bins_photon_moves_through = zeros(1,N_bins+1);
+                bins_photon_moves_through = zeros(1,N_bins);
                 bins_photon_moves_through(bin_edges_less_than_start_position(end):bin_edges_less_than_end_position(end)) = 1;
                 bins_photon_moves_through = logical(bins_photon_moves_through);
 
@@ -810,11 +817,11 @@ if inputs.compute_internal_fluxes==true
                 % than, or equal to, the final bin
                 bin_edges_less_than_start_position = find(binEdges<=photon_tau_absolute_position{nn}(tt,3));
 
-                % This bin should be less than, or equal to, the starting
-                % bin
+                % This bin-center should be less than, or equal to, the starting
+                % bin-center
                 bin_edges_less_than_end_position = find(binEdges<=photon_tau_absolute_position{nn}(tt+1,3));
 
-                bins_photon_moves_through = zeros(1,N_bins+1);
+                bins_photon_moves_through = zeros(1,N_bins);
 
                 % let's check to see if the photon is still in the same bin. If
                 % it is, we've already accounted for it's upward motion, so we
@@ -851,15 +858,15 @@ if inputs.compute_internal_fluxes==true
                 % If the photon switched direction, we have to account for
                 % the final bin it ends up in
 
-                % Photon is moving up, so the starting bin will be larger
-                % than, or equal to, the final bin
+                % Photon is moving up, so the bin-center of the starting point
+                % will be larger than, or equal to the bin-center of the final bin
                 bin_edges_less_than_start_position = find(binEdges<=photon_tau_absolute_position{nn}(tt,3));
 
-                % The final bin will be smaller than, or equal to, to starting
+                % The final bin-center will be smaller than, or equal to, the starting
                 % bin
                 bin_edges_less_than_end_position = find(binEdges<=photon_tau_absolute_position{nn}(tt+1,3));
 
-                bins_photon_moves_through = zeros(1,N_bins+1);
+                bins_photon_moves_through = zeros(1,N_bins);
                 bins_photon_moves_through(bin_edges_less_than_end_position(end):bin_edges_less_than_start_position(end)) = 1;
                 bins_photon_moves_through = logical(bins_photon_moves_through);
 
@@ -914,7 +921,8 @@ if inputs.compute_internal_fluxes==true
     F_norm.down = N_counts_moving_down./N_photons;
 
     % save the bin edges
-    F_norm.binEdges = binEdges;
+    % and, add back the final edge
+    F_norm.binEdges = [binEdges, tau_z_upper_limit];
 
 else
 

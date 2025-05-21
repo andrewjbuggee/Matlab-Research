@@ -19,7 +19,7 @@ clear variables
 % inputs.tau_x_upper_limit = 8; 
 
 inputs.tau_z_lower_limit = 0;
-inputs.tau_z_upper_limit = 8; 
+inputs.tau_z_upper_limit = 6.5; 
 
 % --------------------------------------------------
 
@@ -28,18 +28,18 @@ inputs.tau_z_upper_limit = 8;
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = acosd(0.65);                  % deg from zenith
-%inputs.solar_zenith_angle = 27;                  % deg from zenith
+% inputs.solar_zenith_angle = acosd(0.65);                  % deg from zenith
+inputs.solar_zenith_angle = 0;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e6;
+inputs.N_photons = 1e7;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----
-inputs.createDropletProfile = true;
+inputs.createDropletProfile = false;
 
 % --- if true.... ---
 % Physical constraint that shapes the droplet profile
@@ -55,7 +55,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 1600;          % nanometers
+inputs.wavelength = 500;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
@@ -219,7 +219,7 @@ if inputs.N_layers==1
         inputs.mie.radius, inputs.mie.wavelength, inputs.mie.distribution, inputs.mie.err_msg_str, inputs.which_computer, 1);
 
     % run the mie file
-    [~] = runMIE(mie_folder,input_filename,output_filename);
+    [~] = runMIE(mie_folder,input_filename,output_filename, inputs.which_computer);
 
 
     % Read the output of the mie file
@@ -375,11 +375,11 @@ end
 %% Run 3D monte carlo code
 
 % --- OVERRIDE SCATTERING PARAMETERS ----
-% inputs.g = 0.85;
-% inputs.g_avg = 0.85;
-% 
-% inputs.ssa = 1;
-% inputs.ssa_avg = 1;
+inputs.g = 0.85;
+inputs.g_avg = inputs.g;
+
+inputs.ssa = 0.99999;
+inputs.ssa_avg = inputs.ssa;
 % ----------------------------------------
 
 

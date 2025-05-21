@@ -57,12 +57,12 @@ if inputs.N_layers==1
     % if the absorption is less than 0.9999, then we will use the 2-stream
     % equations for absoprtion
 
-    if ssa <= 0.9999
+    if ssa < 1
 
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
 
-        if isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit == inf
+        if tau_vert_upper_limit == inf
 
             K = sqrt((1 - ssa)*(1 - g*ssa));
             R_inf = (sqrt(1-ssa*g) - sqrt(1 - ssa))/(sqrt(1-ssa*g) + sqrt(1 - ssa));
@@ -108,7 +108,7 @@ if inputs.N_layers==1
                 'Location','best','FontSize',20)
 
 
-        elseif isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
+        elseif tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
 
 
             % K is defined in Bohren and Clothiaux (eq. 5.70)
@@ -177,34 +177,30 @@ if inputs.N_layers==1
         end
 
 
-    elseif ssa > 0.9999
+    elseif ssa ==1
 
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
 
-        if isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit == inf
+        if tau_vert_upper_limit == inf
 
 
             error([newline,'I dont know what to do with a layer of infinte thickness and conservative scattering.',newline])
 
-        elseif isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
+        elseif tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
 
-            % For a non-absorbing layer of finite thickness, the analytical
-            % solutions to the two stream radiative transfer equations are...
-
-            R_atTop = (tau_vert_upper_limit * (1 - g)/2)/(1 + tau_vert_upper_limit*(1 - g)/2);
-
-            T_atBottom = 1/(1 + tau_vert_upper_limit*(1 - g)/2);
-
-            % lets plot some range of tau
-            tau = linspace(tau_vert_lower_limit,tau_vert_upper_limit,100);
+            % Compute the analytical two-stream RT
+            tau = linspace(tau_vert_lower_limit,tau_vert_upper_limit, length(ssa));
+            % Two-stream theory assumes a constant ssa and g through a homoegeneous
+            % medium. Use the mean of both to compute the interanl 2 stream fluxes
+            [F_up, F_down] = two_stream_RT_internal(tau, mean(ssa), mean(g), albedo_maxTau);
 
             C1 = [8.492724501845559e-01     5.437108503990062e-02     9.681090252965144e-01];
             C2 = [4.843239544631898e-01     7.049687413641152e-01     6.568033076805693e-01];
 
-            figure; xline(R_atTop,'Color',C1,'LineWidth',4)
+            figure; plot(F_up, tau,'Color',C1,'LineWidth',4)
             hold on;
-            xline(T_atBottom,'Color',C2,'LineWidth',4)
+            plot(F_down, tau,'Color',C2,'LineWidth',4)
             plot(F_norm.up,binEdges(1:end-1)+diff(binEdges)/2,'Color',C1,'LineStyle',':')
             plot(F_norm.down,binEdges(1:end-1)+diff(binEdges)/2, 'Color',C2,'LineStyle',':')
             grid on; grid minor
@@ -245,6 +241,12 @@ if inputs.N_layers==1
 else
 
 
+    % Compute the analytical two-stream RT
+    tau = linspace(tau_vert_lower_limit,tau_vert_upper_limit, length(ssa));
+    % Two-stream theory assumes a constant ssa and g through a homoegeneous
+    % medium. Use the mean of both to compute the interanl 2 stream fluxes
+    [F_up, F_down] = two_stream_RT_internal(tau, mean(ssa), mean(g), albedo_maxTau);
+
     % There is more than 1 layer in our model!! So we will ignore the
     % analytical calculation for now
 
@@ -260,6 +262,10 @@ else
     plot(F_norm.up,binEdges(1:end-1)+diff(binEdges)/2,'Color',C1,'LineStyle',':')
     hold on;
     plot(F_norm.down,binEdges(1:end-1)+diff(binEdges)/2, 'Color',C2,'LineStyle',':')
+
+    % plot the analytical solutions
+    plot(F_up, tau,'Color',C1)
+    plot(F_down,tau, 'Color',C2)
     grid on; grid minor
     set(gca,'YDir','reverse')
     xlabel('$F/F_0$','Interpreter','latex');

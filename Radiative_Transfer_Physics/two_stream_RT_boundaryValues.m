@@ -27,7 +27,7 @@
 
 %%
 
-function [reflectance, transmittance, absorptance] = two_stream_RT(tau_layer, ssa, g, albedo_maxTau)
+function [reflectance, transmittance, absorptance] = two_stream_RT_boundaryValues(tau_layer, ssa, g, albedo_maxTau)
 
 
 % check to see if the optical depth, single scattering albedo and asymmetry
@@ -35,7 +35,7 @@ function [reflectance, transmittance, absorptance] = two_stream_RT(tau_layer, ss
 
 if length(tau_layer)~=length(ssa) || length(tau_layer)~=length(g) || length(ssa)~=length(g)
 
-    error([newline, 'The three inputs must have the same number of values', newline])
+    error([newline, 'The first three inputs must have the same number of values', newline])
 
 end
 
@@ -76,9 +76,11 @@ for nn = 1:length(tau_layer)
 
 
 
+
+
         elseif tau_layer(nn)>0 && tau_layer(nn)~=inf
 
-            
+            % Tau_layer is the maximum tau.
 
 
             % K is defined in Bohren and Clothiaux (eq. 5.70)
