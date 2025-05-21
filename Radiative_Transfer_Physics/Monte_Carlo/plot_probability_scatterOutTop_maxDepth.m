@@ -29,7 +29,7 @@ end
 
 % First select on those photons that were scattered out the top
 
-index_scatter_out_top = final_state.scatter_out_top_INDEX;
+index_scatter_out_top = final_state.scatter_out_top_index;
 num_photons_scatter_out_top = final_state.scatter_out_top;
 
 [scatter_out_top_maxDepth_PDF, scatter_out_top_maxDepth_PDF_edges] = ...

@@ -28,7 +28,7 @@ inputs.tau_z_upper_limit = 8;
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 0;                  % deg from zenith
+inputs.solar_zenith_angle = acosd(0.65);                  % deg from zenith
 %inputs.solar_zenith_angle = 27;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
@@ -55,7 +55,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 3700;          % nanometers
+inputs.wavelength = 1600;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
@@ -75,8 +75,11 @@ inputs.size_distribution_var = 7;           % Typically value for liquid water c
 % Do you want to compute the internal fluxes within the medium? If not, and
 % you only care about total absorption, transmission and reflectance, set
 % this flag to false
-inputs.compute_internal_fluxes = false;
+inputs.compute_internal_fluxes = true;
 
+
+% define the computer being used for this calculation
+inputs.which_computer = whatComputer;
 
 
 
@@ -213,7 +216,7 @@ if inputs.N_layers==1
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-        inputs.mie.radius, inputs.mie.wavelength, inputs.mie.distribution, inputs.mie.err_msg_str, 1);
+        inputs.mie.radius, inputs.mie.wavelength, inputs.mie.distribution, inputs.mie.err_msg_str, inputs.which_computer, 1);
 
     % run the mie file
     [~] = runMIE(mie_folder,input_filename,output_filename);
@@ -260,10 +263,10 @@ elseif inputs.N_layers>1 && inputs.createDropletProfile==false
 
     % Create a mie file
     [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-        inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, 1);
+        inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, inputs.which_computer, 1);
 
     % run the mie file
-    [~] = runMIE(mie_folder,input_filename,output_filename);
+    [~] = runMIE(mie_folder, input_filename, output_filename, inputs.which_computer);
 
 
     % Read the output of the mie file
@@ -317,10 +320,10 @@ elseif inputs.N_layers>1 && inputs.createDropletProfile==true
 
         % Create a mie file
         [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, nn);
+            inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, inputs.which_computer, nn);
 
         % run the mie file
-        [~] = runMIE(mie_folder,input_filename,output_filename);
+        [~] = runMIE(mie_folder,input_filename,output_filename, inputs.which_computer);
 
 
         % Read the output of the mie file
@@ -363,7 +366,7 @@ if inputs.mie.integrate_over_size_distribution==true
     % Compute the average value for the single scattering albedo over a size
     % distribution
     [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.layerRadii, inputs.mie.dist_var,...
-        inputs.mie.wavelength(1),inputs.mie.indexOfRefraction, inputs.mie.size_dist, 1);
+        inputs.mie.wavelength(1),inputs.mie.indexOfRefraction, inputs.mie.size_dist, inputs.which_computer, 1);
 
 
 end

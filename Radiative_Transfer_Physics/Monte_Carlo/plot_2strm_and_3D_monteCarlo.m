@@ -19,8 +19,16 @@ else
     g = inputs.g;
 end
 
-tau_z_lower_limit = inputs.tau_z_lower_limit;
-tau_z_upper_limit = inputs.tau_z_upper_limit;
+if isfield(inputs, 'tau_z_lower_limit')
+
+    tau_vert_lower_limit = inputs.tau_z_lower_limit;
+    tau_vert_upper_limit = inputs.tau_z_upper_limit;
+
+elseif isfield(inputs, 'tau_y_lower_limit')
+
+    tau_vert_lower_limit = inputs.tau_y_lower_limit;
+    tau_vert_upper_limit = inputs.tau_y_upper_limit;
+end
 
 % Define the albedo of the lower boundary in our model
 albedo_maxTau = inputs.albedo_maxTau;
@@ -54,7 +62,7 @@ if inputs.N_layers==1
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
 
-        if tau_z_upper_limit == inf
+        if isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit == inf
 
             K = sqrt((1 - ssa)*(1 - g*ssa));
             R_inf = (sqrt(1-ssa*g) - sqrt(1 - ssa))/(sqrt(1-ssa*g) + sqrt(1 - ssa));
@@ -100,7 +108,7 @@ if inputs.N_layers==1
                 'Location','best','FontSize',20)
 
 
-        elseif tau_z_upper_limit>0 && tau_z_upper_limit<inf
+        elseif isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
 
 
             % K is defined in Bohren and Clothiaux (eq. 5.70)
@@ -110,11 +118,11 @@ if inputs.N_layers==1
             R_inf = (sqrt(1-ssa*g) - sqrt(1 - ssa))/(sqrt(1-ssa*g) + sqrt(1 - ssa));
 
             % Define the constants
-            A = (R_inf - albedo_maxTau)*exp(-K*tau_z_upper_limit)/...
-                (R_inf*(R_inf - albedo_maxTau)*exp(-K*tau_z_upper_limit) - (1 - albedo_maxTau*R_inf)*exp(K*tau_z_upper_limit));
+            A = (R_inf - albedo_maxTau)*exp(-K*tau_vert_upper_limit)/...
+                (R_inf*(R_inf - albedo_maxTau)*exp(-K*tau_vert_upper_limit) - (1 - albedo_maxTau*R_inf)*exp(K*tau_vert_upper_limit));
 
-            B = -(1 - R_inf*albedo_maxTau)*exp(K*tau_z_upper_limit)/...
-                (R_inf*(R_inf - albedo_maxTau)*exp(-K*tau_z_upper_limit) - (1 - albedo_maxTau*R_inf)*exp(K*tau_z_upper_limit));
+            B = -(1 - R_inf*albedo_maxTau)*exp(K*tau_vert_upper_limit)/...
+                (R_inf*(R_inf - albedo_maxTau)*exp(-K*tau_vert_upper_limit) - (1 - albedo_maxTau*R_inf)*exp(K*tau_vert_upper_limit));
 
             photon_fraction_up = @(tau) A*exp(K*tau) + B*R_inf*exp(-K*tau);
 
@@ -123,7 +131,7 @@ if inputs.N_layers==1
 
 
             % lets plot some range of tau
-            tau = linspace(tau_z_lower_limit,tau_z_upper_limit,100);
+            tau = linspace(tau_vert_lower_limit,tau_vert_upper_limit,100);
 
             C1 = [8.492724501845559e-01     5.437108503990062e-02     9.681090252965144e-01];
             C2 = [4.843239544631898e-01     7.049687413641152e-01     6.568033076805693e-01];
@@ -152,7 +160,7 @@ if inputs.N_layers==1
                 ['$\tilde{\omega}$ = ', num2str(round(inputs.ssa,3))], ...
                 ['$g$ = ', num2str(round(inputs.g,3))],...
                 ['$r$ = ', num2str(inputs.mie.radius(1)), ' $\mu m$'],...
-                ['$\tau_0$ = ', num2str(inputs.tau_y_upper_limit)],...
+                ['$\tau_0$ = ', num2str(tau_vert_upper_limit)],...
                 ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
             t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
             t.Color = 'black';
@@ -174,22 +182,22 @@ if inputs.N_layers==1
         % Next, check to see if our layer is infinitely thick, or has a finite
         % thickness
 
-        if tau_z_upper_limit == inf
+        if isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit == inf
 
 
             error([newline,'I dont know what to do with a layer of infinte thickness and conservative scattering.',newline])
 
-        elseif tau_z_upper_limit>0 && tau_z_upper_limit<inf
+        elseif isfield(inputs, 'tau_z_lower_limit') && tau_vert_upper_limit>0 && tau_vert_upper_limit<inf
 
             % For a non-absorbing layer of finite thickness, the analytical
             % solutions to the two stream radiative transfer equations are...
 
-            R_atTop = (tau_z_upper_limit * (1 - g)/2)/(1 + tau_z_upper_limit*(1 - g)/2);
+            R_atTop = (tau_vert_upper_limit * (1 - g)/2)/(1 + tau_vert_upper_limit*(1 - g)/2);
 
-            T_atBottom = 1/(1 + tau_z_upper_limit*(1 - g)/2);
+            T_atBottom = 1/(1 + tau_vert_upper_limit*(1 - g)/2);
 
             % lets plot some range of tau
-            tau = linspace(tau_z_lower_limit,tau_z_upper_limit,100);
+            tau = linspace(tau_vert_lower_limit,tau_vert_upper_limit,100);
 
             C1 = [8.492724501845559e-01     5.437108503990062e-02     9.681090252965144e-01];
             C2 = [4.843239544631898e-01     7.049687413641152e-01     6.568033076805693e-01];
@@ -269,7 +277,7 @@ else
         ['$\mu_0$ = ',num2str(round(cosd(inputs.solar_zenith_angle),2))],...
         ['$r_{top}$ = ',num2str(round(inputs.layerRadii(1))), ' $\mu m$'],...
         ['$r_{bot}$ = ',num2str(round(inputs.layerRadii(end))), ' $\mu m$'],...
-        ['$\tau_0$ = ', num2str(inputs.tau_y_upper_limit)],...
+        ['$\tau_0$ = ', num2str(tau_vert_upper_limit)],...
         ['$A_0$ = ', num2str(inputs.albedo_maxTau)]};
     t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
     t.Color = 'black';
@@ -287,8 +295,8 @@ else
 
     % plot the values of each layer's particle radius at the center of each
     % layer
-    d_tau = (tau_z_upper_limit - tau_z_lower_limit)/inputs.N_layers;
-    tau_vector = (tau_z_lower_limit+(d_tau/2)):d_tau:(tau_z_upper_limit-(d_tau/2));
+    d_tau = (tau_vert_upper_limit - tau_vert_lower_limit)/inputs.N_layers;
+    tau_vector = (tau_vert_lower_limit+(d_tau/2)):d_tau:(tau_vert_upper_limit-(d_tau/2));
 
     s2 = subplot(1,2,2);
     plot(inputs.layerRadii,tau_vector,'.','MarkerSize',20)
