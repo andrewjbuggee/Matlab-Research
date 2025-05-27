@@ -88,7 +88,12 @@
 %       paradox limit and sets the extinction efficiency at a constant
 %       value of 2
 
-%   (9) index - this is the unique identifier that ensures files are not
+%   (9) ind_var - the independent variable used to define the effective
+%  radius profile
+
+%   (10) computer_name - the computer this code is running on
+
+%   (11) index - this is the unique identifier that ensures files are not
 %   written over one another. If one file is created, the index will be 1.
 %   If many fiels are written in a for loop, each file will be tagged with
 %   the number in the loop.
@@ -104,8 +109,8 @@
 
 %%
 
-function [fileName] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type, distribution_var,...
-    vert_homogeneous_str, parameterization_str, computer_name, index)
+function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type,...
+    distribution_var, vert_homogeneous_str, parameterization_str, ind_var, computer_name, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -115,7 +120,7 @@ function [fileName] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution
 % depth, and the altitude vector associated with this cloud
 
 
-if nargin~=10
+if nargin~=11
     error([newline,'Should be 10 inputs: droplet effective radius, optical depth, altitude,',...
         [' wavelength, droplet distribution type, variance of the droplet distribution,',...
         ' homogeneity type, the parameterization used to compute LWC, the computer name,',...
@@ -123,6 +128,7 @@ if nargin~=10
 end
 
 % Check to make sure re is the same length as the altitude vector
+[r_re,c_re] = size(re);
 
 % first check to see if z_topBottom is a vector or a matrix
 if size(z_topBottom,1)==1 || size(z_topBottom,2)==1
@@ -333,7 +339,7 @@ if size(re,1)>1 && size(re,2)>1
 
 
 
-        elseif length(lambda)==1
+        elseif isscalar(lambda)
 
             % **** ONLY INTERPOLATING HOMOGENOUS MIE COMPUTATIONS ****
             % ********************************************************
@@ -387,6 +393,14 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
 
     % re must be a column vector
     re = reshape(re,[],1);
+
+    % if the independent variable is optical depth, we need to flip this
+    % vector. This function works in z space, where z increases from bottom
+    % to top, therefore we need to start with the radius at max optical
+    % depth
+    if strcmp(ind_var, 'optical_depth')==true
+        re = flipud(re);
+    end
 
     % the distribution variance should be a column vector
     distribution_var = reshape(distribution_var, [], 1);
@@ -634,7 +648,7 @@ end
 % grab the extinction efficiency values
 
 if strcmp(distribution_type,'gamma')==true
-%     Qext = Qe_avg';         % Extinction efficiency
+    %     Qext = Qe_avg';         % Extinction efficiency
     %Qext = linspace(2.0816, 2.0816, length(re))';        % value to match libRadTran
 
 elseif strcmp(distribution_type,'mono')==true
@@ -649,14 +663,14 @@ end
 
 % if H is a single value and num_files_2write is greater than 1, we will
 % repeat it to create a vector with the same length
-if length(H)==1 && num_files_2write>1
+if isscalar(H) && num_files_2write>1
     H = repmat(H,num_files_2write,1);           % km - geometric thickness
 end
 
 
 % if tau_c is a single value and num_files_2write is greater than 1, we will
 % repeat it to create a vector with the same length
-if length(tau_c)==1 && num_files_2write>1
+if isscalar(tau_c) && num_files_2write>1
     tau_c = repmat(tau_c,num_files_2write,1);
 end
 
@@ -752,7 +766,7 @@ for nn = 1:num_files_2write
         % ** Using libRadTran mie calculations with a size distribution ***
         % -----------------------------------------------------------------
         % ** Assuming liquid water content increases linearly with depth **
-        
+
         %z_kilometers_midpoint = ((z(1:end-1)-z(1)) + (z(2)-z(1))/2);       % kilometers - geometric depth at midpoint of each layer
         z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
         dz_km = z(2) - z(1);           % kilometers
@@ -795,11 +809,16 @@ for nn = 1:num_files_2write
 
         % create the water cloud file name
         if index==0
-            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
-                '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+
+                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+
+
         elseif index>0
-            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
-                '_', distribution_type,'_nn',num2str(index), '.DAT'];
+
+                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                    '_', distribution_type,'_nn',num2str(index), '.DAT'];
+
         end
 
 
@@ -866,6 +885,7 @@ for nn = 1:num_files_2write
 
 
 
+
     % ------------------------------------------------------------
     % ----------------- WE NEED TO APPEND ZEROS ------------------
     % ------------------------------------------------------------
@@ -877,7 +897,7 @@ for nn = 1:num_files_2write
     % both the effective radius and the LWC need zeros on either boundary,
     % unless if the cloud is at the surface
 
-    if (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
+    if (r_re==1 || c_re==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
 
         if z(1)==0
             % If true, then the cloud starts at the surface and we only append
@@ -933,6 +953,8 @@ for nn = 1:num_files_2write
         end
 
     end
+
+
 
 
     % ------------------------------------------------------------

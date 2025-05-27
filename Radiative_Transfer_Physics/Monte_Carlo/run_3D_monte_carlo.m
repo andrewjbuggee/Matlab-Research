@@ -35,7 +35,7 @@ inputs.solar_zenith_angle = 0;                  % deg from zenith
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e7;
+inputs.N_photons = 1e4;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----

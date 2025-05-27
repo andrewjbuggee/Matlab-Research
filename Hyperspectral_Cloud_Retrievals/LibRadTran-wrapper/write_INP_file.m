@@ -16,24 +16,75 @@ fileID = fopen([INP_folderpath, inputFileName], 'w');
 
 % Define which RTE solver to use
 % ------------------------------------------------
-formatSpec = '%s %s %5s %s \n';
+formatSpec = '%s %s %5s %s \n\n';
 fprintf(fileID, formatSpec,'rte_solver', inputs.RT.rte_solver,' ', '# Radiative transfer equation solver');
 
 
-% Define the number of streams to keep track of when solving the equation
-% of radiative transfer
-% ------------------------------------------------
-formatSpec = '%s %u %5s %s \n\n';
-fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
+if strcmp(inputs.RT.rte_solver, 'montecarlo')==true
+
+    % Define the number of photons to use in the simulation
+    % ------------------------------------------------
+    formatSpec = '%s %u %5s %s \n';
+    fprintf(fileID, formatSpec,'mc_photons', inputs.RT.mc.photons,' ', '# MYSTIC number of photons');
+
+
+    if isfield(inputs.RT.mc, 'vroom')
+
+        % Define whether or not to use VROOM
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'mc_vroom', inputs.RT.mc.vroom,' ', '# helps speed up calculations for particles with strong forward scattering');
+
+    end
+
+    if isfield(inputs.RT.mc, 'escape')
+
+        % Do you wish to calculate the escape probabilities?
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'mc_escape', inputs.RT.mc.escape,' ', '# calculates radiances via escape probabilities - speeds up computation');
+
+    end
+
+    if isfield(inputs.RT.mc, 'backward')
+        % Compute backwards ray-tracing
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'mc_backward', inputs.RT.mc.backward,' ', '# backward tracing of photons');
+
+    end
+
+    if isfield(inputs.RT.mc, 'basename')
+        % Define the number of streams to keep track of when solving the equation
+        % of radiative transfer
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'mc_basename', inputs.RT.mc.basename,' ', '# file names and path for 3D mystic output');
+
+    end
+
+
+else
+
+
+    % Define the number of streams to keep track of when solving the equation
+    % of radiative transfer
+    % ------------------------------------------------
+    formatSpec = '%s %u %5s %s \n\n';
+    fprintf(fileID, formatSpec,'number_of_streams', inputs.RT.num_streams,' ', '# Number of streams');
+
+end
 
 
 % Use phase function correction?
 % ------------------------------------------------
-if inputs.RT.use_nakajima_phaseCorrection==true
-    % define the pahse correction to be true
-    % ------------------------------------------------
-    formatSpec = '%s %5s %s \n\n';
-    fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
+if isfield(inputs.RT, 'use_nakajima_phaseCorrection')
+    if inputs.RT.use_nakajima_phaseCorrection==true
+        % define the pahse correction to be true
+        % ------------------------------------------------
+        formatSpec = '%s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'disort_intcor phase', ' ', '# Apply the Nakajima and Tanka radiance correction');
+    end
 end
 
 % Define location of the data files
@@ -74,7 +125,7 @@ end
 
 % Define the surface albedo
 % ------------------------------------------------
-formatSpec = '%s %s %5s %s \n\n';
+formatSpec = '%s %f %5s %s \n\n';
 fprintf(fileID, formatSpec,'albedo', inputs.RT.surface_albedo, ' ', '# Surface albedo of the ocean');
 
 
@@ -196,8 +247,44 @@ end
 
 % Define the sensor altitude
 % ------------------------------------------------
-formatSpec = '%s %s %5s %s \n';
-fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
+if isscalar(inputs.RT.sensor_altitude)
+
+    if isstring(inputs.RT.sensor_altitude)==true
+        % Define the sensor altitude
+        % ------------------------------------------------
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
+
+    elseif isnumeric(inputs.RT.sensor_altitude)==true
+        % Define the sensor altitude
+        % ------------------------------------------------
+        formatSpec = '%s %f %5s %s \n';
+        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
+    end
+
+else
+
+    if all(isnumeric(inputs.RT.sensor_altitude))==true
+        % Define the sensor altitude
+        % ------------------------------------------------
+        num_numeric = length((inputs.RT.sensor_altitude));
+        formatSpec = '%s %s %5s %s \n';
+        fprintf(fileID, formatSpec,'zout', num2str(round(inputs.RT.sensor_altitude, 3)), ' ', '# Sensor Altitude');
+
+    elseif iscell(inputs.RT.sensor_altitude)
+        % find the string?
+        idx_string = isstring(inputs.RT.sensor_altitude);
+        idx_numeric = isnumeric(inputs.RT.sensor_altitude);
+        % Define the sensor altitude
+        % ------------------------------------------------
+        formatSpec = ['%s %',num2str(length(idx_numeric)),'f %',num2str(length(idx_string)),'s %s \n'];
+        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
+
+    end
+
+
+
+end
 
 % Define the solar zenith angle
 % ------------------------------------------------

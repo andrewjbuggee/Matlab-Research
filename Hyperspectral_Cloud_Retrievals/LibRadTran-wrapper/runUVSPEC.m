@@ -67,7 +67,7 @@ if numFiles2Run==1
     expr8 = '[^\n]*wavelength [^\n]*';
 
     match1 = regexp(textFile,expr1,'match'); % find rte_solver typ
-    match2 = regexp(textFile,expr2,'match'); % find consine of viewing angle vector
+    match2 = regexp(textFile,expr2,'match'); % find cosine of viewing angle vector
     match3 = regexp(textFile,expr3,'match'); % find azimuth viewing angle vector
     match4 = regexp(textFile,expr4,'match'); % find the solar zenith angle
     match5 = regexp(textFile,expr5,'match'); % find the solar azimuth angle
@@ -90,8 +90,13 @@ if numFiles2Run==1
     index5_space1 = regexp(match5{1},'\s[0123456789]+'); % There is only 1 value for the solar zenith angle
     index5_space2 = regexp(match5{1},'[0123456789]\s+'); % find a space that comes after a number - but since the varaible name, phi0, ends in a 0, we have to manually choose the second space
 
-    index6_space1 = regexp(match6{1},'\s[0123456789]+'); % There is only 1 value for the solar zenith angle
+    index6_space1 = regexp(match6{1},'\s[0123456789]+'); % Find a space that is followed by a number
     index6_space2 = regexp(match6{1},'[0123456789]\s+'); % find a space that comes after a number
+    index6_toa = regexp(match6{1}, 'toa', 'once');
+    index6_allLevels = regexp(match6{1}, 'all_levels', 'once');
+    index6_modelLevels = regexp(match6{1}, 'model_levels');
+    index6_modelLayers = regexp(match6{1}, 'model_layers');
+    index6_modelLevels_andLayers = regexp(match6{1}, 'model_levels_and_layers');
 
     % don't let the lack of a source stop you!
     if isempty(match7)==true
@@ -139,23 +144,77 @@ if numFiles2Run==1
     saz = match5{1}(index5_space1+1:index5_space2(2));
     saz = str2double(saz);
 
-    % find the sensor altitude
 
+    % find the sensor altitude (might be a vector!)
+    zout_str = cell(1,length(index6_space1));
+    zout = zeros(1,length(index6_space1));
 
-    if isempty(index6_space1)==false
-        zout = match6{1}(index6_space1(1)+1:index6_space2(2)-1); % this would be for a numeric value
-        zout = str2double(zout);
-    elseif isempty(index6_space1)==true
-        indexString1 = regexp(match6{1},'\s[a-z][a-z][a-z]'); % this would be for a string value like toa or boa
-        indexString2 = regexp(match6{1},'[a-z]\s');
-        zout_str = match6{1}(indexString1(1)+1:indexString2(2));
+    if isempty(zout)==false
 
-        if strcmp(zout_str,'toa')==true
-            zout = 100;
-        elseif strcmp(zout_str,'sur')==true
-            zout = 0;
+        for nn = 1:length(zout)
+
+            if isempty(index6_space1(nn))==false
+
+                zout_str{nn} = match6{1}(index6_space1(nn)+1:index6_space2(nn)); % this would be for a numeric value
+                zout(nn) = str2double(zout_str{nn});
+
+            elseif isempty(index6_space1(nn))==true
+                indexString1 = regexp(match6{1},'\s[a-z][a-z][a-z]'); % this would be for a string value like toa or boa
+                indexString2 = regexp(match6{1},'[a-z]\s');
+                zout_str{nn} = match6{1}(indexString1(1)+1:indexString2(2));
+
+                if strcmp(zout_str,'toa')==true
+                    zout(nn) = 100;
+                elseif strcmp(zout_str,'sur')==true
+                    zout(nn) = 0;
+                end
+
+            end
+
         end
+
     end
+
+    if isempty(index6_toa)==false
+
+        zout_str{end+1} = 'toa';
+        zout(end+1) = 100;
+
+    end
+
+    if isempty(index6_allLevels)==false
+
+        zout_str{end+1} = 'all_levels';
+        zout(end+1) = inf;
+
+    end
+
+    if isempty(index6_modelLayers)==false
+
+        zout_str{end+1} = 'model_layers';
+        zout(end+1) = inf;
+
+    end
+
+    if isempty(index6_modelLevels)==false
+
+        zout_str{end+1} = 'model_levels';
+        zout(end+1) = inf;
+
+    end
+
+    if isempty(index6_modelLevels_andLayers)==false
+
+        zout_str{end+1} = 'model_levels_and_layers';
+        zout(end+1) = inf;
+
+    end
+
+
+
+
+
+
 
 
 

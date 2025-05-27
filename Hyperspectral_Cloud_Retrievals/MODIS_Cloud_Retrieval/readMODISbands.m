@@ -38,7 +38,8 @@ comp = whatComputer;
 
 if strcmp(comp,'andrewbuggee')==true
     
-    folder_bands = '/Users/andrewbuggee/Documents/MATLAB/CU Boulder/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/';
+    folder_bands = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/'];
     
 elseif strcmp(comp,'anbu8374')==true
     

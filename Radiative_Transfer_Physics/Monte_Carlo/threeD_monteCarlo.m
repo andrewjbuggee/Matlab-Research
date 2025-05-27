@@ -694,6 +694,8 @@ end
 
 %%
 
+test = 0;
+
 
 if inputs.compute_internal_fluxes==true
 
@@ -829,6 +831,7 @@ if inputs.compute_internal_fluxes==true
                 if bin_edges_less_than_end_position(end)==bin_edges_less_than_start_position(end)
                     % If this is true, the photon is continuing to move upward
                     % in the same bin, and we don't count it
+                    test = test + 1;
                 else
 
                     % If the photon is continuing to move upwards, that means
@@ -876,7 +879,9 @@ if inputs.compute_internal_fluxes==true
                 % logical true value for the binEdge equal to tau_upper_limit.
                 % If we don't we get an error, and all we need to keep track of
                 % is whether or not the photon passed through this bin
-                if bins_photon_moves_through(end)==true && (photon_tau_absolute_position{nn}(tt,3)==tau_z_upper_limit || photon_tau_absolute_position{nn}(tt+1,3)==tau_z_upper_limit)
+                if bins_photon_moves_through(end)==true && (photon_tau_absolute_position{nn}(tt,3)==tau_z_upper_limit...
+                        || photon_tau_absolute_position{nn}(tt+1,3)==tau_z_upper_limit)
+
                     bins_photon_moves_through(end) = 0;
                 end
 

@@ -1,14 +1,12 @@
-%% Create simulated HySICS measurements
-% Include Gaussian random noise
-
+%% Compute weighting functions using libRadtran's MYSTIC Monte Carlo Model
 
 % By Andrew John Buggee
-
 
 clear variables
 
 
-%% Define the path location where INP files will be stored, and where Reflectances will be stored
+%% Which computer are you using?
+
 
 clear inputs
 
@@ -42,12 +40,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     inputs.folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+        'HySICS/Monte_Carlo/'];
 
 
     % Define the folder path where all .INP files will be saved
     inputs.folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/HySICS/'];
+        'LibRadTran/libRadtran-2.0.4/testing_MYSTIC/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -95,32 +93,29 @@ if ~exist(inputs.folderpath_reflectance, 'dir')
 end
 
 
-%%  Delete old files?
-% First, delete files in the HySICS folder
-delete([inputs.folderpath_inp, '*.INP'])
-delete([inputs.folderpath_inp, '*.OUT'])
 
-
-
-%% ---- First, let's simulate water clouds ----
+%% set up the inputs to create an INP file for MYSTIC!
 
 
 % Define the parameters of the INP file
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'simulated_measurement';
-%inputs.calc_type = 'forward_model_calcs_forRetrieval';
+inputs.calc_type = 'monte_carlo';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
 
 % Define the RTE Solver
-inputs.RT.rte_solver = 'disort';
+inputs.RT.rte_solver = 'montecarlo';
 
+% ---------------------------------------------------
+% --------- Define Monte Carlo Parameters -----------
+% ---------------------------------------------------
+inputs.RT.mc.photons = 10000;      % number of photons to use in the simulation
+inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
+inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
 
-% Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 16;
 % ------------------------------------------------------------------------
 
 
@@ -157,15 +152,20 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
 
 % test bands
-% inputs.bands2run = [49, 57, 69]';
+inputs.bands2run = [49]';
 
 
+% ------------------------------------------------------------------------
+% Do you want to compute radiance/reflectance over a spectral region, or at
+% a single wavelength?
+% ------------------------------------------------------------------------
+inputs.RT.monochromatic_calc = true;
 
 
 % ------------------------------------------------------------------------
@@ -191,22 +191,21 @@ inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
 for ww = 1:length(inputs.bands2run)
     % The wavelength vector for libRadTran is simply the lower and upper
     % bounds
-    inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
-        spec_response.wavelength(ww, end)];
+    inputs.RT.wavelengths2run(ww,:) = [round(mean(spec_response.wavelength(ww,:)), 1),...
+        round(mean(spec_response.wavelength(ww, :)) ,1)];
 
 end
 
 
+% num wavelengths
+num_wl = size(inputs.RT.wavelengths2run,1);
+
+
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
 
 
 
-
-% ------------------------------------------------------------------------
-% --- Do you want to use the Nakajima and Tanka radiance correction? -----
-inputs.RT.use_nakajima_phaseCorrection = true;
-% ------------------------------------------------------------------------
 
 
 % ------------------------------------------------------------------------
@@ -225,7 +224,7 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.04;
+inputs.RT.surface_albedo = 0;
 
 % day of the year
 %inputs.RT.day_of_year = 17;
@@ -318,16 +317,6 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       droplet radius to have linearly with optical depth (re(z)~tau).
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
-    inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
-
-    inputs.RT.n_layers = 10;                          % number of layers to model within cloud
-
-    inputs.RT.z = linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers);        % km - altitude above ground vector
-
-    inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
-
-    inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
-
     inputs.RT.r_top = 12;     % microns
     inputs.RT.r_bot = 5;        % microns
     inputs.RT.tau_c = 8;
@@ -343,6 +332,33 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % inputs.RT.r_top = 3:20;       % microns
     % inputs.RT.r_bot = 2:14;        % microns
     % inputs.RT.tau_c = 7.5:0.5:15;
+
+
+    inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
+
+
+    inputs.RT.n_layers = 10;                          % number of layers to model within cloud
+
+    % -------------------------------------------------------------------
+    % define the independent variable used to define the effective radius
+    % profile within the cloud
+    % -------------------------------------------------------------------
+    % if using altitude, z should be a vector starting at the cloud bottom
+    % and increasing
+    inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
+    inputs.RT.z_edges = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers+1)';   % km - the edges of each layer
+    inputs.RT.zT_cloud_indVar = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers)';        % km - altitude above ground vector
+
+    % If using optical depth, this vector should start with 0 (cloud top) 
+    % and end with the total cloud optical thickness.
+    % inputs.RT.indVar = 'optical_depth';                    % string that tells the code which independent variable we used
+    % inputs.RT.tau_edges = linspace(0, inputs.RT.tau_c, inputs.RT.n_layers+1)'; % define the boundaries of each tau layer
+    % inputs.RT.zT_cloud_indVar = linspace(0, inputs.RT.tau_c, inputs.RT.n_layers)';        % optical depth
+
+
+
+    inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
+
 
 
     % define the type of droplet distribution
@@ -383,10 +399,22 @@ end
 % --------------------------------------------------------------
 
 % Define the altitude of the sensor
-inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
+% How many layers to model in the cloud?
+if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+    
+    inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
+
+elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
+
+    inputs.RT.sensor_altitude = 'toa';
+
+end
+
 
 % define the solar zenith angle
-inputs.RT.sza = 31;           % degree
+% inputs.RT.sza = 31;           % degree
+inputs.RT.sza = acosd(0.65);           % degree
+
 
 % Define the solar azimuth measurement between values 0 and 360
 % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
@@ -395,10 +423,12 @@ inputs.RT.sza = 31;           % degree
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-inputs.RT.phi0 = -84 + 180;         % degree
+%inputs.RT.phi0 = -84 + 180;         % degree
+inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 4; % values are in degrees;                        % degree
+% inputs.RT.vza = 4; % values are in degrees;                        % degree
+inputs.RT.vza = acosd(0.85); % values are in degrees;                        % degree
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -407,7 +437,9 @@ inputs.RT.vza = 4; % values are in degrees;                        % degree
 % sensor azimuth angle of 0 means the sensor is in the North, looking
 % south. No transformation is needed
 
-inputs.RT.vaz = -103+360;     % degree
+% inputs.RT.vaz = -103+360;     % degree
+inputs.RT.vaz = 0;     % degree
+
 % --------------------------------------------------------------
 
 
@@ -457,33 +489,24 @@ inputs.RT.CO2_mixing_ratio = 416;       % ppm
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = false;
+inputs.RT.compute_reflectivity_uvSpec = true;
 % --------------------------------------------------------------
 
 
 
 % --------------------------------------------------------------
 % Do you want to print an error message?
-inputs.RT.errMsg = 'quiet';
+inputs.RT.errMsg = 'verbose';
 % --------------------------------------------------------------
 
 
-%% Write each INP file
 
 
+%% Write the INP files
 
-% num wavelengths
-if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
-
-    inputs.RT.monochromatic_calc = false;
-    num_wl = size(inputs.RT.wavelengths2run,1);
-
-else
-
-    inputs.RT.monochromatic_calc = true;
-    num_wl = length(inputs.RT.wavelengths2run);
-
-end
+% update the basename
+inputs.RT.mc.basename = [inputs.folderpath_inp, 'mc_',num2str(inputs.RT.wavelengths2run(1)),...
+    'nm'];
 
 
 idx = 0;
@@ -602,12 +625,15 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % length of each independent variable
     % length of each independent variable
-    num_rTop = length(inputs.RT.r_top);
-    num_rBot = length(inputs.RT.r_bot);
-    num_tauC = length(inputs.RT.tau_c);
+    % num_rTop = length(inputs.RT.r_top);
+    % num_rBot = length(inputs.RT.r_bot);
+    % num_tauC = length(inputs.RT.tau_c);
     num_wl = length(inputs.bands2run);
+    num_tau_layers = inputs.RT.n_layers;
 
-    num_INP_files = num_rTop*num_rBot*num_tauC*num_wl;
+    % num_INP_files = num_rTop*num_rBot*num_tauC*num_wl;
+    num_INP_files = num_wl*num_tau_layers;
+
 
     inputFileName = cell(num_INP_files, 1);
     outputFileName = cell(num_INP_files, 1);
@@ -619,37 +645,52 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %   for rb = 1:num_rBot
     %       for tt = 1:num_tauC
     %           for ww = 1:num_wl
-    changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
-        repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
-        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
-        repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
+    % changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
+    %     repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
+    %     repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
+    %     repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
+
+    changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),repmat(inputs.RT.zT_cloud_indVar, num_wl,1)];
+
 
     % Add a final column that includes the index for the spectral response
     % function. These always increase chronologically
-    changing_variables = [changing_variables, repmat((1:num_wl)', num_rTop*num_rBot*num_tauC, 1)];
+    changing_variables = [changing_variables, repmat((1:num_wl)', num_tau_layers, 1)];
 
     % First, write all the wc files
-    temp_names = cell(num_rTop*num_rBot*num_tauC, 1);
+    temp_names = cell(num_tau_layers, 1);
     wc_filename = cell(num_INP_files, 1);
 
-    % only jump on indexes where there is a unique r and tau pair
-    idx_unique_indVars = 1:num_wl:num_INP_files;
+    % need an re and tau_c file for each layer, because we slowly build the
+    % cloud but adding layer after layer
+    idx_unique_indVars = 1:num_tau_layers;
 
-    parfor nn = 1:length(idx_unique_indVars)
+
+    % create a droplet profile
+    re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.zT_cloud_indVar,...
+        inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
+
+    % create the wc_file for the full cloud
+    [~, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
+            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+            inputs.RT.indVar, inputs.which_computer, 1);
+    
+    % Compute the optical depth of each layer
+    inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
+
+    %parfor nn = 1:length(idx_unique_indVars)
+    for nn = 1:length(idx_unique_indVars)
 
         % -----------------------------------
         % ---- Write a Water Cloud file! ----
         % -----------------------------------
 
-        re = create_droplet_profile2([changing_variables(idx_unique_indVars(nn), 1),...
-            changing_variables(idx_unique_indVars(nn), 2)],...
-            inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
-
-        temp = write_wc_file(re, changing_variables(idx_unique_indVars(nn), 3),...
-            inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+        temp = write_wc_file(re(1:nn), sum(inputs.RT.tau_layers(1:nn)),...
+            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.which_computer, idx_unique_indVars(nn));
+            inputs.RT.indVar, inputs.which_computer, idx_unique_indVars(nn));
 
         temp_names{nn} = temp{1};
 
@@ -662,11 +703,11 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Now write all the INP files
-    parfor nn = 1:num_INP_files
-
+    % parfor nn = 1:num_INP_files
+    for nn = 1:num_INP_files
 
         % set the wavelengths for each file
-        wavelengths = changing_variables(nn, end-2:end-1);
+        wavelengths = changing_variables(nn);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -675,8 +716,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         % they can be traced, and are writen over in memory
 
 
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
-            '_rBot_', num2str(changing_variables(nn,2)),'_tauC_', num2str(changing_variables(nn,3)), '_',...
+        inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(changing_variables(nn,2)), '_',...
             inputs.RT.atm_file(1:end-4),'.INP'];
 
 
@@ -699,11 +740,7 @@ toc
 
 
 
-
-
-
-%% Calculate Reflectance
-
+%% Run the MYSTIC program
 
 % define only the spec_response so the wavelengths are passed into the
 % memory of the parallel for loop
@@ -739,12 +776,12 @@ parfor nn = 1:num_INP_files
     [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
         inputs.RT.compute_reflectivity_uvSpec);
 
-    % Store the Radiance
-    %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+    % Store the reflectance
+   Refl_model(nn, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
-    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        spec_response_value(changing_variables(nn,end),:));
+    % % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    % [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+    %     spec_response_value(changing_variables(nn,end),:));
 
 
 
@@ -758,277 +795,16 @@ end
 toc
 
 
-%%
-% ----------------------------------------------
-% ---------- SAVE REFLECTANCE OUTPUT! ----------
-% ----------------------------------------------
 
-% Save the version without an measurement uncertainty. Then we can add
-% uncertainty and save the new file
+%% Compute the weighting functions using Platnick (2000)
+% Equation 4 defines the weighting function as the normalized derivative of
+% reflectance with respect to optical depth.
 
-if strcmp(inputs.which_computer,'anbu8374')==true
 
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
+%% test code
 
-    inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+z = [];
+tau_vector = [];
+R = [];
 
-
-
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
-
-
-elseif strcmp(inputs.which_computer,'curc')==true
-
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
-
-    warning([newline, 'No folder to store things in!', newline])
-
-
-
-end
-
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(inputs.folderpath_2save, 'dir')
-
-    mkdir(inputs.folderpath_2save)
-
-end
-
-
-
-rev = 1;
-
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-
-    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
-
-        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
-
-        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    end
-
-
-else
-
-    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
-
-        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
-
-        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    end
-
-end
-
-
-while isfile(filename)
-    rev = rev+1;
-    if rev<10
-        filename = [filename(1:end-5), num2str(rev),'.mat'];
-    elseif rev>10
-        filename = [filename(1:end-6), num2str(rev),'.mat'];
-    end
-end
-
-
-save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
-
-
-
-%% Add Gaussian Noise to the measurements
-
-% --- meausrement uncertainty ---
-% define this as a fraction of the measurement
-% inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
-inputs.measurement.uncert = 0;
-
-% Define a gaussian where the mean value is the true measurement, and twice
-% the standard deviation is the product of the measurement uncertainty and
-% the true measurements.
-% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
-%           +/- 2*sigma = 95% of the area under the gaussian curve
-%           +/- 3*sigma = 99.7% of the area under the gaussian curve
-
-% Compute the new synethtic measurement with gaussian noise
-% *** Gaussian noise can be either positive or negative. Meaning, an
-% uncertainty of 5% implies the true value can lie anywhere between
-% +/- 5% of the measured value
-
-% To sample a normal distribution with mean mu, and standard deviation s,
-% we compute the following: y = s * randn() + mu
-
-% We define the standard deviation as the measurement uncertainty divided
-% by three. Therefore, after sample a large number of times, 99% of
-% measurements will be within +/- measurement uncertainy of the mean
-
-if any(inputs.measurement.uncert > 0)
-
-    inputs.measurement.standard_dev = inputs.measurement.uncert/3;       % this is still just a fraction
-
-    for uu = 1:length(inputs.measurement.uncert)
-
-        clear Refl_model_with_noise Refl_model_uncert
-
-
-        Refl_model_with_noise = (inputs.measurement.standard_dev(uu) .* Refl_model) .* randn(size(Refl_model))...
-            + Refl_model;
-
-
-        % define the synthetic relfectance uncertainty
-        Refl_model_uncert = inputs.measurement.uncert(uu) .* Refl_model_with_noise;    % 1/sr
-
-
-
-        % Save the output with added measurement uncertainty
-        ver = 1;
-
-        if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-
-            if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
-
-                filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-                    'inhomogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
-                    '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
-
-            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
-
-                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
-                    'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
-                    char(datetime("today")), '_rev', num2str(ver),'.mat'];
-
-            end
-
-
-
-        else
-
-            if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
-
-                filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-                    'homogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
-                    '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
-
-            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
-
-                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
-                    'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
-                    char(datetime("today")), '_rev', num2str(ver),'.mat'];
-
-            end
-
-
-        end
-
-
-        while isfile(filename)
-            ver = ver+1;
-            filename = [filename(1:end-5), num2str(ver), '.mat'];
-        end
-
-
-        save(filename, "Refl_model_with_noise", "Refl_model_uncert","inputs",...
-            "changing_variables", "spec_response");
-
-    end
-
-end
-
-
-
-
-
-
-%% Plot the results
-
-
-figure;
-if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
-
-    if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true && ...
-            num_rTop==1 && num_rBot==1 && num_tauC==1
-
-        % There is one state vector computed for a range of wavelengths
-        plot(mean(inputs.RT.wavelengths2run,2),Refl_model,...
-            '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(1, 'fixed'))
-
-
-        title('Simulated Reflectance - liquid water cloud','Interpreter', 'latex')
-        subtitle(['$r_{top} = $',num2str(round(inputs.RT.r_top,1)), ' $\mu m$, $r_{bot} = $',...
-            num2str(round(inputs.RT.r_bot,1)), ' $\mu m$, $\tau_c = $', num2str(round(inputs.RT.tau_c,1))],...
-            'Interpreter', 'latex')
-
-
-
-    elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true && ...
-            num_rTop>1 && num_rBot>1 && num_tauC>1
-
-        % indexes to plot
-        r_top_2Plot = changing_variables(:,1)==9;
-        r_bot_2Plot = changing_variables(:,2)==4;
-
-        for nn = 1:size(Refl_model,4)
-
-            plot(mean(inputs.RT.wavelengths2run,2),...
-                reshape(Refl_model(:,r_top_2Plot, r_bot_2Plot, nn), 1, []),...
-                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
-
-            hold on
-
-            legend_str{nn} = ['$\tau_c = $', num2str(inputs.RT.tau_c(nn))];
-
-        end
-
-
-
-    elseif size(Refl_model,2)==1 && size(Refl_model,3)==1 && size(Refl_model,4)>1
-
-
-        for nn = 1:size(Refl_model,4)
-
-            plot(mean(inputs.RT.wavelengths2run,2),...
-                reshape(Refl_model(:,1, 1, nn), length(inputs.bands2run), []),...
-                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
-
-            hold on
-
-            legend_str{nn} = ['$\tau_c = $', num2str(inputs.RT.tau_c(nn))];
-
-        end
-
-
-
-    end
-
-end
-
-hold on
-
-grid on; grid minor
-xlabel('Wavelength (nm)','Interpreter', 'latex')
-ylabel('Reflectance (1/sr)','Interpreter', 'latex')
-set(gcf, 'Position', [0 0 1000 1000])
-%legend(legend_str,  'Interpreter', 'latex', 'Fontsize', 30', 'location', 'best')
-% title(['Simulated Reflectance - liquid water cloud - $r_e = $', num2str(re_2plot), ' $\mu m$, $\tau_c = $',...
-%     num2str(tau_2plot)], 'Interpreter', 'latex')
+wm = diff(R)./diff(tau_vector) ./ R(1);
