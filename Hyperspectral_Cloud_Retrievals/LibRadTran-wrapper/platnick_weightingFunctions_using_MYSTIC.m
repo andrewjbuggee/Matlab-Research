@@ -21,11 +21,11 @@ if strcmp(which_computer,'anbu8374')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     inputs.folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Monte_Carlo/'];
 
 
     % Define the folder path where all .INP files will be saved
-    inputs.folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
+    inputs.folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/testing_MYSTIC/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -98,6 +98,10 @@ end
 
 
 % Define the parameters of the INP file
+
+% *** compute weighting functions! ***
+inputs.compute_weighting_functions = true;
+
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
@@ -349,7 +353,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.z_edges = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers+1)';   % km - the edges of each layer
     inputs.RT.zT_cloud_indVar = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers)';        % km - altitude above ground vector
 
-    % If using optical depth, this vector should start with 0 (cloud top) 
+    % If using optical depth, this vector should start with 0 (cloud top)
     % and end with the total cloud optical thickness.
     % inputs.RT.indVar = 'optical_depth';                    % string that tells the code which independent variable we used
     % inputs.RT.tau_edges = linspace(0, inputs.RT.tau_c, inputs.RT.n_layers+1)'; % define the boundaries of each tau layer
@@ -400,15 +404,18 @@ end
 
 % Define the altitude of the sensor
 % How many layers to model in the cloud?
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-    
-    inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
+% if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+%
+%     inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
+%
+% elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
+%
+%     inputs.RT.sensor_altitude = 'toa';
+%
+% end
 
-elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
-
-    inputs.RT.sensor_altitude = 'toa';
-
-end
+% I think the sensor altitude, for now, is the cloud top
+inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
 
 
 % define the solar zenith angle
@@ -670,25 +677,30 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.zT_cloud_indVar,...
         inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
-    % create the wc_file for the full cloud
-    [~, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
-            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.which_computer, 1);
-    
+    % -----------------------------------
+    % ---- Write a Water Cloud file! ----
+    % -----------------------------------
+    % re must be defined from cloud bottom to cloud top
+    % z_topBottom must be defined as the cloud top height first, then
+    % cloud bottom
+    [temp, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
+        inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+        inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+        inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, 1);
+
+    temp_names = temp{1};
+
     % Compute the optical depth of each layer
     inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
 
     %parfor nn = 1:length(idx_unique_indVars)
     for nn = 1:length(idx_unique_indVars)
 
-        % -----------------------------------
-        % ---- Write a Water Cloud file! ----
-        % -----------------------------------
 
 
-        temp = write_wc_file(re(1:nn), sum(inputs.RT.tau_layers(1:nn)),...
-            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+
+        temp = write_wc_file(re(end-(nn-1):end), sum(inputs.RT.tau_layers(end-(nn-1):end)),...
+            flipud(inputs.RT.z_edges([end-nn,end]))', inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
             inputs.RT.indVar, inputs.which_computer, idx_unique_indVars(nn));
 
@@ -777,7 +789,7 @@ parfor nn = 1:num_INP_files
         inputs.RT.compute_reflectivity_uvSpec);
 
     % Store the reflectance
-   Refl_model(nn, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+    Refl_model(nn, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
     % % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
     % [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...

@@ -110,7 +110,8 @@
 %%
 
 function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type,...
-    distribution_var, vert_homogeneous_str, parameterization_str, ind_var, computer_name, index)
+    distribution_var, vert_homogeneous_str, parameterization_str, ind_var, compute_weighting_functions,...
+    computer_name, index)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -120,10 +121,11 @@ function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_to
 % depth, and the altitude vector associated with this cloud
 
 
-if nargin~=11
-    error([newline,'Should be 10 inputs: droplet effective radius, optical depth, altitude,',...
+if nargin~=12
+    error([newline,'Should be 12 inputs: droplet effective radius, optical depth, altitude,',...
         [' wavelength, droplet distribution type, variance of the droplet distribution,',...
-        ' homogeneity type, the parameterization used to compute LWC, the computer name,',...
+        ' homogeneity type, the parameterization used to compute LWC, the independent vertical variable',...
+        ', a flag telling the code to compute weighting functions, the computer name,',...
         'and the unique file index.'], newline])
 end
 
@@ -509,6 +511,130 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
     end
 
 
+
+
+    % When creating weighting functions, we want to build a cloud layer by
+    % layer. So it may be vertically inhomogeneous but the first layer is not,
+    % because by definition a single layer cloud is homogeneous.
+elseif isscalar(re) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
+
+
+    % treat this single layer cloud as vertically homogeneous
+
+    num_files_2write = 1;
+
+
+    % -------------------------------------------------------------------
+    % ------ open the precomputed mie table and interpolate! ------------
+    % -------------------------------------------------------------------
+
+    % for writing water cloud files, we only need the extinction efficiency
+    % Since this function is used often, we've created a file with just Q_ext
+
+    justQ = true;                       % Load the precomputed mie table of only Q_ext values
+
+    if strcmp(parameterization_str,'mie')==true
+
+
+
+
+        if strcmp(distribution_type,'gamma')==true
+
+            % -------------------------------------------------------------
+            % --- MANUALLY INTEGRATE OVER THE SIZE DISTRIBUTION DEFINED ---
+            % -------------------------------------------------------------
+
+            % If we wish to estimate the mie properties of liquid water
+            % for a distribution of droplets, then we can skip the
+            % pre-computed mie tables and estimate the values using the
+            % average_mie_over_size_distribution directly
+
+            % This function only deals with liquid water clouds
+            % define the index of refraction
+            %             index_of_refraction = 'water';
+            %
+            %             % integrate over a size distribution to get an average
+            %             [~, Qe_avg, ~] = average_mie_over_size_distribution(re, distribution_var, lambda,...
+            %                 index_of_refraction, distribution_type, index);
+            % -------------------------------------------------------------
+
+
+            % -------------------------------------------------------
+            % ----------- USE LIBRADTRAN MIE CALCULATIONS -----------
+            % -------------------------------------------------------
+            % Libradtran doesn't compute the efficieny when a distribution
+            % is specified. It computes the bulk coefficient per unit
+            % concentration. For water, since the density is 1 g/m^3, we
+            % can somply multiply the output with the liquid water content
+            % and integrate over the path to get the optical depth.
+
+
+            % What mie code should we use to compute the scattering properties?
+            mie_program = 'MIEV0';               % type of mie algorithm to run
+
+            % This function only deals with liquid water clouds
+            % define the index of refraction
+            index_of_refraction = 'water';
+
+            size_distribution = {'gamma', distribution_var(1)};           % droplet distribution
+
+            % Do you want a long or short error file?
+            err_msg_str = 'verbose';
+
+
+            % The radius input is defined as [r_start, r_end, r_step].
+            % where r_step is the interval between radii values (used only for
+            % vectors of radii). A 0 tells the code there is no step. Finally, the
+            % radius values have to be in increasing order.
+
+            % Libradtran doesn't compute the efficieny when a distribution
+            % is specified. It computes the bulk coefficient per unit
+            % concentration. For water, since the density is 1 g/m^3, we
+            % can somply multiply the output with the liquid water content
+            % and integrate over the path to get the optical depth.
+
+            mie_radius = [re, re, 0];    % microns
+
+
+            % Create a mie file
+            [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
+                mie_radius, lambda, size_distribution, err_msg_str, computer_name, index);
+
+            % run the mie file
+            [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
+
+            % Read the output of the mie file
+            [ds,~,~] = readMIE(mie_folder,output_filename);
+
+            ext_bulk_coeff_per_LWC = ds.Qext;       % km^-1 / (cm^3 / m^3)
+
+            % --------------------------------------------------------------
+
+
+
+
+
+        elseif strcmp(distribution_type,'mono')==true
+            yq = interp_mie_computed_tables([repmat(lambda,numel(re),1), re], 'mono', justQ);
+
+        else
+
+            error([newline,'Invaled distribution type',newline])
+
+        end
+
+
+    elseif strcmp(parameterization_str, '2limit')==true
+
+        yq = 2*ones(length(re),5);
+
+    end
+
+
+
+
+
+
     % if the re input is a vector and the homogenous string is defined as
     % vertically homogeneous, then the code assumes each value in the vector is
     % a single cloud, and the each value defines the homogenous droplet size
@@ -810,14 +936,14 @@ for nn = 1:num_files_2write
         % create the water cloud file name
         if index==0
 
-                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
-                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                '_', distribution_type,'_nn',num2str(nn), '.DAT'];
 
 
         elseif index>0
 
-                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
-                    '_', distribution_type,'_nn',num2str(index), '.DAT'];
+            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                '_', distribution_type,'_nn',num2str(index), '.DAT'];
 
         end
 
@@ -962,28 +1088,70 @@ for nn = 1:num_files_2write
     % ------------------------------------------------------------
 
 
+    if compute_weighting_functions==true
 
-    % Create the water cloud file
-    fileID = fopen([water_cloud_folder_path,fileName{nn}], 'w');
+        % to compute the weighting functions using the methods of Platnick
+        % (2000), we need to compute the reflectance at cloud top (or TOA)
+        % by incrementally adding a layer at cloud bottom. Using the z,re,
+        % and lwc above, we will iterate through each layer and create n
+        % files where n is equal to the number of cloud layers. Each
+        % iteration will remove a layer from cloud bottom.
+        for LL = 1:nLayers-1
 
-    % fprintf writes lines in our text file from top to botom
-    % wc.DAT files are written with the higher altitudes at the top, and the
-    % surface at the bottom
+            % Create the water cloud file
+            fileID = fopen([water_cloud_folder_path,fileName{1}(1:end-5), num2str(LL),...
+                '.DAT'], 'w');
 
-    % to write column vectors in a text file, we have to store them as row
-    % vectors
+            % fprintf writes lines in our text file from top to botom
+            % wc.DAT files are written with the higher altitudes at the top, and the
+            % surface at the bottom
 
-    toWrite = [flipud(z_2write)'; flipud(lwc_2write)'; flipud(re_2write)'];
+            % to write column vectors in a text file, we have to store them as row
+            % vectors
 
-    % Create the opening comment lines of the WC.DAT file
+            toWrite = [flipud(z_2write([1, LL+1:end]))'; flipud(lwc_2write([1, LL+1:end]))';...
+                flipud(re_2write([1, LL+1:end]))'];
 
-    fprintf(fileID, '%s %10s %7s %8s \n','#','z','LWC','R_eff');
-    fprintf(fileID, '%s %10s %7s %8s \n','#','(km)','(g/m^3)','(micron)');
+            % Create the opening comment lines of the WC.DAT file
 
-    % Write in the data
-    fprintf(fileID,'%12.3f %7.4f %8.3f \n', toWrite);
-    fclose(fileID);
+            fprintf(fileID, '%s %10s %7s %8s \n','#','z','LWC','R_eff');
+            fprintf(fileID, '%s %10s %7s %8s \n','#','(km)','(g/m^3)','(micron)');
 
+            % Write in the data
+            fprintf(fileID,'%12.3f %7.4f %8.3f \n', toWrite);
+            fclose(fileID);
+
+
+        end
+
+
+    else
+
+
+
+        % Create the water cloud file
+        fileID = fopen([water_cloud_folder_path,fileName{nn}], 'w');
+
+        % fprintf writes lines in our text file from top to botom
+        % wc.DAT files are written with the higher altitudes at the top, and the
+        % surface at the bottom
+
+        % to write column vectors in a text file, we have to store them as row
+        % vectors
+
+        toWrite = [flipud(z_2write)'; flipud(lwc_2write)'; flipud(re_2write)'];
+
+        % Create the opening comment lines of the WC.DAT file
+
+        fprintf(fileID, '%s %10s %7s %8s \n','#','z','LWC','R_eff');
+        fprintf(fileID, '%s %10s %7s %8s \n','#','(km)','(g/m^3)','(micron)');
+
+        % Write in the data
+        fprintf(fileID,'%12.3f %7.4f %8.3f \n', toWrite);
+        fclose(fileID);
+
+
+    end
 
 end
 
