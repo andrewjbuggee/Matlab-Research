@@ -60,10 +60,10 @@ outputArg2 = inputArg2;
 
 %   1) sza - Solar Zenith Angle - There can only be one per file. The
 %   default value is 0, which implies that the sun is directly over had,
-%   and along the line that intercepts with the earths center of mass. This
-%   means the sun is on the horizon with an angle of 90. UVSPEC purports a
+%   and along the line that intersects with the earth's center of mass. This
+%   means the sun is on the horizon with an angle of 90. UVSPEC reports a
 %   measured radiance of 0 over the solar spectrum at this angle. Angles
-%   greater than 90 and up to 180 consittute a sun that is below the
+%   greater than 90 and up to 180 constitute a sun that is below the
 %   horizon. Values between [0,180].  Units: degrees
 
 %   4) phi0 - Solar Azimuth Angle - There can only be one per file. Units:
@@ -72,7 +72,7 @@ outputArg2 = inputArg2;
 %   2) umu - Cosine(Zenith Viewing Angle) - Cosine of the viewing angle
 %   where a viewing angle of 0 is straight down into the Earth, rather than
 %   straight up. According to the manual, umu>0 is looking downward
-%   (e.g. a satellite). So what this might mean is when umu>0 the default
+%   (e.g. a satellite). So what this might mean is when umu>0, the default
 %   sensor height is at TOA. umu<0 is looking upward. To make a
 %   vector, just include spaces in between each value. If you set the
 %   sensor altitude to be toa, then only values where umu>0 will give
@@ -80,9 +80,9 @@ outputArg2 = inputArg2;
 %   Looking back into space will cause errors. If your sensor is at an
 %   altitude of 10km, then a umu=0 is looking horizontally, umu>0 is looking
 %   down towards the surface, and umu<0 is looking upwards towards the sky.
-%   note: a umu of 0 is not allowed! This will lead to infinities because
+Note: A Umu of 0 is not allowed. This will lead to infinities because
 %   1/umu when umu of 0 is infinity. And this is how we calculate the 
-%   slant path. The values have to be increasing in order to be read. 
+%   slant path. The values must increase in order to be read. 
 %   Units: degrees
 
 %   3) phi - viewing aziumuth - this is the viewing azimuth of the sensor. This can
