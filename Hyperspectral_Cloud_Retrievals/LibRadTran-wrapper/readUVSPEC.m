@@ -96,12 +96,12 @@ if numFiles2Read==1
 
     % old way of reading the data
     %data = importdata([path,fileName,'.OUT'],delimeter,headerLine);
-    
+
 
     % new way of readng the data. cuts the time in half
     data_char = fileread([path,fileName,'.OUT']);
     data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
-    
+
 
 elseif numFiles2Read>1
 
@@ -120,7 +120,7 @@ end
 
 % Check to see if the data structure is empty
 if isempty(data)==true
-    
+
     error([newline, 'Data structure is empty! Check the .OUT file.', newline])
 
 end
@@ -129,24 +129,24 @@ end
 %% ----- Unpack the Input Settings -----
 
 if numFiles2Read>1
-    
+
     rte_solver = inputSettings{1};
     umuVec = [inputSettings{2}];
     phiVec = [inputSettings{3}];
-    
+
     numUmu = length(umuVec);
     numPhi = length(phiVec);
-    
-    
+
+
 else
-    
+
     rte_solver = inputSettings{1};
     umuVec = inputSettings{2};
     phiVec = inputSettings{3};
-    
+
     numUmu = length(umuVec);
     numPhi = length(phiVec);
-    
+
 end
 
 %% ----- Pull out radiance and irradiance from the data table -----
@@ -156,178 +156,203 @@ end
 % cosine of the viewing angle, umu. umu has a range of [-1,1]. so to find
 % wavelength values we just search for all values greater than 1.
 
-if numFiles2Read == 1
-    
-    col1 = data(:,1);
-    nonNanRows = sum(isnan(data),2)==0; % find rows where there are no nans
-    index150 = col1>150; % find values in the first column greater than 150
-    indexWave = logical(index150.*nonNanRows);
-    wavelength = col1(indexWave); % units of nanometers
-    
-    % lets find the rows where the radiance data start. Each radiance data row
-    % will start with a umu value and end with either a positive number greater
-    % than 0 or a nan
-    
-    % ---- There is a problem with the statement below! ----
-    % The umu values can have some overlap with the phi values. The most common
-    % one will be 0. One way to get around this is that phi values always come
-    % immediately after the wavelength values. So the umu values would have to
-    % be atleast 2 rows belows the wavelength row.
-    
-    indexRadRow = ismember(col1,umuVec); % rows where radiance data begins
-    
-    
-    % Now we want to seperate the irradiance calculations from the radiance
-    % calcuations
-    indexNan_col1 = find(isnan(col1), 1); % what is this for?
-    
-    if isempty(indexNan_col1)==true % I don't think this will ever be false
-        
-        % irradiance data only lies along rows that start with a wavelength
-        indexIrradiance = repmat(indexWave,1,size(data,2));
-        
-        irradianceData = data(indexIrradiance);
-        irradianceData = reshape(irradianceData,length(wavelength),size(data,2));
-        
-        % When the radiance data begins, we have two values to start with: the
-        % umu value and the u0u value. So we need to add 2 to the number of phi
-        % angles we are calculating to get the total length of our radiance
-        % vector
-        if rem(numPhi+2,size(data,2))==0
-            
-            % if this is true, there are non NaNs and we dont need to worry
-            % about extra rows
-            indexRadRow = repmat(indexRadRow,1,size(data,2));
-            
-            radianceData = data(indexRadRow);
-            radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
-            
-            
-        elseif floor((numPhi+2)/size(data,2))==0
-            
-            % if this is true, there are NaNs but we don't need to worry about
-            % extra rows
-            indexRadRow = repmat(indexRadRow,1,size(data,2));
-            
-            % we need to get rid of the NaNs so we can easily recover the order
-            % of the data table
-            data(isnan(data))=0;
-            
-            radianceData = data(indexRadRow);
-            radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
-            radianceData(:,(numPhi+2+1):end) = [];
-        else
-            % if this is true, there are NaNs to account for, and there are
-            % rows of data after each logical 1 in indexRadRow that we need to
-            % add to our logical index
-            
-            indexRadRow(find(indexRadRow)+1) = 1; % this adds a 1 to every row after a 1, since we need the row below
-            indexRadRow = repmat(indexRadRow,1,size(data,2));
-            
-            data(isnan(data))=0;
-            radianceData = data(indexRadRow);
-            radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
-            radianceData = reshape(radianceData',[],size(radianceData,1)/2)';
-            radianceData(:,(numPhi+2+1):end) = [];
-        end
-        
-    else
-        
-        error('There is a NaN in the first column of the data import!')
-        
-    end
-    
-% --- WARNING --- 
-% The section below does not work! This code is not set up yet to read multiple files.     
-elseif numFiles2Read>1
-    
-    for ii = 1:numFiles2Read
-        
-        dataTable = data(:,:,ii); % look at one page at a time
-        col1 = dataTable(:,1);
-        nonNanRows = sum(isnan(dataTable),2)==0; % find rows where there are no nans
+if strcmp(rte_solver, 'disort')==true
+
+    if numFiles2Read == 1
+
+        col1 = data(:,1);
+        nonNanRows = sum(isnan(data),2)==0; % find rows where there are no nans
         index150 = col1>150; % find values in the first column greater than 150
         indexWave = logical(index150.*nonNanRows);
         wavelength = col1(indexWave); % units of nanometers
-        
+
         % lets find the rows where the radiance data start. Each radiance data row
         % will start with a umu value and end with either a positive number greater
         % than 0 or a nan
-        
+
         % ---- There is a problem with the statement below! ----
         % The umu values can have some overlap with the phi values. The most common
         % one will be 0. One way to get around this is that phi values always come
         % immediately after the wavelength values. So the umu values would have to
         % be atleast 2 rows belows the wavelength row.
-        
+
         indexRadRow = ismember(col1,umuVec); % rows where radiance data begins
-        
-        
+
+
         % Now we want to seperate the irradiance calculations from the radiance
         % calcuations
         indexNan_col1 = find(isnan(col1), 1); % what is this for?
-        
+
         if isempty(indexNan_col1)==true % I don't think this will ever be false
-            
+
             % irradiance data only lies along rows that start with a wavelength
             indexIrradiance = repmat(indexWave,1,size(data,2));
-            
-            irradianceData = dataTable(indexIrradiance);
+
+            irradianceData = data(indexIrradiance);
             irradianceData = reshape(irradianceData,length(wavelength),size(data,2));
-            
+
             % When the radiance data begins, we have two values to start with: the
             % umu value and the u0u value. So we need to add 2 to the number of phi
             % angles we are calculating to get the total length of our radiance
             % vector
             if rem(numPhi+2,size(data,2))==0
-                
+
                 % if this is true, there are non NaNs and we dont need to worry
                 % about extra rows
                 indexRadRow = repmat(indexRadRow,1,size(data,2));
-                
+
                 radianceData = data(indexRadRow);
                 radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
-                
-                
-            elseif floor((numPhi+2)/size(dataTable,2))==0
-                
+
+
+            elseif floor((numPhi+2)/size(data,2))==0
+
                 % if this is true, there are NaNs but we don't need to worry about
                 % extra rows
-                indexRadRow = repmat(indexRadRow,1,size(dataTable,2));
-                
+                indexRadRow = repmat(indexRadRow,1,size(data,2));
+
                 % we need to get rid of the NaNs so we can easily recover the order
                 % of the data table
-                dataTable(isnan(dataTable))=0;
-                
-                radianceData = dataTable(indexRadRow);
+                data(isnan(data))=0;
+
+                radianceData = data(indexRadRow);
                 radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
                 radianceData(:,(numPhi+2+1):end) = [];
             else
                 % if this is true, there are NaNs to account for, and there are
                 % rows of data after each logical 1 in indexRadRow that we need to
                 % add to our logical index
-                
+
                 indexRadRow(find(indexRadRow)+1) = 1; % this adds a 1 to every row after a 1, since we need the row below
-                indexRadRow = repmat(indexRadRow,1,size(dataTable,2));
-                
-                dataTable(isnan(dataTable))=0;
-                radianceData = dataTable(indexRadRow);
+                indexRadRow = repmat(indexRadRow,1,size(data,2));
+
+                data(isnan(data))=0;
+                radianceData = data(indexRadRow);
                 radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
                 radianceData = reshape(radianceData',[],size(radianceData,1)/2)';
                 radianceData(:,(numPhi+2+1):end) = [];
             end
-            
+
         else
-            
+
             error('There is a NaN in the first column of the data import!')
-            
+
         end
-        
+
+        % --- WARNING ---
+        % The section below does not work! This code is not set up yet to read multiple files.
+    elseif numFiles2Read>1
+
+        for ii = 1:numFiles2Read
+
+            dataTable = data(:,:,ii); % look at one page at a time
+            col1 = dataTable(:,1);
+            nonNanRows = sum(isnan(dataTable),2)==0; % find rows where there are no nans
+            index150 = col1>150; % find values in the first column greater than 150
+            indexWave = logical(index150.*nonNanRows);
+            wavelength = col1(indexWave); % units of nanometers
+
+            % lets find the rows where the radiance data start. Each radiance data row
+            % will start with a umu value and end with either a positive number greater
+            % than 0 or a nan
+
+            % ---- There is a problem with the statement below! ----
+            % The umu values can have some overlap with the phi values. The most common
+            % one will be 0. One way to get around this is that phi values always come
+            % immediately after the wavelength values. So the umu values would have to
+            % be atleast 2 rows belows the wavelength row.
+
+            indexRadRow = ismember(col1,umuVec); % rows where radiance data begins
+
+
+            % Now we want to seperate the irradiance calculations from the radiance
+            % calcuations
+            indexNan_col1 = find(isnan(col1), 1); % what is this for?
+
+            if isempty(indexNan_col1)==true % I don't think this will ever be false
+
+                % irradiance data only lies along rows that start with a wavelength
+                indexIrradiance = repmat(indexWave,1,size(data,2));
+
+                irradianceData = dataTable(indexIrradiance);
+                irradianceData = reshape(irradianceData,length(wavelength),size(data,2));
+
+                % When the radiance data begins, we have two values to start with: the
+                % umu value and the u0u value. So we need to add 2 to the number of phi
+                % angles we are calculating to get the total length of our radiance
+                % vector
+                if rem(numPhi+2,size(data,2))==0
+
+                    % if this is true, there are non NaNs and we dont need to worry
+                    % about extra rows
+                    indexRadRow = repmat(indexRadRow,1,size(data,2));
+
+                    radianceData = data(indexRadRow);
+                    radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
+
+
+                elseif floor((numPhi+2)/size(dataTable,2))==0
+
+                    % if this is true, there are NaNs but we don't need to worry about
+                    % extra rows
+                    indexRadRow = repmat(indexRadRow,1,size(dataTable,2));
+
+                    % we need to get rid of the NaNs so we can easily recover the order
+                    % of the data table
+                    dataTable(isnan(dataTable))=0;
+
+                    radianceData = dataTable(indexRadRow);
+                    radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
+                    radianceData(:,(numPhi+2+1):end) = [];
+                else
+                    % if this is true, there are NaNs to account for, and there are
+                    % rows of data after each logical 1 in indexRadRow that we need to
+                    % add to our logical index
+
+                    indexRadRow(find(indexRadRow)+1) = 1; % this adds a 1 to every row after a 1, since we need the row below
+                    indexRadRow = repmat(indexRadRow,1,size(dataTable,2));
+
+                    dataTable(isnan(dataTable))=0;
+                    radianceData = dataTable(indexRadRow);
+                    radianceData = reshape(radianceData,sum(indexRadRow(:,1)),[]);
+                    radianceData = reshape(radianceData',[],size(radianceData,1)/2)';
+                    radianceData(:,(numPhi+2+1):end) = [];
+                end
+
+            else
+
+                error('There is a NaN in the first column of the data import!')
+
+            end
+
+        end
+
+    else
+        error('There are no files to read!')
     end
-    
-else
-    error('There are no files to read!')
+
+
+
+elseif strcmp(rte_solver, 'montecarlo')==true
+
+    % We will read the mc.rad.spc file. This is the spectral
+    % radiance at differnt levels within the medium.
+    % The columns are as follows:
+    % wavelength [nm] ix (0 ... Nx-1) iy (0 ... Ny-1) iz (0 ... Nz-1) radiance
+
+    % new way of readng the data. cuts the time in half
+    data_char = fileread([path, inputSettings{end}, '.rad.spc']);
+    data = cell2mat(textscan(data_char, '%f %f %f %f %f'));
+
+    wavelength = data(:,1);  % nm
+    rad_or_refl_Data = data(:,end);  % either radiance or reflectivity
+
+
+
+
 end
+
+
 
 
 
@@ -396,7 +421,7 @@ end
 
 
 if strcmp(rte_solver,'disort')==true || strcmp(rte_solver, 'fdisort2')==true
-    
+
     irrad_headers_units = cell(2,8);
     irrad_headers_units{1,1} = 'wavelength';
     irrad_headers_units{1,2} = 'dirIrrad';
@@ -412,28 +437,28 @@ if strcmp(rte_solver,'disort')==true || strcmp(rte_solver, 'fdisort2')==true
     irrad_headers_units{2,5} = 'mW/(m^{2} nm)';
     irrad_headers_units{2,6} = 'mW/(m^{2} nm)';
     irrad_headers_units{2,7} = 'mW/(m^{2} nm)';
-    
+
     % Using these default outputs, we will want the following additional
     % outputs
-    
+
     % the first one calculates the total downward irradiance
     irrad_headers_units{1,8} = 'totDwnIrrad';
     irrad_headers_units{2,8} = 'mW/(m^{2} nm)';
-    
+
     if numFiles2Read==1
         irradianceData = [irradianceData,irradianceData(:,2)+irradianceData(:,3)];
-        
+
     elseif numFiles2Read>1
         irradianceData = cat(2,irradianceData,irradianceData(:,2,:) + irradianceData(:,3,:));
-        
+
     end
-    
-    
+
+
     % and now we'll create the structure
     % we'll start by creating the wavelength vector
-    
-    
-    
+
+
+
     if compute_reflectivity==false
         % Read in the default outputs
         if numFiles2Read==1
@@ -538,10 +563,10 @@ if strcmp(rte_solver,'disort')==true || strcmp(rte_solver, 'fdisort2')==true
                 rad_headers_units{2,1} = 'mW/(m^{2} nm sr)';
                 rad_headers_units{2,2} = 'mW/(m^{2} nm sr)';
 
-%                 dataStruct = struct('irradiance',struct(irrad_headers_units{1,2},irradianceData(:,2),...
-%                     irrad_headers_units{1,3},irradianceData(:,3),irrad_headers_units{1,4},irradianceData(:,4),...
-%                     irrad_headers_units{1,5},irradianceData(:,5),irrad_headers_units{1,6},irradianceData(:,6),...
-%                     irrad_headers_units{1,7},irradianceData(:,7),irrad_headers_units{1,8},irradianceData(:,8)));
+                %                 dataStruct = struct('irradiance',struct(irrad_headers_units{1,2},irradianceData(:,2),...
+                %                     irrad_headers_units{1,3},irradianceData(:,3),irrad_headers_units{1,4},irradianceData(:,4),...
+                %                     irrad_headers_units{1,5},irradianceData(:,5),irrad_headers_units{1,6},irradianceData(:,6),...
+                %                     irrad_headers_units{1,7},irradianceData(:,7),irrad_headers_units{1,8},irradianceData(:,8)));
 
                 dataStruct.wavelength = irradianceData(1,1);    % nm
 
@@ -586,9 +611,9 @@ if strcmp(rte_solver,'disort')==true || strcmp(rte_solver, 'fdisort2')==true
 
 
 
-    
+
 elseif strcmp(rte_solver,'twostr')==true
-    
+
     irrad_headers_units = cell(2,6);
     irrad_headers_units{1,1} = 'wavelength';
     irrad_headers_units{1,2} = 'dirIrrad';
@@ -600,26 +625,68 @@ elseif strcmp(rte_solver,'twostr')==true
     irrad_headers_units{2,3} = 'mW/(m^{2} nm)';
     irrad_headers_units{2,4} = 'mW/(m^{2} nm)';
     irrad_headers_units{2,5} = 'mW/(m^{2} nm)';
-    
+
     % Using these default outputs, we will want the following additional
     % outputs
-    
+
     data = [data,data(:,2)+data(:,3)];
     irrad_headers_units{1,6} = 'totDwnIrrad';
     irrad_headers_units{2,6} = 'mW/(m^{2} nm)';
-    
+
     % and now we'll create the structure
-    
+
     dataStruct = struct(irrad_headers_units{1,1},data(:,1),irrad_headers_units{1,2},data(:,2),...
         irrad_headers_units{1,3},data(:,3),irrad_headers_units{1,4},data(:,4),...
         irrad_headers_units{1,5},data(:,5),irrad_headers_units{1,6},data(:,6));
-    
-    
-    
+
+
+
+elseif strcmp(rte_solver, 'montecarlo')
+
+
+    if compute_reflectivity==true
+        % Read in reflectivity
+
+        if numFiles2Read==1
+
+            if numUmu==0
+
+                error([newline, 'I dont know what to do', newline])
+
+            elseif numUmu==1
+                
+                % mc.rad.spc only outputs radiance
+
+                irrad_headers_units = [];   % set this as empty
+
+                rad_headers_units{1} = 'refl-umu-phi';
+
+
+                dataStruct.wavelength = wavelength;    % nm
+
+                dataStruct.reflectivity = rad_or_refl_Data;   % 1/sr
+
+            else
+
+                error([newline, 'I dont know what to do', newline])
+
+
+
+            end
+
+        else
+
+            error([newline, 'I dont know what to do', newline])
+
+        end
+
+    end
+
+
 else
     error('Dont recognize rte solver')
-    
-    
+
+
 end
 
 

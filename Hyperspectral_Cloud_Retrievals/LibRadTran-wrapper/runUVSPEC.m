@@ -277,6 +277,8 @@ if numFiles2Run==1
 
     end
 
+
+
     % Pull all input settings into a cell array
     % first lets give them headers and labels:
 
@@ -295,6 +297,28 @@ if numFiles2Run==1
     inputSettings{2,5} = saz;
     inputSettings{2,6} = zout;
     inputSettings{2,7} = [source_wavelength, source_flux];
+
+
+    % if using montecarlo solver, read the mc_basename designation
+    if strcmp(rte_solver, 'montecarlo')==true
+
+        inputSettings{1,8} = 'MC Basename';
+
+        expr_mc = '[^\n]*mc_basename [^\n]*';
+
+        match_mc = regexp(textFile,expr_mc,'match'); % find rte_solver typ
+
+        index_slash = regexp(match_mc{1},'[/]\w*'); % find the last forward slash
+
+        index_lastCharacterBeforeComment = regexp(match_mc{1},'\w\s*#'); % find the last forward slash
+
+        mc_basename = match_mc{1}(index_slash(end)+1:index_lastCharacterBeforeComment);
+
+        inputSettings{2,8} = mc_basename;
+
+    end
+
+
 
 elseif numFiles2Run>1
 
@@ -435,7 +459,6 @@ elseif numFiles2Run>1
 
 
 
-
         % Pull all input settings into a cell array
         inputSettings{jj+1,1} = rte_solver;
         inputSettings{jj+1,2} = umuVec;
@@ -444,6 +467,28 @@ elseif numFiles2Run>1
         inputSettings{jj+1,5} = saz;
         inputSettings{jj+1,6} = zout;
         inputSettings{jj+1,7} = [source_wavelength, source_flux];
+
+
+        % if using montecarlo solver, read the mc_basename designation
+        if strcmp(rte_solver, 'montecarlo')==true
+
+            inputSettings{1,8} = 'MC Basename';
+
+            expr_mc = '[^\n]*mc_basename [^\n]*';
+
+            match_mc = regexp(textFile,expr_mc,'match'); % find rte_solver typ
+
+            index_slash = regexp(match_mc{1},'[/]\w*'); % find the last forward slash
+
+            index_lastCharacterBeforeComment = regexp(match_mc{1},'\w\s*#'); % find the last forward slash
+
+            mc_basename = match_mc{1}(index_slash(end)+1:index_lastCharacterBeforeComment);
+
+            inputSettings{jj+1,8} = mc_basename;
+
+        end
+
+
 
     end
 end

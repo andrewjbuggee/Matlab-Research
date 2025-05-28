@@ -1096,11 +1096,19 @@ for nn = 1:num_files_2write
         % and lwc above, we will iterate through each layer and create n
         % files where n is equal to the number of cloud layers. Each
         % iteration will remove a layer from cloud bottom.
+
+        % compute the optical depth at each layer
+        %tau_layer = lwc .* ext_bulk_coeff_per_LWC .* dz_km;       % optical thickness of each homogeneous layer
+        % we need a filename for each layer
+        filename = cell(nLayers-1, 1);
+
         for LL = 1:nLayers-1
 
+            % define the filename
+            filename{LL} = [fileName{1}(1:end-7), 'layers1-', num2str(nLayers-LL),...
+                '.DAT'];
             % Create the water cloud file
-            fileID = fopen([water_cloud_folder_path,fileName{1}(1:end-5), num2str(LL),...
-                '.DAT'], 'w');
+            fileID = fopen([water_cloud_folder_path,filename{LL}], 'w');
 
             % fprintf writes lines in our text file from top to botom
             % wc.DAT files are written with the higher altitudes at the top, and the
@@ -1123,6 +1131,9 @@ for nn = 1:num_files_2write
 
 
         end
+
+        % redefine the output file names
+        fileName = filename;
 
 
     else

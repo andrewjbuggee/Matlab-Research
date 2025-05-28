@@ -55,6 +55,8 @@ if strcmp(inputs.RT.rte_solver, 'montecarlo')==true
     end
 
     if isfield(inputs.RT.mc, 'basename')
+
+        
         % Define the number of streams to keep track of when solving the equation
         % of radiative transfer
         % ------------------------------------------------

@@ -1,4 +1,4 @@
-%% Compute weighting functions using libRadtran's MYSTIC Monte Carlo Model
+%% Compute weighting functions using DISORT with a high number of streams
 
 % By Andrew John Buggee
 
@@ -21,11 +21,11 @@ if strcmp(which_computer,'anbu8374')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     inputs.folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Monte_Carlo/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/weighting_functions/'];
 
 
     % Define the folder path where all .INP files will be saved
-    inputs.folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/testing_MYSTIC/'];
+    inputs.folderpath_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -40,12 +40,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % Define the folder path where .mat files of relfectance will be stored
     inputs.folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Monte_Carlo/'];
+        'HySICS/weighting_functions/'];
 
 
     % Define the folder path where all .INP files will be saved
     inputs.folderpath_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/testing_MYSTIC/'];
+        'LibRadTran/libRadtran-2.0.4/HySICS/'];
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -62,12 +62,12 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/weighting_functions/';
 
 
 
     % Define the folder path where all .INP files will be saved
-    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_inp = '/scratch/alpine/anbu8374/weighting_functions/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -94,6 +94,16 @@ end
 
 
 
+
+
+%%  Delete old files?
+% First, delete files in the HySICS folder
+delete([inputs.folderpath_inp, '*.INP'])
+delete([inputs.folderpath_inp, '*.OUT'])
+
+
+
+
 %% set up the inputs to create an INP file for MYSTIC!
 
 
@@ -105,22 +115,16 @@ inputs.compute_weighting_functions = true;
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'monte_carlo';
+inputs.calc_type = 'simulated_spectra';
 
 % Determine which computer this is being run on
 inputs.which_computer = which_computer;
 
 % Define the RTE Solver
-inputs.RT.rte_solver = 'montecarlo';
+inputs.RT.rte_solver = 'disort';
 
-% ---------------------------------------------------
-% --------- Define Monte Carlo Parameters -----------
-% ---------------------------------------------------
-inputs.RT.mc.photons = 10000;      % number of photons to use in the simulation
-inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
-inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
-
-% ------------------------------------------------------------------------
+% Define the number of streams to use in your radiative transfer model
+inputs.RT.num_streams = 32;
 
 
 
@@ -162,7 +166,11 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     618, 620, 623, 625]';
 
 % test bands
-inputs.bands2run = [49]';
+% 500 nm 
+% inputs.bands2run = 49;
+
+% 2200 nm 
+inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
@@ -341,7 +349,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
 
-    inputs.RT.n_layers = 10;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 50;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -511,12 +519,6 @@ inputs.RT.errMsg = 'verbose';
 
 %% Write the INP files
 
-% update the basename
-inputs.RT.mc.basename = [inputs.folderpath_inp, 'mc_',num2str(inputs.RT.wavelengths2run(1)),...
-    'nm'];
-
-
-idx = 0;
 
 
 tic
@@ -571,7 +573,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
             changing_variables(idx_unique_indVars(nn), 2),inputs.RT.z_topBottom,...
             inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.which_computer, idx_unique_indVars(nn));
+            inputs.RT.compute_weighting_functions, inputs.which_computer, idx_unique_indVars(nn));
 
         temp_names{nn} = temp{1};
 
@@ -646,27 +648,6 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     outputFileName = cell(num_INP_files, 1);
 
 
-    % changing variable steps through reff, tauC, and wavelength
-    % in for loop speak, it would be:
-    % for rt = 1:num_rTop
-    %   for rb = 1:num_rBot
-    %       for tt = 1:num_tauC
-    %           for ww = 1:num_wl
-    % changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
-    %     repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
-    %     repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
-    %     repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
-
-    changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),repmat(inputs.RT.zT_cloud_indVar, num_wl,1)];
-
-
-    % Add a final column that includes the index for the spectral response
-    % function. These always increase chronologically
-    changing_variables = [changing_variables, repmat((1:num_wl)', num_tau_layers, 1)];
-
-    % First, write all the wc files
-    temp_names = cell(num_tau_layers, 1);
-    wc_filename = cell(num_INP_files, 1);
 
     % need an re and tau_c file for each layer, because we slowly build the
     % cloud but adding layer after layer
@@ -683,40 +664,46 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % re must be defined from cloud bottom to cloud top
     % z_topBottom must be defined as the cloud top height first, then
     % cloud bottom
-    [temp, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
+    [wc_filename, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
         inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
         inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
         inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, 1);
 
-    temp_names = temp{1};
 
     % Compute the optical depth of each layer
     inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
 
-    %parfor nn = 1:length(idx_unique_indVars)
-    for nn = 1:length(idx_unique_indVars)
 
 
+    % changing variable steps through reff, tauC, and wavelength
+    % in for loop speak, it would be:
+    % for rt = 1:num_rTop
+    %   for rb = 1:num_rBot
+    %       for tt = 1:num_tauC
+    %           for ww = 1:num_wl
+    % changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
+    %     repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
+    %     repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
+    %     repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
+
+    changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),...
+        repmat(flipud(cumsum(fliplr(inputs.RT.tau_layers))'), num_wl,1)];
 
 
-        temp = write_wc_file(re(end-(nn-1):end), sum(inputs.RT.tau_layers(end-(nn-1):end)),...
-            flipud(inputs.RT.z_edges([end-nn,end]))', inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.which_computer, idx_unique_indVars(nn));
+    % Add a final column that includes the index for the spectral response
+    % function. These always increase chronologically
+    changing_variables = [changing_variables, repmat((1:num_wl)', num_tau_layers, 1)];
 
-        temp_names{nn} = temp{1};
-
-    end
-
-    % the wc_filenames should be the same for different wavelengths
-    for ww = 0:num_wl-1
-        wc_filename(idx_unique_indVars+ww) = temp_names;
-    end
+    
+    % define the basename
+    %inputs.RT.mc.basename = cell(num_INP_files, 1);
 
 
     % Now write all the INP files
-    % parfor nn = 1:num_INP_files
-    for nn = 1:num_INP_files
+    parfor nn = 1:num_INP_files
+    %for nn = 1:num_INP_files
+
+
 
         % set the wavelengths for each file
         wavelengths = changing_variables(nn);
@@ -729,8 +716,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
         inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(changing_variables(nn,2)), '_',...
-            inputs.RT.atm_file(1:end-4),'.INP'];
+            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
+            '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
 
 
 
@@ -752,7 +739,7 @@ toc
 
 
 
-%% Run the MYSTIC program
+%% Compute Reflectance
 
 % define only the spec_response so the wavelengths are passed into the
 % memory of the parallel for loop
@@ -768,7 +755,7 @@ Refl_model = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
-    % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+% for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -789,7 +776,7 @@ parfor nn = 1:num_INP_files
         inputs.RT.compute_reflectivity_uvSpec);
 
     % Store the reflectance
-    Refl_model(nn, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
+    Refl_model(nn, :) = ds.reflectivity.value;       % reflectance is in units of 1/sr
 
     % % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
     % [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
@@ -808,15 +795,127 @@ toc
 
 
 
+
 %% Compute the weighting functions using Platnick (2000)
 % Equation 4 defines the weighting function as the normalized derivative of
 % reflectance with respect to optical depth.
 
+% compute the derivative of reflectivity as a function of optical depth
+w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,2)));
 
-%% test code
+% normalize by the reflectance over the full cloud optical thickness
+w = w./Refl_model(1);
 
-z = [];
-tau_vector = [];
-R = [];
+%% plot the weighting function
 
-wm = diff(R)./diff(tau_vector) ./ R(1);
+figure; 
+plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
+
+
+% Set up axes labels
+set(gca, 'YDir','reverse')
+grid on; grid minor
+xlabel('$P(\tau)$','Interpreter','latex');
+ylabel('$\tau$','Interpreter','latex')
+
+% Create title
+title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
+
+% Create Legend
+%legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
+
+
+set(gcf, 'Position',[0 0 1400 800])
+
+% --- overlay a smoothed spline fit ---
+% Create smooth spline function
+f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)), w, 'smoothingspline','SmoothingParam',0.95);
+
+% Plot the conditional probability
+hold on
+plot(f((0.5:0.1:inputs.RT.tau_c)),(0.5:0.1:inputs.RT.tau_c), 'Color', mySavedColors(1, 'fixed'))
+
+
+
+%% Compute the 
+
+%%
+% ----------------------------------------------
+% ---------- SAVE REFLECTANCE OUTPUT! ----------
+% ----------------------------------------------
+
+% Save the version without an measurement uncertainty. Then we can add
+% uncertainty and save the new file
+
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Monte_Carlo/'];
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Monte_Carlo/'];
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    warning([newline, 'No folder to store things in!', newline])
+
+
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folderpath_2save, 'dir')
+
+    mkdir(inputs.folderpath_2save)
+
+end
+
+
+
+rev = 1;
+
+if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+
+
+    filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
+            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+
+else
+
+    filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
+            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+end
+
+
+while isfile(filename)
+    rev = rev+1;
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
+
