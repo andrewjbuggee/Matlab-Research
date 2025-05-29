@@ -56,7 +56,7 @@ if strcmp(inputs.RT.rte_solver, 'montecarlo')==true
 
     if isfield(inputs.RT.mc, 'basename')
 
-        
+
         % Define the number of streams to keep track of when solving the equation
         % of radiative transfer
         % ------------------------------------------------
@@ -190,6 +190,24 @@ if inputs.RT.use_coxMunk==true
 end
 
 
+% ----- Do you want to specify specific cross-section models? -----
+if inputs.RT.specify_cross_section_model==true
+
+    if isfield(inputs.RT, 'crs_model_rayleigh')==true
+
+        % Define which specific models you'd like to use
+        % valid for rayleigh scattering, Ozone, NO2, and O4
+        % -------------------------------------------------------------------------
+        formatSpec = '%s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'crs_model rayleigh', inputs.RT.crs_model_rayleigh, ' ', '# Rayleigh scattering cross section');
+
+    end
+
+end
+
+
+
+
 
 % Define the column water vapor amount
 % --------------------------------------------------------------------
@@ -212,6 +230,58 @@ if inputs.RT.modify_CO2==true
     % --------------------------------------------------------------
     formatSpec = '%s %f %5s %s \n\n';
     fprintf(fileID, formatSpec,'mixing_ratio CO2 ', inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
+
+
+end
+
+
+% Define the concentration of molecular nitrogen
+% --------------------------------------------------------------------
+if inputs.RT.modify_N2==true
+
+    % If true, modify the mixing ratio of molecular nitrogen
+    % --------------------------------------------------------------
+    formatSpec = '%s %f %5s %s %s \n\n';
+    fprintf(fileID, formatSpec,'mol_modify N2 ', inputs.RT.N2_mixing_ratio, 'CM_2', ' ', '# cm^2 of N2');
+
+
+end
+
+
+% Define the concentration of NO2
+% --------------------------------------------------------------------
+if inputs.RT.modify_NO2==true
+
+    % If true, modify the mixing ratio of molecular nitrogen
+    % --------------------------------------------------------------
+    formatSpec = '%s %f %5s %s %s \n\n';
+    fprintf(fileID, formatSpec,'mol_modify NO2 ', inputs.RT.NO2_mixing_ratio, 'CM_2', ' ', '# cm^2 of NO2');
+
+
+end
+
+
+% Define the concentration of molecular oxygen
+% --------------------------------------------------------------------
+if inputs.RT.modify_O2==true
+
+    % If true, modify the mixing ratio of molecular oxygen
+    % --------------------------------------------------------------
+    formatSpec = '%s %f %5s %s \n\n';
+    fprintf(fileID, formatSpec,'mixing_ratio O2 ', inputs.RT.O2_mixing_ratio, ' ', '# cm^2 of O2');
+
+
+end
+
+
+% Define the concentration of molecular oxygen
+% --------------------------------------------------------------------
+if inputs.RT.modify_O3==true
+
+    % If true, modify the mixing ratio of ozone
+    % --------------------------------------------------------------
+    formatSpec = '%s %f %5s %s %s \n\n';
+    fprintf(fileID, formatSpec,'mol_modify O3 ', inputs.RT.O3_mixing_ratio, 'DU', ' ', '# Dobson Units of O3');
 
 
 end
@@ -246,47 +316,49 @@ end
 
 
 
+% Define the atm grid
+% ------------------------------------------------
+if inputs.RT.define_atm_grid==true
+    % Define a custom atm grid
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'atm_z_grid', num2str(inputs.RT.atm_z_grid), ' ', '# Set vertical resolution of atm grid');
+
+end
+
+
 
 % Define the sensor altitude
 % ------------------------------------------------
-if isscalar(inputs.RT.sensor_altitude)
+if ischar(inputs.RT.sensor_altitude)==true
+    % Define the sensor altitude
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n';
+    fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
 
-    if isstring(inputs.RT.sensor_altitude)==true
-        % Define the sensor altitude
-        % ------------------------------------------------
-        formatSpec = '%s %s %5s %s \n';
-        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
+elseif isnumeric(inputs.RT.sensor_altitude)==true
+    % Define the sensor altitude
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'zout', num2str(inputs.RT.sensor_altitude), ' ', '# Sensor Altitude');
 
-    elseif isnumeric(inputs.RT.sensor_altitude)==true
-        % Define the sensor altitude
-        % ------------------------------------------------
-        formatSpec = '%s %f %5s %s \n';
-        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
-    end
+elseif iscell(inputs.RT.sensor_altitude)==true
 
-else
+    error([newline, 'Dont know how to deal with stings and numbers', newline])
 
-    if all(isnumeric(inputs.RT.sensor_altitude))==true
-        % Define the sensor altitude
-        % ------------------------------------------------
-        num_numeric = length((inputs.RT.sensor_altitude));
-        formatSpec = '%s %s %5s %s \n';
-        fprintf(fileID, formatSpec,'zout', num2str(round(inputs.RT.sensor_altitude, 3)), ' ', '# Sensor Altitude');
-
-    elseif iscell(inputs.RT.sensor_altitude)
-        % find the string?
-        idx_string = isstring(inputs.RT.sensor_altitude);
-        idx_numeric = isnumeric(inputs.RT.sensor_altitude);
-        % Define the sensor altitude
-        % ------------------------------------------------
-        formatSpec = ['%s %',num2str(length(idx_numeric)),'f %',num2str(length(idx_string)),'s %s \n'];
-        fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
-
-    end
-
+    % find the string?
+    idx_string = isstring(inputs.RT.sensor_altitude);
+    idx_numeric = isnumeric(inputs.RT.sensor_altitude);
+    % Define the sensor altitude
+    % ------------------------------------------------
+    formatSpec = ['%s %',num2str(length(idx_numeric)),'f %',num2str(length(idx_string)),'s %s \n'];
+    fprintf(fileID, formatSpec,'zout', inputs.RT.sensor_altitude, ' ', '# Sensor Altitude');
 
 
 end
+
+
+
 
 % Define the solar zenith angle
 % ------------------------------------------------
@@ -308,6 +380,30 @@ fprintf(fileID, formatSpec,'umu', round(cosd(inputs.RT.vza),4), ' ', '# Cosine o
 formatSpec = '%s %f %5s %s \n\n';
 fprintf(fileID, formatSpec,'phi', inputs.RT.vaz, ' ', '# Azimuthal viewing angle');
 
+
+
+if inputs.RT.no_molecular_abs==true
+    % turn off molecular absorption
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'no_absorption', 'mol', ' ', '# Turn off molecular absorption');
+end
+
+
+if inputs.RT.no_scattering_mol==true
+    % Turn off molecular scattering
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'no_scattering', 'mol', ' ', '# Turn off molecular scattering');
+end
+
+
+if inputs.RT.no_scattering_aer==true
+    % Turn off aerosol scattering
+    % ------------------------------------------------
+    formatSpec = '%s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'no_scattering', 'aer', ' ', '# Turn off aerosol scattering');
+end
 
 
 if inputs.RT.compute_reflectivity_uvSpec==true

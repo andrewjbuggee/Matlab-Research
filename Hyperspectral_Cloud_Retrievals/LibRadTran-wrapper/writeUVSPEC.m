@@ -80,7 +80,7 @@ outputArg2 = inputArg2;
 %   Looking back into space will cause errors. If your sensor is at an
 %   altitude of 10km, then a umu=0 is looking horizontally, umu>0 is looking
 %   down towards the surface, and umu<0 is looking upwards towards the sky.
-Note: A Umu of 0 is not allowed. This will lead to infinities because
+%   Note: A Umu of 0 is not allowed. This will lead to infinities because
 %   1/umu when umu of 0 is infinity. And this is how we calculate the 
 %   slant path. The values must increase in order to be read. 
 %   Units: degrees

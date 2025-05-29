@@ -12,6 +12,8 @@
 
 clear variables
 
+% define which computer to use
+inputs.which_computer = whatComputer;
 
 % ----- Define the boundaries of the medium ------
 % comment out lines below if you want the medium to extend forever along
@@ -24,8 +26,8 @@ clear variables
 % inputs.tau_x_upper_limit = 8;
 
 inputs.tau_z_lower_limit = 0;
-% inputs.tau_z_upper_limit = logspace(-1,2,25);
-total_tau = logspace(-1,2,30);
+inputs.tau_z_upper_limit = 8;
+% total_tau = logspace(-1,2,30);
 
 % --------------------------------------------------
 
@@ -33,23 +35,23 @@ total_tau = logspace(-1,2,30);
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = 0;                  % deg from zenith
-%inputs.solar_zenith_angle = 27;                  % deg from zenith
+% inputs.solar_zenith_angle = 0;                  % deg from zenith
+inputs.solar_zenith_angle = acosd(0.89);                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
 inputs.albedo_maxTau = 0;
 
 % Define the number of photons to inject into the medium
-inputs.N_photons = 1e5;
+inputs.N_photons = 1e7;
 
 
 % ----- Do you want to create a non-linear droplet profile? -----
-inputs.createDropletProfile = false;
+inputs.createDropletProfile = true;
 
 % --- if true.... ---
 % Physical constraint that shapes the droplet profile
-%inputs.dropletProfile.constraint = 'adiabatic';
-inputs.dropletProfile.constraint = 'linear_with_z';
+inputs.dropletProfile.constraint = 'adiabatic';
+% inputs.dropletProfile.constraint = 'linear_with_z';
 % Define the radius value at cloud top and cloud bottom
 inputs.dropletProfile.r_top = 12;            % microns
 inputs.dropletProfile.r_bottom = 5;          % microns
@@ -60,7 +62,9 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 500;          % nanometers
+% inputs.wavelength = 2200;          % nanometers
+wavelengths_2run = [469, 555, 645, 853, 1240, 1635, 2130];            % nanometers
+% wavelengths_2run = [555, 645, 853, 1240, 1635, 2130];            % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
@@ -99,17 +103,21 @@ inputs.compute_internal_fluxes = false;
 % changing radii and the changing index of refraction
 
 
-R = zeros(1, length(total_tau));
-T = zeros(1, length(total_tau));
-A = zeros(1, length(total_tau));
+% R = zeros(1, length(total_tau));
+% T = zeros(1, length(total_tau));
+% A = zeros(1, length(total_tau));
 
 
 tic
 
-for nn = 1:length(total_tau)
+for nn = 1:length(wavelengths_2run)
 
 
-    inputs.tau_z_upper_limit = total_tau(nn);
+    % changing variable needs to be defined in the input structure
+%     inputs.tau_z_upper_limit = total_tau(nn);
+    inputs.wavelength = wavelengths_2run(nn);
+
+    disp([newline, 'nn = ', num2str(nn), '/', num2str(length(wavelengths_2run))])
 
 
 
@@ -148,7 +156,7 @@ for nn = 1:length(total_tau)
         % Define the boundaries of each tau layer
         % Define the layer boundaries given the number of layers and the boundaries
         % of the entire medium
-        inputs.dropletProfile.layerBoundaries = linspace(inputs.tau_y_lower_limit, inputs.tau_y_upper_limit, inputs.dropletProfile.N_layers +1);
+        inputs.dropletProfile.layerBoundaries = linspace(inputs.tau_z_lower_limit, inputs.tau_z_upper_limit, inputs.dropletProfile.N_layers +1);
 
         % Define the optical depth vector that defines the mid point of each
         % layer
@@ -231,7 +239,7 @@ for nn = 1:length(total_tau)
             inputs.mie.radius, inputs.mie.wavelength, inputs.mie.distribution, inputs.mie.err_msg_str, 1);
 
         % run the mie file
-        [~] = runMIE(mie_folder,input_filename,output_filename);
+        [~] = runMIE(mie_folder,input_filename,output_filename, inputs.which_computer);
 
 
         % Read the output of the mie file
@@ -278,7 +286,7 @@ for nn = 1:length(total_tau)
             inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, 1);
 
         % run the mie file
-        [~] = runMIE(mie_folder,input_filename,output_filename);
+        [~] = runMIE(mie_folder,input_filename,output_filename, inputs.which_computer);
 
 
         % Read the output of the mie file
@@ -332,10 +340,10 @@ for nn = 1:length(total_tau)
 
             % Create a mie file
             [input_filename, output_filename, mie_folder] = write_mie_file(inputs.mie.mie_program, inputs.mie.indexOfRefraction,...
-                inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, nn);
+                inputs.mie.radius,inputs.mie.wavelength,inputs.mie.distribution, inputs.mie.err_msg_str, inputs.which_computer, nn);
 
             % run the mie file
-            [~] = runMIE(mie_folder,input_filename,output_filename);
+            [~] = runMIE(mie_folder,input_filename,output_filename, inputs.which_computer);
 
 
             % Read the output of the mie file
@@ -378,7 +386,7 @@ for nn = 1:length(total_tau)
         % Compute the average value for the single scattering albedo over a size
         % distribution
         [inputs.ssa_avg, inputs.Qe_avg, inputs.g_avg] = average_mie_over_size_distribution(inputs.layerRadii, inputs.mie.dist_var,...
-            inputs.mie.wavelength(1),inputs.mie.indexOfRefraction, inputs.mie.size_dist, 1);
+            inputs.mie.wavelength(1),inputs.mie.indexOfRefraction, inputs.mie.size_dist, inputs.which_computer, 1);
 
 
     end
@@ -387,25 +395,72 @@ for nn = 1:length(total_tau)
     %% Run 3D monte carlo code
 
     % --- OVERRIDE SCATTERING PARAMETERS ----
-    inputs.g = 0.85;
-    inputs.g_avg = inputs.g;
-
-    inputs.ssa = 0.99;
-    inputs.ssa_avg = inputs.ssa;
+    %     inputs.g = 0.85;
+    %     inputs.g_avg = inputs.g;
+    %
+    %     inputs.ssa = 0.99;
+    %     inputs.ssa_avg = inputs.ssa;
     % ----------------------------------------
 
 
-    
 
-    % ------- Without Live Plotting ---------
-    [~, final_state, ~, inputs] = threeD_monteCarlo(inputs);
 
-   
+    % ------------------ Without Live Plotting ---------------------------
+    [~, final_state, photon_tracking, inputs] = threeD_monteCarlo(inputs);
+    % --------------------------------------------------------------------
+    % --------------------------------------------------------------------
+
+
+    % Let's plot the conditional probability of a photon that scattered out the cloud top
+    % reaching a max depth of tau
+
+    plot_probability_scatterOutTop_maxDepth(inputs, final_state, photon_tracking, 'pdf')
+
+
+
+
+
+    % Do you want to save you results?
+
+
+    if strcmp(inputs.which_computer, 'anbu8374')
+        % save in the following folder
+        inputs.folder_name_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/',...
+            'Monte_Carlo/Monte_Carlo_Simulation_Results/'];
+
+    elseif strcmp(inputs.which_computer, 'andrewbuggee')==true
+
+        % save in the following folder
+        inputs.folder_name_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Radiative_Transfer_Physics/',...
+            'Monte_Carlo/Monte_Carlo_Simulation_Results/'];
+
+    end
+
+    if inputs.N_layers==1
+
+        save([inputs.folder_name_2save, '3D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+            '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
+            '_Tau0_',num2str(inputs.tau_z_upper_limit),'_r_e_',num2str(inputs.dropletProfile.re),...
+            '_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
+            "inputs", "final_state", "photon_tracking");
+
+    elseif inputs.N_layers>1 && inputs.createDropletProfile==true
+
+        save([inputs.folder_name_2save, '3D_MC_',char(datetime('today')),'_Wavelength_',num2str(inputs.mie.wavelength(1)),...
+            '_N-Photons_',num2str(inputs.N_photons),'_N-Layers_',num2str(inputs.N_layers),...
+            '_Tau0_',num2str(inputs.tau_z_upper_limit),'_r_top_',num2str(inputs.dropletProfile.r_top),...
+            '_r_bot_',num2str(inputs.dropletProfile.r_bottom),'_SZA_',num2str(inputs.solar_zenith_angle),'.mat'],...
+            "inputs", "final_state", "photon_tracking");
+    end
+
+
+
+
 
     % Keep just the reflectance, transmittance and absorptance
-    R(nn) = final_state.reflectance;
-    T(nn) = final_state.transmittance;
-    A(nn) = final_state.absorptance;
+    %     R(nn) = final_state.reflectance;
+    %     T(nn) = final_state.transmittance;
+    %     A(nn) = final_state.absorptance;
 
 
 
@@ -440,7 +495,7 @@ plot(total_tau, A, '.-', 'Color', mySavedColors(3, 'fixed'), 'MarkerSize', 20, '
 ylabel('$\%$', 'Interpreter','latex');
 
 legend('$R_{3D}$', '$T_{3D}$', '$A_{3D}$',...
-     'Location','best', 'Interpreter','latex')
+    'Location','best', 'Interpreter','latex')
 
 
 

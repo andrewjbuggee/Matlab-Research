@@ -104,12 +104,15 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 
 
-%% set up the inputs to create an INP file for MYSTIC!
+%% set up the inputs to create an INP file for DISORT!
 
 
 % Define the parameters of the INP file
 
 % *** compute weighting functions! ***
+% This will create n wc_files where n is equal to the number of layers in
+% the cloud. Starting with the entire cloud, each file will have one less
+% layer
 inputs.compute_weighting_functions = true;
 
 
@@ -124,7 +127,7 @@ inputs.which_computer = which_computer;
 inputs.RT.rte_solver = 'disort';
 
 % Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 32;
+inputs.RT.num_streams = 16;
 
 
 
@@ -144,6 +147,10 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % inputs.RT.source_file_resolution = 1;         % nm
 
 % ------------------------------------------------------------------------
+
+
+% ----- Define the day of the year to account for Earth-Sun distance -----
+inputs.RT.day_of_year = 239;
 
 
 
@@ -169,7 +176,10 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % 500 nm 
 % inputs.bands2run = 49;
 
-% 2200 nm 
+% 2122 nm 
+% inputs.bands2run = 580;
+
+% 2236 nm 
 inputs.bands2run = 613;
 
 
@@ -177,7 +187,7 @@ inputs.bands2run = 613;
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = true;
+inputs.RT.monochromatic_calc = false;
 
 
 % ------------------------------------------------------------------------
@@ -200,13 +210,30 @@ spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_fi
 % now define the wavelength range of each spectral channel
 inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
 
-for ww = 1:length(inputs.bands2run)
-    % The wavelength vector for libRadTran is simply the lower and upper
-    % bounds
-    inputs.RT.wavelengths2run(ww,:) = [round(mean(spec_response.wavelength(ww,:)), 1),...
-        round(mean(spec_response.wavelength(ww, :)) ,1)];
+
+if inputs.RT.monochromatic_calc==true
+
+    for ww = 1:length(inputs.bands2run)
+        % The wavelength vector for libRadTran is simply the lower and upper
+        % bounds
+        inputs.RT.wavelengths2run(ww,:) = [round(mean(spec_response.wavelength(ww,:)), 1),...
+            round(mean(spec_response.wavelength(ww, :)) ,1)];
+
+    end
+
+
+else
+
+    for ww = 1:length(inputs.bands2run)
+        % The wavelength vector for libRadTran is simply the lower and upper
+        % bounds
+        inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
+        spec_response.wavelength(ww, end)];
+
+    end
 
 end
+
 
 
 % num wavelengths
@@ -349,7 +376,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
 
-    inputs.RT.n_layers = 50;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 100;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -405,6 +432,16 @@ end
 % --------------------------------------------------------------
 
 
+% --------------------------------------------------------------
+% ----------- Define the vertical atmospheric grid -----------
+% --------------------------------------------------------------
+inputs.RT.define_atm_grid=false;
+
+% Set the vertical grid to include the cloud layers
+inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end)',...
+    inputs.RT.z_topBottom(1)+1:1:20, 22:2:30, 35:5:50];   % km
+
+
 
 % --------------------------------------------------------------
 % ----------- Define the Solar and Viewing Gemometry -----------
@@ -423,7 +460,10 @@ end
 % end
 
 % I think the sensor altitude, for now, is the cloud top
-inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+% inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+% inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
+% inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
+inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 % define the solar zenith angle
@@ -439,7 +479,7 @@ inputs.RT.sza = acosd(0.65);           % degree
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
 %inputs.RT.phi0 = -84 + 180;         % degree
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = 210;         % degree
 
 % define the viewing zenith angle
 % inputs.RT.vza = 4; % values are in degrees;                        % degree
@@ -467,6 +507,14 @@ inputs.RT.wind_speed = 3;             % m/s
 
 
 % ------------------------------------------------------------------------
+% --------- specify various cross-section models for  -----------
+inputs.RT.specify_cross_section_model = true;
+
+inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. equation 29
+% ------------------------------------------------------------------------ 
+
+
+% ------------------------------------------------------------------------
 % --------- Do you want boundary layer aerosols in your model? -----------
 inputs.RT.yesAerosols = true;
 
@@ -488,7 +536,7 @@ inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
 % radiometer for 17 Jan 2024
 inputs.RT.modify_waterVapor = false;
 
-inputs.RT.waterVapor_column = 20;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
 
 
@@ -496,15 +544,78 @@ inputs.RT.waterVapor_column = 20;              % mm - milimeters of water conden
 % ------- Do you want to modify concentration of Carbon dioxide? ---------
 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
-inputs.RT.modify_CO2 = true;
+inputs.RT.modify_CO2 = false;
 
-inputs.RT.CO2_mixing_ratio = 416;       % ppm
+% inputs.RT.CO2_mixing_ratio = 416;       % ppm
+inputs.RT.CO2_mixing_ratio = 0;       % ppm
 % ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular nitrogen (N2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_N2 = false;
+
+inputs.RT.N2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of NO2? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_NO2 = false;
+
+inputs.RT.NO2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular oxygen (O2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O2 = false;
+
+inputs.RT.O2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want to modify concentration of Ozone (O3)? -----------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O3 = false;
+
+inputs.RT.O3_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% ------- Do you want to turn off molecular absorption? --------
+% Note, that thermal emission of molecules is also switched off.
+inputs.RT.no_molecular_abs = false;
+% --------------------------------------------------------------
+
+
+% --------------------------------------------------------------
+% ------------ Do you want to turn off scattering? -------------
+
+% Possible choises for the optional argument name are:
+%   mol - Switch off molecular scattering.
+%   aer - Switch off scattering by aerosols.
+%   wc - Switch off scattering by water clouds.
+%   ic - Switch off scattering by ice clouds.
+%   profile - Switch off scattering by any profile defined in profile typename.
+inputs.RT.no_scattering_mol = false;
+inputs.RT.no_scattering_aer = false;
+% --------------------------------------------------------------
 
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = true;
+inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
@@ -531,92 +642,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % --------- HOMOGENOUS CLOUD -------------
     % ----------------------------------------
 
-    % length of each independent variable
-    num_rEff = length(inputs.RT.re);
-    num_tauC = length(inputs.RT.tau_c);
-    num_wl = length(inputs.bands2run);
 
-    num_INP_files = num_rEff*num_tauC*num_wl;
-
-    inputFileName = cell(num_INP_files, 1);
-    outputFileName = cell(num_INP_files, 1);
-
-
-    % changing variable steps through reff, tauC, and wavelength
-    % in for loop speak, it would be:
-    % for rr = 1:num_rEff
-    %   for tt = 1:num_tauC
-    %       for ww = 1:num_wl
-    changing_variables = [reshape(repmat(inputs.RT.re, num_tauC*num_wl,1), [],1),...
-        repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rEff, 1),...
-        repmat(inputs.RT.wavelengths2run, num_rEff*num_tauC, 1)];
-
-    % Add a final column that includes the index for the spectral response
-    % function. These always increase chronologically
-    changing_variables = [changing_variables, repmat((1:num_wl)', num_rEff*num_tauC, 1)];
-
-
-    % First, write all the wc files
-    temp_names = cell(num_rEff*num_tauC, 1);
-    wc_filename = cell(num_INP_files, 1);
-
-    % only jump on indexes where there is a unique r and tau pair
-    idx_unique_indVars = 1:num_wl:num_INP_files;
-
-    parfor nn = 1:length(idx_unique_indVars)
-
-        % -----------------------------------
-        % ---- Write a Water Cloud file! ----
-        % -----------------------------------
-
-        temp = write_wc_file(changing_variables(idx_unique_indVars(nn), 1),...
-            changing_variables(idx_unique_indVars(nn), 2),inputs.RT.z_topBottom,...
-            inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.compute_weighting_functions, inputs.which_computer, idx_unique_indVars(nn));
-
-        temp_names{nn} = temp{1};
-
-    end
-
-    % the wc_filenames should be the same for different wavelengths
-    for ww = 0:num_wl-1
-        wc_filename(idx_unique_indVars+ww) = temp_names;
-    end
-
-
-
-
-
-    % Now write all the INP files
-    parfor nn = 1:num_INP_files
-
-
-        % set the wavelengths for each file
-        wavelengths = changing_variables(nn, end-2:end-1);
-
-        % ------------------------------------------------
-        % ---- Define the input and output filenames! ----
-        % ------------------------------------------------
-        % input_names need a unique identifier. Let's give them the nn value so
-        % they can be traced, and are writen over in memory
-
-
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_',...
-            'nm_rEff_', num2str(changing_variables(nn,1)), '_tauC_', num2str(changing_variables(nn,2)), '_',...
-            inputs.RT.atm_file(1:end-4),'.INP'];
-
-
-
-        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
-
-
-        % ------------------ Write the INP File --------------------
-        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-            wavelengths, wc_filename{nn});
-
-
-    end
 
 
 
@@ -640,8 +666,11 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     num_wl = length(inputs.bands2run);
     num_tau_layers = inputs.RT.n_layers;
 
-    % num_INP_files = num_rTop*num_rBot*num_tauC*num_wl;
-    num_INP_files = num_wl*num_tau_layers;
+    if inputs.compute_weighting_functions==true
+        num_INP_files = num_wl*num_tau_layers;
+    else
+        num_INP_files = num_wl;
+    end
 
 
     inputFileName = cell(num_INP_files, 1);
@@ -671,23 +700,28 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Compute the optical depth of each layer
+    % lwc and ext_bulk_coeff_per_LWC are reported from cloud bottom to
+    % cloud top
+    % therefore, the optical depth of each layer starts at cloud bottom
     inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
 
 
 
     % changing variable steps through reff, tauC, and wavelength
     % in for loop speak, it would be:
-    % for rt = 1:num_rTop
-    %   for rb = 1:num_rBot
-    %       for tt = 1:num_tauC
-    %           for ww = 1:num_wl
-    % changing_variables = [reshape(repmat(inputs.RT.r_top, num_rBot*num_tauC*num_wl,1), [],1),...
-    %     repmat(reshape(repmat(inputs.RT.r_bot, num_tauC*num_wl,1), [],1), num_rTop, 1),...
-    %     repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
-    %     repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
 
-    changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),...
-        repmat(flipud(cumsum(fliplr(inputs.RT.tau_layers))'), num_wl,1)];
+
+    if inputs.RT.monochromatic_calc==true
+
+        changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),...
+            repmat(flipud(cumsum(flipud(inputs.RT.tau_layers'))), num_wl,1)];
+
+    else
+    
+        changing_variables = [repmat(inputs.RT.wavelengths2run, num_tau_layers,1),...
+            repmat(flipud(cumsum(flipud(inputs.RT.tau_layers'))), num_wl,1)];
+
+    end
 
 
     % Add a final column that includes the index for the spectral response
@@ -700,28 +734,57 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Now write all the INP files
-    parfor nn = 1:num_INP_files
-    %for nn = 1:num_INP_files
+%     parfor nn = 1:num_INP_files
+    for nn = 1:num_INP_files
 
 
 
-        % set the wavelengths for each file
-        wavelengths = changing_variables(nn);
+        
+        if inputs.RT.monochromatic_calc==true
 
-        % ------------------------------------------------
-        % ---- Define the input and output filenames! ----
-        % ------------------------------------------------
-        % input_names need a unique identifier. Let's give them the nn value so
-        % they can be traced, and are writen over in memory
+            % set the wavelengths for each file
+            wavelengths = changing_variables(nn,1);
 
-
-        inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
-            '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
+            % ------------------------------------------------
+            % ---- Define the input and output filenames! ----
+            % ------------------------------------------------
+            % input_names need a unique identifier. Let's give them the nn value so
+            % they can be traced, and are writen over in memory
 
 
+            inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
+                '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
 
-        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+        else
+
+            % set the wavelengths for each file
+            wavelengths = changing_variables(nn, 1:2);
+
+            % ------------------------------------------------
+            % ---- Define the input and output filenames! ----
+            % ------------------------------------------------
+            % input_names need a unique identifier. Let's give them the nn value so
+            % they can be traced, and are writen over in memory
+
+
+            inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)),...
+                '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
+
+
+
+            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+        end
+
+       
 
 
         % ------------------ Write the INP File --------------------
@@ -751,7 +814,13 @@ tic
 
 
 % store the reflectances
-Refl_model = zeros(num_INP_files, 1);
+if isscalar(inputs.RT.sensor_altitude)
+    Refl_model = zeros(num_INP_files, 1);
+elseif ischar(inputs.RT.sensor_altitude)
+    Refl_model = zeros(num_INP_files, 1);
+elseif length(inputs.RT.sensor_altitude)>1
+    Refl_model = zeros(num_INP_files, length(inputs.RT.sensor_altitude));
+end
 
 
 parfor nn = 1:num_INP_files
@@ -776,11 +845,13 @@ parfor nn = 1:num_INP_files
         inputs.RT.compute_reflectivity_uvSpec);
 
     % Store the reflectance
-    Refl_model(nn, :) = ds.reflectivity.value;       % reflectance is in units of 1/sr
+%     Refl_model(nn, :) = ds.reflectivity.value;       % reflectance is in units of 1/sr
 
-    % % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    % [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-    %     spec_response_value(changing_variables(nn,end),:));
+
+
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+        spec_response_value(changing_variables(nn,end),:));
 
 
 
@@ -800,41 +871,90 @@ toc
 % Equation 4 defines the weighting function as the normalized derivative of
 % reflectance with respect to optical depth.
 
-% compute the derivative of reflectivity as a function of optical depth
-w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,2)));
+if inputs.RT.monochromatic_calc==true
+    
+    % compute the derivative of reflectivity as a function of optical depth
+    w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,2)));
+
+else
+
+    % compute the derivative of reflectivity as a function of optical depth
+    w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,3)));
+
+end
+
+
 
 % normalize by the reflectance over the full cloud optical thickness
 w = w./Refl_model(1);
 
+
+%% Compute the weighting function using R at different depths within the cloud
+
+% % compute the derivative of reflectivity as a function of optical depth
+% % w = diff(flipud(ds.reflectivity.value(1:end-1)))./diff(changing_variables(:,2));
+% w = diff(ds.reflectivity.value(1:end-1))./diff(changing_variables(:,2));
+% 
+% % normalize by the reflectance over the full cloud optical thickness
+% w = w./ds.reflectivity.value(end);
+
 %% plot the weighting function
 
-figure; 
-plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
+figure;
+
+
+
+if inputs.RT.monochromatic_calc==true
+
+    tau = changing_variables(2:end,2);
+
+    % plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
+    plot(w, flipud(tau))
+
+    % --- overlay a smoothed spline fit ---
+    % Create smooth spline function
+    f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+
+else
+
+    tau = changing_variables(2:end,3);
+
+    % plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
+    plot(w, flipud(tau))
+
+    % --- overlay a smoothed spline fit ---
+    % Create smooth spline function
+    f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+
+end
+
+
 
 
 % Set up axes labels
 set(gca, 'YDir','reverse')
 grid on; grid minor
-xlabel('$P(\tau)$','Interpreter','latex');
+xlabel('$w(\tau)$','Interpreter','latex');
 ylabel('$\tau$','Interpreter','latex')
 
 % Create title
 title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
 
-% Create Legend
-%legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
+
 
 
 set(gcf, 'Position',[0 0 1400 800])
 
-% --- overlay a smoothed spline fit ---
-% Create smooth spline function
-f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)), w, 'smoothingspline','SmoothingParam',0.95);
 
-% Plot the conditional probability
-hold on
-plot(f((0.5:0.1:inputs.RT.tau_c)),(0.5:0.1:inputs.RT.tau_c), 'Color', mySavedColors(1, 'fixed'))
 
+% Plot the spline fit
+% hold on
+% tau_2plot = (0.5:0.1:inputs.RT.tau_c);
+% plot(f(tau_2plot),tau_2plot, 'Color', mySavedColors(1, 'fixed'))
+
+
+% Create Legend
+legend('Calc', 'fit','Interpreter','latex','Location','northwest','FontSize',22)
 
 
 %% Compute the 
