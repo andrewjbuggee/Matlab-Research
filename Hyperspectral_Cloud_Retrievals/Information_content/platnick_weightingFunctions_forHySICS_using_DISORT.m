@@ -172,22 +172,32 @@ inputs.RT.day_of_year = 239;
 %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
 %     618, 620, 623, 625]';
 
+% inputs.bands2run = [49, 613]';
+
 % test bands
 % 500 nm 
 % inputs.bands2run = 49;
+
+% 1652 nm 
+inputs.bands2run = 426;
 
 % 2122 nm 
 % inputs.bands2run = 580;
 
 % 2236 nm 
-inputs.bands2run = 613;
+% inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = false;
+inputs.RT.monochromatic_calc = true;
+
+% --------------------------------------------------------------
+% --- Do you want to uvSpec to compute reflectivity for you? ---
+inputs.RT.compute_reflectivity_uvSpec = true;
+% --------------------------------------------------------------
 
 
 % ------------------------------------------------------------------------
@@ -376,7 +386,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
 
-    inputs.RT.n_layers = 100;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 250;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -385,8 +395,12 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % if using altitude, z should be a vector starting at the cloud bottom
     % and increasing
     inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
-    inputs.RT.z_edges = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers+1)';   % km - the edges of each layer
-    inputs.RT.zT_cloud_indVar = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers)';        % km - altitude above ground vector
+    inputs.RT.z_edges = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers+1);   % km - the edges of each layer
+    inputs.RT.z = linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), inputs.RT.n_layers);        % km - altitude above ground vector
+
+    % Try sampling random points between z top and bottom
+    % inputs.RT.z_edges = sort(unique(abs(diff(inputs.RT.z_topBottom))*rand(1, inputs.RT.n_layers +1) + inputs.RT.z_topBottom(2)));   % km - the edges of each layer
+    % inputs.RT.z = inputs.RT.z_edges(1:end-1) + diff(inputs.RT.z_edges);        % km - altitude above ground vector
 
     % If using optical depth, this vector should start with 0 (cloud top)
     % and end with the total cloud optical thickness.
@@ -438,7 +452,7 @@ end
 inputs.RT.define_atm_grid=false;
 
 % Set the vertical grid to include the cloud layers
-inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end)',...
+inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end),...
     inputs.RT.z_topBottom(1)+1:1:20, 22:2:30, 35:5:50];   % km
 
 
@@ -479,7 +493,7 @@ inputs.RT.sza = acosd(0.65);           % degree
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
 %inputs.RT.phi0 = -84 + 180;         % degree
-inputs.RT.phi0 = 210;         % degree
+inputs.RT.phi0 = 90;         % degree
 
 % define the viewing zenith angle
 % inputs.RT.vza = 4; % values are in degrees;                        % degree
@@ -508,7 +522,7 @@ inputs.RT.wind_speed = 3;             % m/s
 
 % ------------------------------------------------------------------------
 % --------- specify various cross-section models for  -----------
-inputs.RT.specify_cross_section_model = true;
+inputs.RT.specify_cross_section_model = false;
 
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. equation 29
 % ------------------------------------------------------------------------ 
@@ -613,12 +627,6 @@ inputs.RT.no_scattering_aer = false;
 % --------------------------------------------------------------
 
 
-% --------------------------------------------------------------
-% --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = false;
-% --------------------------------------------------------------
-
-
 
 % --------------------------------------------------------------
 % Do you want to print an error message?
@@ -684,7 +692,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % create a droplet profile
-    re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.zT_cloud_indVar,...
+    re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
         inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
     % -----------------------------------
@@ -703,7 +711,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % lwc and ext_bulk_coeff_per_LWC are reported from cloud bottom to
     % cloud top
     % therefore, the optical depth of each layer starts at cloud bottom
-    inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
+    % inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
+    inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.* diff(inputs.RT.z_edges))';  % the optical depth of each layer, starting from cloud top
 
 
 
@@ -713,7 +722,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     if inputs.RT.monochromatic_calc==true
 
-        changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),...
+        changing_variables = [reshape(repmat(inputs.RT.wavelengths2run(:,1)', num_tau_layers,1), [],1)...
             repmat(flipud(cumsum(flipud(inputs.RT.tau_layers'))), num_wl,1)];
 
     else
@@ -726,16 +735,16 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % Add a final column that includes the index for the spectral response
     % function. These always increase chronologically
-    changing_variables = [changing_variables, repmat((1:num_wl)', num_tau_layers, 1)];
+    changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_layers, 1), [],1)];
 
     
-    % define the basename
-    %inputs.RT.mc.basename = cell(num_INP_files, 1);
+    % the wc_filenames should be the same for different wavelengths
+    wc_filename = repmat(wc_filename, num_wl, 1);
 
 
     % Now write all the INP files
-%     parfor nn = 1:num_INP_files
-    for nn = 1:num_INP_files
+    parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
 
@@ -752,9 +761,9 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
             % they can be traced, and are writen over in memory
 
 
-            inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+            inputFileName{nn} = ['weightingFunction_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
                 '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
-                '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
+                '_layers1-', num2str(mod(num_INP_files - (nn), num_tau_layers)+1), '.INP'];
 
 
 
@@ -844,14 +853,22 @@ parfor nn = 1:num_INP_files
     [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
         inputs.RT.compute_reflectivity_uvSpec);
 
-    % Store the reflectance
-%     Refl_model(nn, :) = ds.reflectivity.value;       % reflectance is in units of 1/sr
+    if inputs.RT.compute_reflectivity_uvSpec==true
 
+        % Store the reflectance
+        % Refl_model(nn, :) = ds.reflectivity.value;       % reflectance is in units of 1/sr
 
+        % Store the azimuthally averaged reflectance
+        % Azimuthal average at this particular zenith angle
+        Refl_model(nn, :) = ds.reflectivity.az_avg;       % reflectance is in units of 1/sr
 
-    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        spec_response_value(changing_variables(nn,end),:));
+    else
+
+        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+        [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+            spec_response_value(changing_variables(nn,end),:));
+
+    end
 
 
 
@@ -874,7 +891,7 @@ toc
 if inputs.RT.monochromatic_calc==true
     
     % compute the derivative of reflectivity as a function of optical depth
-    w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,2)));
+    w = diff(flipud(reshape(Refl_model, [], num_wl)))./diff(flipud(reshape(changing_variables(:,2), [], num_wl)));
 
 else
 
@@ -906,14 +923,15 @@ figure;
 
 if inputs.RT.monochromatic_calc==true
 
-    tau = changing_variables(2:end,2);
+    tau = reshape(changing_variables(:,2), [], num_wl); 
+    tau = tau(2:end,:);
 
     % plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
     plot(w, flipud(tau))
 
     % --- overlay a smoothed spline fit ---
     % Create smooth spline function
-    f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+    %f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
 
 else
 
@@ -954,10 +972,10 @@ set(gcf, 'Position',[0 0 1400 800])
 
 
 % Create Legend
-legend('Calc', 'fit','Interpreter','latex','Location','northwest','FontSize',22)
+legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location','northwest','FontSize',22)
 
 
-%% Compute the 
+
 
 %%
 % ----------------------------------------------

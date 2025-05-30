@@ -35,7 +35,8 @@
 %       Physically, this too forces subadiabatic behavior at mid-levels.
 
 % OUTPUTS:
-%   (1) re - effective droplet radius profile (microns)
+%   (1) re - effective droplet radius profile (microns). The starts at
+%   cloud top and descends to the cloud bottom value
 
 
 % By Andrew John Buggee
@@ -113,7 +114,11 @@ if strcmp(constraint,'subadiabatic_aloft')
         
     elseif strcmp(independentVariable,'altitude')==true
         
-        re = (b0(x) + b1(x) * (zT - zT(1))./(zT(end) - zT(1))).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
+        h = max(zT) - min(zT);  % thickness
+        h0 = min(zT);           % base height
+
+        re = (b0(x) + b1(x) * (zT - h0)./h).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
+   
     end
     
     
@@ -124,11 +129,15 @@ elseif strcmp(constraint,'adiabatic')
     
     
     if strcmp(independentVariable,'optical_depth')==true
+
         re = (a0(x) - a1(x)*(zT./zT(end))).^(x/(2*x + 3));
         
     elseif strcmp(independentVariable,'altitude')==true
+
+        h = max(zT) - min(zT);  % thickness
+        h0 = min(zT);           % base height
         
-        re = (b0(x) + b1(x) * (zT - zT(1))./(zT(end) - zT(1))).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
+        re = (b0(x) + b1(x) * (zT - h0)./h).^(x/3);              % droplet profile in geometric coordniate system for an adiabatic cloud
     end
     
     
@@ -141,8 +150,11 @@ elseif strcmp(constraint,'linear_with_z')
         re = (a0(x) - a1(x)*(zT./zT(end))).^(x/(2*x + 3));
         
     elseif strcmp(independentVariable,'altitude')==true
+
+        h = max(zT) - min(zT);
+        h0 = min(zT);           % base height
         
-        re = (b0(x) + b1(x) * (zT - zT(1))./(zT(end) - zT(1))).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
+        re = (b0(x) + b1(x) * (zT - h0)./h).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
     end
     
     
@@ -155,8 +167,11 @@ elseif strcmp(constraint,'linear_with_tau')
         re = (a0(x) - a1(x)*(zT./zT(end))).^(x/(2*x + 3));
         
     elseif strcmp(independentVariable,'altitude')==true
+
+        h = max(zT) - min(zT);
+        h0 = min(zT);           % base height
         
-        re = (b0(x) + b1(x) * (zT - zT(1))./(zT(end) - zT(1))).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
+        re = (b0(x) + b1(x) * (zT - h0)./h).^(x/3);                      % droplet profile in geometric coordniate system for an adiabatic cloud
     end
     
     
@@ -165,6 +180,9 @@ else
     error('I dont recognize the droplet profile you want!')
     
 end
+
+% define as column vector
+re = re';
 
 
 

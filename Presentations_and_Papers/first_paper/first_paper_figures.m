@@ -1619,7 +1619,7 @@ set(gcf, 'Position',[0 0 1300 750])
 
 
 
-%% FIGURE 5
+%% 
 
 % ---------- Standard Deviation of Horizontal Profiles --------------
 % Compute the standard deviation of droplet size over some identified
@@ -1790,7 +1790,7 @@ set(gcf, 'Position', [0 0 1200 625])
 
 
 
-%% FIGURE 6
+%% FIGURE 5
 
 % ----- Plot Horizontal Profiles -----
 % Plot the liquid wtaer content, effective radius and number concentration
@@ -1985,6 +1985,25 @@ for nn = 1:N_cuvres
     legend_str{2*nn} = ['$\left<r_e \right>$ = ', num2str(round(mean_val(nn), 2)), ' $\mu m$'];
 
 
+    % print the range of each curve
+    disp([newline, 'nn = ', num2str(nn), ' - The range of the effective radius over the ',...
+        'entire horizontal leg is: ',...
+        num2str(range(horz_profs.re{indices_2_plot(nn)})), ' microns', newline])
+
+    % show the range for the second curve if the two outliers are removed
+    % both outliers are greater than 10 microns
+    if nn==2
+        temp = horz_profs.re{indices_2_plot(nn)};
+        temp(temp>10) = [];
+
+        disp([newline, 'nn = ', num2str(nn), ' - Adjusted range of effective radius with',...
+        ' the two outliers above 10 microns removed: ',...
+        num2str(range(temp)), ' microns', newline])
+
+
+    end
+
+
 end
 
 
@@ -2028,6 +2047,8 @@ end
 legend(legend_str, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
 % set plot size
 set(gcf, 'Position', [0 0 1200 625])
+
+
 
 
 % Clean up figure 2

@@ -1,5 +1,25 @@
+%% Make slit function files for libRadTran
 
-% --- Point to locaiton of uvspec program ---
+% -t type of slitfunction
+%       1. triangular (default)
+%       2. rectangular
+%       3. Gaussian
+
+% -f full width at half maximum, in nm
+
+% -r spectral resolution, in nm
+
+% -n number of fwhm (in nm) spanned by the slit function. Only applicable with Gaussian
+% (type 3) slit function. Default value is 4.
+
+% -h Print help message.
+
+%%
+
+function [filename] = run_makeSlitFunction(slitFunc_type, fwhm, spectral_res, n_fwhm, computer_name)
+
+
+% --- Point to locaiton of make_slitfunction program ---
 
 % To run uvspec in the command line we have to point to its full location.
 % To do this we will check to see what computer we are using
@@ -8,17 +28,17 @@
 
 if strcmp('anbu8374',computer_name)
 
-    uvspec_folderName = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/bin/';
+    make_slitfunction_folderName = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/bin/';
 
 elseif strcmp('andrewbuggee',computer_name)
 
-    uvspec_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
+    make_slitfunction_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
         'Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/bin/'];
 
 elseif strcmp('curc', computer_name)
     % location of the mie program
-    uvspec_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
+    make_slitfunction_folderName = '/projects/anbu8374/software/libRadtran-2.0.5/bin/';
 
     % if running on the CURC supercomputer, you need to load the modules
     % everytime you run a job. That's because each time you run the
@@ -41,82 +61,38 @@ end
 
 
 % using the function 'system' runs commans in the terminal window
-cmnd1 = ['cd ', uvspec_folderName];
+cmnd1 = ['cd ', make_slitfunction_folderName];
 
 
 
-if numFiles2Run==1
-
-    if ischar(inputName)==true
-        % cmnd2 = [uvspec_folderName,'make_slitfunction ',...
-        %            '< ',inputName,' > ', outputName];
-
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',folderName_INP_OUT,inputName,' > ', folderName_INP_OUT, outputName,'.OUT',...
-            ')>& ', folderName_INP_OUT,'errMsg.txt'];
-        % a successful command will return a status of 0
-        % an unsuccessful command will return a status of 1
-
-    elseif iscell(inputName)==true
-
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ', folderName_INP_OUT, inputName{1},' > ', folderName_INP_OUT, outputName{1},'.OUT',...
-            ')>&', folderName_INP_OUT, 'errMsg.txt'];
-
-    else
-
-        error([newline, 'I dont understand the INP filename structure', newline])
-
-    end
-
-
-    % run all commands in the terminal window
-    if strcmp('curc', computer_name)
-
-        [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-        %[status] = system([cmnd_modules, ' ; ', cmnd2]);
-
-    else
-        [status] = system([cmnd1, ' ; ', cmnd2]);
-    end
-
-    if status ~= 0
-        error(['Status returned value of ',num2str(status)])
-    end
 
 
 
-elseif numFiles2Run>1
+cmnd2 = ['(',make_slitfunction_folderName,'make_slitfunction',...
+    ' -f ',num2str(fwhm), ' -r ', num2str(spectral_res),...
+    ' -n ', num2str(n_fwhm), ' -t ', num2str(slitFunc_type), ')'];
+% a successful command will return a status of 0
+% an unsuccessful command will return a status of 1
 
 
-    for ii = 1:numFiles2Run
 
+% run all commands in the terminal window
+if strcmp('curc', computer_name)
 
-        % cmnd2 = [uvspec_folderName,'uvspec ',...
-        %            '< ',inputName,' > ', outputName];
-
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ', folderName_INP_OUT, inputName{ii},' > ', folderName_INP_OUT,...
-            outputName{ii},'.OUT',')>& errMsg.txt'];
-        % a successful command will return a status of 0
-        % an unsuccessful command will return a status of 1
-
-        if strcmp('curc', computer_name)
-
-            [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-
-        else
-            [status] = system([cmnd1, ' ; ', cmnd2]);
-        end
-
-
-        if status ~= 0
-            error(['Status returned value of ',num2str(status)])
-        end
-    end
+    [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+    %[status] = system([cmnd_modules, ' ; ', cmnd2]);
 
 else
+    [status] = system([cmnd1, ' ; ', cmnd2]);
+end
 
-    error('I Dont understand the file names you are trying to run')
+if status ~= 0
+    error(['Status returned value of ',num2str(status)])
+end
+
+
+
+
+
 
 end
