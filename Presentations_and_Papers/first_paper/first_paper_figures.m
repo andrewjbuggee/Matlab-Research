@@ -4533,7 +4533,7 @@ xticklabels(string_bands);
 
 xlabel('Wavelength $(nm)$', 'Interpreter','latex', 'Fontsize', 30)
 
-ylabel('Reflectance ($sr^{-1}$)','Interpreter','latex', 'Fontsize', 30)
+ylabel('$\triangle$Reflectance ($sr^{-1}$)','Interpreter','latex', 'Fontsize', 30)
 
 % print legend for uncertainty and change in reflectance plotted as bars
 % legend([{'$\sigma_{MODIS}$'}, {''}, {''}, lgnd_str, {'$\sigma_{CPF}$'}], 'interpreter', 'latex', 'Location','best','Fontsize',20);
@@ -4552,7 +4552,7 @@ title(['$\partial F(\vec{x})/\partial r_{bot}$  -  $r_{top} = $', num2str(r_top)
 
 % ---------- Save figure --------------
 % save .fig file
-folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
 f = gcf;
 saveas(f,[folderpath_figs,'Fig 4 - Jacobian with respect to radius at cloud bottom.fig']);
 
@@ -4560,7 +4560,7 @@ saveas(f,[folderpath_figs,'Fig 4 - Jacobian with respect to radius at cloud bott
 % save .png with 400 DPI resolution
 % remove title
 title('')
-folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Resubmission Figures/';
 exportgraphics(f,[folderpath_pngs,'Fig 4 - Jacobian with respect to radius at cloud bottom.png'],'Resolution', 400);
 
 

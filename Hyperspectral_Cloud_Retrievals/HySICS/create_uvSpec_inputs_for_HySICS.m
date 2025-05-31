@@ -25,7 +25,7 @@ inputs.calc_type = 'simulated_spectra';
 inputs.RT.rte_solver = 'disort';
 
 % Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 16;
+inputs.RT.num_streams = 32;
 
 
 
@@ -65,12 +65,12 @@ inputs.RT.day_of_year = 239;
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-%     618, 620, 623, 625]';
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    618, 620, 623, 625]';
 
-inputs.bands2run = [49, 426, 613]';
+% inputs.bands2run = [49, 426, 613]';
 
 % test bands
 % 500 nm 

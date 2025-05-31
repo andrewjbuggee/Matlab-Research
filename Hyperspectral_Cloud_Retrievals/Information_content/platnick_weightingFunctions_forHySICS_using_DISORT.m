@@ -376,7 +376,8 @@ if inputs.RT.monochromatic_calc==true
     tau = reshape(changing_variables(:,2), inputs.RT.n_layers, num_wl); 
     
     % compute the derivative of reflectivity as a function of optical depth
-    w = diff(flipud(Refl_model))./diff(flipud(tau));
+    % normalize by the reflectance over the full cloud optical thickness
+    w = diff(flipud(Refl_model))./diff(flipud(tau)) ./ repmat(Refl_model(1,:), inputs.RT.n_layers-1, 1);
 
 else
 
@@ -386,9 +387,6 @@ else
 end
 
 
-
-% normalize by the reflectance over the full cloud optical thickness
-w = w./Refl_model(1);
 
 
 %% Compute the weighting function using R at different depths within the cloud
@@ -408,11 +406,11 @@ figure;
 
 if inputs.RT.monochromatic_calc==true
 
-    
-    tau = tau(2:end,:);
-
+    tau_midPoint = flipud(tau);
+    tau_midPoint = tau_midPoint(1:end-1,:) + diff(tau_midPoint, 1, 1);
     % plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
-    plot(w, flipud(tau))
+    % Plot the tau mid-point of each layer
+    plot(w, tau_midPoint)
 
     % --- overlay a smoothed spline fit ---
     % Create smooth spline function
