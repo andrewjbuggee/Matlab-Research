@@ -1568,7 +1568,7 @@ end
 
 
 
-%% FIGURE 4
+%%
 
 % Plot the single wavelength retrieved droplet radius for each of the 7 wavelengths
 
@@ -3566,7 +3566,9 @@ set(gcf, 'Position', [0 0 1200 625])
 
 
 
-%% Plot computing the change in reflectance with respect to a change in the radius at cloud bottom
+
+%% Figure 4
+% Plot computing the change in reflectance with respect to a change in the radius at cloud bottom
 % This is a bar plot using three different optical depths
 
 clear variables
@@ -3589,8 +3591,10 @@ tau_c = 10:5:20;
 % Want to use real MODIS geometry inputs?
 
 % Load modis data and create input structure
+which_computer = whatComputer;
+compute_weighting_functions = false;
 
-if strcmp(whatComputer,'anbu8374')==true
+if strcmp(which_computer,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
@@ -3602,7 +3606,7 @@ if strcmp(whatComputer,'anbu8374')==true
     folder2save = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
 
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
 
@@ -3783,7 +3787,7 @@ profile_type = 'adiabatic'; % type of water droplet profile
 
 n_layers = 10;                          % number of layers to model within cloud
 
-z = linspace(z_topBottom(1), z_topBottom(2), n_layers);        % km - altitude above ground vector
+z = linspace(z_topBottom(2), z_topBottom(1), n_layers);        % km - altitude above ground vector
 
 indVar = 'altitude';                    % string that tells the code which independent variable we used
 
@@ -3888,7 +3892,8 @@ for tc = 1:length(tau_c)
     % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
     % ------------------------------------------------------
     wc_filename = write_wc_file(re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
-        dist_var, vert_homogeneous_str, parameterization_str, tc);
+        dist_var, vert_homogeneous_str, parameterization_str, indVar, compute_weighting_functions,...
+        which_computer, tc);
     wc_filename = wc_filename{1};
 
 
@@ -4108,7 +4113,7 @@ for tc = 1:length(tau_c)
 
 
         % compute INP file
-        [inputSettings] = runUVSPEC(folder2save,inputName,outputName);
+        [inputSettings] = runUVSPEC(folder2save,inputName,outputName, which_computer);
 
         % read .OUT file
         [ds,~,~] = readUVSPEC(folder2save,outputName,inputSettings(2,:), compute_reflectivity_uvSpec);
@@ -4146,7 +4151,8 @@ for tc = 1:length(tau_c)
     loop_var = 0;
 
     new_wc_filename = write_wc_file(new_re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
-        dist_var, vert_homogeneous_str, parameterization_str, loop_var);
+        dist_var, vert_homogeneous_str, parameterization_str, indVar, compute_weighting_functions,...
+        which_computer, loop_var);
     new_wc_filename = new_wc_filename{1};
 
 
@@ -4370,7 +4376,7 @@ for tc = 1:length(tau_c)
 
 
         % compute INP file
-        [inputSettings] = runUVSPEC(folder2save,inputName,outputName);
+        [inputSettings] = runUVSPEC(folder2save,inputName,outputName, which_computer);
 
         % read .OUT file
         [ds,~,~] = readUVSPEC(folder2save,outputName,inputSettings(2,:), compute_reflectivity_uvSpec);
