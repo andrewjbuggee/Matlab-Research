@@ -18,14 +18,25 @@ inputs.compute_weighting_functions = true;
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'simulated_spectra';
-
+% inputs.calc_type = 'simulated_spectra';
+inputs.calc_type = 'monte_carlo';
 
 % Define the RTE Solver
-inputs.RT.rte_solver = 'disort';
+% inputs.RT.rte_solver = 'disort';
+inputs.RT.rte_solver = 'montecarlo';
 
 % Define the number of streams to use in your radiative transfer model
 inputs.RT.num_streams = 32;
+
+
+% ---------------------------------------------------
+% --------- Define Monte Carlo Parameters -----------
+% ---------------------------------------------------
+inputs.RT.mc.photons = 1000;      % number of photons to use in the simulation
+inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
+inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
+
+% ------------------------------------------------------------------------
 
 
 
@@ -65,10 +76,10 @@ inputs.RT.day_of_year = 239;
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
 
 % inputs.bands2run = [49, 426, 613]';
 
@@ -83,7 +94,7 @@ inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
 % inputs.bands2run = 580;
 
 % 2236 nm 
-% inputs.bands2run = 613;
+inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
