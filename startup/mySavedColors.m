@@ -76,6 +76,19 @@ savedColors = [8.492724501845559e-01     5.437108503990062e-02     9.68109025296
     0.087146608906061,0.275650182414309,0.919165103980364;...                                       % (18) a mellow blue
     0.242602763746494,0.165654616103410,0.589586440293093;...                                       % (19) darker purple
     0.097641770151945,0.157654610063639,0.570247296307671;...                                       % (20) a dark blue
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13
      ];
 
 

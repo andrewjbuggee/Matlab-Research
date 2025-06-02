@@ -5,7 +5,7 @@
 
 
 
-%% FIGURE 1 - Plot the ensemble MEAN of droplet size, liquid water content and
+%% Plot the ensemble MEAN of droplet size, liquid water content and
 % number concentration for non-precipitating clouds. Add an adiabatic
 % profile for the liquid water content and effective radius to show the
 % mean profiles are close to adiabatic, supporting my assumption.
@@ -520,7 +520,8 @@ annotation('textbox',[0.134 0.802 0.142 0.114],...
 
 
 
-%% FIGURE 2 - Plot the ensemble MEDIAN of droplet size, liquid water content and
+%% FIGURE 2 
+% Plot the ensemble MEDIAN of droplet size, liquid water content and
 % number concentration for non-precipitating clouds. Add an adiabatic
 % profile for the liquid water content and effective radius to show the
 % mean profiles are close to adiabatic, supporting my assumption
@@ -1141,7 +1142,7 @@ ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
 
 
 
-%% FIGURE 3
+%% 
 
 % Plot weighting functions of the first 7 MODIS spectral channels
 % These weighting functions were created using the VOCALS-REx data set from
@@ -1150,6 +1151,8 @@ ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', 30)
 % was set as the value measured by MODIS for the median pixel, the pixel
 % found closest the C130 aircraft in the middle of it's ascent through the
 % cloud.
+
+clear variables
 
 filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
     '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
@@ -1172,7 +1175,8 @@ plot_probability_scat_top_maxDepth_with_changing_variable(filenames, probability
 
 
 
-%% Figure 3 - Weighting Functions - Take 2 - smooth curves
+%% Figure 1 
+% Weighting Functions - Take 2 - smooth curves
 
 
 clear variables
@@ -1193,16 +1197,16 @@ clear variables
 
 
 % ---------------------------------------------------------------------------------------
-% filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_645_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_858.5_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
-%     '2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
-% 
-% % define the wavelengths as the changing variables
-% wavelength = modisBands(1:7);
+filenames = {'2D_MC_05-Sep-2023_Wavelength_469_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_555_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_645_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_858.5_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_1240_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_1640_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat',...
+    '2D_MC_05-Sep-2023_Wavelength_2130_N-Photons_10000000_N-Layers_100_Tau0_15_SZA_27.mat'};
+
+% define the wavelengths as the changing variables
+wavelength = modisBands(1:7);
 % ---------------------------------------------------------------------------------------
 
 
@@ -1213,10 +1217,10 @@ clear variables
 % filenames = {'3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
 %              '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_49.4584.mat',...
 %              '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_63.2563.mat'};
-filenames = {'3D_MC_17-Apr-2025_Wavelength_1600_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
-             '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
-             '3D_MC_17-Apr-2025_Wavelength_3700_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat'};
-wavelength = [1600, 2200, 3700];
+% filenames = {'3D_MC_17-Apr-2025_Wavelength_1600_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
+%              '3D_MC_17-Apr-2025_Wavelength_2200_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat',...
+%              '3D_MC_17-Apr-2025_Wavelength_3700_N-Photons_1000000_N-Layers_100_Tau0_8_r_top_12_r_bot_5_SZA_0.mat'};
+% wavelength = [1600, 2200, 3700];
 %sza = [0, 49, 63];
 % ---------------------------------------------------------------------------------------
 
@@ -1233,7 +1237,8 @@ smooth_curves = true;
 
 
 % Define a set of colors based on the number of files
-C = mySavedColors(1:length(filenames), 'fixed');
+C = mySavedColors(61:61+length(filenames), 'fixed');         % using colorblind friendly colors (61-72)
+% C = cividis(length(filenames));
 
 
 % Store the number of photons from each simulation
@@ -1441,7 +1446,7 @@ end
 % Set up axes labels
 set(gca, 'YDir','reverse')
 grid on; grid minor
-xlabel('$P(\tau)$','Interpreter','latex');
+xlabel('$P$(scattering out cloud top $|$ reached max depth of $\tau$)','Interpreter','latex');
 ylabel('$\tau$','Interpreter','latex')
 
 % Create title
@@ -1490,9 +1495,44 @@ legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
 set(gcf, 'Position',[0 0 1400 800])
 
 
-%clear variables
 
 
+
+% ** Save figure 2! **
+
+
+% grab the filepath name according to which computer is being used
+
+if strcmp(whatComputer, 'anbu8374')==true
+
+    folder_path = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+
+    folderpath_figs = '/Users/anbu8374/Documents/My Papers/Paper 1/First Paper Figures/';
+
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/First Paper Figures/';
+
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 2 Figures/';
+
+
+end
+
+
+% save .fig file
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 1 - weighting functions.fig']);
+
+% save .png with 400 DPI resolution
+% remove title for the PNG
+title('')
+% *** do this manually ***
+exportgraphics(f,[folderpath_pngs,'Fig 1 - weighting functions.png'],'Resolution', 400);
 
 
 %% Compute the effective radius retrieval using a single NIR wavelength and the median droplet profile found above

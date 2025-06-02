@@ -13,20 +13,22 @@ function [inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs)
 % This will create n wc_files where n is equal to the number of layers in
 % the cloud. Starting with the entire cloud, each file will have one less
 % layer
-inputs.compute_weighting_functions = true;
+inputs.compute_weighting_functions = false;
 
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-% inputs.calc_type = 'simulated_spectra';
-inputs.calc_type = 'monte_carlo';
+inputs.calc_type = 'simulated_spectra';
+% inputs.calc_type = 'monte_carlo';
 
-% Define the RTE Solver
-% inputs.RT.rte_solver = 'disort';
-inputs.RT.rte_solver = 'montecarlo';
+
+% ----- Define the RTE Solver -----
+inputs.RT.rte_solver = 'disort';
+% inputs.RT.rte_solver = 'montecarlo';
+
 
 % Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 32;
+inputs.RT.num_streams = 16;
 
 
 % ---------------------------------------------------
@@ -59,7 +61,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 
 % ----- Define the day of the year to account for Earth-Sun distance -----
-inputs.RT.day_of_year = 239;
+% inputs.RT.day_of_year = 239;
 
 
 
@@ -76,10 +78,10 @@ inputs.RT.day_of_year = 239;
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-%     618, 620, 623, 625]';
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    618, 620, 623, 625]';
 
 % inputs.bands2run = [49, 426, 613]';
 
@@ -94,18 +96,18 @@ inputs.RT.day_of_year = 239;
 % inputs.bands2run = 580;
 
 % 2236 nm 
-inputs.bands2run = 613;
+% inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = true;
+inputs.RT.monochromatic_calc = false;
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = true;
+inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
@@ -179,7 +181,8 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0;
+inputs.RT.surface_albedo = 0.04;
+% inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 % day of the year
 %inputs.RT.day_of_year = 17;
@@ -272,9 +275,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       droplet radius to have linearly with optical depth (re(z)~tau).
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
-    inputs.RT.r_top = 12;     % microns
-    inputs.RT.r_bot = 5;        % microns
-    inputs.RT.tau_c = 8;
+    % ** Values used in Platnick (2000) **
+%     inputs.RT.r_top = 12;     % microns
+%     inputs.RT.r_bot = 5;        % microns
+%     inputs.RT.tau_c = 8;
+
+    inputs.RT.r_top = 9.5167;     % microns
+    inputs.RT.r_bot = 4.0192;        % microns
+    inputs.RT.tau_c = 6.0312;
 
     % inputs.RT.r_top = [9,10];     % microns
     % inputs.RT.r_bot = [4:6];        % microns
@@ -291,8 +299,9 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
-
-    inputs.RT.n_layers = 250;                          % number of layers to model within cloud
+    % *** Use 250 if creating weighting functions using DISORT ***
+%     inputs.RT.n_layers = 250;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 10;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -388,7 +397,8 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 % define the solar zenith angle
 % inputs.RT.sza = 31;           % degree
-inputs.RT.sza = acosd(0.65);           % degree
+% inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+inputs.RT.sza = 0;           % degree
 
 
 % Define the solar azimuth measurement between values 0 and 360
@@ -399,11 +409,13 @@ inputs.RT.sza = acosd(0.65);           % degree
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
 %inputs.RT.phi0 = -84 + 180;         % degree
-inputs.RT.phi0 = 90;         % degree
+inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
 % inputs.RT.vza = 4; % values are in degrees;                        % degree
-inputs.RT.vza = acosd(0.85); % values are in degrees;                        % degree
+% inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
+inputs.RT.vza = 0; % values are in degrees;
+
 
 % define the viewing azimuth angle
 % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
@@ -430,7 +442,9 @@ inputs.RT.wind_speed = 3;             % m/s
 % --------- specify various cross-section models for  -----------
 inputs.RT.specify_cross_section_model = false;
 
-inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. equation 29
+% inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
+inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
+
 % ------------------------------------------------------------------------ 
 
 
@@ -464,10 +478,10 @@ inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condens
 % ------- Do you want to modify concentration of Carbon dioxide? ---------
 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
-inputs.RT.modify_CO2 = false;
+inputs.RT.modify_CO2 = true;
 
-% inputs.RT.CO2_mixing_ratio = 416;       % ppm
-inputs.RT.CO2_mixing_ratio = 0;       % ppm
+inputs.RT.CO2_mixing_ratio = 416;       % ppm
+% inputs.RT.CO2_mixing_ratio = 0;       % ppm
 % ------------------------------------------------------------------------
 
 

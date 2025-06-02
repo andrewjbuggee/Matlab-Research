@@ -15,10 +15,10 @@ if strcmp(which_computer, 'anbu8374')==true
     foldername = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
     % tauC = [5.5 : 0.5 : 7.5]
-    %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % tauC = [7.5 : 0.5 : 15]
-    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+%     filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
@@ -419,10 +419,14 @@ if strcmp(which_computer, 'anbu8374')==true
 
     % Load a simulated measurement
     % r_top = 12, r_bot = 4, tau = 6
-    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.9
     %sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
+
 
     % r_top = 8.5, r_bot = 6, tau_c = 7.3
     % sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
@@ -559,6 +563,13 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
 end
 
 
+
+
+
+
+
+
+
 % rms residual values to plot
 lvls = [0, 1:24];
 
@@ -570,13 +581,13 @@ lvls = [0, 1:24];
 
 % Create contour
 [c1,h1] = contour(tau_c_fine, r_top_min_1(1)-r_bot_fine, (rss_residual(:,:, idx_rTop_1)./rss_uncert)',...
-    lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+    lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(63, 'fixed'));
+clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
 % Plot the true state vector
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
-    mySavedColors(1, 'fixed'));
+    mySavedColors(62, 'fixed'));
 
 
 
@@ -636,10 +647,25 @@ rss_uncert = sqrt( sum( synthetic_measurement_uncert_2.^2));
 r_top_min_2 = R_top_fine(idx_min);
 
 
+ylim([min(r_top_min_2(1)-r_bot_fine), max(r_top_min_2(1)-r_bot_fine)])
 
 
 % define the optical depth slice you'd like to plot
 idx_rTop_2 = r_top_fine == r_top_min_2(1);
+
+
+% Get current y-axis limits
+y_limits = ylim;
+x_limits = xlim;
+
+% Create shading for negative y-values
+if y_limits(1) < 0
+    area_x = [x_limits(1), x_limits(2), x_limits(2), x_limits(1)];
+    area_y = [y_limits(1), y_limits(1), 0, 0];
+    fill(area_x, area_y, mySavedColors(64, 'fixed'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+end
+
+
 
 
 
@@ -647,7 +673,7 @@ s2 = subplot(1,2,2);
 
 % set subplot position
 if strcmp(whatComputer, 'anbu8374')==true
-    set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
+    set(s2, 'Position', [0.53 0.11 0.41 0.815])
 
 elseif strcmp(whatComputer, 'andrewbuggee')==true
     set(s2, 'Position', [0.56 0.11 0.41 0.815])
@@ -675,14 +701,14 @@ lvls = [0, 1:4:32];
 
 % Create contour
 [c1,h1] = contour(tau_c_fine, r_top_min_2(1)-r_bot_fine, (rss_residual(:,:, idx_rTop_2)./rss_uncert)',...
-    lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+    lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(63, 'fixed'));
+clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
 
 % Plot the true state vector
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
-    mySavedColors(1, 'fixed'));
+    mySavedColors(62, 'fixed'));
 
 
 % Create ylabel
@@ -703,6 +729,22 @@ title(['RSS Residual at global min $r_{top} = $', num2str(r_top_fine(idx_rTop_2)
 ylim([min(r_top_min_2(1)-r_bot_fine), max(r_top_min_2(1)-r_bot_fine)])
 
 grid on; grid minor
+
+
+% Get current y-axis limits
+y_limits = ylim;
+x_limits = xlim;
+
+% Create shading for negative y-values
+if y_limits(1) < 0
+    area_x = [x_limits(1), x_limits(2), x_limits(2), x_limits(1)];
+    area_y = [y_limits(1), y_limits(1), 0, 0];
+    fill(area_x, area_y, mySavedColors(64, 'fixed'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+end
+
+
+
+
 
 
 
@@ -734,28 +776,28 @@ clear variables
 
 % ---------- Save figure --------------
 % save .fig file
-% if strcmp(whatComputer, 'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
-% elseif strcmp(whatComputer, 'anbu8374')==true
-%     folderpath_figs = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/first_paper/figures_post_submission/';
-% end
-%
-% f = gcf;
-% saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
-%
-%
-% % save .png with 400 DPI resolution
-% % remove title
-% title('')
-% if strcmp(whatComputer, 'andrewbuggee')==true
-%     folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
-% elseif strcmp(whatComputer, 'anbu8374')==true
-%     folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
-% end
-%
-% exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
-%
-%
+if strcmp(whatComputer, 'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
+elseif strcmp(whatComputer, 'anbu8374')==true
+    folderpath_figs = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/first_paper/figures_post_submission/';
+end
+
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+title('')
+if strcmp(whatComputer, 'andrewbuggee')==true
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+elseif strcmp(whatComputer, 'anbu8374')==true
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
+end
+
+exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
+
+
 
 
 
@@ -977,13 +1019,23 @@ if strcmp(which_computer, 'anbu8374')==true
 
     % Load a simulated measurement
     % r_top = 12, r_bot = 4, tau = 6
-    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.9
-    %sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev1.mat';  
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev2.mat';   % old rayliegh scattering model
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev3.mat';   % old rayliegh scattering model + adjusted CO2 column amount
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev4.mat';   % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev5.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year
+     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
+
+
 
     % r_top = 8.5, r_bot = 6, tau_c = 7.3
-    % sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.6
     % sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev2.mat';
@@ -1036,7 +1088,7 @@ clear fm
 
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
-measurement_uncert_MODIS7 = 0.01;
+measurement_uncert_MODIS7 = 0.03;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -1116,8 +1168,8 @@ lvls = [0, 1:2:11];
 
 % Create contour plot
 [c1,h1] = contour(tau_c_fine, r_top_min_MODIS7(1)-r_bot_fine, (rss_residual_MODIS7(:,:, idx_rTop_MODIS7)...
-    ./rss_uncert_MODIS7)',lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+    ./rss_uncert_MODIS7)',lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(63, 'fixed'));
+clabel(c1,h1,'FontSize',contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
 
 % Create filled contour plot
@@ -1148,11 +1200,22 @@ grid on; grid minor
 % Plot the true state vector
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
-    mySavedColors(1, 'fixed'));
+    mySavedColors(62, 'fixed'));
 
 
 ylim([min(r_top_min_MODIS7(1)-r_bot_fine), max(r_top_min_MODIS7(1)-r_bot_fine)])
 
+
+% Get current y-axis limits
+y_limits = ylim;
+x_limits = xlim;
+
+% Create shading for negative y-values
+if y_limits(1) < 0
+    area_x = [x_limits(1), x_limits(2), x_limits(2), x_limits(1)];
+    area_y = [y_limits(1), y_limits(1), 0, 0];
+    fill(area_x, area_y, mySavedColors(64, 'fixed'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+end
 
 
 
@@ -1196,7 +1259,7 @@ s2 = subplot(1,2,2);
 
 % set subplot position
 if strcmp(whatComputer, 'anbu8374')==true
-    set(s2, 'Position', [0.51 0.11 0.334659090909091 0.815])
+    set(s2, 'Position', [0.53 0.11 0.41 0.815])
 
 elseif strcmp(whatComputer, 'andrewbuggee')==true
     set(s2, 'Position', [0.56 0.11 0.41 0.815])
@@ -1211,8 +1274,8 @@ lvls = [0, 1:2:11];
 
 % Create contour plot
 [c1,h1] = contour(tau_c_fine, r_top_min_35(1)-r_bot_fine, (rss_residual_35(:,:, idx_rTop_35)...
-    ./rss_uncert_35)',lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(20, 'fixed'));
-clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(20, 'fixed'));
+    ./rss_uncert_35)',lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(63, 'fixed'));
+clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
 
 % Create filled contour
@@ -1244,7 +1307,7 @@ xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_la
 % Plot the true state vector
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
-    mySavedColors(1, 'fixed'));
+    mySavedColors(62, 'fixed'));
 
 
 
@@ -1256,6 +1319,20 @@ title(['RSS Residual at $r_{top} = $', num2str(r_top_fine(idx_rTop_35)),...
 ylim([min(r_top_min_35(1)-r_bot_fine), max(r_top_min_35(1)-r_bot_fine)])
 
 grid on; grid minor
+
+
+% Get current y-axis limits
+y_limits = ylim;
+x_limits = xlim;
+
+% Create shading for negative y-values
+if y_limits(1) < 0
+    area_x = [x_limits(1), x_limits(2), x_limits(2), x_limits(1)];
+    area_y = [y_limits(1), y_limits(1), 0, 0];
+    fill(area_x, area_y, mySavedColors(64, 'fixed'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
+end
+
+
 
 
 
@@ -1316,7 +1393,7 @@ disp([newline,'Percent of state space within the convergence region using 35 EMI
 % 
 % exportgraphics(f,[folderpath_pngs,'Fig 7 - relative l2-norm with wavelengths for synthetic data with ', ...
 %     num2str(100*measurement_uncert_MODIS7), '% total uncertainty for 7 and 35 wavelengths - ver2.png'],'Resolution', 400);
-% 
+
 
 
 
