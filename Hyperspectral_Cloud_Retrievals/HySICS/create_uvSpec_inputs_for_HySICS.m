@@ -13,18 +13,18 @@ function [inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs)
 % This will create n wc_files where n is equal to the number of layers in
 % the cloud. Starting with the entire cloud, each file will have one less
 % layer
-inputs.compute_weighting_functions = false;
+inputs.compute_weighting_functions = true;
 
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'simulated_spectra';
-% inputs.calc_type = 'monte_carlo';
+% inputs.calc_type = 'simulated_spectra';
+inputs.calc_type = 'monte_carlo';
 
 
 % ----- Define the RTE Solver -----
-inputs.RT.rte_solver = 'disort';
-% inputs.RT.rte_solver = 'montecarlo';
+% inputs.RT.rte_solver = 'disort';
+inputs.RT.rte_solver = 'montecarlo';
 
 
 % Define the number of streams to use in your radiative transfer model
@@ -34,7 +34,7 @@ inputs.RT.num_streams = 16;
 % ---------------------------------------------------
 % --------- Define Monte Carlo Parameters -----------
 % ---------------------------------------------------
-inputs.RT.mc.photons = 1000;      % number of photons to use in the simulation
+inputs.RT.mc.photons = 10000000;      % number of photons to use in the simulation
 inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
 inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
 
@@ -74,7 +74,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -96,18 +96,18 @@ inputs.bands2run = (1:1:636)';
 % inputs.bands2run = 580;
 
 % 2236 nm 
-% inputs.bands2run = 613;
+inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = false;
+inputs.RT.monochromatic_calc = true;
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = false;
+inputs.RT.compute_reflectivity_uvSpec = true;
 % --------------------------------------------------------------
 
 
@@ -181,8 +181,8 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.04;
-% inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+% inputs.RT.surface_albedo = 0.04;        % Ocean water albedo
+inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 % day of the year
 %inputs.RT.day_of_year = 17;
@@ -276,17 +276,17 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
     % ** Values used in Platnick (2000) **
-%     inputs.RT.r_top = 12;     % microns
-%     inputs.RT.r_bot = 5;        % microns
-%     inputs.RT.tau_c = 8;
+    inputs.RT.r_top = 12;     % microns
+    inputs.RT.r_bot = 5;        % microns
+    inputs.RT.tau_c = 8;
 
     % inputs.RT.r_top = 9.5167;     % microns
     % inputs.RT.r_bot = 4.0192;        % microns
     % inputs.RT.tau_c = 6.0312;
 
-    inputs.RT.r_top = 8.6;     % microns
-    inputs.RT.r_bot = 3.6;        % microns
-    inputs.RT.tau_c = 9.6;
+    % inputs.RT.r_top = 8.6;     % microns
+    % inputs.RT.r_bot = 3.6;        % microns
+    % inputs.RT.tau_c = 9.6;
 
     % inputs.RT.r_top = [9,10];     % microns
     % inputs.RT.r_bot = [4:6];        % microns
@@ -304,8 +304,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
     % *** Use 250 if creating weighting functions using DISORT ***
-%     inputs.RT.n_layers = 250;                          % number of layers to model within cloud
-    inputs.RT.n_layers = 10;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 250;                          % number of layers to model within cloud
+    % inputs.RT.n_layers = 10;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -401,8 +401,8 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 % define the solar zenith angle
 % inputs.RT.sza = 31;           % degree
-% inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-inputs.RT.sza = 0;           % degree
+inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+% inputs.RT.sza = 0;           % degree
 
 
 % Define the solar azimuth measurement between values 0 and 360
@@ -417,8 +417,8 @@ inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
 % inputs.RT.vza = 4; % values are in degrees;                        % degree
-% inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
-inputs.RT.vza = 0; % values are in degrees;
+inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
+% inputs.RT.vza = 0; % values are in degrees;
 
 
 % define the viewing azimuth angle
@@ -429,7 +429,7 @@ inputs.RT.vza = 0; % values are in degrees;
 % south. No transformation is needed
 
 % inputs.RT.vaz = -103+360;     % degree
-inputs.RT.vaz = 0;     % degree
+inputs.RT.vaz = 180;     % degree
 
 % --------------------------------------------------------------
 
@@ -446,8 +446,8 @@ inputs.RT.wind_speed = 3;             % m/s
 % --------- specify various cross-section models for  -----------
 inputs.RT.specify_cross_section_model = false;
 
-% inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
-inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
+inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
+% inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
 
 % ------------------------------------------------------------------------ 
 

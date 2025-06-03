@@ -349,8 +349,8 @@ tic
 Refl_model = zeros(num_INP_files, 1);
 
 
-% parfor nn = 1:num_INP_files
-for nn = 1:num_INP_files
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -371,11 +371,12 @@ for nn = 1:num_INP_files
         inputs.RT.compute_reflectivity_uvSpec);
 
     % Store the reflectance
-    % Refl_model(nn, :) = ds.reflectivity;       % reflectance is in units of 1/sr
+    Refl_model(nn, :) = ds.reflectivity;       % reflectance is in units of 1/sr
 
+    % *** Monte Carlo Cannot compute azimuthally avg. reflectance ***
     % Store the azimuthally averaged reflectance
     % Azimuthal average at this particular zenith angle
-    Refl_model(nn, :) = ds.reflectivity.az_avg;       % reflectance is in units of 1/sr
+    % Refl_model(nn, :) = ds.reflectivity.az_avg;       % reflectance is in units of 1/sr
 
     % % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
     % [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
