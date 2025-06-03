@@ -224,10 +224,11 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
 
     % tauC = [5.5 : 0.5 : 7.5]
     %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
-
+    filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    
     % tauC = [7.5 : 0.5 : 15]
     % filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
-    filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
@@ -398,7 +399,7 @@ rms_state_vec_2 = 100.* sqrt( mean( ((repmat([r_top_true, r_bot_true, tau_c_true
 
 
 
-%% NEW FIGURE 8 --- Subplot comparing l2 norm residual for synthetic HySICS data bewteen different measurement uncertainty scenarios
+%% NEW FIGURE 8 (now figure 9) --- Subplot comparing l2 norm residual for synthetic HySICS data bewteen different measurement uncertainty scenarios
 
 clear variables
 
@@ -617,6 +618,7 @@ grid on; grid minor
 
 
 
+
 % ----------------------------------------------------------------
 % ***--- Now compute the synthetic measurement for a more accurate
 % system ---***
@@ -682,7 +684,7 @@ end
 
 
 % rms residual values to plot
-lvls = [0, 1:4:32];
+lvls = [0, 1:3:32];
 
 
 % % Create filled contour
@@ -783,7 +785,7 @@ elseif strcmp(whatComputer, 'anbu8374')==true
 end
 
 f = gcf;
-saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
+saveas(f,[folderpath_figs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
 
 
 % save .png with 400 DPI resolution
@@ -795,7 +797,7 @@ elseif strcmp(whatComputer, 'anbu8374')==true
     folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
 end
 
-exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
+exportgraphics(f,[folderpath_pngs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
 
 
 
@@ -998,7 +1000,7 @@ rms_state_vec_35 = 100.* sqrt( mean( ((repmat([r_top_true, r_bot_true, tau_c_tru
 
 
 
-%% **NEW** FIGURE 7 --- Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
+%% **NEW** FIGURE 7 (now Figure 8) --- Subplot comparing l2 norm residual for synthetic data bewteen 7 and 35 wavelengths employed in the retrieval
 
 clear variables
 
@@ -1163,7 +1165,7 @@ end
 
 
 % rms residual values to plot
-lvls = [0, 1:2:11];
+lvls = [0, 1:1:11];
 %lvls = [0, 1:10];
 
 % Create contour plot
@@ -1268,7 +1270,7 @@ end
 
 
 % rms residual values to plot
-lvls = [0, 1:2:11];
+lvls = [0, 1:1:11];
 %lvls = [0, 1:10];
 
 
@@ -1378,7 +1380,7 @@ disp([newline,'Percent of state space within the convergence region using 35 EMI
 % end
 % 
 % f = gcf;
-% saveas(f,[folderpath_figs,'Fig 7 - relative l2-norm with wavelengths for synthetic data with ', ...
+% saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with ', ...
 %     num2str(100*measurement_uncert_MODIS7), '% total uncertainty for 7 and 35 wavelengths - ver2.fig']);
 % 
 % 
@@ -1391,7 +1393,7 @@ disp([newline,'Percent of state space within the convergence region using 35 EMI
 %     folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
 % end
 % 
-% exportgraphics(f,[folderpath_pngs,'Fig 7 - relative l2-norm with wavelengths for synthetic data with ', ...
+% exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with ', ...
 %     num2str(100*measurement_uncert_MODIS7), '% total uncertainty for 7 and 35 wavelengths - ver2.png'],'Resolution', 400);
 
 

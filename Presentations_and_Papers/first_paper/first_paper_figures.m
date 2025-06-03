@@ -6054,3 +6054,263 @@ exportgraphics(f,[folderpath_pngs,'Fig 7 - reflectance for cloudy scene with 35 
 
 
 
+%% Figure 10
+
+% Plot showing steepness of solution space
+
+%Create a surface plot at the optical depth associated with the minimum rms 
+% plot the RMS residual at the minimum optical depth and let the radii at
+% cloud top and bottom varry
+
+
+
+% Load data sets!
+
+clear variables
+
+
+which_computer = whatComputer();
+
+% ------------ LOAD DATA SET -----------------------
+if strcmp(which_computer, 'anbu8374')==true
+
+    foldername = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    filename = 'interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    fm = load([foldername,filename]);
+
+
+
+    % Load a simulated measurement
+    % r_top = 12, r_bot = 4, tau = 6
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+    % r_top = 8.5, r_bot = 6, tau_c = 5.9
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev1.mat';  
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev2.mat';   % old rayliegh scattering model
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev3.mat';   % old rayliegh scattering model + adjusted CO2 column amount
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev4.mat';   % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04
+%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev5.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year
+     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
+
+
+
+    % r_top = 8.5, r_bot = 6, tau_c = 7.3
+%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
+
+    % r_top = 8.5, r_bot = 6, tau_c = 5.6
+    % sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev2.mat';
+
+    % r_top = 12.5, r_bot = 4.3, tau_c = 6.9
+    %sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev4.mat';
+
+    sim = load([foldername, sim_filename]);
+
+elseif strcmp(which_computer, 'andrewbuggee')==true
+
+    error([newline, 'Where are these files?!', newline])
+
+end
+% -----------------------------------------------------
+
+
+% Define 7 MODIS channels
+% Let's now seperate out the interpolated relfectance at the seven MODIS
+% wavelengths
+wl_MODIS7_idx = [1, 3, 5, 6, 18, 22, 29];
+
+% --- unpack the synthetic measurement ---
+synthetic_measurement = sim.Refl_model;
+synthetic_measurement_MODIS7 = synthetic_measurement(wl_MODIS7_idx);
+r_top_true = sim.inputs.RT.r_top;
+r_bot_true = sim.inputs.RT.r_bot;
+tau_c_true = sim.inputs.RT.tau_c;
+
+% delete the rest
+clear sim
+
+
+% ----- unpack the forward model array -----
+fm_refl = fm.Refl_model_fine;
+% Grab the modeled data at just the 7 MODIS bands
+fm_refl_MODIS7 = fm_refl(:,:,:, wl_MODIS7_idx);
+tau_c_fine = fm.tau_c_fine;
+r_bot_fine = fm.r_bot_fine;
+r_top_fine = fm.r_top_fine;
+R_top_fine = fm.R_top_fine;
+R_bot_fine = fm.R_bot_fine;
+Tau_c_fine = fm.Tau_c_fine;
+
+clear fm
+
+
+
+
+
+
+
+
+
+% --- Total uncertainty ---
+% define this as a fraction
+% define the total uncertainty (measurement + forward model) for a MODIS
+% like instrument
+measurement_uncert = 0.01;
+
+% define the synthetic relfectance uncertainty
+synthetic_measurement_uncert = measurement_uncert .* synthetic_measurement;
+
+%Compute the l2 norm difference between the measurements and the modeled reflectances
+rss_residual = sqrt( sum( (repmat(reshape(synthetic_measurement, 1, 1, 1, []),...
+    length(tau_c_fine), length(r_bot_fine), length(r_top_fine))...
+    - fm_refl).^2, 4));
+
+% Compute the l2 norm of the synthetic measurement uncertainty
+rss_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
+
+% find the smallest rms residual value, omitting nans
+[~, idx_min] = min(rss_residual, [], 'all', 'omitnan');
+
+tau_c_min = Tau_c_fine(idx_min);   % optical depth associated with the minimum RSS
+
+% define the optical depth slice you'd like to plot
+% plot the mimimum rms residual
+idx_tauC = tau_c_fine == tau_c_min(1);
+%idx_tauC = tau_c_fine == 6.2;
+
+% Create figure
+figure1 = figure;
+
+% Create axes
+axes1 = axes('Parent',figure1,...
+    'Position',[0.128 0.159760765550239 0.690218904655502 0.765239234449762]);
+hold(axes1,'on');
+
+
+
+% rms residual values to plot
+%lvls = [0, 0.25, 0.5, 1:3];
+%lvls = [0, 0.3, 0.5, 1:2];
+
+
+% Create contour plot showing all radii at cloud top and bottom for a
+% particular optical depth
+s = surf(reshape(R_top_fine(idx_tauC, :, :),numel(r_bot_fine), numel(r_top_fine)),...
+    reshape(R_bot_fine(idx_tauC, :, :),numel(r_bot_fine), numel(r_top_fine)),...
+    reshape(rss_residual(idx_tauC, :, :)./rss_uncert, numel(r_bot_fine), numel(r_top_fine)));
+
+s.EdgeAlpha = 0.35;
+s.FaceAlpha = 0.95;
+% s.FaceColor = mySavedColors(61, 'fixed');
+
+% set a custom colormap
+custom_map = cividis(100);
+colormap(custom_map);
+
+
+
+
+hold on;
+
+% plot a plane with a constant z of 1
+s2 = surf(reshape(R_top_fine(idx_tauC, :, :),numel(r_bot_fine), numel(r_top_fine)),...
+    reshape(R_bot_fine(idx_tauC, :, :),numel(r_bot_fine), numel(r_top_fine)),...
+    ones(numel(r_bot_fine), numel(r_top_fine)));
+
+s2.EdgeAlpha = 0.35;
+s2.FaceAlpha = 0.75;
+s2.FaceColor = mySavedColors(61, 'fixed');
+% s2.FaceColor = 'black';
+
+
+% Create colorbar
+colorbar(axes1,'Position',...
+    [0.887908747348504 0.20021052631579 0.0179953116920851 0.728019138755982]);
+% create colorbar label
+%ylabel(cb, 'Reflectance ($1/sr$)', 'FontSize', 30, 'Interpreter', 'latex')
+
+
+
+% Create ylabel
+xlabel('$r_{top}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+ylabel('$r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+% Create xlabel
+zlabel(['$\sqrt{\sum_\lambda (R_\lambda(\textbf{\textit{x}}) - \textbf{\textit{m}})^2} / ',...
+    '\sqrt{ \sum_\lambda (\delta \textbf{\textit{m}})^2 }$'],'FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+
+% Create title
+title(['RSS Residual for $\tau_c = $', num2str(tau_c_fine(idx_tauC)),...
+    ' between HySICS and LibRadTran'],'Interpreter','latex', 'FontSize', 33);
+
+box(gca,'on');
+grid(gca,'on');
+axis(gca,'tight');
+hold(gca,'off');
+% Set the remaining axes properties
+set(gca,'BoxStyle','full','Layer','top','XMinorGrid','on','YMinorGrid','on','ZMinorGrid',...
+    'on');
+
+% Set z-axis tick marks from 1 to 18
+zticks(1:2:19);
+
+% define legend
+legend({'', 'Relative cost function of 1'}, 'location', 'best', 'interpreter', 'latex')
+
+
+
+
+% set the figure size to be proportional to the length of the r_top and
+% r_bot vectors
+%set(gcf, 'Position', [0 0 1200, 1200*(length(r_bot)/length(r_top))])
+set(gcf, 'Position', [0 0 1000 1000])
+
+view(axes1,[9.80726477935054 14.2879343197655]);
+
+
+
+% -------------------------------------
+% ---------- Save figure --------------
+% -------------------------------------
+
+% grab the filepath name according to which computer is being used
+
+if strcmp(whatComputer, 'anbu8374')==true
+
+    folder_path = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/VOCALS_REx/vocals_rex_data/SPS_1/';
+
+    folderpath_figs = '/Users/anbu8374/Documents/My Papers/Paper 1/First Paper Figures/';
+
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/First Paper Figures/';
+
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 2 Figures/';
+
+
+end
+% save .fig file
+f = gcf;
+saveas(f,[folderpath_figs,'Fig 10 - RSS residual in 3D showing steep solution space.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+title('')
+exportgraphics(f,[folderpath_pngs,'Fig 10 - RSS residual in 3D showing steep solutiong space.png'],'Resolution', 400);
+
+
+
