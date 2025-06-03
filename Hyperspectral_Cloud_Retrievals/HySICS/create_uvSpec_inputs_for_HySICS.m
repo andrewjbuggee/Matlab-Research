@@ -74,14 +74,14 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
 
 % inputs.bands2run = [49, 426, 613]';
 
@@ -280,9 +280,13 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 %     inputs.RT.r_bot = 5;        % microns
 %     inputs.RT.tau_c = 8;
 
-    inputs.RT.r_top = 9.5167;     % microns
-    inputs.RT.r_bot = 4.0192;        % microns
-    inputs.RT.tau_c = 6.0312;
+    % inputs.RT.r_top = 9.5167;     % microns
+    % inputs.RT.r_bot = 4.0192;        % microns
+    % inputs.RT.tau_c = 6.0312;
+
+    inputs.RT.r_top = 8.6;     % microns
+    inputs.RT.r_bot = 3.6;        % microns
+    inputs.RT.tau_c = 9.6;
 
     % inputs.RT.r_top = [9,10];     % microns
     % inputs.RT.r_bot = [4:6];        % microns
