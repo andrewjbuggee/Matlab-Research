@@ -1913,6 +1913,7 @@ indices_2_plot = [3, 4, 10,];
 
 % define the colors of each curve
 C = mySavedColors([5, 17, 8], 'fixed');
+% C = mySavedColors([70, 71, 72], 'fixed');  % colorblind friendly options
 
 % Plot the re, Nc, and LWC for the curves defined by indices_2_plot 
 plot_horiztonal_profiles_LWC_and_re_and_Nc(horz_profs, indices_2_plot, normalize_distance, C)
@@ -2093,7 +2094,9 @@ set(gcf, 'Position', [0 0 1200 625])
 
 % Clean up figure 2
 % Also use this legend for the second figure
-figure(2); hold on
+figure(2); 
+f = gcf;
+hold on
 subplot(3,1,2)
 legend(legend_str{1}, legend_str{3}, legend_str{5}, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
 % remove title for the PNG
@@ -2102,6 +2105,43 @@ title('')
 subplot(3,1,3)
 legend()
 set(gcf, 'Position', [0 0 2000 1225])
+
+% insert letter for the first panel
+figure(2);
+subplot(3,1,1)
+hold on
+% Create textbox
+annotation(f,'textbox',...
+    [0.866 0.871020408163265 0.0225 0.0351020408163265],'String','(a)',...
+    'Interpreter','latex',...
+    'FontSize',28,...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+
+
+% insert letter for the second panel
+subplot(3,1,2)
+hold on
+% Create textbox
+annotation(f,'textbox',...
+    [0.866 0.576326530612245 0.0225 0.0351020408163265],'String','(b)',...
+    'Interpreter','latex',...
+    'FontSize',28,...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+
+% insert letter for the third panel
+subplot(3,1,2)
+hold on
+% Create textbox
+annotation(f,'textbox',...
+    [0.866 0.273469387755102 0.0225 0.0351020408163266],'String','(c)',...
+    'Interpreter','latex',...
+    'FontSize',28,...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+
+
 
 
 % ** Save figure 2! **
@@ -2126,7 +2166,7 @@ exportgraphics(f,[folderpath_pngs,'Fig 5 - 3 horizontal in-situ profiles.png'],'
 
 
 
-%% FIGURE 7 - Plot the ensemble MEAN of droplet size, liquid water content and
+%% Plot the ensemble MEAN of droplet size, liquid water content and
 % number concentration for non-precipitating clouds. Add an adiabatic
 % profile for the liquid water content and effective radius to show the
 % mean profiles are close to adiabatic, supporting my assumption.
@@ -2407,7 +2447,7 @@ annotation('textbox',[0.134 0.802 0.142 0.114],...
 
 
 
-%% FIGURE 6 - Standard Deviation of effective radius for all horizontal profiles for different length scales
+%% FIGURE 6 - Histogram of standard Deviation of effective radius for all horizontal profiles for different length scales
 
 % ---- Standard Deviation of Horizontal Profiles ---------
 % Compute the standard deviation of droplet size over some identified
@@ -2532,19 +2572,23 @@ end
 
 figure;
 
+% Define colors for each histogram
+% C = mySavedColors([3,4,5], 'fixed');
+C = mySavedColors([70, 71, 72], 'fixed');
+
 for ll = 1:length(length_scale)
 
 
 
     % ------- Plot Histogram and Mean Value ------
 
-    histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'FaceColor', mySavedColors(ll+2, 'fixed'))
+    histogram(std_lengthScale{ll}, 100, 'FaceAlpha', 0.5, 'FaceColor', C(:,ll))
     hold on
 
 
     % Plot a vertical line showing the average value of the distribution
-    xline(mean(std_lengthScale{ll}), 'LineWidth', 3, 'LineStyle', '--',...
-        'Color', mySavedColors(ll+2, 'fixed'), 'FontSize', 23, 'FontWeight','bold')
+    xline(median(std_lengthScale{ll}), 'LineWidth', 3, 'LineStyle', ':',...
+        'Color', C(:,ll), 'FontSize', 23, 'FontWeight','bold')
 
     legend_str{2*ll - 1} = ['Length Scale = ', num2str(length_scale(ll)/1e3), ' $km$'];
     legend_str{2*ll} = ['$\left< \sigma_{r_e} \right> $ = ', num2str(round(mean(std_lengthScale{ll}), 2)), '$\mu m$,  ',...
@@ -2553,7 +2597,9 @@ for ll = 1:length(length_scale)
     ylabel('Counts', 'Interpreter','latex')
 
 
-
+    disp([newline, 'The average value for the std distribution with a length scale',...
+        ' of ', num2str(length_scale(ll)/1e3), ' km is: ', num2str(median(std_lengthScale{ll})),...
+        ' microns', newline])
 
 
     % ------- Plot CDF and 0.5 yline ------
@@ -2594,21 +2640,24 @@ set(gcf, 'Position', [0 0 1200 625])
 
 
 
+
+
+
 % ---------- Save figure --------------
 % save .fig file
 if strcmp(whatComputer, 'andrewbuggee')==true
 
     folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
-    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
+    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 2 Figures/';
 
 elseif strcmp(whatComputer, 'anbu8374')==true
 
     folderpath_figs = '/Users/anbu8374/Documents/My Papers/Paper 1/First Paper Figures/';
-    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 1 Figures/';
+    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
 end
 
 f = gcf;
-saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.fig']);
+saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 0.5, 1 and 5 km segments.fig']);
 
 
 % save .png with 400 DPI resolution
@@ -2616,7 +2665,7 @@ saveas(f,[folderpath_figs,'Fig 6- histogram of std of horizontal profiles over 1
 title('')
 xlim([0,2])
 legend({legend_str{1}, '', legend_str{3}, '', legend_str{5}}, 'Location', 'best', 'interpreter', 'latex', 'Fontsize', 25)
-exportgraphics(f,[folderpath_pngs,'Fig 6- histogram of std of horizontal profiles over 1 and 5 km segments.png'],'Resolution', 400);
+exportgraphics(f,[folderpath_pngs,'Fig 6- histogram of std of horizontal profiles over 0.5, 1 and 5 km segments.png'],'Resolution', 400);
 
 
 
