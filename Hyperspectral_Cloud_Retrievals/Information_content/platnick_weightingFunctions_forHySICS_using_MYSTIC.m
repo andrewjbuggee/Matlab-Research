@@ -496,13 +496,15 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
 
     filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+            num2str(round(inputs.RT.wavelengths2run(1))), 'nm_inhomogeneous_droplet_profile_sim-ran-on-',...
+            char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
 else
 
     filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+            num2str(round(inputs.RT.wavelengths2run(1))), 'nm_homogeneous_droplet_profile_sim-ran-on-',...
+            char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 end
 
