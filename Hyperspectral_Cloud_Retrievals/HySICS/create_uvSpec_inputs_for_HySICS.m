@@ -87,7 +87,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % test bands
 % 500 nm 
-% inputs.bands2run = 49;
+inputs.bands2run = 49;
 
 % 1652 nm 
 % inputs.bands2run = 426;
@@ -96,7 +96,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % inputs.bands2run = 580;
 
 % 2236 nm 
-inputs.bands2run = 613;
+% inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
