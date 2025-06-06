@@ -169,7 +169,7 @@ Nc_threshold = 25;               % # droplets/cm^3
 % Time is measured in seconds since the startTime
 
 % ---- DO YOU WANT TO USE ADVECTION? -----
-modisInputs.flags.useAdvection = false;
+modisInputs.flags.useAdvection = true;
 
 tic
 vocalsRex = cropVocalsRex_vertProfs2MODIS(vocalsRex, lwc_threshold, stop_at_max_lwc, Nc_threshold, modis, modisInputs);
@@ -207,7 +207,7 @@ modisInputs.pixels.num_2calculate = length(pixels2use.res1km.linearIndex);
 %% CREATE GAUSS-NEWTON INPUTS
 
 % We use the estimates calcualted by the TBLUT as our a priori
-GN_inputs = create_gauss_newton_inputs(modisInputs);
+GN_inputs = create_bayes_inputs(modisInputs);
 disp('Dont forget to check the inputs and change if needed!!')
 
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE

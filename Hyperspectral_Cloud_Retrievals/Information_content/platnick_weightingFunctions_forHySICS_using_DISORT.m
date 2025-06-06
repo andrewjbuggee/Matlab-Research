@@ -106,7 +106,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 %% set up the inputs to create an INP file for DISORT!
 
-[inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs);
 
 
 %% Write the INP files

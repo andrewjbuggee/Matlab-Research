@@ -89,14 +89,23 @@
 %       value of 2
 
 %   (9) ind_var - the independent variable used to define the effective
-%  radius profile
+%  radius profile. Options are
+%           (1) 'optical_depth'
+%           (2) 'altitude'
 
-%   (10) computer_name - the computer this code is running on
+%   (10) compute_weighting_functions - a true or false flag that tells the
+%   compute to compute weighting functions by creating N wc files where N
+%   is equal to the number of cloud layers. The first file has all N
+%   layers, and each successive file removes one cloud layer from the
+%   bottom
 
-%   (11) index - this is the unique identifier that ensures files are not
+%   (11) computer_name - the computer this code is running on
+
+%   (12) index - this is the unique identifier that ensures files are not
 %   written over one another. If one file is created, the index will be 1.
 %   If many fiels are written in a for loop, each file will be tagged with
 %   the number in the loop.
+
 
 % OUTPUTS:
 %   (1) .Dat file saved in the libRadTran folder:

@@ -107,7 +107,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 % Define the parameters of the INP file
 
-[inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs);
 
 
 %% Write each INP file

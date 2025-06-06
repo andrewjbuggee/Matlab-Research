@@ -105,8 +105,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
+     
+     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
 
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-12-May-2025_rev1.mat']); % sza = 0, vza = 0
     
@@ -116,6 +116,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev5.mat']); % sza = 50, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev6.mat']); % sza = 60, vza = 0
     
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1';     %
+    
+    
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
 elseif strcmp(which_computer,'curc')==true
