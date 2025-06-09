@@ -108,14 +108,14 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-%     618, 620, 623, 625]';
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    618, 620, 623, 625]';
 
 
 % inputs.bands2run = [49, 426, 613]';
@@ -441,10 +441,10 @@ inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end)
 % end
 
 % I think the sensor altitude, for now, is the cloud top
-% inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
 % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
 % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+% inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 
