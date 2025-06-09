@@ -4,7 +4,7 @@
 
 %%
 
-function [inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs)
+function [inputs, spec_response] = create_uvSpec_MYSTIC_inputs_for_HySICS(inputs)
 
 
 % Define the parameters of the INP file
@@ -13,22 +13,19 @@ function [inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs)
 % This will create n wc_files where n is equal to the number of layers in
 % the cloud. Starting with the entire cloud, each file will have one less
 % layer
-inputs.compute_weighting_functions = true;
+inputs.compute_weighting_functions = false;
 
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
 % inputs.calc_type = 'simulated_spectra';
+% inputs.calc_type = 'forward_model_calcs_forRetrieval';
 inputs.calc_type = 'monte_carlo';
 
 
 % ----- Define the RTE Solver -----
-% inputs.RT.rte_solver = 'disort';
 inputs.RT.rte_solver = 'montecarlo';
 
-
-% Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 16;
 
 
 % ---------------------------------------------------
@@ -87,7 +84,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % test bands
 % 500 nm 
-inputs.bands2run = 49;
+% inputs.bands2run = 49;
 
 % 1652 nm 
 % inputs.bands2run = 426;
@@ -96,7 +93,7 @@ inputs.bands2run = 49;
 % inputs.bands2run = 580;
 
 % 2236 nm 
-% inputs.bands2run = 613;
+inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
@@ -185,7 +182,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 % day of the year
-%inputs.RT.day_of_year = 17;
+% inputs.RT.day_of_year = 316;  % value for pixel used in Figure 3.a from paper 1
 % ------------------------------------------------------------------------
 
 
@@ -199,7 +196,8 @@ inputs.RT.yesCloud = true;
 inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+% inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for pixel used in Figure 3.a from paper 1 
 
 
 % Water Cloud depth
@@ -305,7 +303,6 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % *** Use 250 if creating weighting functions using DISORT ***
     inputs.RT.n_layers = 250;                          % number of layers to model within cloud
-    % inputs.RT.n_layers = 10;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -400,8 +397,8 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 % define the solar zenith angle
-% inputs.RT.sza = 31;           % degree
-inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+% inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
 % inputs.RT.sza = 0;           % degree
 
 
@@ -412,12 +409,12 @@ inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-%inputs.RT.phi0 = -84 + 180;         % degree
-inputs.RT.phi0 = 0;         % degree
+inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+% inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-% inputs.RT.vza = 4; % values are in degrees;                        % degree
-inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
+inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+% inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
 % inputs.RT.vza = 0; % values are in degrees;
 
 
@@ -429,7 +426,11 @@ inputs.RT.vza = acosd(0.85);                                         % degree - 
 % south. No transformation is needed
 
 % inputs.RT.vaz = -103+360;     % degree
-inputs.RT.vaz = 180;     % degree
+% inputs.RT.vaz = 180;     % degree
+% to properly map the MODIS azimuth angle onto the reference plane used by
+% libRadTran...
+inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+
 
 % --------------------------------------------------------------
 

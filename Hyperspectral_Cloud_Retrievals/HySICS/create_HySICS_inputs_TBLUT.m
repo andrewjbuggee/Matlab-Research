@@ -74,7 +74,8 @@ end
 
 %%
 
-
+% We're not computing weighting functions
+inputs.compute_weighting_functions = false;
 
 
 
@@ -180,7 +181,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.05;
+inputs.RT.surface_albedo = 0.04;
 
 % day of the year
 %inputs.RT.day_of_year = simulated_measurements.day_of_year;
@@ -201,13 +202,36 @@ inputs.RT.tau_c = [1:10, 12.5, 15, 17.5,  20:5:50, 60];
 % define the cloud geometric depth
 inputs.RT.cloud_depth = 500;                % meters
 
+
 % define the geometric location of the cloud top and cloud bottom
 inputs.RT.z_topBottom = [1.5, 1];          % km above surface
 
 
 % Water Cloud depth
-inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+inputs.RT.H = inputs.RT.z_topBottom(2) - inputs.RT.z_topBottom(1);                                % km - geometric thickness of cloud
+
+
+% -------------------------------------------------------------------
+% define the independent variable used to define the effective radius
+% profile within the cloud
+% -------------------------------------------------------------------
+% if using altitude, z should be a vector starting at the cloud bottom
+% and increasing
+inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
+
+
 % ------------------------------------------------------------------------
+
+
+% --------------------------------------------------------------
+% ----------- Define the vertical atmospheric grid -----------
+% --------------------------------------------------------------
+inputs.RT.define_atm_grid=false;
+% Set the vertical grid to include the cloud layers
+
+
+
+
 
 
 % ------------------------------------------------------------------------
@@ -292,6 +316,68 @@ inputs.RT.CO2_mixing_ratio = 416;       % ppm - concentration of CO2
 % ------------------------------------------------------------------------
 
 
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular nitrogen (N2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_N2 = false;
+
+inputs.RT.N2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of NO2? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_NO2 = false;
+
+inputs.RT.NO2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular oxygen (O2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O2 = false;
+
+inputs.RT.O2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want to modify concentration of Ozone (O3)? -----------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O3 = false;
+
+inputs.RT.O3_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% ------- Do you want to turn off molecular absorption? --------
+% Note, that thermal emission of molecules is also switched off.
+inputs.RT.no_molecular_abs = false;
+% --------------------------------------------------------------
+
+
+% --------------------------------------------------------------
+% ------------ Do you want to turn off scattering? -------------
+
+% Possible choises for the optional argument name are:
+%   mol - Switch off molecular scattering.
+%   aer - Switch off scattering by aerosols.
+%   wc - Switch off scattering by water clouds.
+%   ic - Switch off scattering by ice clouds.
+%   profile - Switch off scattering by any profile defined in profile typename.
+inputs.RT.no_scattering_mol = false;
+inputs.RT.no_scattering_aer = false;
+% --------------------------------------------------------------
+
+
 
 % --------------------------------------------------------------
 % --- Do you want to use the Cox-Munk Ocean Surface Model? -----
@@ -307,6 +393,16 @@ inputs.RT.yesAerosols = true;
 inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
 inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- specify various cross-section models for  -----------
+inputs.RT.specify_cross_section_model = false;
+
+inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
+% inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
+
+% ------------------------------------------------------------------------ 
 
 
 % --------------------------------------------------------------

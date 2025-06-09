@@ -18,7 +18,7 @@ if strcmp(which_computer, 'anbu8374')==true
     filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % tauC = [7.5 : 0.5 : 15]
-%     filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    %     filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
@@ -30,8 +30,14 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
     % tauC = [5.5 : 0.5 : 7.5]
     %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
+    % -----------------------
     % tauC = [7.5 : 0.5 : 15]
-    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    % filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+
+    % simulated fig 3.a on paper 1
+    filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1.mat';
+    % -----------------------
+
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
@@ -98,6 +104,7 @@ save([foldername, save_filename],"Refl_model_fine", "r_top_fine", "r_bot_fine",.
     "tau_c_fine", "R_top_fine", "R_bot_fine", "Tau_c_fine", '-v7.3');
 
 
+clear R_bot_fine R_top_fine Tau_c_fine Refl_model_fine fm_refl
 
 %% Find the states with the lowest rms residul
 
@@ -119,7 +126,10 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
 
     foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
+
+    % simulated fig 3.a on paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1.mat';
 
 
     % Load forward model cals over wide range of r_top, r_bot and tau
@@ -225,14 +235,14 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
     % tauC = [5.5 : 0.5 : 7.5]
     %filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
     filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
-    
+
     % tauC = [7.5 : 0.5 : 15]
     % filename = 'forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
-    
+
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
-    
+
     % --- Load simulated measurement ---
 
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-19-May-2025_rev1.mat';
@@ -413,20 +423,23 @@ if strcmp(which_computer, 'anbu8374')==true
 
     filename = 'interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
+    % simulated
     % Load forward model cals over wide range of r_top, r_bot and tau
     fm = load([foldername,filename]);
 
 
-
+    % ----------------------------
     % Load a simulated measurement
+    % ----------------------------
+
     % r_top = 12, r_bot = 4, tau = 6
-%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+    %     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.9
     %sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
 
     % r_top = 9.5, r_bot = 4, tau_c = 6
-     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
+    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
 
 
     % r_top = 8.5, r_bot = 6, tau_c = 7.3
@@ -439,10 +452,41 @@ if strcmp(which_computer, 'anbu8374')==true
     %sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev4.mat';
 
     sim = load([foldername, sim_filename]);
+    % ----------------------------
+    % ----------------------------
+
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error([newline, 'Where are these files?!', newline])
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+
+    % ----------------------------
+    %    Load LUT calculations
+    % ----------------------------
+    % solar and viewing zenith angle of 0
+    % filename = 'interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1.mat';
+
+
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    fm = load([foldername,filename]);
+
+
+    % ----------------------------
+    % Load a simulated measurement
+    % ----------------------------
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1';     %
+
+
+    sim = load([foldername, sim_filename]);
+
+
 
 end
 % -----------------------------------------------------
@@ -535,11 +579,12 @@ rss_uncert = sqrt( sum( synthetic_measurement_uncert.^2));
 
 % Find the states with the lowest rms residul
 
-% find the smallest rms residual value, omitting nans
+% find the smallest rss residual value, omitting nans
 [~, idx_min] = min(rss_residual, [], 'all', 'omitnan');
 
 r_top_min_1 = R_top_fine(idx_min);
-
+r_bot_min_1 = R_bot_fine(idx_min);
+tau_c_min_1 = Tau_c_fine(idx_min);
 
 
 
@@ -566,11 +611,6 @@ end
 
 
 
-
-
-
-
-
 % rms residual values to plot
 lvls = [0, 1:24];
 
@@ -585,10 +625,16 @@ lvls = [0, 1:24];
     lvls, 'LineWidth',4, 'EdgeColor', mySavedColors(63, 'fixed'));
 clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
-% Plot the true state vector
+
+% ---- Plot the true state vector ----
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
     mySavedColors(62, 'fixed'));
+
+% ---- Plot the state vector associated with the Global Minimum RSS ----
+hold on
+plot(tau_c_min_1, (r_top_min_1 - r_bot_min_1), 'x', 'MarkerSize', 12, 'Color', ...
+    mySavedColors(61, 'fixed'));
 
 
 
@@ -647,6 +693,8 @@ rss_uncert = sqrt( sum( synthetic_measurement_uncert_2.^2));
 [~, idx_min] = min(rss_residual, [], 'all', 'omitnan');
 
 r_top_min_2 = R_top_fine(idx_min);
+r_bot_min_2 = R_bot_fine(idx_min);
+tau_c_min_2 = Tau_c_fine(idx_min);
 
 
 ylim([min(r_top_min_2(1)-r_bot_fine), max(r_top_min_2(1)-r_bot_fine)])
@@ -707,10 +755,18 @@ lvls = [0, 1:3:32];
 clabel(c1,h1,'FontSize', contour_label_size,'FontWeight','bold', 'Color', mySavedColors(63, 'fixed'));
 
 
-% Plot the true state vector
+
+% ----- Plot the true state vector -----
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
     mySavedColors(62, 'fixed'));
+
+% ---- Plot the state vector associated with the Global Minimum RSS ----
+hold on
+plot(tau_c_min_2, (r_top_min_2 - r_bot_min_2), 'x', 'MarkerSize', 12, 'Color', ...
+    mySavedColors(61, 'fixed'));
+
+
 
 
 % Create ylabel
@@ -777,27 +833,27 @@ clear variables
 
 
 % ---------- Save figure --------------
-% save .fig file
-if strcmp(whatComputer, 'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Figures/';
-elseif strcmp(whatComputer, 'anbu8374')==true
-    folderpath_figs = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/first_paper/figures_post_submission/';
-end
-
-f = gcf;
-saveas(f,[folderpath_figs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-title('')
-if strcmp(whatComputer, 'andrewbuggee')==true
-    folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Submission 1 Figures/';
-elseif strcmp(whatComputer, 'anbu8374')==true
-    folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
-end
-
-exportgraphics(f,[folderpath_pngs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
+% % save .fig file
+% if strcmp(whatComputer, 'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
+% elseif strcmp(whatComputer, 'anbu8374')==true
+%     folderpath_figs = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/first_paper/figures_post_submission/';
+% end
+%
+% f = gcf;
+% saveas(f,[folderpath_figs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.fig']);
+%
+%
+% % save .png with 400 DPI resolution
+% % remove title
+% title('')
+% if strcmp(whatComputer, 'andrewbuggee')==true
+%     folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Submission 2 Figures/';
+% elseif strcmp(whatComputer, 'anbu8374')==true
+%     folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
+% end
+%
+% exportgraphics(f,[folderpath_pngs,'Fig 9 - relative l2-norm with wavelengths for synthetic data with 3% and 1% uncertainty - ver 2.png'],'Resolution', 400);
 
 
 
@@ -1021,23 +1077,23 @@ if strcmp(which_computer, 'anbu8374')==true
 
     % Load a simulated measurement
     % r_top = 12, r_bot = 4, tau = 6
-%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+    %     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.9
-%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
+    %     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-May-2025_rev1.mat';
 
     % r_top = 9.5, r_bot = 4, tau_c = 6
-%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev1.mat';  
-%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev2.mat';   % old rayliegh scattering model
-%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev3.mat';   % old rayliegh scattering model + adjusted CO2 column amount
-%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev4.mat';   % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04
-%      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev5.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year
-     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
+    %     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev1.mat';
+    %      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev2.mat';   % old rayliegh scattering model
+    %      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev3.mat';   % old rayliegh scattering model + adjusted CO2 column amount
+    %      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev4.mat';   % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04
+    %      sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev5.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year
+    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev6.mat';     % old rayliegh scattering model + adjusted CO2 column amount + surface albedo=0.04 + removed day of year + 10 layers instead of 250
 
 
 
     % r_top = 8.5, r_bot = 6, tau_c = 7.3
-%     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
+    %     sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev1.mat';
 
     % r_top = 8.5, r_bot = 6, tau_c = 5.6
     % sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-18-May-2025_rev2.mat';
@@ -1049,7 +1105,36 @@ if strcmp(which_computer, 'anbu8374')==true
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error([newline, 'Where are these files?!', newline])
+
+    foldername = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+
+    % ----------------------------
+    %    Load LUT calculations
+    % ----------------------------
+    % solar and viewing zenith angle of 0
+    % filename = 'interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';
+
+
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'Interpolated_forward_model_calcs_forRetrieval_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1.mat';
+
+
+    % Load forward model cals over wide range of r_top, r_bot and tau
+    fm = load([foldername,filename]);
+
+
+    % ----------------------------
+    % Load a simulated measurement
+    % ----------------------------
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    sim_filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1';     %
+
+
+    sim = load([foldername, sim_filename]);
+
 
 end
 % -----------------------------------------------------
@@ -1138,7 +1223,8 @@ rss_uncert_MODIS7 = sqrt( sum( synthetic_measurement_uncert_MODIS7.^2));
 [~, idx_min_MODIS7] = min(rss_residual_MODIS7, [], 'all', 'omitnan');
 
 r_top_min_MODIS7 = R_top_fine(idx_min_MODIS7);
-
+r_bot_min_MODIS7 = R_bot_fine(idx_min_MODIS7);
+tau_c_min_MODIS7 = Tau_c_fine(idx_min_MODIS7);
 
 
 % ------------- PLOT l2 norm using 7 MODIS wavelengths ------------
@@ -1199,10 +1285,18 @@ grid on; grid minor
 
 
 
-% Plot the true state vector
+
+% ----- Plot the true state vector -----
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
     mySavedColors(62, 'fixed'));
+
+% ---- Plot the state vector associated with the Global Minimum RSS ----
+hold on
+plot(tau_c_min_MODIS7, (r_top_min_MODIS7 - r_bot_min_MODIS7), 'x', 'MarkerSize', 12, 'Color', ...
+    mySavedColors(61, 'fixed'));
+
+
 
 
 ylim([min(r_top_min_MODIS7(1)-r_bot_fine), max(r_top_min_MODIS7(1)-r_bot_fine)])
@@ -1218,6 +1312,7 @@ if y_limits(1) < 0
     area_y = [y_limits(1), y_limits(1), 0, 0];
     fill(area_x, area_y, mySavedColors(64, 'fixed'), 'EdgeColor', 'none', 'FaceAlpha', 0.15);
 end
+
 
 
 
@@ -1246,6 +1341,9 @@ rss_uncert_35 = sqrt( sum( synthetic_measurement_uncert_35.^2));
 [~, idx_min] = min(rss_residual_35, [], 'all', 'omitnan');
 
 r_top_min_35 = R_top_fine(idx_min);
+r_bot_min_35 = R_bot_fine(idx_min);
+tau_c_min_35 = Tau_c_fine(idx_min);
+
 
 
 
@@ -1306,10 +1404,19 @@ ylabel('$r_{top}^{*} - r_{bot}$ $(\mu m)$','FontWeight','bold','Interpreter','la
 xlabel('$\tau_c$','FontWeight','bold','Interpreter','latex', 'Fontsize', axes_label_font_size);
 
 
-% Plot the true state vector
+
+
+
+% ----- Plot the true state vector -----
 hold on
 plot(tau_c_true, (r_top_true - r_bot_true), 'x', 'MarkerSize', 12, 'Color', ...
     mySavedColors(62, 'fixed'));
+
+% ---- Plot the state vector associated with the Global Minimum RSS ----
+hold on
+plot(tau_c_min_35, (r_top_min_35 - r_bot_min_35), 'x', 'MarkerSize', 12, 'Color', ...
+    mySavedColors(61, 'fixed'));
+
 
 
 
@@ -1378,12 +1485,12 @@ disp([newline,'Percent of state space within the convergence region using 35 EMI
 % elseif strcmp(whatComputer, 'anbu8374')==true
 %     folderpath_figs = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/first_paper/figures_post_submission/';
 % end
-% 
+%
 % f = gcf;
 % saveas(f,[folderpath_figs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with ', ...
 %     num2str(100*measurement_uncert_MODIS7), '% total uncertainty for 7 and 35 wavelengths - ver2.fig']);
-% 
-% 
+%
+%
 % % save .png with 400 DPI resolution
 % % remove title
 % title('')
@@ -1392,7 +1499,7 @@ disp([newline,'Percent of state space within the convergence region using 35 EMI
 % elseif strcmp(whatComputer, 'anbu8374')==true
 %     folderpath_pngs = '/Users/anbu8374/Documents/My Papers/Paper 1/Submission 2 Figures/';
 % end
-% 
+%
 % exportgraphics(f,[folderpath_pngs,'Fig 8 - relative l2-norm with wavelengths for synthetic data with ', ...
 %     num2str(100*measurement_uncert_MODIS7), '% total uncertainty for 7 and 35 wavelengths - ver2.png'],'Resolution', 400);
 

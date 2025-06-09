@@ -107,7 +107,7 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.which_computer, nn+(nn-1));
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1));
 
         temp_names{nn} = temp{1};
 
@@ -120,6 +120,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file

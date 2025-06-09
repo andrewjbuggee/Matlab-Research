@@ -127,7 +127,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % length of each independent variable
     num_rEff = length(inputs.RT.re);
     num_tauC = length(inputs.RT.tau_c);
-    num_wl = length(inputs.bands2run);
+    num_wl = size(inputs.RT.wavelengths2run,1);
 
     num_INP_files = num_rEff*num_tauC*num_wl;
 
@@ -230,7 +230,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % num_rTop = length(inputs.RT.r_top);
     % num_rBot = length(inputs.RT.r_bot);
     % num_tauC = length(inputs.RT.tau_c);
-    num_wl = length(inputs.bands2run);
+    num_wl = size(inputs.RT.wavelengths2run,1);
     num_tau_layers = inputs.RT.n_layers;
 
     % num_INP_files = num_rTop*num_rBot*num_tauC*num_wl;
@@ -400,15 +400,21 @@ toc
 % Equation 4 defines the weighting function as the normalized derivative of
 % reflectance with respect to optical depth.
 
-% compute the derivative of reflectivity as a function of optical depth
-w = diff(flipud(Refl_model))./diff(flipud(changing_variables(:,2)));
 
+% reshape Refl_model
+Refl_model = reshape(Refl_model, inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
+
+% reshape the optical depth of each file
+tau = reshape(changing_variables(:,2), inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
+
+% compute the derivative of reflectivity as a function of optical depth
 % normalize by the reflectance over the full cloud optical thickness
-w = w./Refl_model(1);
+w = diff(flipud(Refl_model))./diff(flipud(tau)) ./ repmat(Refl_model(1,:), inputs.RT.n_layers-1, 1);
+
 
 %% plot the weighting function
 
-figure; 
+figure;
 plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
 
 

@@ -39,7 +39,11 @@ if strcmp(which_computer,'anbu8374')==true
         'HySICS/Droplet_profile_retrievals/'];
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
+    folder_paths.libRadtran_inp = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/';
+
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
 
 
 
@@ -64,6 +68,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/'];
 
+     % water cloud file location
+    folder_paths.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
+
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -79,10 +88,21 @@ elseif strcmp(which_computer,'curc')==true
     folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/HySICS/Simulated_spectra/';
 
 
+        % water cloud file location
+    folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
 end
 
+
+
+%%   Delete old files?
+% First, delete files in the HySICS folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 
 
 
@@ -96,7 +116,7 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-    'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);  % sza = 0, vza = 0
+        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);  % sza = 0, vza = 0
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -105,17 +125,23 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
+
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
 
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-12-May-2025_rev1.mat']); % sza = 0, vza = 0
-    
+
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev2.mat']); % sza = 20, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev3.mat']); % sza = 30, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev4.mat']); % sza = 40, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev5.mat']); % sza = 50, vza = 0
     % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev6.mat']); % sza = 60, vza = 0
-    
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1';     %
+
+
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -126,17 +152,11 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
     error([newline, 'No simulated measurements stored on the CURC!', newline])
-  
+
 
 
 end
 
-
-
-%%   Delete old files?
-% First, delete files in the HySICS folder
-delete([folder_paths.libRadtran_inp, '*.INP'])
-delete([folder_paths.libRadtran_inp, '*.OUT'])
 
 
 
@@ -147,10 +167,12 @@ tic
 tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
 toc
 
+
+
 %% CREATE GAUSS-NEWTON INPUTS
 
 % We use the estimates calcualted by the TBLUT as our a priori
-GN_inputs = create_gauss_newton_inputs();
+GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements);
 disp('Dont forget to check the inputs and change if needed!!')
 
 
@@ -164,193 +186,75 @@ disp('Dont forget to check the inputs and change if needed!!')
 % do you want to use your estimates or the MODIS estimate?
 % -------------------------------------------------------
 
-use_MODIS_estimates = true;
+use_TBLUT_estimates = true;
 
-if use_MODIS_estimates==true
-    truth_estimate_table = [];
-end
+GN_inputs = create_model_prior_covariance_HySICS(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
-GN_inputs = create_model_prior_covariance_andCloudHeight_MODIS(GN_inputs, pixels2use, truth_estimate_table, use_MODIS_estimates, modis, vocalsRex);
-GN_inputs = create_MODIS_measurement_covariance(GN_inputs, modis, modisInputs, pixels2use);
+GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
 
 
 %% CALCULATE RETRIEVAL PARAMETERS
 
-% change the model apriori each loop
-% r_top_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = 0.5:0.1:1;        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = 0.2;        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.3];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.3];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = 1;        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.3, 0.4, 0.5];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.1];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = 1;             % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.2];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.025, 0.05];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [1, 1.1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-
-
-% r_top_apriori_percentage = [0.05, 0.1, 0.2];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.05];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [1.15];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage = [0.1, 0.2];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.1, 0.2, 0.3];        % percentage of the TBLUT guess
-
-
-% r_top_apriori_percentage = [0.05];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage = [1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage = [0.05, 0.1, 0.3];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage_vector = [0.3];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage_vector = [1, 1.15];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage_vector = [0.05, 0.15, 0.3, 0.45, 0.6];        % percentage of the TBLUT guess
-
-% r_top_apriori_percentage_vector = [0.05, 0.2];        % percentage of the TBLUT guess
-% r_bot_apriori_percentage_vector = [0.5, 1];        % percentage of the TBLUT guess
-% tau_c_apriori_percentage_vector = [0.05];        % percentage of the TBLUT guess
-
-
-
-
-
-
-
-
-
-% Let's try using the MODIS retrieval uncertainty
-r_top_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
-r_bot_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
-tau_c_apriori_percentage_vector = 1;        % percentage of the TBLUT guess
-
 tic
-for rt = 1:length(r_top_apriori_percentage_vector)
-    for rb = 1:length(r_bot_apriori_percentage_vector)
-        for tc = 1:length(tau_c_apriori_percentage_vector)
 
-            disp(['Iteration: [rt, rb, tc] = [', [num2str(rt),', ', num2str(rb), ', ', num2str(tc)], ']...', newline])
+% --------------------------------------------------------------
+% ---------------- Retrieve Vertical Profile! ------------------
+% --------------------------------------------------------------
+[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, simulated_measurements, folder_paths);
+% --------------------------------------------------------------
+% --------------------------------------------------------------
 
+toc
 
-            % ----------------------------------------------------------
-            % --------- Set the covariance matrix of each pixel --------
-            % ----------------------------------------------------------
-            % set the new covariance matrix
-            % the percentage above multipled by the TBLUT retrieval is the
-            % STD. Square it to get the variance
+%% Save the Outputs!
+rev = 1;
+if modisInputs.flags.useAdvection == true
 
-%             r_top_apriori_percentage = r_top_apriori_percentage_vector(rt);
-%             r_bot_apriori_percentage = r_bot_apriori_percentage_vector(rb);
-%             tau_c_apriori_percentage = tau_c_apriori_percentage_vector(tc);
-% 
-%             for nn = 1:length(pixels2use.res1km.linearIndex)
-% 
-%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1)*r_top_apriori_percentage)^2,...
-%                     (GN_inputs.model.apriori(nn,2)*r_bot_apriori_percentage)^2, (GN_inputs.model.apriori(nn,3)*tau_c_apriori_percentage)^2]);
-% 
-%             end
+    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
+        '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+        '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
 
+    % Check to see if this file name already exists
+    while isfile(filename)==true
 
-            % ----------- USE MODIS RETRIEVAL UNCERTAINTY ----------------
-            % use the retrieval uncertainty of re as the uncertianty in r_top
-            % use 45% as the uncertainty of r_bot
-            % use the retrieval uncertainty of tau_c as the apriori
-            % uncertainty      
+        rev = rev+1;
 
-            % We need the values before for the filenaming system...
-            r_top_apriori_percentage = modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
-            r_bot_apriori_percentage = 6 * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(1))/100;
-            tau_c_apriori_percentage = modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(1))/100;
+        filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
+            '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+            '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
 
-            % -----------------------------------------------------------------
-            % -----------------------------------------------------------------
-
-
-%             for nn = 1:length(pixels2use.res1km.linearIndex)
-% 
-%                 
-% 
-%                 GN_inputs.model.covariance(:,:,nn) = diag([(GN_inputs.model.apriori(nn,1) * modis.cloud.effRad_uncert_17(pixels2use.res1km.linearIndex(nn))*0.01)^2,...
-%                 (GN_inputs.model.apriori(nn,2) * 0.45)^2,...
-%                 (GN_inputs.model.apriori(nn,3)*modis.cloud.optThickness_uncert_17(pixels2use.res1km.linearIndex(nn)) * 0.01)^2]);
-% 
-%             end
-
-
-
-            % --------------------------------------------------------------
-            % ---------------- Retrieve Vertical Profile! ------------------
-            % --------------------------------------------------------------
-            [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4modis(GN_inputs,modis,modisInputs,pixels2use);
-            % --------------------------------------------------------------
-            % --------------------------------------------------------------
-
-            
-            
-            % Save the Outputs!
-            rev = 1;
-            if modisInputs.flags.useAdvection == true
-
-                filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
-
-                % Check to see if this file name already exists
-                while isfile(filename)==true
-                    
-                    rev = rev+1;
-
-                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
-
-                end
-
-                save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-                    "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
-
-
-
-            else
-
-                filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage*100),...
-                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-                 % Check to see if this file name already exists
-                while isfile(filename)==true
-                    
-                    rev = rev+1;
-
-                    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-                    '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-                    '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
-
-                end
-
-                save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-                    "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
-
-      
-
-            end
-
-
-        end
     end
+
+    save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+        "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+
+
+
+else
+
+    filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage*100),...
+        '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+        '_',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    % Check to see if this file name already exists
+    while isfile(filename)==true
+
+        rev = rev+1;
+
+        filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
+            '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
+            '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
+
+    end
+
+    save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
+        "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+
+
+
 end
+
+
 
 toc
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL

@@ -106,7 +106,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 %% set up the inputs to create an INP file for DISORT!
 
-[inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
 
 
 %% Write the INP files
@@ -192,11 +192,11 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
 
-    
+
     % Create the changing variables matrix that defines how each INP file
     % is unique
     if inputs.RT.monochromatic_calc==true
-        
+
         % Variables by column:
         % (1) - monochromatic wavelength to run
         % (2) - total optical depth (sum of all layers)
@@ -205,7 +205,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
             repmat(flipud(cumsum(flipud(inputs.RT.tau_layers))), num_wl,1)];
 
     else
-    
+
         changing_variables = [repmat(inputs.RT.wavelengths2run, num_tau_layers,1),...
             repmat(flipud(cumsum(flipud(inputs.RT.tau_layers'))), num_wl,1)];
 
@@ -216,18 +216,18 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % function. These always increase chronologically
     changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_layers, 1), [],1)];
 
-    
+
     % the wc_filenames should be the same for different wavelengths
     wc_filename = repmat(wc_filename, num_wl, 1);
 
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+        % for nn = 1:num_INP_files
 
 
 
-        
+
         if inputs.RT.monochromatic_calc==true
 
             % set the wavelengths for each file
@@ -272,7 +272,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
         end
 
-       
+
 
 
         % ------------------ Write the INP File --------------------
@@ -312,7 +312,7 @@ end
 
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -370,11 +370,11 @@ toc
 if inputs.RT.monochromatic_calc==true
 
     % reshape Refl_model
-    Refl_model = reshape(Refl_model, inputs.RT.n_layers, num_wl);
+    Refl_model = reshape(Refl_model, inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
 
     % reshape the optical depth of each file
-    tau = reshape(changing_variables(:,2), inputs.RT.n_layers, num_wl); 
-    
+    tau = reshape(changing_variables(:,2), inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
+
     % compute the derivative of reflectivity as a function of optical depth
     % normalize by the reflectance over the full cloud optical thickness
     w = diff(flipud(Refl_model))./diff(flipud(tau)) ./ repmat(Refl_model(1,:), inputs.RT.n_layers-1, 1);
@@ -388,15 +388,6 @@ end
 
 
 
-
-%% Compute the weighting function using R at different depths within the cloud
-
-% % compute the derivative of reflectivity as a function of optical depth
-% % w = diff(flipud(ds.reflectivity.value(1:end-1)))./diff(changing_variables(:,2));
-% w = diff(ds.reflectivity.value(1:end-1))./diff(changing_variables(:,2));
-% 
-% % normalize by the reflectance over the full cloud optical thickness
-% w = w./ds.reflectivity.value(end);
 
 %% plot the weighting function
 
@@ -459,6 +450,16 @@ legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location',
 
 
 
+%% Let's renormalize the weighting functions so that they integrate to 1
+
+for ww = 1:size(inputs.RT.wavelengths2run, 1)
+
+    a = 1/trapz(tau_midPoint(:,ww), w(:,ww));
+
+    w(:,ww) = w(:,ww).*a;
+
+end
+
 
 %%
 % ----------------------------------------------
@@ -475,7 +476,7 @@ if strcmp(inputs.which_computer,'anbu8374')==true
     % -----------------------------------------
 
     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Monte_Carlo/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/weighting_functions/'];
 
 
 
@@ -486,7 +487,7 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Monte_Carlo/'];
+        'HySICS/weighting_functions/'];
 
 
 elseif strcmp(inputs.which_computer,'curc')==true
@@ -516,14 +517,14 @@ rev = 1;
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
 
-    filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    filename = [inputs.folderpath_2save,'disort_HySICS_reflectance_for_weightingFunctions_',...
+        'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
 else
 
-    filename = [inputs.folderpath_2save,'monteCarlo_HySICS_reflectance_for_weightingFunctions_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    filename = [inputs.folderpath_2save,'disort_HySICS_reflectance_for_weightingFunctions_',...
+        'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 end
 
@@ -538,5 +539,76 @@ while isfile(filename)
 end
 
 
-save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w", "tau_midPoint");
+
+
+
+%% Construct the Platnick (2000) covriance matrix
+
+
+% First, step through each weighting function and compute the estimated
+% single band effective radius retrieval (Platnick (2000), eq. 3)
+% create a droplet profile
+re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
+    inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
+
+re_midPoint = re(1:end-1) + diff(re)/2;
+
+re_est = zeros(1, size(w,2));
+
+for ww = 1:size(w,2)
+
+    re_est(ww) = trapz(tau_midPoint(:,ww), re_midPoint .* w(:,ww));
+
+end
+
+
+% The elements of this symmetric matrix are given by the inner product of
+% the weightings (Platnick (2000) pg. 22933)
+
+C = zeros(size(inputs.RT.wavelengths2run,1), size(inputs.RT.wavelengths2run,1));
+
+% this matrix is symmetric, meaning C(1,3) = C(3,1).
+
+% Normalize the covariance matrix by the two effective radii estimates for
+% the ith and jth element
+
+for ii = 1:size(inputs.RT.wavelengths2run,1)
+    for jj = 1:size(inputs.RT.wavelengths2run,1)
+
+        C(ii,jj) = trapz(tau_midPoint(:, ii), w(:,ii) .* w(:,jj))/(re_est(ii)*re_est(jj));
+
+    end
+end
+
+
+% compute the eigenvalues of our scaled covariance matrix
+eig_val = eig(C);
+
+
+% According to Platnick (2000): "Then for all weightings to contribute unique 
+% information,the minimum eigenvalue of the scaled covariance matrix must be
+% greater than about e^2/(N r_m^2), where N is the number of measurements,
+% r_m is the mean value of the unknown re(tau) profile, and e is the relative
+% uncertainty of the retrieval and the weighting function (forward model)
+% [Twomey, 1977]
+
+% let's assume a relative uncertainty of 5%
+relative_uncert = 0.05;
+
+twomey_fraction = relative_uncert^2 / (size(w,2) * mean(re)^2);
+
+
+if min(eig_val)>twomey_fraction
+
+    disp([newline, 'All wavelengths contribute unique information!', newline])
+
+else
+
+    % How many unique pieces of information do these weightings contribute?
+    
+end
+
+
+
 

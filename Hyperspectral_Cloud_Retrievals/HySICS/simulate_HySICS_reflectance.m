@@ -107,7 +107,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 % Define the parameters of the INP file
 
-[inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs);
 
 
 %% Write each INP file
@@ -295,8 +295,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Now write all the INP files
-    % parfor nn = 1:num_INP_files
-    for nn = 1:num_INP_files
+    parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
