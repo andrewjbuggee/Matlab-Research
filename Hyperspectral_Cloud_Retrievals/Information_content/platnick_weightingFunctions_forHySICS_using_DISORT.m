@@ -430,7 +430,8 @@ xlabel('$w(\tau)$','Interpreter','latex');
 ylabel('$\tau$','Interpreter','latex')
 
 % Create title
-title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
+% title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
+title('Weighting Functions for HySICS','Interpreter','latex')
 
 
 
@@ -449,6 +450,41 @@ set(gcf, 'Position',[0 0 1400 800])
 legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location','northwest','FontSize',22)
 
 
+% Create textbox with simulation properties
+
+% Textbox
+dim = [0.685 0.5 0 0];
+
+if ischar(inputs.RT.sensor_altitude)==true
+    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
+        ['$sza$ = ',num2str(inputs.RT.sza)],...
+        ['$vza$ = ',num2str(inputs.RT.vza)],...
+        ['$z_{out}$ = ', inputs.RT.sensor_altitude],...
+        ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...
+        ['$Cloud\;base$ = ', num2str(inputs.RT.z_topBottom(2)), ' km'],...
+        ['$r_{top}$ = ',num2str(round(inputs.RT.r_top)), ' $\mu m$'],...
+        ['$r_{bot}$ = ',num2str(round(inputs.RT.r_bot)), ' $\mu m$'],...
+        ['$\tau_0$ = ', num2str(inputs.RT.tau_c)],...
+        ['$A_0$ = ', num2str(inputs.RT.surface_albedo)]};
+else
+    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
+        ['$sza$ = ',num2str(inputs.RT.sza)],...
+        ['$vza$ = ',num2str(inputs.RT.vza)],...
+        ['$z_{out}$ = ', num2str(inputs.RT.sensor_altitude), ' km'],...
+        ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...
+        ['$Cloud\;base$ = ', num2str(inputs.RT.z_topBottom(2)), ' km'],...
+        ['$r_{top}$ = ',num2str(round(inputs.RT.r_top)), ' $\mu m$'],...
+        ['$r_{bot}$ = ',num2str(round(inputs.RT.r_bot)), ' $\mu m$'],...
+        ['$\tau_0$ = ', num2str(inputs.RT.tau_c)],...
+        ['$A_0$ = ', num2str(inputs.RT.surface_albedo)]};
+end
+
+t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
+t.Color = 'black';
+t.FontSize = 25;
+t.FontWeight = 'bold';
+t.EdgeColor = 'black';
+t.FitBoxToText = 'on';
 
 %% Let's renormalize the weighting functions so that they integrate to 1
 
@@ -539,7 +575,7 @@ while isfile(filename)
 end
 
 
-save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w", "tau_midPoint");
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w", "tau", "tau_midPoint");
 
 
 

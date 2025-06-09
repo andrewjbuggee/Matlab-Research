@@ -112,10 +112,21 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
+
+
+% The same 35 spectral channels above that avoid water vapor and other
+% gaseous absorbers, AND 31 bands in the wings of water vapor absorption
+% features for a total of 66 bands
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+    198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+    543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
+    
 
 
 % inputs.bands2run = [49, 426, 613]';
@@ -458,8 +469,8 @@ if load_parameters_from_measurement==true
 else
 
     % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    % inputs.RT.sza = 0;           % degree
+    % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+    inputs.RT.sza = 0;           % degree
 
 end
 
@@ -497,8 +508,8 @@ if load_parameters_from_measurement==true
 else
 
     % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    % inputs.RT.vza = 0; % values are in degrees;
+    % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
+    inputs.RT.vza = 0; % values are in degrees;
 
 end
 
