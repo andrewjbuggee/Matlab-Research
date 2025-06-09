@@ -552,7 +552,7 @@ save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w"
 re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
     inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
-re_midPoint = re(1:end-1) + diff(re)/2;
+re_midPoint = flipud(re(1:end-1) + diff(re)/2);
 
 re_est = zeros(1, size(w,2));
 
@@ -610,5 +610,84 @@ else
 end
 
 
+
+%% Plot the estimated effective radii versus wavelength and versus optical depth
+
+% First, plot each estimated effective radii versus wavelength
+figure;
+
+subplot(1,2,1)
+
+plot(inputs.RT.wavelengths2run(:,1), re_est, '.', 'markersize', 15)
+xlabel('Wavelength (nm)','FontWeight','bold','Interpreter','latex', 'Fontsize', 35)
+ylabel('$r_{e}^{*}$ $(\mu m)$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+grid on; grid minor
+
+
+% overlay the reflectance over all wavelengths for a cloud scene
+
+if strcmp(whatComputer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+    folderpath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % filename
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_ALL_BANDS.mat';
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the Simulated HySICS data folder path
+
+    folderpath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % filename
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_rev1.mat';
+
+
+end
+
+sm = load([folderpath, filename]);
+
+hold on
+yyaxis right
+plot(sm.inputs.RT.wavelengths2run(:,1), sm.Refl_model, 'linewidth', 1.5)
+
+ylabel('Reflectance $1/sr$','FontWeight','bold','Interpreter','latex', 'Fontsize', 35);
+
+
+% On the other side, plot the true droplet profile
+subplot(1,2,2)
+plot(re, tau(:,1))
+% Set up axes labels
+set(gca, 'YDir','reverse')
+grid on; grid minor
+xlabel('$r_e$','Interpreter','latex');
+ylabel('$\tau$','Interpreter','latex')
+
+% let's also plot every unique re retrieval within 0.1 microns
+% round the estimated retrieved effective radii to the nearest 0.1 microns
+% and find all unique values
+re_2Plot = unique(round(re_est, 1));
+
+% find the indexes for each re_2Plot that align with their associated tau
+% level in the droplet profile
+idx = zeros(length(re_2Plot), 1);
+for nn = 1:length(re_2Plot)
+
+    [~, idx(nn)] = min(abs(re - re_2Plot(nn)));
+
+    hold on
+    yline(tau(idx(nn), 1), 'LineWidth', 1, 'Color', 'k')
+    
+end
+
+
+
+% set figure sixe
+set(gcf, 'Position', [0 0 2500 700])
 
 
