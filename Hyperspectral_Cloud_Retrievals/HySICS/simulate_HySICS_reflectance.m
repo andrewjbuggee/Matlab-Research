@@ -295,8 +295,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Now write all the INP files
-    % parfor nn = 1:num_INP_files
-    for nn = 1:num_INP_files
+    parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file

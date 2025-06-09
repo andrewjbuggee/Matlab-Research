@@ -1,10 +1,44 @@
 %% Create input structure for libRadtran INP files for the HySICS instrument
 
+% (1) inputs - structure that contains the inputs to run radiative transfer
+% files. Likely this only includes a few things like which_computer etc.
+% This very function provides many more inputs.
+
+% (2) load_parameters_from_measurement - this is a flag that, if true, will
+% use the same input as the defined measurement for the GN inputs. But we
+% will only use inputs that we could know from a real measurement, such as
+% the geometry
+
+% (3) sim_meas_inputs - this is the input structure used to create
+% the simulated measurements. Use if the flag for input 2 is true.
+
+
 % By Andrew John Buggee
 
 %%
 
-function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs)
+function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas_inputs)
+
+
+% ------------------------------------------------------------
+% ---------------------- CHECK INPUTS ------------------------
+% ------------------------------------------------------------
+
+% Check to make sure there are 8 inputs, droplet radius, cloud optical
+% depth, and the altitude vector associated with this cloud
+
+
+if nargin==2 || nargin==3
+
+else
+
+    error([newline,'Should be at least 2 inputs: an input strucutre with at least the computer name ,',...
+        [' and a flag telling the code to use parameters from a simualted measurement. If this flag ,',...
+        ' is true, then a third input is required that includes the input structure for the ',...
+        'simulated measurements.'], newline])
+end
+
+
 
 
 % Define the parameters of the INP file
@@ -74,7 +108,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -83,19 +117,21 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
 %     618, 620, 623, 625]';
 
-inputs.bands2run = [49, 426, 613]';
+
+% inputs.bands2run = [49, 426, 613]';
+% inputs.bands2run = [49, 57, 288, 426, 613]';
 
 % test bands
-% 500 nm 
+% 500 nm
 % inputs.bands2run = 49;
 
-% 1652 nm 
+% 1652 nm
 % inputs.bands2run = 426;
 
-% 2122 nm 
+% 2122 nm
 % inputs.bands2run = 580;
 
-% 2236 nm 
+% 2236 nm
 % inputs.bands2run = 613;
 
 
@@ -149,7 +185,7 @@ else
         % The wavelength vector for libRadTran is simply the lower and upper
         % bounds
         inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
-        spec_response.wavelength(ww, end)];
+            spec_response.wavelength(ww, end)];
 
     end
 
@@ -184,8 +220,19 @@ inputs.RT.atm_file = 'afglus.dat';
 % inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
 inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
-% day of the year
-inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
+
+
+if load_parameters_from_measurement==true
+
+    % day of the year
+    inputs.RT.day_of_year = sim_meas_inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+
+else
+
+    % day of the year
+    %inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
+
+end
 % ------------------------------------------------------------------------
 
 
@@ -200,7 +247,7 @@ inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
 inputs.RT.z_topBottom = [1.5, 1];          % km above surface
-% inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for pixel used in Figure 3.a from paper 1 
+% inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for pixel used in Figure 3.a from paper 1
 
 
 % Water Cloud depth
@@ -306,7 +353,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % *** Use 250 if creating weighting functions using DISORT ***
     inputs.RT.n_layers = 250;                          % number of layers to model within cloud
-    % inputs.RT.n_layers = 10;                          % number of layers to model within cloud
+    % inputs.RT.n_layers = 20;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -400,41 +447,86 @@ inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end)
 inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
+
+% -----------------------------
 % define the solar zenith angle
-% inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-% inputs.RT.sza = 0;           % degree
+% -----------------------------
+if load_parameters_from_measurement==true
+
+    inputs.RT.sza = sim_meas_inputs.RT.sza;      % degrees
+
+else
+
+    % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+    % inputs.RT.sza = 0;           % degree
+
+end
 
 
-% Define the solar azimuth measurement between values 0 and 360
-% The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
-% due north. The libRadTran solar azimuth is defined as 0-360 degrees
-% clockwise from due south. So they are separated by 180 degrees. To map
-% the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
-% 360
-%inputs.RT.phi0 = mod(293.8140 + 180, 360);
-% inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-inputs.RT.phi0 = 210;         % degree
+% -------------------------------
+% define the solar azimuith angle
+% -------------------------------
+if load_parameters_from_measurement==true
 
-% define the viewing zenith angle
-% inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
-% inputs.RT.vza = 0; % values are in degrees;
+    inputs.RT.phi0 = sim_meas_inputs.RT.phi0;      % degrees
+
+else
+
+    % Define the solar azimuth measurement between values 0 and 360
+    % The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
+    % due north. The libRadTran solar azimuth is defined as 0-360 degrees
+    % clockwise from due south. So they are separated by 180 degrees. To map
+    % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
+    % 360
+    %inputs.RT.phi0 = mod(293.8140 + 180, 360);
+    % inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.phi0 = 210;         % degree
+
+end
 
 
+
+% --------------------------------
 % define the viewing azimuth angle
-% The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
-% due north. The libRadTran sensor azimuth is defined as 0-360 degrees
-% clockwise from due North as well. So they are separated by 180 degrees. A
-% sensor azimuth angle of 0 means the sensor is in the North, looking
-% south. No transformation is needed
+% --------------------------------
+if load_parameters_from_measurement==true
 
-% inputs.RT.vaz = -103+360;     % degree
-inputs.RT.vaz = 180;     % degree
-% to properly map the MODIS azimuth angle onto the reference plane used by
-% libRadTran...
-% inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vza = sim_meas_inputs.RT.vza;         % degrees
 
+else
+
+    % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
+    % inputs.RT.vza = 0; % values are in degrees;
+
+end
+
+
+% --------------------------------
+% define the viewing azimuth angle
+% --------------------------------
+if load_parameters_from_measurement==true
+
+    inputs.RT.vaz = sim_meas_inputs.RT.vaz;      % degrees
+
+else
+
+    % define the viewing azimuth angle
+    % The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
+    % due north. The libRadTran sensor azimuth is defined as 0-360 degrees
+    % clockwise from due North as well. So they are separated by 180 degrees. A
+    % sensor azimuth angle of 0 means the sensor is in the North, looking
+    % south. No transformation is needed
+
+    % inputs.RT.vaz = -103+360;     % degree
+    inputs.RT.vaz = 180;            % degree
+
+    % to properly map the MODIS azimuth angle onto the reference plane used by
+    % libRadTran...
+    % inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+
+end
 
 % --------------------------------------------------------------
 
@@ -454,7 +546,7 @@ inputs.RT.specify_cross_section_model = false;
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
 % inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
 
-% ------------------------------------------------------------------------ 
+% ------------------------------------------------------------------------
 
 
 % ------------------------------------------------------------------------

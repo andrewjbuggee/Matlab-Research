@@ -28,7 +28,7 @@ inputs.tau_z_upper_limit = 8;
 % define the solar zenith angle
 % This is the angle of the incident radiation with respect to the medium
 % normal direction
-inputs.solar_zenith_angle = acosd(0.65);                  % deg from zenith
+inputs.solar_zenith_angle = 49.4584;                  % deg from zenith
 % inputs.solar_zenith_angle = 0;                  % deg from zenith
 
 % Define the albedo of the bottom boundary (tau upper limit)
@@ -55,7 +55,7 @@ inputs.re = 10;
 
 
 % define the wavelength
-inputs.wavelength = 2200;          % nanometers
+inputs.wavelength = 2226.6;          % nanometers
 
 % do you want to compute average ssa and g at each cloud layer?
 % if so, the code will create a distribution of droplet sizes at each layer
