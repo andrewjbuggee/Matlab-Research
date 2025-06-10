@@ -107,7 +107,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 %% set up the inputs to create an INP file for MYSTIC!
 
 
-[inputs, spec_response] = create_uvSpec_inputs_for_HySICS(inputs);
+[inputs, spec_response] = create_uvSpec_MYSTIC_inputs_for_HySICS(inputs);
 
 
 %% Write the INP files
@@ -262,6 +262,9 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
         inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, 1);
 
+    % the wc_filenames should be the same for different wavelengths
+    wc_filename = repmat(wc_filename, num_wl, 1);
+    
 
     % Compute the optical depth of each layer
     inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
@@ -279,17 +282,18 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %     repmat(reshape(repmat(inputs.RT.tau_c, num_wl,1), [],1), num_rBot*num_rTop, 1),...
     %     repmat(inputs.RT.wavelengths2run, num_rTop*num_rBot*num_tauC, 1)];
 
-    changing_variables = [repmat(inputs.RT.wavelengths2run(1), num_tau_layers,1),...
+    changing_variables = [reshape(repmat(inputs.RT.wavelengths2run(:,1)', num_tau_layers,1), [],1),...
         repmat(flipud(cumsum(fliplr(inputs.RT.tau_layers))'), num_wl,1)];
 
 
     % Add a final column that includes the index for the spectral response
     % function. These always increase chronologically
-    changing_variables = [changing_variables, repmat((1:num_wl)', num_tau_layers, 1)];
+    changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_layers, 1), [],1)];
 
     
     % define the basename
     %inputs.RT.mc.basename = cell(num_INP_files, 1);
+
 
 
     % Now write all the INP files
