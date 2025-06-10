@@ -470,7 +470,7 @@ else
 
     % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    inputs.RT.sza = 0;           % degree
+    inputs.RT.sza = 50;           % degree
 
 end
 
@@ -509,7 +509,7 @@ else
 
     % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    inputs.RT.vza = 0; % values are in degrees;
+    inputs.RT.vza = 10; % values are in degrees;
 
 end
 
