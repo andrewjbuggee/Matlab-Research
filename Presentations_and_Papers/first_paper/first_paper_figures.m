@@ -6017,8 +6017,13 @@ if strcmp(whatComputer,'anbu8374')==true
 
     % ------ Folders on my Mac Desktop --------
 
+    % Define the Simulated HySICS data folder path
 
- 
+    folderpath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % filename
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_ALL_BANDS.mat';
+
 
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
@@ -6054,10 +6059,19 @@ set(gcf, 'Position', [0 0 1250 500])
 
 
 % --- shows the spectral bands used in the hyperspectral retireval ---
-bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    618, 620, 623, 625]';
+% bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+%     618, 620, 623, 625]';
+
+% The same 35 spectral channels above that avoid water vapor and other
+% gaseous absorbers, AND 31 bands in the wings of water vapor absorption
+% features for a total of 66 bands
+bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+    198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+    543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
 
 % define the color of the filled patch
 
@@ -6088,18 +6102,18 @@ legend('HySICS Reflectance', 'Wavelengths used in retrieval', 'Location', 'best'
 
 
 % ---------- Save figure --------------
-% save .fig file
-folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
-f = gcf;
-saveas(f,[folderpath_figs,'Fig 7 - reflectance for cloudy scene with 35 wavelengths used in LUT analysis.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-title('')
-folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Resubmission Figures/';
-exportgraphics(f,[folderpath_pngs,'Fig 7 - reflectance for cloudy scene with 35 wavelengths used in LUT analysis.png'],'Resolution', 400);
-
+% % save .fig file
+% folderpath_figs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Figures/';
+% f = gcf;
+% saveas(f,[folderpath_figs,'Fig 7 - reflectance for cloudy scene with 35 wavelengths used in LUT analysis.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% title('')
+% folderpath_pngs = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/My Papers/Paper 1/Resubmission Figures/';
+% exportgraphics(f,[folderpath_pngs,'Fig 7 - reflectance for cloudy scene with 35 wavelengths used in LUT analysis.png'],'Resolution', 400);
+% 
 
 
 
