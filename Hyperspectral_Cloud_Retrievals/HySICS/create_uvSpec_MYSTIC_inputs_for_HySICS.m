@@ -13,7 +13,7 @@ function [inputs, spec_response] = create_uvSpec_MYSTIC_inputs_for_HySICS(inputs
 % This will create n wc_files where n is equal to the number of layers in
 % the cloud. Starting with the entire cloud, each file will have one less
 % layer
-inputs.compute_weighting_functions = false;
+inputs.compute_weighting_functions = true;
 
 
 % Are you simulating a measurement, or making forward model calculations
@@ -31,7 +31,7 @@ inputs.RT.rte_solver = 'montecarlo';
 % ---------------------------------------------------
 % --------- Define Monte Carlo Parameters -----------
 % ---------------------------------------------------
-inputs.RT.mc.photons = 10000000;      % number of photons to use in the simulation
+inputs.RT.mc.photons = 10^8;      % number of photons to use in the simulation
 inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
 inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
 
@@ -80,7 +80,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
 %     618, 620, 623, 625]';
 
-% inputs.bands2run = [49, 426, 613]';
+inputs.bands2run = [49, 426, 613]';
 
 % test bands
 % 500 nm 
@@ -93,7 +93,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % inputs.bands2run = 580;
 
 % 2236 nm 
-inputs.bands2run = 613;
+% inputs.bands2run = 613;
 
 
 % ------------------------------------------------------------------------
@@ -302,7 +302,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
     % *** Use 250 if creating weighting functions using DISORT ***
-    inputs.RT.n_layers = 250;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 100;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -390,15 +390,15 @@ inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end)
 % end
 
 % I think the sensor altitude, for now, is the cloud top
-% inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
 % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
 % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+% inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 % define the solar zenith angle
-inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+% inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
 % inputs.RT.sza = 0;           % degree
 
 
@@ -409,12 +409,12 @@ inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a 
 % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
 % 360
 %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.phi0 = 0;         % degree
+% inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+inputs.RT.phi0 = 0;         % degree
 
 % define the viewing zenith angle
-inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
+% inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+inputs.RT.vza = acosd(0.85);                                         % degree - for Platnick (2000)
 % inputs.RT.vza = 0; % values are in degrees;
 
 
@@ -426,10 +426,10 @@ inputs.RT.vza = 4.29;                                   % degree - value for pix
 % south. No transformation is needed
 
 % inputs.RT.vaz = -103+360;     % degree
-% inputs.RT.vaz = 180;     % degree
+inputs.RT.vaz = 210;     % degree
 % to properly map the MODIS azimuth angle onto the reference plane used by
 % libRadTran...
-inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+% inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
 
 
 % --------------------------------------------------------------
