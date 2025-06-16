@@ -167,11 +167,11 @@ GN_inputs.save_calcs_fileName = ['uvspec_GaussNewton_calcs_',date,'.mat'];
 
 % Define the parameters of the INP file
 
+% Use geometry inputs from the simulated measurements
 load_parameters_from_measurement = true;
 
-
 [GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements.inputs);
+    simulated_measurements);
 
 
 

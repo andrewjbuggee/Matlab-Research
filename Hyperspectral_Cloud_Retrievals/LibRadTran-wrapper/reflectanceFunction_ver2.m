@@ -21,32 +21,30 @@
 % By Andrew J. Buggee
 %% ------ Read input settings and output data from uv_spec -----
 
-function [R,R_lambda] = reflectanceFunction(inputs, ds, spec_response)
+function [R,R_lambda] = reflectanceFunction_ver2(inputs, ds, source, spec_response)
 
 
 % Geometry values from input Settings -
 mu = cosd(inputs.RT.sza); % cosine of the viewing zenith angle
 phi = inputs.RT.vaz; % sensor aziumuth angle
 sza = inputs.RT.sza; % solar zenith angle
-phi0 = inputs.RT.phi0; % solar azimuth angle
-sensorAlt = inputs.RT.sensor_altitude; % sensor altitude in km
-
-source = inputSettings{7}; % - (W/nm/m^2) - source irradiance
 
 
 
-% % Geometry values from input Settings -
-% mu = inputSettings{2}; % cosine of the viewing zenith angle
-% phi = inputSettings{3}; % sensor aziumuth angle
-% sza = inputSettings{4}; % solar zenith angle
-% phi0 = inputSettings{5}; % solar azimuth angle
-% sensorAlt = inputSettings{6}; % sensor altitude in km
-% source = inputSettings{7}; % - (W/nm/m^2) - source irradiance
+
 
 % radiative transfer solutions
 wavelength = ds.wavelength;     % nm
-irrad0 = source(:,2) .* 1e3; % - mW/(m^2 nm) -  source irradiance
 
+% convert source to mW/(m^2 nm) -  source irradiance
+source = source .* 1e3;            % - mW/(m^2 nm) 
+
+% check to see if the source is a different length than the radiance vector
+if length(source)~=length(ds.radiance.value)
+
+    error([newline, 'The source file doesnt match the length of the computed radiance!', newline]);
+
+end
 
 % a few other constants calculated from the inputs
 mu0 = cosd(sza); % cosine of the solar zenith angle
@@ -71,11 +69,11 @@ R_lambda = zeros(length(wavelength),geomSets); % phi (azimuth) changes first, th
 R = zeros(length(mu),length(phi));
 % if there is a single monochromatic wavelength then we don't need to
 % integrate. We simply divide
-if length(wavelength)==1
+if isscalar(wavelength)
     
     for ii = 1:geomSets
         
-        R_lambda(ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr/nm - reflectance function for monochromatic calculation
+        R_lambda(ii) = pi*ds.radiance(ii).value./(mu0*source); % - 1/sr/nm - reflectance function for monochromatic calculation
         
     end
     
@@ -85,8 +83,8 @@ elseif length(wavelength)>1
         
         % First calculate the reflectance function at each discrete
         % wavelength within the wavelength band
-        R_lambda(:,ii) = pi*ds.radiance(ii).value./(mu0*irrad0); % - 1/sr/nm - reflectance function for monochromatic calculation
-        R(ii) = trapz(wavelength, R_lambda(:,ii).*spec_response.*irrad0)./trapz(wavelength, spec_response.*irrad0); % - 1/sr - reflectance function over a finite bandwidth
+        R_lambda(:,ii) = pi*ds.radiance(ii).value./(mu0*source); % - 1/sr/nm - reflectance function for monochromatic calculation
+        R(ii) = trapz(wavelength, R_lambda(:,ii).*spec_response.*source)./trapz(wavelength, spec_response.*source); % - 1/sr - reflectance function over a finite bandwidth
         
     end
     

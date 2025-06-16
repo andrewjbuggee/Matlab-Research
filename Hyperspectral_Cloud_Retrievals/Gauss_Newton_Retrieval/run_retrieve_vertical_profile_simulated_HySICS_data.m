@@ -139,7 +139,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-05-Jun-2025_rev1';     %
-
+    
+    % test file with just 5 wavelengths
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
 
     simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 

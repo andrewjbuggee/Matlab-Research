@@ -62,9 +62,6 @@ diff_guess_prior = zeros(num_parameters,num_iterations); % we include the starti
 % between the state vector guess and the state vector prior
 jacobian_diff_guess_prior = zeros(num_bands,num_iterations);      % this is an expression that multiplies the Jacobian with the difference between the current iteration and the a priori
 
-posterior_cov = zeros(num_parameters,num_parameters,1); % my posterior covariance matrix
-
-
 
 
 
@@ -133,8 +130,8 @@ for ii = 1:num_iterations
 
 
     % compute the jacobian
-    Jacobian = compute_jacobian_HySICS(hysics, current_guess, measurement_estimate, GN_inputs,...
-    jacobian_barPlot_flag, folder_paths);
+    Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
+        hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
     diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -149,8 +146,8 @@ for ii = 1:num_iterations
     % new guess using the modified bound-constraint algorithm (Docicu
     % et al 2003)
     % compute the Gauss-Newton direction for each retrevial variable
-    new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *Jacobian)^(-1) *...
-        (Jacobian' *  measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) * residual(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior(:,ii));
+    new_direction = (model_cov^(-1) + Jacobian' * measurement_cov^(-1) *Jacobian)^(-1) *...
+        (Jacobian' *  measurement_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
 
     % fine the maximum non-negative value, a, that satisfies the
     % following: l< current_guess + new_direction <u
@@ -199,8 +196,8 @@ for ii = 1:num_iterations
 
         % Use the new guess to compute the rss residual, which is used
         % to detmerine convergence
-        new_measurement_estimate = compute_forward_model_4modis(hysics, new_guess, GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
-        residual(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
+        new_measurement_estimate = compute_forward_model_HySICS(new_guess, GN_inputs, spec_response, folder_paths);
+        residual(:,ii+1) = measurements - new_measurement_estimate;
         rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
 
@@ -243,15 +240,18 @@ for ii = 1:num_iterations
         % the difference between the new constrained guess and the true
         % measurements is less than the previous guess and the measurements
         constrained_measurement_estimate = zeros(num_bands, length(a));
-        for mm = 1:length(a)
+
+        parfor mm = 1:length(a)
+        % for mm = 1:length(a)
+
             % some guesses might be out of the appropriate range for
             % the Mie Interpolation function. If so, set the
             % constrained measurement estimates to 0
             if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                     constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                constrained_measurement_estimate(:,mm) = compute_forward_model_4modis(hysics,constrained_guesses(:,mm),...
-                    GN_inputs,pixel_row,pixel_col,modisInputs, pp)';
+                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS(constrained_guesses(:,mm),...
+                    GN_inputs, spec_response, folder_paths);
 
             else
 
@@ -261,7 +261,7 @@ for ii = 1:num_iterations
         end
 
         % compute the rss_residual for the constrained state vector
-        rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements(idx_not_nan,pp), 1, length(a))).^2, 1));
+        rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements, 1, length(a))).^2, 1));
         % find the smallest rss residual that is less than the previus
         % itereates rss residual
         [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
@@ -288,7 +288,7 @@ for ii = 1:num_iterations
         % Select the step length by choosing the a value with the minimumum
         % residual
         new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-        residual(:,ii+1) = measurements(idx_not_nan,pp) - new_measurement_estimate;
+        residual(:,ii+1) = measurements - new_measurement_estimate;
         rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
         new_guess = constrained_guesses(:, min_residual_idx);
 
@@ -336,7 +336,7 @@ for ii = 1:num_iterations
     % GN_inputs strucute, break the for loop. We've converged
 
 
-    if rss_residual(ii+1)<convergence_limit(pp)
+    if rss_residual(ii+1)<convergence_limit
 
         disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
             'RSS = ', num2str(rss_residual(ii+1))])
@@ -408,25 +408,17 @@ end
 % ----------------- COMPUTE THE POSTERIOR COVARIANCE ------------------
 % once convergence has occured, we can compute the posterior covariance
 % matrix
-% First compute the latest measurement estimate
-%measurement_estimate = compute_forward_model_4modis(modis, retrieval(:,end), GN_inputs, pixel_row, pixel_col, modisInputs, pp)';
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_4modis(hysics, retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    modisInputs, pixel_row, pixel_col, pp, jacobian_barPlot_flag, idx_not_nan);
+Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
-posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(idx_not_nan,idx_not_nan,pp)^(-1) *...
-    Jacobian + model_cov(:,:,pp)^(-1))^(-1);
+posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
 
 
 
 % ---------------- COMPUTE LIQUID WATER PATH ------------------
 % Compute the retireved Liquid water path with the final profile
-
-% define the altitude vector
-z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth,...
-    GN_inputs.RT.cloudTop_height(pp), GN_inputs.RT.cloud_layers)*1e3;        % m - altitude above ground vector
-
 
 
 % --------------- assuming geometric optics limit ------------------
@@ -436,12 +428,13 @@ z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth,...
 % computing Qe for each r value in my profile later on
 
 density_liquid_water = 10^6;                % g/m^3
+
 re_profile = create_droplet_profile2([retrieval(1,end), retrieval(2,end)],...
-    z, 'altitude', GN_inputs.model.profile.type);                               % microns
+    GN_inputs.RT.z, 'altitude', GN_inputs.model.profile.type);                               % microns
 
 % compute LWP
-GN_output.LWP(pp) = 2/3 * density_liquid_water * retrieval(3,end) * trapz(z, (re_profile*1e-6).^3)/...
-    trapz(z, (re_profile*1e-6).^2);           %g/m^2
+GN_output.LWP = 2/3 * density_liquid_water * retrieval(3,end) * trapz(GN_inputs.RT.z, (re_profile*1e-6).^3)/...
+    trapz(GN_inputs.RT.z, (re_profile*1e-6).^2);           %g/m^2
 % -------------------------------------------------------------------
 
 
@@ -453,17 +446,17 @@ idx_nans = find(isnan(retrieval(3,:)));
 
 if isempty(idx_nans)~=true
 
-    GN_output.tau_vector(:, pp) = linspace(0, retrieval(3,idx_nans(1)-1), 100);
+    GN_output.tau_vector = linspace(0, retrieval(3,idx_nans(1)-1), 100);
 
-    GN_output.re_profile(:, pp) = create_droplet_profile2([retrieval(1,idx_nans(1)-1), retrieval(2,idx_nans(1)-1)],...
-        GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
+    GN_output.re_profile = create_droplet_profile2([retrieval(1,idx_nans(1)-1), retrieval(2,idx_nans(1)-1)],...
+        GN_output.tau_vector, 'optical_depth', GN_inputs.model.profile.type);
 
 else
 
-    GN_output.tau_vector(:, pp) = linspace(0, retrieval(3, end), 100);
+    GN_output.tau_vector = linspace(0, retrieval(3, end), 100);
 
-    GN_output.re_profile(:, pp) = create_droplet_profile2([retrieval(1, end), retrieval(2, end)],...
-        GN_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
+    GN_output.re_profile = create_droplet_profile2([retrieval(1, end), retrieval(2, end)],...
+        GN_output.tau_vector, 'optical_depth', GN_inputs.model.profile.type);
 
 
 end

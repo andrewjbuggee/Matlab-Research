@@ -9,15 +9,16 @@
 % will only use inputs that we could know from a real measurement, such as
 % the geometry
 
-% (3) sim_meas_inputs - this is the input structure used to create
-% the simulated measurements. Use if the flag for input 2 is true.
+% (3) sim_meas - this is the input structure used to create
+% the simulated measurements. This includes the input structure and the
+% spectral response function
 
 
 % By Andrew John Buggee
 
 %%
 
-function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas_inputs)
+function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas)
 
 
 % ------------------------------------------------------------
@@ -47,14 +48,14 @@ end
 % This will create n wc_files where n is equal to the number of layers in
 % the cloud. Starting with the entire cloud, each file will have one less
 % layer
-inputs.compute_weighting_functions = true;
+inputs.compute_weighting_functions = false;
 
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
 % inputs.calc_type = 'simulated_spectra';
-% inputs.calc_type = 'forward_model_calcs_forRetrieval';
-inputs.calc_type = 'weighting_functions';
+inputs.calc_type = 'forward_model_calcs_forRetrieval';
+% inputs.calc_type = 'weighting_functions';
 
 
 % ----- Define the RTE Solver -----
@@ -94,8 +95,6 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % ------------------------------------------------------------------------
 
 
-% ----- Define the day of the year to account for Earth-Sun distance -----
-% inputs.RT.day_of_year = 239;
 
 
 
@@ -105,56 +104,63 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % define the wavelength range. If monochromatic, enter the same number
 % twice
 
+if load_parameters_from_measurement==true
 
-% ----------------- Simulating HySICS spectral channels ------------------
-% number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+    % Load the simulated bands
+    inputs.bands2run = sim_meas.inputs.bands2run;
 
-% Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
-% and other gaseous absorbers
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-%     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-%     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-%     618, 620, 623, 625]';
+else
 
+    % ----------------- Simulating HySICS spectral channels ------------------
+    % number of channels = 636 ranging from center wavelengths: [351, 2297]
+    % inputs.bands2run = (1:1:636)';
 
-% The same 35 spectral channels above that avoid water vapor and other
-% gaseous absorbers, AND 31 bands in the wings of water vapor absorption
-% features for a total of 66 bands
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
-    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-    543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
-    
+    % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
+    % and other gaseous absorbers
+    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    %     618, 620, 623, 625]';
 
 
-% inputs.bands2run = [49, 426, 613]';
-% inputs.bands2run = [49, 57, 288, 426, 613]';
+    % The same 35 spectral channels above that avoid water vapor and other
+    % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
+    % features for a total of 66 bands
+    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+    %     198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    %     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+    %     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+    %     543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
 
-% test bands
-% 500 nm
-% inputs.bands2run = 49;
 
-% 1652 nm
-% inputs.bands2run = 426;
 
-% 2122 nm
-% inputs.bands2run = 580;
+    % inputs.bands2run = [49, 426, 613]';
+    inputs.bands2run = [49, 57, 288, 426, 613]';
 
-% 2236 nm
-% inputs.bands2run = 613;
+    % test bands
+    % 500 nm
+    % inputs.bands2run = 49;
 
+    % 1652 nm
+    % inputs.bands2run = 426;
+
+    % 2122 nm
+    % inputs.bands2run = 580;
+
+    % 2236 nm
+    % inputs.bands2run = 613;
+
+end
 
 % ------------------------------------------------------------------------
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = true;
+inputs.RT.monochromatic_calc = false;
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-inputs.RT.compute_reflectivity_uvSpec = true;
+inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
@@ -168,41 +174,53 @@ inputs.RT.compute_reflectivity_uvSpec = true;
 % -------------- Create the spectral response functions ------------------
 % ------------------------------------------------------------------------
 
-% ------------------------------------
-% modeling the HySICS instrument...
-% ------------------------------------
-% Define the HySICS spectral response functions
-spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file, ...
-    inputs.which_computer);
+if load_parameters_from_measurement==true
 
-% now define the wavelength range of each spectral channel
-inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
+    % store the spectral response
+    spec_response = sim_meas.spec_response;
 
-
-if inputs.RT.monochromatic_calc==true
-
-    for ww = 1:length(inputs.bands2run)
-        % The wavelength vector for libRadTran is simply the lower and upper
-        % bounds
-        inputs.RT.wavelengths2run(ww,:) = [round(mean(spec_response.wavelength(ww,:)), 1),...
-            round(mean(spec_response.wavelength(ww, :)) ,1)];
-
-    end
+    % store the wavelengths to run
+    inputs.RT.wavelengths2run = sim_meas.inputs.RT.wavelengths2run;
 
 
 else
 
-    for ww = 1:length(inputs.bands2run)
-        % The wavelength vector for libRadTran is simply the lower and upper
-        % bounds
-        inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
-            spec_response.wavelength(ww, end)];
+    % ------------------------------------
+    % modeling the HySICS instrument...
+    % ------------------------------------
+    % Define the HySICS spectral response functions
+    spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file, ...
+        inputs.which_computer);
+
+    % now define the wavelength range of each spectral channel
+    inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
+
+
+    if inputs.RT.monochromatic_calc==true
+
+        for ww = 1:length(inputs.bands2run)
+            % The wavelength vector for libRadTran is simply the lower and upper
+            % bounds
+            inputs.RT.wavelengths2run(ww,:) = [round(mean(spec_response.wavelength(ww,:)), 1),...
+                round(mean(spec_response.wavelength(ww, :)) ,1)];
+
+        end
+
+
+    else
+
+        for ww = 1:length(inputs.bands2run)
+            % The wavelength vector for libRadTran is simply the lower and upper
+            % bounds
+            inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
+                spec_response.wavelength(ww, end)];
+
+        end
 
     end
 
+
 end
-
-
 
 
 % ------------------------------------------------------------------------
@@ -228,20 +246,20 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-% inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
-inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
+% inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 
-
+% ----- Define the day of the year to account for Earth-Sun distance -----
 if load_parameters_from_measurement==true
 
     % day of the year
-    inputs.RT.day_of_year = sim_meas_inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+    inputs.RT.day_of_year = sim_meas.inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
 
 else
 
     % day of the year
-    %inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
+    inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
 
 end
 % ------------------------------------------------------------------------
@@ -257,8 +275,8 @@ inputs.RT.yesCloud = true;
 inputs.RT.cloud_depth = 500;                % meters
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [1.5, 1];          % km above surface
-% inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for pixel used in Figure 3.a from paper 1
+% inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for pixel used in Figure 3.a from paper 1
 
 
 % Water Cloud depth
@@ -335,13 +353,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
     % ** Values used in Platnick (2000) **
-    inputs.RT.r_top = 12;     % microns
-    inputs.RT.r_bot = 5;        % microns
-    inputs.RT.tau_c = 8;
+    % inputs.RT.r_top = 12;     % microns
+    % inputs.RT.r_bot = 5;        % microns
+    % inputs.RT.tau_c = 8;
 
-    % inputs.RT.r_top = 9.5167;     % microns
-    % inputs.RT.r_bot = 4.0192;        % microns
-    % inputs.RT.tau_c = 6.0312;
+    % simulating measurement from value for pixel used in Figure 3.a from paper 1
+    inputs.RT.r_top = 9.2516;     % microns
+    inputs.RT.r_bot = 5.3192;        % microns
+    inputs.RT.tau_c = 6.1312;
 
     % inputs.RT.r_top = 8.6;     % microns
     % inputs.RT.r_bot = 3.6;        % microns
@@ -363,8 +382,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
     % *** Use 250 if creating weighting functions using DISORT ***
-    inputs.RT.n_layers = 250;                          % number of layers to model within cloud
-    % inputs.RT.n_layers = 20;                          % number of layers to model within cloud
+    % inputs.RT.n_layers = 250;                          % number of layers to model within cloud
+    inputs.RT.n_layers = 20;                          % number of layers to model within cloud
 
     % -------------------------------------------------------------------
     % define the independent variable used to define the effective radius
@@ -464,13 +483,13 @@ inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitud
 % -----------------------------
 if load_parameters_from_measurement==true
 
-    inputs.RT.sza = sim_meas_inputs.RT.sza;      % degrees
+    inputs.RT.sza = sim_meas.inputs.RT.sza;      % degrees
 
 else
 
-    % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    inputs.RT.sza = 50;           % degree
+    % inputs.RT.sza = 50;           % degree
 
 end
 
@@ -480,7 +499,7 @@ end
 % -------------------------------
 if load_parameters_from_measurement==true
 
-    inputs.RT.phi0 = sim_meas_inputs.RT.phi0;      % degrees
+    inputs.RT.phi0 = sim_meas.inputs.RT.phi0;      % degrees
 
 else
 
@@ -491,8 +510,8 @@ else
     % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
     % 360
     %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-    % inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.phi0 = 210;         % degree
+    inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+    % inputs.RT.phi0 = 210;         % degree
 
 end
 
@@ -503,13 +522,13 @@ end
 % --------------------------------
 if load_parameters_from_measurement==true
 
-    inputs.RT.vza = sim_meas_inputs.RT.vza;         % degrees
+    inputs.RT.vza = sim_meas.inputs.RT.vza;         % degrees
 
 else
 
-    % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    inputs.RT.vza = 10; % values are in degrees;
+    % inputs.RT.vza = 10;                             % values are in degrees;
 
 end
 
@@ -519,7 +538,7 @@ end
 % --------------------------------
 if load_parameters_from_measurement==true
 
-    inputs.RT.vaz = sim_meas_inputs.RT.vaz;      % degrees
+    inputs.RT.vaz = sim_meas.inputs.RT.vaz;      % degrees
 
 else
 
@@ -531,11 +550,11 @@ else
     % south. No transformation is needed
 
     % inputs.RT.vaz = -103+360;     % degree
-    inputs.RT.vaz = 180;            % degree
+    % inputs.RT.vaz = 180;            % degree
 
     % to properly map the MODIS azimuth angle onto the reference plane used by
     % libRadTran...
-    % inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
 
 end
 

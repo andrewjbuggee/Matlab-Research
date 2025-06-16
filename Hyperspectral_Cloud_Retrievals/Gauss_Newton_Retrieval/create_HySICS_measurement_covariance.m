@@ -42,9 +42,9 @@ elseif strcmp(covariance_type,'independent') == true
     % multiply these percentages with the modis reflectance values to
     % get the uncertainty in reflectance.
 
-    % For now, let's define the measurement uncertainty as 0.5% for all
+    % For now, let's define the measurement uncertainty as 0.3% for all
     % HySICS spectral bands
-    GN_inputs.measurement.uncertainty = 0.5 /100;        % percent
+    GN_inputs.measurement.uncertainty = linspace(0.3 /100, 0.3/100, length(GN_inputs.bands2run))';        % percent
 
 
     % Lets assume the percentage given is the standard deviation
@@ -79,7 +79,7 @@ end
 % should be within this uncertainty. Using MODIS, we can compute the
 % RMS uncertainty vector and set this as the convergence limit.
 
-GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2, 1));           % Root-sum-square of the reflectance uncertainty
+GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2));           % Root-sum-square of the reflectance uncertainty
 %GN_inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.res1km.linearIndex));  % generic convergence limit
 
 

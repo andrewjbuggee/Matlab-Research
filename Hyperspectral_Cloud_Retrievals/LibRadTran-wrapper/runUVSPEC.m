@@ -37,10 +37,10 @@ end
 
 %% ----- Lets Read the input file -----
 
+
 % Lets determine the input settings
 
 % First we need to determine how many files we need to run
-
 if iscell(inputName)==true
     numFiles2Run = length(inputName);
 elseif ischar(inputName)==true
@@ -48,6 +48,8 @@ elseif ischar(inputName)==true
 else
     error('I dont understand the input file')
 end
+
+
 
 if numFiles2Run==1
 
@@ -492,6 +494,13 @@ elseif numFiles2Run>1
 
     end
 end
+
+
+
+
+
+
+
 
 
 

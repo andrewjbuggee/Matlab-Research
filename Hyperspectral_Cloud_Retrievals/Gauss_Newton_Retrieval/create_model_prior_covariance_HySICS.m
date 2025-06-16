@@ -51,8 +51,10 @@ if use_TBLUT_estimates==true
     % the median value of droplet size at cloud bottom was
     %  70% the value at cloud top. This is r_bot = 0.7058*r_top
     % GN_inputs.model.apriori = [1.5*tblut.minRe, 0.5*tblut.minRe, tblut.minTau]; % expected values for the effective radius (microns) and the optical depth
-    GN_inputs.model.apriori = [tblut.minRe, 0.7058*tblut.minRe, tblut.minTau];
+    % GN_inputs.model.apriori = [tblut.minRe, 0.7058*tblut.minRe, tblut.minTau];
 
+    % *** Test Values for new HySICS retrieval ***
+    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau];
 
 
     % The first two values are the standard deviation of the effective
@@ -88,8 +90,14 @@ if use_TBLUT_estimates==true
     % atleast 3
     optThick_uncert = 0.05;
 
+    % stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
+    %     GN_inputs.model.apriori(2) * 6*effRad_uncert,...
+    %     GN_inputs.model.apriori(3) * optThick_uncert];
+
+
+    % *** TESTING NEW UNCERTAINTY ***
     stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-        GN_inputs.model.apriori(2) * 6*effRad_uncert,...
+        GN_inputs.model.apriori(2) * 3*effRad_uncert,...
         GN_inputs.model.apriori(3) * optThick_uncert];
 
     % variance for the effective radius (microns squared) and optical thickness respectively

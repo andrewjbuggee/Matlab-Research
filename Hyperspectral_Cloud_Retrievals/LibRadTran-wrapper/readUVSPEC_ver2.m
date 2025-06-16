@@ -74,7 +74,7 @@
 % --- By Andrew J. Buggee ---
 %% --- Read in Files ---
 
-function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC(path, fileName, inputSettings, compute_reflectivity)
+function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC_ver2(path, fileName, inputs, compute_reflectivity)
 
 % How many files do we need to read?
 
@@ -128,27 +128,15 @@ end
 
 %% ----- Unpack the Input Settings -----
 
-    
-if numFiles2Read>1
 
-    rte_solver = inputSettings{1};
-    umuVec = [inputSettings{2}];
-    phiVec = inputSettings{3};
+rte_solver = inputs.RT.rte_solver;
+umuVec = round(cosd(inputs.RT.vza), 4);     % This is how it's coded in the function 'write-INP-file
+phiVec = inputs.RT.vaz;
 
-    numUmu = length(umuVec);
-    numPhi = length(phiVec);
+numUmu = length(umuVec);
+numPhi = length(phiVec);
 
 
-else
-
-    rte_solver = inputSettings{1};
-    umuVec = inputSettings{2};
-    phiVec = inputSettings{3};
-
-    numUmu = length(umuVec);
-    numPhi = length(phiVec);
-
-end
 
 %% ----- Pull out radiance and irradiance from the data table -----
 
@@ -177,7 +165,7 @@ if strcmp(rte_solver, 'disort')==true
         % immediately after the wavelength values. So the umu values would have to
         % be atleast 2 rows belows the wavelength row.
 
-        indexRadRow = ismember(col1,umuVec); % rows where radiance data begins
+        indexRadRow = ismember(col1,umuVec); % rows where radiance data begins. 
 
 
         % Now we want to seperate the irradiance calculations from the radiance
@@ -342,7 +330,7 @@ elseif strcmp(rte_solver, 'montecarlo')==true
     % wavelength [nm] ix (0 ... Nx-1) iy (0 ... Ny-1) iz (0 ... Nz-1) radiance
 
     % new way of readng the data. cuts the time in half
-    data_char = fileread([path, inputSettings{end}, '.rad.spc']);
+    data_char = fileread([path, inputs.RT.mc.basename, '.rad.spc']);
     data = cell2mat(textscan(data_char, '%f %f %f %f %f'));
 
     wavelength = data(:,1);  % nm

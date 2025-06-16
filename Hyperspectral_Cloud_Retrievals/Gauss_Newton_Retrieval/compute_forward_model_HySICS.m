@@ -10,13 +10,21 @@
 function measurement_estimate = compute_forward_model_HySICS(current_guess, GN_inputs, spec_response, folder_paths)
 
 
-
 % --- compute the forward model at our current estimate ---
 r_top = current_guess(1);
 r_bottom = current_guess(2);
 tau_c = current_guess(3);
 
 
+% Read the solar flux file over the wavelength range specified
+wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
+
+[source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, GN_inputs.RT.source_file);   % W/nm/m^2
+
+% we will add and subtract a small fraction of the source file resolution
+% to ensure rounding errors don't cause an issue when selecting the
+% wavelengths needed from the source file
+wl_perturb = GN_inputs.RT.source_file_resolution/3;   % nm
 
 % ----------------------------------------------------------
 
@@ -65,6 +73,7 @@ wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.la
 measurement_estimate = zeros(size(GN_inputs.RT.wavelengths2run,1), 1);
 
 parfor ww = 1:size(GN_inputs.RT.wavelengths2run,1)
+% for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
 
     % define the input file name
     inputFileName = [num2str(mean(GN_inputs.RT.wavelengths2run(ww,:))), '_','nm_rTop_', num2str(r_top),...
@@ -84,18 +93,22 @@ parfor ww = 1:size(GN_inputs.RT.wavelengths2run,1)
 
 
     % compute INP file
-    [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
+    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
         GN_inputs.which_computer);
+
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC(folder_paths.libRadtran_inp, outputFileName, inputSettings(2,:),...
+    [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName, GN_inputs,...
         GN_inputs.RT.compute_reflectivity_uvSpec);
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [measurement_estimate(ww), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        spec_response(ww,:));
+    idx_wl = source_wavelength>=(GN_inputs.RT.wavelengths2run(ww,1) - wl_perturb) &...
+        source_wavelength<=(GN_inputs.RT.wavelengths2run(ww,2) + wl_perturb);
+
+    [measurement_estimate(ww), ~] = reflectanceFunction_ver2(GN_inputs, ds,...
+        source_flux(idx_wl), spec_response(ww,:)');
 
 end
 
