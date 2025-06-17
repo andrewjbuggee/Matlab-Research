@@ -1296,6 +1296,11 @@ hold on
 plot(tau_c_min_MODIS7, (r_top_min_MODIS7 - r_bot_min_MODIS7), 'x', 'MarkerSize', 12, 'Color', ...
     mySavedColors(61, 'fixed'));
 
+% ---- Plot the retrieved state vector using 7 MODIS wavelengths (Fig 3.a paper 1) ----
+hold on
+plot(5.87, (9.27 - 6.88), 'x', 'MarkerSize', 12, 'Color', ...
+    mySavedColors(64, 'fixed'));
+
 
 
 
@@ -1314,6 +1319,9 @@ if y_limits(1) < 0
 end
 
 
+% create a legend
+legend({'', 'True state vector', 'Global minimum state vector', 'Retrieved state vector', ''},...
+    'Interpreter','latex', 'Location','best', 'FontSize', 22)
 
 
 
