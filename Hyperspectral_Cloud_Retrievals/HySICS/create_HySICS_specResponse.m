@@ -112,7 +112,7 @@ elseif strcmp(computer_name,'curc')==true
 
     % ------ Folders on the CU Supercomputer /projects folder --------
 
-    error([newline, 'Not on the CU supercomputer yet'])
+    folderPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/';
 
 
 end

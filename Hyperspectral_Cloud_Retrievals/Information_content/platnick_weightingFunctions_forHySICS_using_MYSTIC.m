@@ -62,12 +62,12 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Weighting_functions/';
 
 
 
     % Define the folder path where all .INP files will be saved
-    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Weighting_functions/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -292,16 +292,16 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     
     % define the basename
-    %inputs.RT.mc.basename = cell(num_INP_files, 1);
+    mc_basename = cell(num_INP_files, 1);
 
 
 
     % Now write all the INP files
-    % parfor nn = 1:num_INP_files
-    for nn = 1:num_INP_files
+    parfor nn = 1:num_INP_files
+        %     for nn = 1:num_INP_files
 
         % update the monte carlo basename
-        inputs.RT.mc.basename = [inputs.folderpath_inp, 'mc_',num2str(inputs.RT.wavelengths2run(1)),...
+        mc_basename{nn} = [inputs.folderpath_inp, 'mc_',num2str(inputs.RT.wavelengths2run(1)),...
             'nm_layers1-', num2str(num_INP_files - (nn-1))];
 
         % set the wavelengths for each file
@@ -319,13 +319,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
             '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
 
 
-
         outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
 
 
         % ------------------ Write the INP File --------------------
         write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-            wavelengths, wc_filename{nn});
+            wavelengths, wc_filename{nn}, mc_basename{nn});
 
 
     end
@@ -366,13 +367,14 @@ parfor nn = 1:num_INP_files
 
 
     % compute INP file
-    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
+    runUVSPEC_ver2(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
         inputs.which_computer);
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
+    [ds,~,~] = readUVSPEC_ver2(inputs.folderpath_inp, mc_basename{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
+
 
     % Store the reflectance
     Refl_model(nn, :) = ds.reflectivity;       % reflectance is in units of 1/sr

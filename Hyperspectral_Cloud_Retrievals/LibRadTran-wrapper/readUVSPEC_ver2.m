@@ -92,38 +92,8 @@ headerLine = 0; % 0 if no header
 
 data = [];
 
-if numFiles2Read==1
-
-    % old way of reading the data
-    %data = importdata([path,fileName,'.OUT'],delimeter,headerLine);
 
 
-    % new way of readng the data. cuts the time in half
-    data_char = fileread([path,fileName,'.OUT']);
-    data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
-
-
-elseif numFiles2Read>1
-
-    for ii = 1:numFiles2Read
-
-        data = cat(3,data,importdata([path,fileName{ii},'.OUT'],delimeter,headerLine));
-
-    end
-
-else
-
-    error('There are no files to read! Check .OUT files to see if it ran properly')
-
-
-end
-
-% Check to see if the data structure is empty
-if isempty(data)==true
-
-    error([newline, 'Data structure is empty! Check the .OUT file.', newline])
-
-end
 
 
 %% ----- Unpack the Input Settings -----
@@ -148,6 +118,15 @@ numPhi = length(phiVec);
 if strcmp(rte_solver, 'disort')==true
 
     if numFiles2Read == 1
+
+        % old way of reading the data
+        %data = importdata([path,fileName,'.OUT'],delimeter,headerLine);
+
+
+        % new way of readng the data. cuts the time in half
+        data_char = fileread([path,fileName,'.OUT']);
+        data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
+
 
         col1 = data(:,1);
         nonNanRows = sum(isnan(data),2)==0; % find rows where there are no nans
@@ -233,6 +212,9 @@ if strcmp(rte_solver, 'disort')==true
     elseif numFiles2Read>1
 
         for ii = 1:numFiles2Read
+
+            % read in the data
+            data = cat(3,data,importdata([path,fileName{ii},'.OUT'],delimeter,headerLine));
 
             dataTable = data(:,:,ii); % look at one page at a time
             col1 = dataTable(:,1);
@@ -330,7 +312,7 @@ elseif strcmp(rte_solver, 'montecarlo')==true
     % wavelength [nm] ix (0 ... Nx-1) iy (0 ... Ny-1) iz (0 ... Nz-1) radiance
 
     % new way of readng the data. cuts the time in half
-    data_char = fileread([path, inputs.RT.mc.basename, '.rad.spc']);
+    data_char = fileread([fileName, '.rad.spc']);
     data = cell2mat(textscan(data_char, '%f %f %f %f %f'));
 
     wavelength = data(:,1);  % nm
@@ -342,6 +324,14 @@ elseif strcmp(rte_solver, 'montecarlo')==true
 end
 
 
+
+
+% Check to see if the data structure is empty
+if isempty(data)==true
+
+    error([newline, 'Data structure is empty! Check the .OUT file.', newline])
+
+end
 
 
 
