@@ -53,17 +53,35 @@ inputs.compute_weighting_functions = false;
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-% inputs.calc_type = 'simulated_spectra';
-inputs.calc_type = 'forward_model_calcs_forRetrieval';
+inputs.calc_type = 'simulated_spectra';
+% inputs.calc_type = 'forward_model_calcs_forRetrieval';
 % inputs.calc_type = 'weighting_functions';
 
 
 % ----- Define the RTE Solver -----
-inputs.RT.rte_solver = 'disort';
+if load_parameters_from_measurement==true
 
+    % Load the RTE solver
+    inputs.RT.rte_solver = sim_meas.inputs.RT.rte_solver;
+
+else
+
+    inputs.RT.rte_solver = 'disort';
+
+end
 
 % Define the number of streams to use in your radiative transfer model
-inputs.RT.num_streams = 16;
+if load_parameters_from_measurement==true
+
+    % Load the number of streams
+    inputs.RT.num_streams = sim_meas.inputs.RT.num_streams;
+
+else
+
+    inputs.RT.num_streams = 16;
+
+end
+
 
 
 % ------------------------------------------------------------------------
@@ -71,26 +89,53 @@ inputs.RT.num_streams = 16;
 
 % ------------------------------------------------------------------------
 % --- Do you want to use the Nakajima and Tanka radiance correction? -----
-inputs.RT.use_nakajima_phaseCorrection = true;
+if load_parameters_from_measurement==true
+
+    % Load nakajima phase correction
+    if isfield(sim_meas.inputs.RT, 'use_nakajima_phaseCorrection')==true
+
+        inputs.RT.use_nakajima_phaseCorrection = sim_meas.inputs.RT.use_nakajima_phaseCorrection;
+    else
+        inputs.RT.use_nakajima_phaseCorrection = false;
+    end
+
+else
+
+    inputs.RT.use_nakajima_phaseCorrection = true;
+
+end
+
 % ------------------------------------------------------------------------
+
+
 
 
 
 
 % ------------------------------------------------------------------------
 % -------------- Define the source file and resolution -------------------
+if load_parameters_from_measurement==true
 
-% source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
-% source_file_resolution = 0.025;         % nm
+    % Load source file and resolution used
+    inputs.RT.source_file = sim_meas.inputs.RT.source_file;
+    inputs.RT.source_file_resolution = sim_meas.inputs.RT.source_file_resolution;
 
-% these data have 0.1nm sampling resolution, despite what the file name
-% suggests
-inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-inputs.RT.source_file_resolution = 0.1;         % nm
+else
 
-% these data have 1nm sampling resolution
-% inputs.RT.source_file = 'kurudz_1.0nm.dat';
-% inputs.RT.source_file_resolution = 1;         % nm
+    % source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
+    % source_file_resolution = 0.025;         % nm
+
+    % these data have 0.1nm sampling resolution, despite what the file name
+    % suggests
+    inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+    inputs.RT.source_file_resolution = 0.1;         % nm
+
+    % these data have 1nm sampling resolution
+    % inputs.RT.source_file = 'kurudz_1.0nm.dat';
+    % inputs.RT.source_file_resolution = 1;         % nm
+
+end
+
 
 % ------------------------------------------------------------------------
 
@@ -117,10 +162,10 @@ else
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
-    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-    %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-    %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-    %     618, 620, 623, 625]';
+    inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+        222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+        426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+        618, 620, 623, 625]';
 
 
     % The same 35 spectral channels above that avoid water vapor and other
@@ -135,7 +180,7 @@ else
 
 
     % inputs.bands2run = [49, 426, 613]';
-    inputs.bands2run = [49, 57, 288, 426, 613]';
+    % inputs.bands2run = [49, 57, 288, 426, 613]';
 
     % test bands
     % 500 nm
@@ -158,8 +203,10 @@ end
 % ------------------------------------------------------------------------
 inputs.RT.monochromatic_calc = false;
 
+
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
+
 inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
@@ -236,18 +283,47 @@ end
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-inputs.RT.band_parameterization = 'reptran coarse';
+if load_parameters_from_measurement==true
+
+    % Load the band parameterization used
+    inputs.RT.band_parameterization = sim_meas.inputs.RT.band_parameterization;
+
+else
+
+    inputs.RT.band_parameterization = 'reptran coarse';
+
+end
 % ------------------------------------------------------------------------
 
 
 
 % ------------------------------------------------------------------------
 % define the atmospheric data file
-inputs.RT.atm_file = 'afglus.dat';
+if load_parameters_from_measurement==true
+
+    % Load the atm file used to generate the measurements
+    inputs.RT.atm_file = sim_meas.inputs.RT.atm_file;
+
+else
+
+    inputs.RT.atm_file = 'afglus.dat';
+
+end
+
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
-% inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+if load_parameters_from_measurement==true
+
+    % Load the surface albedo used for the simulated measurements
+    inputs.RT.surface_albedo = sim_meas.inputs.RT.surface_albedo;
+
+else
+
+    inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
+    % inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+
+end
+
 
 
 % ----- Define the day of the year to account for Earth-Sun distance -----
@@ -269,7 +345,17 @@ end
 
 % ------------------------------------------------------------------------
 % -------------- Do you want a cloud in your model? ----------------------
-inputs.RT.yesCloud = true;
+if load_parameters_from_measurement==true
+
+    % Load
+    inputs.RT.yesCloud = sim_meas.inputs.RT.yesCloud;
+
+else
+
+    inputs.RT.yesCloud = true;
+
+end
+
 
 % define the cloud geometric depth
 inputs.RT.cloud_depth = 500;                % meters
@@ -446,35 +532,58 @@ end
 % --------------------------------------------------------------
 % ----------- Define the vertical atmospheric grid -----------
 % --------------------------------------------------------------
-inputs.RT.define_atm_grid=false;
+if load_parameters_from_measurement==true
 
-% Set the vertical grid to include the cloud layers
-inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end),...
-    inputs.RT.z_topBottom(1)+1:1:20, 22:2:30, 35:5:50];   % km
+    % Load the measure atm grid inputs
+    inputs.RT.define_atm_grid = sim_meas.inputs.RT.define_atm_grid;
+
+    % Set the vertical grid to include the cloud layers
+    inputs.RT.atm_z_grid = sim_meas.inputs.RT.define_atm_grid;  % km
+
+else
+
+    inputs.RT.define_atm_grid=false;
+
+    % Set the vertical grid to include the cloud layers
+    inputs.RT.atm_z_grid = [0:0.5:inputs.RT.z_topBottom(2), inputs.RT.z_edges(2:end),...
+        inputs.RT.z_topBottom(1)+1:1:20, 22:2:30, 35:5:50];   % km
+
+end
+
 
 
 
 % --------------------------------------------------------------
 % ----------- Define the Solar and Viewing Gemometry -----------
 % --------------------------------------------------------------
+if load_parameters_from_measurement==true
 
-% Define the altitude of the sensor
-% How many layers to model in the cloud?
-% if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-%
-%     inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
-%
-% elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
-%
-%     inputs.RT.sensor_altitude = 'toa';
-%
-% end
+    % Load the defined sensor altitude for the simualte measurements
+    inputs.RT.sensor_altitude = sim_meas.inputs.RT.sensor_altitude;
 
-% I think the sensor altitude, for now, is the cloud top
-inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
-% inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
-% inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-% inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+else
+
+    % Define the altitude of the sensor
+    % How many layers to model in the cloud?
+    % if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+    %
+    %     inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
+    %
+    % elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
+    %
+    %     inputs.RT.sensor_altitude = 'toa';
+    %
+    % end
+
+    % I think the sensor altitude, for now, is the cloud top
+    % inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+    % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
+    % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
+    inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+
+
+end
+
 
 
 
@@ -660,21 +769,39 @@ inputs.RT.O3_mixing_ratio = 0;       % ppm
 % --------------------------------------------------------------
 % ------- Do you want to turn off molecular absorption? --------
 % Note, that thermal emission of molecules is also switched off.
-inputs.RT.no_molecular_abs = false;
+if load_parameters_from_measurement==true
+
+    % Load the setting for molecular absorption
+    inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
+
+else
+
+    inputs.RT.no_molecular_abs = false;
+
+end
 % --------------------------------------------------------------
 
 
 % --------------------------------------------------------------
 % ------------ Do you want to turn off scattering? -------------
+if load_parameters_from_measurement==true
 
-% Possible choises for the optional argument name are:
-%   mol - Switch off molecular scattering.
-%   aer - Switch off scattering by aerosols.
-%   wc - Switch off scattering by water clouds.
-%   ic - Switch off scattering by ice clouds.
-%   profile - Switch off scattering by any profile defined in profile typename.
-inputs.RT.no_scattering_mol = false;
-inputs.RT.no_scattering_aer = false;
+    % Load the settings for molecular scattering and aerosol scattering
+    inputs.RT.no_scattering_mol = sim_meas.inputs.RT.no_scattering_mol;
+    inputs.RT.no_scattering_aer = sim_meas.inputs.RT.no_scattering_aer;
+
+else
+
+    % Possible choises for the optional argument name are:
+    %   mol - Switch off molecular scattering.
+    %   aer - Switch off scattering by aerosols.
+    %   wc - Switch off scattering by water clouds.
+    %   ic - Switch off scattering by ice clouds.
+    %   profile - Switch off scattering by any profile defined in profile typename.
+    inputs.RT.no_scattering_mol = false;
+    inputs.RT.no_scattering_aer = false;
+
+end
 % --------------------------------------------------------------
 
 

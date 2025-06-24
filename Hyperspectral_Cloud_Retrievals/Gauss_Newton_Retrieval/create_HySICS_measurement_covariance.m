@@ -29,6 +29,13 @@ if strcmp(covariance_type,'computed') == true
 
 
 elseif strcmp(covariance_type,'independent') == true
+    
+    % -------------------------------------------------
+    % *** Compute the Measurement Covariance Matrix ***
+    % -------------------------------------------------
+    % The measurement covariance matrix is the sum of the measurement
+    % uncertainty and the forward model uncertainty (Poulsen et al. 2012,
+    % pg 1893)
 
     % create the covaraince matrix of the model parameters
     % if the covariance matrix is diagonal, then we are assuming each
@@ -44,15 +51,19 @@ elseif strcmp(covariance_type,'independent') == true
 
     % For now, let's define the measurement uncertainty as 0.3% for all
     % HySICS spectral bands
-    GN_inputs.measurement.uncertainty = linspace(0.3 /100, 0.3/100, length(GN_inputs.bands2run))';        % percent
+    percent_uncertainty = 1;      % percent!
 
+    GN_inputs.measurement.uncertainty = linspace(percent_uncertainty /100, percent_uncertainty/100,...
+        length(GN_inputs.bands2run))';        % percent
+
+    GN_inputs.measurement.rss_uncert = sqrt(sum( (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2))';   % 1/sr - reflectance
 
     % Lets assume the percentage given is the standard deviation
     % According to King and Vaughn (2012): 'the values along the main
     % diagonal correspond to the square of the uncertainty estimate for
     % each wavelength channel'
 
-    GN_inputs.measurement.variance = (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2;
+    GN_inputs.measurement.variance = (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2;     % 1/sr^2 - reflectance squared
 
 
 
@@ -79,7 +90,9 @@ end
 % should be within this uncertainty. Using MODIS, we can compute the
 % RMS uncertainty vector and set this as the convergence limit.
 
-GN_inputs.convergence_limit = sqrt(sum(GN_inputs.measurement.uncertainty.^2));           % Root-sum-square of the reflectance uncertainty
+% the convergence limit should be the RSS of the measurement uncertainty,
+% in units of reflectance!
+GN_inputs.convergence_limit = sqrt(sum((simulated_measurements.Refl_model .* GN_inputs.measurement.uncertainty).^2));           % 1/sr - Root-sum-square of the reflectance uncertainty
 %GN_inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.res1km.linearIndex));  % generic convergence limit
 
 

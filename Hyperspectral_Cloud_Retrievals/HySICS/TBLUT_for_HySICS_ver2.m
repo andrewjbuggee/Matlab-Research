@@ -98,6 +98,7 @@ if inputs_tblut.flags.writeINPfiles == true
     % only jump on indexes where there is a unique r and tau pair
 
     parfor nn = 1:num_rEff*num_tauC
+        % for nn = 1:num_rEff*num_tauC
 
         % -----------------------------------
         % ---- Write a Water Cloud file! ----
@@ -120,7 +121,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+        % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -175,6 +176,20 @@ end
 
 if inputs_tblut.flags.runUVSPEC == true
 
+
+    % Read the solar flux file over the wavelength range specified
+    wavelength_vec = [min(inputs_tblut.RT.wavelengths2run,[],"all"), max(inputs_tblut.RT.wavelengths2run, [], "all")];
+
+    [source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, inputs_tblut.RT.source_file);   % W/nm/m^2
+
+    % we will add and subtract a small fraction of the source file resolution
+    % to ensure rounding errors don't cause an issue when selecting the
+    % wavelengths needed from the source file
+    wl_perturb = inputs_tblut.RT.source_file_resolution/3;   % nm
+
+
+
+
     spec_response = simulated_reflectance.spec_response.value;
 
 
@@ -194,21 +209,24 @@ if inputs_tblut.flags.runUVSPEC == true
         % ----------------------------------------------------
 
 
+
         % compute INP file
-        [inputSettings] = runUVSPEC(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+        runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
             inputs_tblut.which_computer);
+
 
         % read .OUT file
         % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC(folder_paths.libRadtran_inp, outputFileName{nn},inputSettings(2,:),...
+        [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
             inputs_tblut.RT.compute_reflectivity_uvSpec);
 
-        % Store the Radiance
-        %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
         % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        [Refl_model_tblut(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-            spec_response(changing_variables(nn,end),:));
+        idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
+            source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+
+        [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
+            source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
 
 
 

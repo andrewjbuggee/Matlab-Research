@@ -63,7 +63,7 @@
 %%
 
 function [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_refraction,...
-            re, wavelength, distribution, err_msg_str, computer_name, index)
+            re, wavelength, distribution, err_msg_str, computer_name, index1, indexRadius)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -72,10 +72,10 @@ function [input_filename, output_filename, mie_folder] = write_mie_file(mie_prog
 % Check to make sure there are 8 inputs
 
 
-if nargin~=8
+if nargin~=9
     error([newline,'Not enough inputs. Need 8: mie program type, index of refraction, droplet effective radius,',...
         [' wavelength, droplet distribution width, the error message command, the computer name,',...
-         'and the file number.'], newline])
+         'the file number, and the radius for the file naming system'], newline])
 end
 
 
@@ -167,7 +167,7 @@ for ff = 1:numFiles
         if ischar(index_refraction)==1
 
             input_filename = ['Mie_calc_refrac_',index_refraction,'_distribution_',distribution{1},...
-                '_nn-',num2str(index),'.INP'];
+                '_nn-',num2str(index1),'_', num2str(indexRadius),'.INP'];
             output_filename = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
@@ -175,7 +175,7 @@ for ff = 1:numFiles
 
         elseif isnumeric(index_refraction)==1
             input_filename = ['Mie_calc_refrac_',num2str(index_refraction),'_distribution_',distribution{1},...
-                 '_nn-',num2str(index),'.INP'];
+                 '_nn-',num2str(index1),'_', num2str(indexRadius),'.INP'];
             output_filename = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
@@ -188,7 +188,7 @@ for ff = 1:numFiles
         if iscell(index_refraction)==1
 
             input_filename{ff} = ['Mie_calc_refrac_',index_refraction{ff},'_distribution_',distribution{1},...
-                 '_nn-',num2str(index),'.INP'];
+                 '_nn-',num2str(index1),'_', num2str(indexRadius),'.INP'];
             output_filename{ff} = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
@@ -196,7 +196,7 @@ for ff = 1:numFiles
 
         elseif isnumeric(index_refraction)==1
             input_filename{ff} = ['Mie_calc_refrac_',num2str(index_refraction(ff,:)),'_distribution_',...
-                distribution{1}, '_nn-',num2str(index),'.INP'];
+                distribution{1}, '_nn-',num2str(index1),'_', num2str(indexRadius),'.INP'];
             output_filename{ff} = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
@@ -349,7 +349,7 @@ for ff = 1:numFiles
 
         % If the wavelength vector doesn't have uniform spacing, write a
         % .txt file where the second column is the wavelength vector
-        wl_filename = write_nonuniformly_spaced_wavelength_file(wavelength, index);
+        wl_filename = write_nonuniformly_spaced_wavelength_file(wavelength, index1);
 
 
         fprintf(fileID,'%10s  %s          %s \n', 'wavelength', wl_filename, comments{5});

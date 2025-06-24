@@ -144,7 +144,7 @@ inputs.RT.use_nakajima_phaseCorrection = true;
 % reptran coarse is the default
 % if using reptran, provide one of the following: coarse (default), medium
 % or fine
-inputs.RT.band_parameterization = 'reptran coarse';
+inputs.RT.band_parameterization = inputs_measurement.RT.band_parameterization;
 %band_parameterization = 'reptran_channel modis_terra_b07';
 % ------------------------------------------------------------------------
 
@@ -170,18 +170,18 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % inputs.RT.source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
 % inputs.RT.source_file_resolution = 0.025;         % nm
 
-inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
-inputs.RT.source_file_resolution = 0.1;         % nm
+inputs.RT.source_file = inputs_measurement.RT.source_file;
+inputs.RT.source_file_resolution = inputs_measurement.RT.source_file_resolution;         % nm
 
 
 
 
 
 % define the atmospheric data file
-inputs.RT.atm_file = 'afglus.dat';
+inputs.RT.atm_file = inputs_measurement.RT.atm_file;
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.04;
+inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 
 % day of the year
 %inputs.RT.day_of_year = simulated_measurements.day_of_year;
@@ -267,7 +267,7 @@ inputs.RT.lambda_forTau = 500;            % nm
 % --------------------------------------------------------------
 
 % Define the altitude of the sensor
-inputs.RT.sensor_altitude = 'toa';          % top-of-atmosphere
+inputs.RT.sensor_altitude = inputs_measurement.RT.sensor_altitude;          % top-of-atmosphere
 
 % define the solar zenith angle
 inputs.RT.sza = inputs_measurement.RT.sza;           % degree

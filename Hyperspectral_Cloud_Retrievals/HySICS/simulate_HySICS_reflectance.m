@@ -338,6 +338,16 @@ toc
 
 %% Calculate Reflectance
 
+% Read the solar flux file over the wavelength range specified
+wavelength_vec = [min(inputs.RT.wavelengths2run,[],"all"), max(inputs.RT.wavelengths2run, [], "all")];
+[source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, inputs.RT.source_file);   % W/nm/m^2
+
+% we will add and subtract a small fraction of the source file resolution
+% to ensure rounding errors don't cause an issue when selecting the
+% wavelengths needed from the source file
+wl_perturb = inputs.RT.source_file_resolution/3;   % nm
+
+
 
 % define only the spec_response so the wavelengths are passed into the
 % memory of the parallel for loop
@@ -363,22 +373,28 @@ parfor nn = 1:num_INP_files
     % --------------- RUN RADIATIVE TRANSFER -------------
     % ----------------------------------------------------
 
-
     % compute INP file
-    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
+    runUVSPEC_ver2(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
         inputs.which_computer);
+
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
+    [ds,~,~] = readUVSPEC_ver2(inputs.folderpath_inp, outputFileName{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
+
+
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    idx_wl = source_wavelength>=(changing_variables(nn,4) - wl_perturb) &...
+        source_wavelength<=(changing_variables(nn,5) + wl_perturb);
+
 
     % Store the Radiance
     %            Rad_model(rr, tc, ww, :) = ds.radiance.value;       % radiance is in units of mW/nm/m^2/sr
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [Refl_model(nn), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        spec_response_value(changing_variables(nn,end),:));
+    [Refl_model(nn), ~] = reflectanceFunction_ver2(inputs, ds,...
+        source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:));
 
 
 

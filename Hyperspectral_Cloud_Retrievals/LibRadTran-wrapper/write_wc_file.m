@@ -490,7 +490,7 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
 
                 % Create a mie file
                 [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, round(re(rr),4));
+                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re(rr), 4));
 
                 % run the mie file
                 [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
@@ -609,7 +609,7 @@ elseif isscalar(re) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==tru
 
             % Create a mie file
             [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                mie_radius, lambda, size_distribution, err_msg_str, computer_name, index);
+                mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re, 4));
 
             % run the mie file
             [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
@@ -652,13 +652,8 @@ elseif isscalar(re) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==tru
     % for that cloud.
 elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-homogeneous')==true
 
-    num_files_2write = length(re);
+    num_files_2write = 1;
 
-    % re must be a column vector
-    re = reshape(re,[],1);
-
-    % the distribution variance should be a column vector
-    distribution_var = reshape(distribution_var, [], 1);
 
     % -------------------------------------------------------------------
     % ------ open the precomputed mie table and interpolate! ------------
@@ -737,7 +732,7 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
                 % Create a mie file
                 [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, round(re(rr), 4));
+                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re(rr), 4));
 
                 % run the mie file
                 [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
