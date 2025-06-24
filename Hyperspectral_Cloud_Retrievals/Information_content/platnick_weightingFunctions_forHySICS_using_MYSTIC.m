@@ -62,12 +62,12 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/Weighting_functions/';
 
 
 
     % Define the folder path where all .INP files will be saved
-    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Thermodynamic_phase/';
+    inputs.folderpath_inp = '/scratch/alpine/anbu8374/Weighting_functions/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
