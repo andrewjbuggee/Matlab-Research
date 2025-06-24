@@ -31,7 +31,7 @@ inputs.RT.rte_solver = 'montecarlo';
 % ---------------------------------------------------
 % --------- Define Monte Carlo Parameters -----------
 % ---------------------------------------------------
-inputs.RT.mc.photons = 10^8;      % number of photons to use in the simulation
+inputs.RT.mc.photons = 10^3;      % number of photons to use in the simulation
 inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
 inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
 
@@ -80,7 +80,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
 %     618, 620, 623, 625]';
 
-inputs.bands2run = [49, 426, 613]';
+% inputs.bands2run = [49, 426, 613]';
 
 % test bands
 % 500 nm 
@@ -90,7 +90,7 @@ inputs.bands2run = [49, 426, 613]';
 % inputs.bands2run = 426;
 
 % 2122 nm 
-% inputs.bands2run = 580;
+inputs.bands2run = 580;
 
 % 2236 nm 
 % inputs.bands2run = 613;
