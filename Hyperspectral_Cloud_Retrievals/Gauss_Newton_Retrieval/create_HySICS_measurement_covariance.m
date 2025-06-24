@@ -51,10 +51,13 @@ elseif strcmp(covariance_type,'independent') == true
 
     % For now, let's define the measurement uncertainty as 0.3% for all
     % HySICS spectral bands
-    percent_uncertainty = 1;      % percent!
+    measurement_uncertainty_percent = 0.01;      % percent!
 
-    GN_inputs.measurement.uncertainty = linspace(percent_uncertainty /100, percent_uncertainty/100,...
-        length(GN_inputs.bands2run))';        % percent
+    forward_model_uncertainty = 0.01;               % percent
+
+    GN_inputs.measurement.uncertainty = linspace((measurement_uncertainty_percent + forward_model_uncertainty)/100,...
+        (measurement_uncertainty_percent + forward_model_uncertainty)/100,...
+        length(GN_inputs.bands2run))';        % fraction
 
     GN_inputs.measurement.rss_uncert = sqrt(sum( (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2))';   % 1/sr - reflectance
 
