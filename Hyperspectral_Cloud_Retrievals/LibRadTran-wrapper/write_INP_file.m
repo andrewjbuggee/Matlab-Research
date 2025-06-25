@@ -3,7 +3,8 @@
 % By Andrew John Buggee
 %%
 
-function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs, wavelengths, wc_filename)
+function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs,...
+                        wavelengths, wc_filename, mc_basename)
 
 
 
@@ -54,14 +55,14 @@ if strcmp(inputs.RT.rte_solver, 'montecarlo')==true
 
     end
 
-    if isfield(inputs.RT.mc, 'basename')
+    if exist('mc_basename','var')
 
 
         % Define the number of streams to keep track of when solving the equation
         % of radiative transfer
         % ------------------------------------------------
         formatSpec = '%s %s %5s %s \n';
-        fprintf(fileID, formatSpec,'mc_basename', inputs.RT.mc.basename,' ', '# file names and path for 3D mystic output');
+        fprintf(fileID, formatSpec,'mc_basename', mc_basename,' ', '# file names and path for 3D mystic output');
 
     end
 

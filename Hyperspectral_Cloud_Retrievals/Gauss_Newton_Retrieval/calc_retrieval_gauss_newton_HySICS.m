@@ -339,6 +339,7 @@ for ii = 1:num_iterations
     if rss_residual(ii+1)<convergence_limit
 
         disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
+            'RSS Limit = ', num2str(convergence_limit),newline,...
             'RSS = ', num2str(rss_residual(ii+1))])
 
         % Clear the rest of the zeros that are place holders for later
@@ -359,6 +360,7 @@ for ii = 1:num_iterations
         if rss_residual(ii+1)>rss_residual(ii)
 
             disp([newline, 'RSS residual started to increase. Lowest value was: ',...
+                'RSS Limit = ', num2str(convergence_limit),newline,...
                 'RSS = ', num2str(rss_residual(ii)), newline])
 
             % Clear the rest of the zeros that are place holders for later
@@ -382,7 +384,9 @@ for ii = 1:num_iterations
 
         if abs(rss_residual(ii+1) - rss_residual(ii))/rss_residual(ii)<percent_change_limit
 
-            disp([newline, 'RSS residual has plataued. The current value differs from the previous value by less than 1 percent', newline,...
+            disp([newline, 'RSS residual has plataued. The current value differs from the previous value by less than ',...
+                num2str(100*percent_change_limit), '%', newline,...
+                'RSS Limit = ', num2str(convergence_limit),newline,...
                 'Lowest value was: ','RSS = ', num2str(rss_residual(ii+1))])
 
             % Clear the rest of the zeros that are place holders for later
