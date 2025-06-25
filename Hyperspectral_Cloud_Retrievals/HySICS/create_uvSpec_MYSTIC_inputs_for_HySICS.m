@@ -31,7 +31,7 @@ inputs.RT.rte_solver = 'montecarlo';
 % ---------------------------------------------------
 % --------- Define Monte Carlo Parameters -----------
 % ---------------------------------------------------
-inputs.RT.mc.photons = 10^8;      % number of photons to use in the simulation
+inputs.RT.mc.photons = 10^3;      % number of photons to use in the simulation
 inputs.RT.mc.vroom = 'on';        % helps speed up calculations for particles with strong forward scattering
 inputs.RT.mc.escape = 'on';       % calculates radiances via escape probabilities - speeds up computation
 
