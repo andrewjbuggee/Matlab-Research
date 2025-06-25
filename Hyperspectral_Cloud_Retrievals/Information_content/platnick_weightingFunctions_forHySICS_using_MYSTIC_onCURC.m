@@ -102,6 +102,9 @@ delete([inputs.folderpath_inp, '*.INP'])
 delete([inputs.folderpath_inp, '*.OUT'])
 
 
+%% Start up parallel pool
+
+parpool(8);
 
 
 %% set up the inputs to create an INP file for MYSTIC!
