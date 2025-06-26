@@ -102,6 +102,9 @@ delete([inputs.folderpath_inp, '*.INP'])
 delete([inputs.folderpath_inp, '*.OUT'])
 
 
+%% Start up parallel pool
+
+parpool(8);
 
 
 %% set up the inputs to create an INP file for MYSTIC!
@@ -409,44 +412,6 @@ toc
 
 % reshape Refl_model
 Refl_model = reshape(Refl_model, inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
-
-% reshape the optical depth of each file
-tau = reshape(changing_variables(:,2), inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
-
-% compute the derivative of reflectivity as a function of optical depth
-% normalize by the reflectance over the full cloud optical thickness
-w = diff(flipud(Refl_model))./diff(flipud(tau)) ./ repmat(Refl_model(1,:), inputs.RT.n_layers-1, 1);
-
-
-%% plot the weighting function
-
-figure;
-plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
-
-
-% Set up axes labels
-set(gca, 'YDir','reverse')
-grid on; grid minor
-xlabel('$P(\tau)$','Interpreter','latex');
-ylabel('$\tau$','Interpreter','latex')
-
-% Create title
-title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
-
-% Create Legend
-%legend(legend_str,'Interpreter','latex','Location','northwest','FontSize',22)
-
-
-set(gcf, 'Position',[0 0 1400 800])
-
-% --- overlay a smoothed spline fit ---
-% Create smooth spline function
-f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)), w, 'smoothingspline','SmoothingParam',0.95);
-
-% Plot the conditional probability
-hold on
-plot(f((0.5:0.1:inputs.RT.tau_c)),(0.5:0.1:inputs.RT.tau_c), 'Color', mySavedColors(1, 'fixed'))
-
 
 
 
