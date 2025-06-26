@@ -53,9 +53,9 @@ inputs.compute_weighting_functions = false;
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-inputs.calc_type = 'simulated_spectra';
+% inputs.calc_type = 'simulated_spectra';
 % inputs.calc_type = 'forward_model_calcs_forRetrieval';
-% inputs.calc_type = 'weighting_functions';
+inputs.calc_type = 'weighting_functions';
 
 
 % ----- Define the RTE Solver -----
@@ -78,7 +78,7 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.num_streams = 16;
+    inputs.RT.num_streams = 32;
 
 end
 
@@ -158,14 +158,14 @@ else
 
     % ----------------- Simulating HySICS spectral channels ------------------
     % number of channels = 636 ranging from center wavelengths: [351, 2297]
-    % inputs.bands2run = (1:1:636)';
+    inputs.bands2run = (1:1:636)';
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
-    inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-        222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-        426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-        618, 620, 623, 625]';
+    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    %     618, 620, 623, 625]';
 
 
     % The same 35 spectral channels above that avoid water vapor and other
@@ -201,13 +201,13 @@ end
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = false;
+inputs.RT.monochromatic_calc = true;
 
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
 
-inputs.RT.compute_reflectivity_uvSpec = false;
+inputs.RT.compute_reflectivity_uvSpec = true;
 % --------------------------------------------------------------
 
 
@@ -319,8 +319,8 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
-    % inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+    % inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
+    inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 end
 
@@ -439,14 +439,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
     % ** Values used in Platnick (2000) **
-    % inputs.RT.r_top = 12;     % microns
-    % inputs.RT.r_bot = 5;        % microns
-    % inputs.RT.tau_c = 8;
+    inputs.RT.r_top = 12;     % microns
+    inputs.RT.r_bot = 5;        % microns
+    inputs.RT.tau_c = 8;
 
     % simulating measurement from value for pixel used in Figure 3.a from paper 1
-    inputs.RT.r_top = 9.2516;     % microns
-    inputs.RT.r_bot = 5.3192;        % microns
-    inputs.RT.tau_c = 6.1312;
+    % inputs.RT.r_top = 9.2516;     % microns
+    % inputs.RT.r_bot = 5.3192;        % microns
+    % inputs.RT.tau_c = 6.1312;
 
     % inputs.RT.r_top = 8.6;     % microns
     % inputs.RT.r_bot = 3.6;        % microns
@@ -576,10 +576,10 @@ else
     % end
 
     % I think the sensor altitude, for now, is the cloud top
-    % inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+    inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
     % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
     % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-    inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+    % inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 end
@@ -596,8 +596,8 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+    % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
     % inputs.RT.sza = 50;           % degree
 
 end
@@ -619,8 +619,8 @@ else
     % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
     % 360
     %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-    inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.phi0 = 210;         % degree
+    % inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.phi0 = 0;         % degree
 
 end
 
@@ -635,8 +635,8 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
+    % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
     % inputs.RT.vza = 10;                             % values are in degrees;
 
 end
@@ -659,11 +659,11 @@ else
     % south. No transformation is needed
 
     % inputs.RT.vaz = -103+360;     % degree
-    % inputs.RT.vaz = 180;            % degree
+    inputs.RT.vaz = 210;            % degree
 
     % to properly map the MODIS azimuth angle onto the reference plane used by
     % libRadTran...
-    inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+    % inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
 
 end
 

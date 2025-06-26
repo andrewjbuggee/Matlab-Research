@@ -104,16 +104,17 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 
 
-%% set up the inputs to create an INP file for DISORT!
-
-[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
-
-
 %% Write the INP files
 
 
-% num wavelengths
-num_wl = size(inputs.RT.wavelengths2run,1);
+% set up the inputs to create an INP file for DISORT!
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
+
+% ********************************************
+% *** Vary The Optical Thickness Linearly! ***
+% ********************************************
+tau_2run = linspace(0.05, inputs.RT.tau_c, 150)';
+
 
 
 tic
@@ -132,55 +133,32 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
 
 
-
-
 elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % --------------------------------------------
     % --------- NON-HOMOGENOUS CLOUD -------------
     % --------------------------------------------
 
-
-
+    
+    
     % length of each independent variable
-    % length of each independent variable
-    % num_rTop = length(inputs.RT.r_top);
-    % num_rBot = length(inputs.RT.r_bot);
-    % num_tauC = length(inputs.RT.tau_c);
     num_wl = length(inputs.bands2run);
-    num_tau_layers = inputs.RT.n_layers;
+    num_tau_layers = length(tau_2run);
 
-    if inputs.compute_weighting_functions==true
-        num_INP_files = num_wl*num_tau_layers;
-    else
-        num_INP_files = num_wl;
-    end
+    num_INP_files = num_wl*num_tau_layers;
 
 
+    % set up the input and output cell structures
     inputFileName = cell(num_INP_files, 1);
     outputFileName = cell(num_INP_files, 1);
 
-
-
-    % need an re and tau_c file for each layer, because we slowly build the
-    % cloud but adding layer after layer
-    idx_unique_indVars = 1:num_tau_layers;
 
 
     % create a droplet profile
     re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
         inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
-    % -----------------------------------
-    % ---- Write a Water Cloud file! ----
-    % -----------------------------------
-    % re must be defined from cloud bottom to cloud top
-    % z_topBottom must be defined as the cloud top height first, then
-    % cloud bottom
-    [wc_filename, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, inputs.RT.tau_c,...
-        inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-        inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-        inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, 1);
+
 
 
     % Compute the optical depth of each layer
@@ -188,7 +166,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     % cloud top
     % therefore, the optical depth of each layer starts at cloud bottom
     % inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
-    inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.* diff(inputs.RT.z_edges'));  % the optical depth of each layer, starting from cloud top
+    %inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.* diff(inputs.RT.z_edges'));  % the optical depth of each layer, starting from cloud top
 
 
 
@@ -202,7 +180,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         % (2) - total optical depth (sum of all layers)
         % (3) - index indicating which spectral response function is needed
         changing_variables = [reshape(repmat(inputs.RT.wavelengths2run(:,1)', num_tau_layers,1), [],1)...
-            repmat(flipud(cumsum(flipud(inputs.RT.tau_layers))), num_wl,1)];
+            repmat(tau_2run, num_wl,1)];
 
     else
 
@@ -218,13 +196,37 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % the wc_filenames should be the same for different wavelengths
-    wc_filename = repmat(wc_filename, num_wl, 1);
+    wc_filename = cell(num_tau_layers, 1);
 
+    % first, let's compute all water cloud files
+    parfor nn = 1:num_tau_layers
+
+
+        % -----------------------------------------------
+        % ----------- Write a Water Cloud file! ---------
+        % -----------------------------------------------
+        % re must be defined from cloud bottom to cloud top
+        % z_topBottom must be defined as the cloud top height first, then cloud bottom
+        % ***** RESET THE OPTICAL THICKNESS VALUE *****
+        [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
+            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, nn);
+
+        wc_filename{nn} = wc_filename_hold{1};
+
+    end
+
+
+    % Repeat the water cloud file names so that each unique optical
+    % thickness uses the same file, despite the wavelength
+    wc_filename = repmat(wc_filename, num_wl);
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-        % for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
+        
 
 
 
@@ -241,8 +243,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
             inputFileName{nn} = ['weightingFunction_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
-                '_layers1-', num2str(mod(num_INP_files - (nn), num_tau_layers)+1), '.INP'];
+                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
 
 
 
@@ -262,7 +263,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
             inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)),...
+                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
                 '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
 
 
@@ -370,14 +371,11 @@ toc
 if inputs.RT.monochromatic_calc==true
 
     % reshape Refl_model
-    Refl_model = reshape(Refl_model, inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
-
-    % reshape the optical depth of each file
-    tau = reshape(changing_variables(:,2), inputs.RT.n_layers, size(inputs.RT.wavelengths2run,1));
+    Refl_model = reshape(Refl_model, num_tau_layers, num_wl);
 
     % compute the derivative of reflectivity as a function of optical depth
     % normalize by the reflectance over the full cloud optical thickness
-    w = diff(flipud(Refl_model))./diff(flipud(tau)) ./ repmat(Refl_model(1,:), inputs.RT.n_layers-1, 1);
+    w = diff(Refl_model, 1, 1)./diff(repmat(tau_2run, 1, num_wl), 1, 1) ./ repmat(Refl_model(end,:), num_tau_layers-1, 1);
 
 else
 
@@ -387,6 +385,59 @@ else
 end
 
 
+% %% Let's renormalize the weighting functions so that they integrate to 1
+% % Then, fit a moving average
+% 
+% f = zeros(size(w));
+% 
+% N_mov_avg = 10;
+% 
+% 
+% tau_midPoint = tau_2run(1:end-1,:) + diff(tau_2run, 1, 1);
+% 
+% for ww = 1:num_wl
+% 
+%     a = 1/trapz(tau_midPoint, w(:,ww));
+% 
+%     w(:,ww) = w(:,ww).*a;
+% 
+% 
+%     % find the moving average
+%     % --- overlay a smoothed spline fit ---
+%     % Create smooth spline function
+%     %f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+%     f = movmean(w, N_mov_avg);
+% 
+% end
+
+
+%% Let's fit a moving average to each weighting function and the renormalize
+
+f = zeros(size(w));
+
+N_mov_avg = 10;
+
+
+tau_midPoint = tau_2run(1:end-1,:) + diff(tau_2run, 1, 1);
+
+for ww = 1:num_wl
+
+    % find the moving average
+    % --- overlay a smoothed spline fit ---
+    % Create smooth spline function
+    %f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+    f(:,ww) = movmean(w(:,ww), N_mov_avg);
+
+
+    % renormalize!
+    a = 1/trapz(tau_midPoint, f(:,ww));
+
+    f(:,ww) = f(:,ww).*a;
+
+
+    
+
+end
 
 
 %% plot the weighting function
@@ -394,18 +445,20 @@ end
 figure;
 
 
-
 if inputs.RT.monochromatic_calc==true
+    
+    for ww = 1:num_wl
 
-    tau_midPoint = flipud(tau);
-    tau_midPoint = tau_midPoint(1:end-1,:) + diff(tau_midPoint, 1, 1);
-    % plot(w, diff(flipud(changing_variables(:,2)))/2 + flipud(changing_variables(2:end,2)))
-    % Plot the tau mid-point of each layer
-    plot(w, tau_midPoint)
+        % Plot the tau mid-point of each layer
+        plot(w(:,ww), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'))
 
-    % --- overlay a smoothed spline fit ---
-    % Create smooth spline function
-    %f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+
+        hold on
+        plot(f(:,ww), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'), 'LineStyle', ':')
+
+    end
+
+    
 
 else
 
@@ -416,7 +469,8 @@ else
 
     % --- overlay a smoothed spline fit ---
     % Create smooth spline function
-    f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+    % f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
+    f = movmean(w, N_mov_avg);
 
 end
 
@@ -439,11 +493,6 @@ title('Weighting Functions for HySICS','Interpreter','latex')
 set(gcf, 'Position',[0 0 1400 800])
 
 
-
-% Plot the spline fit
-% hold on
-% tau_2plot = (0.5:0.1:inputs.RT.tau_c);
-% plot(f(tau_2plot),tau_2plot, 'Color', mySavedColors(1, 'fixed'))
 
 
 % Create Legend
@@ -486,15 +535,9 @@ t.FontWeight = 'bold';
 t.EdgeColor = 'black';
 t.FitBoxToText = 'on';
 
-%% Let's renormalize the weighting functions so that they integrate to 1
 
-for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
-    a = 1/trapz(tau_midPoint(:,ww), w(:,ww));
 
-    w(:,ww) = w(:,ww).*a;
-
-end
 
 %% Plot the computed total reflectance for each new tau layer added
 
@@ -504,7 +547,7 @@ figure;
 if inputs.RT.monochromatic_calc==true
 
     % Plot the tau mid-point of each layer
-    plot(Refl_model, tau)
+    plot(Refl_model, tau_2run)
 
     % --- overlay a smoothed spline fit ---
     % Create smooth spline function
@@ -658,7 +701,7 @@ while isfile(filename)
 end
 
 
-save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w", "tau", "tau_midPoint");
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w", "f", "tau_2run", "tau_midPoint");
 
 
 
