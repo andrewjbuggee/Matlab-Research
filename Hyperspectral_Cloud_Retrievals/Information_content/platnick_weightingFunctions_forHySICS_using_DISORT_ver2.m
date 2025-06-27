@@ -711,16 +711,17 @@ save(filename, "Refl_model","inputs", "spec_response", "changing_variables", "w"
 % First, step through each weighting function and compute the estimated
 % single band effective radius retrieval (Platnick (2000), eq. 3)
 % create a droplet profile
-re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
+re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot],...
+    linspace(inputs.RT.z_topBottom(2), inputs.RT.z_topBottom(1), length(tau_2run)),...
     inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
 
 re_midPoint = flipud(re(1:end-1) + diff(re)/2);
 
-re_est = zeros(1, size(w,2));
+re_est = zeros(1, size(f,2));
 
-for ww = 1:size(w,2)
+for ww = 1:size(f,2)
 
-    re_est(ww) = trapz(tau_midPoint(:,ww), re_midPoint .* w(:,ww));
+    re_est(ww) = trapz(tau_midPoint, re_midPoint .* f(:,ww));
 
 end
 
@@ -738,7 +739,7 @@ C = zeros(size(inputs.RT.wavelengths2run,1), size(inputs.RT.wavelengths2run,1));
 for ii = 1:size(inputs.RT.wavelengths2run,1)
     for jj = 1:size(inputs.RT.wavelengths2run,1)
 
-        C(ii,jj) = trapz(tau_midPoint(:, ii), w(:,ii) .* w(:,jj))/(re_est(ii)*re_est(jj));
+        C(ii,jj) = trapz(tau_midPoint, f(:,ii) .* f(:,jj))/(re_est(ii)*re_est(jj));
 
     end
 end
@@ -823,7 +824,7 @@ ylabel('Reflectance $1/sr$','FontWeight','bold','Interpreter','latex', 'Fontsize
 
 % On the other side, plot the true droplet profile
 subplot(1,2,2)
-plot(re, tau(:,1))
+plot(flipud(re), tau_2run)
 % Set up axes labels
 set(gca, 'YDir','reverse')
 grid on; grid minor
@@ -840,10 +841,10 @@ re_2Plot = unique(round(re_est, 1));
 idx = zeros(length(re_2Plot), 1);
 for nn = 1:length(re_2Plot)
 
-    [~, idx(nn)] = min(abs(re - re_2Plot(nn)));
+    [~, idx(nn)] = min(abs(flipud(re) - re_2Plot(nn)));
 
     hold on
-    yline(tau(idx(nn), 1), 'LineWidth', 1, 'Color', 'k')
+    yline(tau_2run(idx(nn), 1), 'LineWidth', 1, 'Color', 'k')
     
 end
 
@@ -851,5 +852,43 @@ end
 
 % set figure sixe
 set(gcf, 'Position', [0 0 2500 700])
+
+
+
+% Create textbox with simulation properties
+
+% Textbox
+dim = [0.685 0.5 0 0];
+
+if ischar(inputs.RT.sensor_altitude)==true
+    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
+        ['$sza$ = ',num2str(inputs.RT.sza)],...
+        ['$vza$ = ',num2str(inputs.RT.vza)],...
+        ['$z_{out}$ = ', inputs.RT.sensor_altitude],...
+        ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...
+        ['$Cloud\;base$ = ', num2str(inputs.RT.z_topBottom(2)), ' km'],...
+        ['$r_{top}$ = ',num2str(round(inputs.RT.r_top)), ' $\mu m$'],...
+        ['$r_{bot}$ = ',num2str(round(inputs.RT.r_bot)), ' $\mu m$'],...
+        ['$\tau_0$ = ', num2str(inputs.RT.tau_c)],...
+        ['$A_0$ = ', num2str(inputs.RT.surface_albedo)]};
+else
+    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
+        ['$sza$ = ',num2str(inputs.RT.sza)],...
+        ['$vza$ = ',num2str(inputs.RT.vza)],...
+        ['$z_{out}$ = ', num2str(inputs.RT.sensor_altitude), ' km'],...
+        ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...
+        ['$Cloud\;base$ = ', num2str(inputs.RT.z_topBottom(2)), ' km'],...
+        ['$r_{top}$ = ',num2str(round(inputs.RT.r_top)), ' $\mu m$'],...
+        ['$r_{bot}$ = ',num2str(round(inputs.RT.r_bot)), ' $\mu m$'],...
+        ['$\tau_0$ = ', num2str(inputs.RT.tau_c)],...
+        ['$A_0$ = ', num2str(inputs.RT.surface_albedo)]};
+end
+
+t = annotation('textbox',dim,'string',texBox_str,'Interpreter','latex');
+t.Color = 'black';
+t.FontSize = 25;
+t.FontWeight = 'bold';
+t.EdgeColor = 'black';
+t.FitBoxToText = 'on';
 
 
