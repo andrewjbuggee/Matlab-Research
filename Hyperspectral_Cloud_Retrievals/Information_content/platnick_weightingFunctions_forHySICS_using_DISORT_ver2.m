@@ -325,13 +325,14 @@ parfor nn = 1:num_INP_files
 
 
     % compute INP file
-    [inputSettings] = runUVSPEC(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
+    runUVSPEC_ver2(inputs.folderpath_inp, inputFileName{nn}, outputFileName{nn},...
         inputs.which_computer);
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC(inputs.folderpath_inp, outputFileName{nn},inputSettings(2,:),...
+    [ds,~,~] = readUVSPEC_ver2(inputs.folderpath_inp, outputFileName{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
+
 
     if inputs.RT.compute_reflectivity_uvSpec==true
 
@@ -345,8 +346,8 @@ parfor nn = 1:num_INP_files
     else
 
         % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-            spec_response_value(changing_variables(nn,end),:));
+        % [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
+        %     spec_response_value(changing_variables(nn,end),:));
 
     end
 

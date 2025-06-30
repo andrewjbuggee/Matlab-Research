@@ -158,14 +158,14 @@ else
 
     % ----------------- Simulating HySICS spectral channels ------------------
     % number of channels = 636 ranging from center wavelengths: [351, 2297]
-    % inputs.bands2run = (1:1:636)';
+    inputs.bands2run = (1:1:636)';
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
-    inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-        222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-        426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-        618, 620, 623, 625]';
+    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    %     618, 620, 623, 625]';
 
 
     % The same 35 spectral channels above that avoid water vapor and other
@@ -597,8 +597,8 @@ if load_parameters_from_measurement==true
 else
 
     % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    % inputs.RT.sza = 50;           % degree
+    % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
+    inputs.RT.sza = 10;           % degree
 
 end
 
@@ -636,8 +636,8 @@ if load_parameters_from_measurement==true
 else
 
     % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    % inputs.RT.vza = 10;                             % values are in degrees;
+    % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
+    inputs.RT.vza = 0;                             % values are in degrees;
 
 end
 
