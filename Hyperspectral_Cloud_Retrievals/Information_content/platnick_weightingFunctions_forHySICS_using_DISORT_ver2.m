@@ -312,8 +312,8 @@ elseif length(inputs.RT.sensor_altitude)>1
 end
 
 
-parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+% parfor nn = 1:num_INP_files
+for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -441,21 +441,31 @@ for ww = 1:num_wl
 end
 
 
-%% plot the weighting function
+%% plot the weighting function(s)
+
+
+% *** define which wavelengths to plot ***
+wl_2plot = [1600];
+
+lgnd_str = cell(numel(wl_2plot), 1);
 
 figure;
 
 
 if inputs.RT.monochromatic_calc==true
     
-    for ww = 1:num_wl
+    for ww = 1:length(wl_2plot)
+
+        [~,idx2plot] = min(abs(inputs.RT.wavelengths2run(:,1) - wl_2plot(ww)));
 
         % Plot the tau mid-point of each layer
-        plot(w(:,ww), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'))
+        plot(w(:,idx2plot), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'))
 
 
         hold on
-        plot(f(:,ww), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'), 'LineStyle', ':')
+        plot(f(:,idx2plot), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'), 'LineStyle', ':')
+
+        lgnd_str{ww} = ['$\lambda = $', num2str(round(inputs.RT.wavelengths2run(idx2plot, 1), 1)), ' $nm$'];
 
     end
 
@@ -497,13 +507,13 @@ set(gcf, 'Position',[0 0 1400 800])
 
 
 % Create Legend
-legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location','northwest','FontSize',22)
-
+% legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location','northwest','FontSize',22)
+legend(lgnd_str,'Interpreter','latex','Location','northwest','FontSize',22)
 
 % Create textbox with simulation properties
 
 % Textbox
-dim = [0.685 0.5 0 0];
+dim = [0.155714285714286 0.144548492431641 0.196462309701102 0.382951507568359];
 
 if ischar(inputs.RT.sensor_altitude)==true
     texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...

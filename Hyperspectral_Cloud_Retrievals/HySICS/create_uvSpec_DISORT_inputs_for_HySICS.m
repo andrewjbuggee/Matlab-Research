@@ -158,7 +158,7 @@ else
 
     % ----------------- Simulating HySICS spectral channels ------------------
     % number of channels = 636 ranging from center wavelengths: [351, 2297]
-    inputs.bands2run = (1:1:636)';
+%     inputs.bands2run = (1:1:636)';
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
@@ -185,6 +185,9 @@ else
     % test bands
     % 500 nm
     % inputs.bands2run = 49;
+
+    % 1598 nm
+    inputs.bands2run = 408;
 
     % 1652 nm
     % inputs.bands2run = 426;
@@ -576,10 +579,10 @@ else
     % end
 
     % I think the sensor altitude, for now, is the cloud top
-    inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+%     inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
     % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
     % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-    % inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+    inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 end
