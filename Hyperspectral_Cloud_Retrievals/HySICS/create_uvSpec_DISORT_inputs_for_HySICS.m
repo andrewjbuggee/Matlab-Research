@@ -370,6 +370,10 @@ inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for p
 
 % Water Cloud depth
 inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = false;
+
 % ------------------------------------------------------------------------
 
 
@@ -385,7 +389,7 @@ inputs.RT.use_custom_mie_calcs = false;
 % function.
 inputs.RT.parameterization_str = 'mie';
 
-% define the wavelength used for the optical depth as the 650 nm
+% define the wavelength used for the optical depth as the 500 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
 inputs.RT.lambda_forTau = 500;            % nm
@@ -579,10 +583,10 @@ else
     % end
 
     % I think the sensor altitude, for now, is the cloud top
-%     inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+    inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
     % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
     % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-    inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+    % inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 end
@@ -639,8 +643,8 @@ if load_parameters_from_measurement==true
 else
 
     % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    inputs.RT.vza = 0;                             % values are in degrees;
+    % inputs.RT.vza = acosd(0.75);                              % degree - for Platnick (2000)
+    inputs.RT.vza = 20;                             % values are in degrees;
 
 end
 
@@ -693,7 +697,7 @@ inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scatterin
 
 % ------------------------------------------------------------------------
 % --------- Do you want boundary layer aerosols in your model? -----------
-inputs.RT.yesAerosols = true;
+inputs.RT.yesAerosols = false;
 
 inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
 inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
@@ -779,7 +783,7 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.no_molecular_abs = false;
+    inputs.RT.no_molecular_abs = true;
 
 end
 % --------------------------------------------------------------
@@ -802,7 +806,7 @@ else
     %   ic - Switch off scattering by ice clouds.
     %   profile - Switch off scattering by any profile defined in profile typename.
     inputs.RT.no_scattering_mol = false;
-    inputs.RT.no_scattering_aer = false;
+    inputs.RT.no_scattering_aer = true;
 
 end
 % --------------------------------------------------------------

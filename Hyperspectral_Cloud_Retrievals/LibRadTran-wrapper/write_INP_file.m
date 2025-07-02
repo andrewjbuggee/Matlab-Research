@@ -4,7 +4,7 @@
 %%
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs,...
-                        wavelengths, wc_filename, mc_basename)
+                        wavelengths, wc_filename, mc_basename, wc_modify_tau)
 
 
 
@@ -149,6 +149,17 @@ if inputs.RT.yesCloud==true
     % ----------------------------------------------------------------------
     formatSpec = '%s %s %5s %s \n\n';
     fprintf(fileID, formatSpec,'wc_properties', inputs.RT.wc_parameterization, ' ', '# optical properties parameterization technique');
+
+
+    if inputs.RT.modify_wc_opticalDepth==true
+
+        % Manually set the water cloud optical depth
+        % ----------------------------------------------------------------------
+        formatSpec = '%s %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'wc_modify tau set', wc_modify_tau, ' ', '# optical properties parameterization technique');
+
+    end
+
 
 end
 

@@ -113,7 +113,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 % ********************************************
 % *** Vary The Optical Thickness Linearly! ***
 % ********************************************
-tau_2run = linspace(0.05, inputs.RT.tau_c, 150)';
+tau_2run = linspace(0.001, inputs.RT.tau_c, 300)';
 
 
 
@@ -185,7 +185,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     else
 
         changing_variables = [repmat(inputs.RT.wavelengths2run, num_tau_layers,1),...
-            repmat(flipud(cumsum(flipud(inputs.RT.tau_layers'))), num_wl,1)];
+            repmat(tau_2run, num_wl,1)];
 
     end
 
@@ -200,6 +200,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
     % first, let's compute all water cloud files
     parfor nn = 1:num_tau_layers
+    % for nn = 1:num_tau_layers
 
 
         % -----------------------------------------------
@@ -263,8 +264,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
             inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)),...
-                '_layers1-', num2str(num_INP_files - (nn-1)), '.INP'];
+                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)), '.INP'];
 
 
 
@@ -277,8 +277,16 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-            wavelengths, wc_filename{nn});
+        if inputs.RT.modify_wc_opticalDepth==false
+
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+                wavelengths, wc_filename{nn});
+        else
+
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+                wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
+
+        end
 
 
     end
@@ -293,9 +301,31 @@ toc
 
 %% Compute Reflectance
 
+
 % define only the spec_response so the wavelengths are passed into the
 % memory of the parallel for loop
 spec_response_value = spec_response.value;
+
+
+
+% if computing reflectance over a spectral channel, we need the source
+% function
+if inputs.RT.monochromatic_calc==false
+
+    % Read the solar flux file over the wavelength range specified
+    wavelength_vec = [min(inputs.RT.wavelengths2run,[],"all"), max(inputs.RT.wavelengths2run, [], "all")];
+
+    [source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, inputs.RT.source_file);   % W/nm/m^2
+
+    % we will add and subtract a small fraction of the source file resolution
+    % to ensure rounding errors don't cause an issue when selecting the
+    % wavelengths needed from the source file
+    wl_perturb = inputs.RT.source_file_resolution/3;   % nm
+
+
+end
+
+
 
 
 tic
@@ -312,8 +342,8 @@ elseif length(inputs.RT.sensor_altitude)>1
 end
 
 
-% parfor nn = 1:num_INP_files
-for nn = 1:num_INP_files
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -345,9 +375,13 @@ for nn = 1:num_INP_files
 
     else
 
+
         % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        % [Refl_model(nn, :), ~] = reflectanceFunction(inputSettings(2,:), ds,...
-        %     spec_response_value(changing_variables(nn,end),:));
+        idx_wl = source_wavelength>=(changing_variables(nn,1) - wl_perturb) &...
+            source_wavelength<=(changing_variables(nn,2) + wl_perturb);
+
+        [Refl_model(nn, :), ~] = reflectanceFunction_ver2(inputs, ds,...
+            source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:)');
 
     end
 
@@ -445,7 +479,7 @@ end
 
 
 % *** define which wavelengths to plot ***
-wl_2plot = [1600];
+wl_2plot = inputs.RT.wavelengths2run(:,1);
 
 lgnd_str = cell(numel(wl_2plot), 1);
 
