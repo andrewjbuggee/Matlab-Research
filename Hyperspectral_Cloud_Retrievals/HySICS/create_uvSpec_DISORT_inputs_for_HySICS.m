@@ -78,7 +78,7 @@ if load_parameters_from_measurement==true
 
 else
 
-    inputs.RT.num_streams = 32;
+    inputs.RT.num_streams = 16;
 
 end
 
@@ -158,7 +158,7 @@ else
 
     % ----------------- Simulating HySICS spectral channels ------------------
     % number of channels = 636 ranging from center wavelengths: [351, 2297]
-%     inputs.bands2run = (1:1:636)';
+    %     inputs.bands2run = (1:1:636)';
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
@@ -332,8 +332,11 @@ end
 % ----- Define the day of the year to account for Earth-Sun distance -----
 if load_parameters_from_measurement==true
 
-    % day of the year
-    inputs.RT.day_of_year = sim_meas.inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+    if isfield(sim_meas.inputs.RT, 'day_of_year')
+        % day of the year
+        inputs.RT.day_of_year = sim_meas.inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+
+    end
 
 else
 
@@ -541,11 +544,17 @@ end
 % --------------------------------------------------------------
 if load_parameters_from_measurement==true
 
-    % Load the measure atm grid inputs
-    inputs.RT.define_atm_grid = sim_meas.inputs.RT.define_atm_grid;
+    if isfield(sim_meas.inputs.RT, 'define_atm_grid')
+        % Load the measure atm grid inputs
+        inputs.RT.define_atm_grid = sim_meas.inputs.RT.define_atm_grid;
 
-    % Set the vertical grid to include the cloud layers
-    inputs.RT.atm_z_grid = sim_meas.inputs.RT.define_atm_grid;  % km
+    end
+
+    if isfield(sim_meas.inputs.RT, 'define_atm_grid')
+        % Set the vertical grid to include the cloud layers
+        inputs.RT.atm_z_grid = sim_meas.inputs.RT.define_atm_grid;  % km
+
+    end
 
 else
 
@@ -697,7 +706,7 @@ inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scatterin
 
 % ------------------------------------------------------------------------
 % --------- Do you want boundary layer aerosols in your model? -----------
-inputs.RT.yesAerosols = false;
+inputs.RT.yesAerosols = true;
 
 inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
 inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
@@ -778,12 +787,15 @@ inputs.RT.O3_mixing_ratio = 0;       % ppm
 % Note, that thermal emission of molecules is also switched off.
 if load_parameters_from_measurement==true
 
-    % Load the setting for molecular absorption
-    inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
+    if isfield(sim_meas.inputs.RT, 'no_molecular_abs')
+        % Load the setting for molecular absorption
+        inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
+
+    end
 
 else
 
-    inputs.RT.no_molecular_abs = true;
+    inputs.RT.no_molecular_abs = false;
 
 end
 % --------------------------------------------------------------
@@ -793,9 +805,15 @@ end
 % ------------ Do you want to turn off scattering? -------------
 if load_parameters_from_measurement==true
 
-    % Load the settings for molecular scattering and aerosol scattering
-    inputs.RT.no_scattering_mol = sim_meas.inputs.RT.no_scattering_mol;
-    inputs.RT.no_scattering_aer = sim_meas.inputs.RT.no_scattering_aer;
+    if isfield(sim_meas.inputs.RT, 'no_scattering_mol')
+        % Load the settings for molecular scattering and aerosol scattering
+        inputs.RT.no_scattering_mol = sim_meas.inputs.RT.no_scattering_mol;
+
+    end
+
+    if isfield(sim_meas.inputs.RT, 'no_scattering_aer')
+        inputs.RT.no_scattering_aer = sim_meas.inputs.RT.no_scattering_aer;
+    end
 
 else
 
@@ -806,7 +824,7 @@ else
     %   ic - Switch off scattering by ice clouds.
     %   profile - Switch off scattering by any profile defined in profile typename.
     inputs.RT.no_scattering_mol = false;
-    inputs.RT.no_scattering_aer = true;
+    inputs.RT.no_scattering_aer = false;
 
 end
 % --------------------------------------------------------------

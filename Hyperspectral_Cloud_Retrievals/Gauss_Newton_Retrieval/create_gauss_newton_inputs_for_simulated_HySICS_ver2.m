@@ -1,7 +1,7 @@
 % simulated measurements is an input used to define certain parameters
 
 
-function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements)
+function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements)
 
 
 % Which computer are you using?
@@ -66,7 +66,7 @@ GN_inputs.model.prior = 'gaussian';
 
 
 % define the number of model parameters to solve for
-GN_inputs.num_model_parameters = 3;
+GN_inputs.num_model_parameters = 4;
 
 
 
@@ -87,7 +87,7 @@ GN_inputs.num_model_parameters = 3;
     
 
 GN_inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
-    'Cloud Optical Depth'};
+    'Cloud Optical Depth', 'Above Cloud Column Water Vapor'};
 
 
 % ---------------------------------------
