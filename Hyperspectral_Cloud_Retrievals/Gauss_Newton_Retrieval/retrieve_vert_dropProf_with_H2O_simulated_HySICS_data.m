@@ -83,16 +83,31 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
-    % Define the MODIS folder name
+    % Define the HySICS simulated spectrum folder
 
     folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/HySICS/Simulated_spectra/';
 
 
-        % water cloud file location
+    % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
+    % Define the folder path where all .INP files will be saved
+    folder_paths.folderpath_inp = '/scratch/alpine/anbu8374/HySICS/';
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    folder_paths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 end
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folder_paths.folderpath_inp, 'dir')
+
+    mkdir(folder_paths.folderpath_inp)
+
+end
+
+
 
 
 
