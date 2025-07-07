@@ -53,9 +53,9 @@ inputs.compute_weighting_functions = false;
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?
-% inputs.calc_type = 'simulated_spectra';
+inputs.calc_type = 'simulated_spectra';
 % inputs.calc_type = 'forward_model_calcs_forRetrieval';
-inputs.calc_type = 'weighting_functions';
+% inputs.calc_type = 'weighting_functions';
 
 
 % ----- Define the RTE Solver -----
@@ -168,11 +168,20 @@ else
     %     618, 620, 623, 625]';
 
 
-    % The same 35 spectral channels above that avoid water vapor and other
+    % Using all 35 spectral channels above that avoid water vapor and other
+    % gaseous absorbers, AND 12 bands in the wings of water vapor absorption
+    % features for a total of 47 bands
+    inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+        222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+        346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+        570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
+
+
+    % Using almost all 35 spectral channels above that avoid water vapor and other
     % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
     % features for a total of 66 bands
     % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    %     198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    %     198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
     %     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
     %     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
     %     543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
@@ -187,7 +196,7 @@ else
     % inputs.bands2run = 49;
 
     % 1598 nm
-    inputs.bands2run = 408;
+    % inputs.bands2run = 408;
 
     % 1652 nm
     % inputs.bands2run = 426;
@@ -204,13 +213,13 @@ end
 % Do you want to compute radiance/reflectance over a spectral region, or at
 % a single wavelength?
 % ------------------------------------------------------------------------
-inputs.RT.monochromatic_calc = true;
+inputs.RT.monochromatic_calc = false;
 
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
 
-inputs.RT.compute_reflectivity_uvSpec = true;
+inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
 
@@ -322,8 +331,8 @@ if load_parameters_from_measurement==true
 
 else
 
-    % inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
-    inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+    inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
+    % inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 end
 
@@ -449,14 +458,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     %       Physically, this too forces subadiabatic behavior at mid-levels.
 
     % ** Values used in Platnick (2000) **
-    inputs.RT.r_top = 12;     % microns
-    inputs.RT.r_bot = 5;        % microns
-    inputs.RT.tau_c = 8;
+    % inputs.RT.r_top = 12;     % microns
+    % inputs.RT.r_bot = 5;        % microns
+    % inputs.RT.tau_c = 8;
 
     % simulating measurement from value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.r_top = 9.2516;     % microns
-    % inputs.RT.r_bot = 5.3192;        % microns
-    % inputs.RT.tau_c = 6.1312;
+    inputs.RT.r_top = 9.2516;     % microns
+    inputs.RT.r_bot = 5.3192;        % microns
+    inputs.RT.tau_c = 6.1312;
 
     % inputs.RT.r_top = 8.6;     % microns
     % inputs.RT.r_bot = 3.6;        % microns
@@ -592,10 +601,10 @@ else
     % end
 
     % I think the sensor altitude, for now, is the cloud top
-    inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+    % inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
     % inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
     % inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
-    % inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+    inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 end
@@ -612,9 +621,9 @@ if load_parameters_from_measurement==true
 
 else
 
-    % inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    inputs.RT.sza = 10;           % degree
+    % inputs.RT.sza = 10;           % degree
 
 end
 
@@ -635,8 +644,8 @@ else
     % the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
     % 360
     %inputs.RT.phi0 = mod(293.8140 + 180, 360);
-    % inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-    inputs.RT.phi0 = 0;         % degree
+    inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
+    % inputs.RT.phi0 = 0;         % degree
 
 end
 
@@ -651,9 +660,9 @@ if load_parameters_from_measurement==true
 
 else
 
-    % inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.vza = acosd(0.75);                              % degree - for Platnick (2000)
-    inputs.RT.vza = 20;                             % values are in degrees;
+    % inputs.RT.vza = 20;                             % values are in degrees;
 
 end
 
@@ -675,11 +684,11 @@ else
     % south. No transformation is needed
 
     % inputs.RT.vaz = -103+360;     % degree
-    inputs.RT.vaz = 210;            % degree
+    % inputs.RT.vaz = 210;            % degree
 
     % to properly map the MODIS azimuth angle onto the reference plane used by
     % libRadTran...
-    % inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
+    inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
 
 end
 
@@ -696,7 +705,7 @@ inputs.RT.wind_speed = 3;             % m/s
 
 % ------------------------------------------------------------------------
 % --------- specify various cross-section models for  -----------
-inputs.RT.specify_cross_section_model = false;
+inputs.RT.specify_cross_section_model = true;
 
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
 % inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
@@ -715,19 +724,26 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 
 
-% --------------------------------------------------------
-% --------- What is column water vapor amount? -----------
-
-% Use a custom H2O profile
-inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
-
+% --------------------------------------------------------------------
+% --------- What is total column water vapor amount? -----------------
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_total_columnWaterVapor = false;
 
-inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+
+% ------------------------------------------------------------------------
+
 
 
 % ------------------------------------------------------------------------

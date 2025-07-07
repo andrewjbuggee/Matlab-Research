@@ -764,7 +764,7 @@ re_midPoint = flipud(re(1:end-1) + diff(re)/2);
 
 re_est = zeros(1, size(f,2));
 
-for ww = 1:size(f,2)
+for ww = 1:size(f,2)`
 
     re_est(ww) = trapz(tau_midPoint, re_midPoint .* f(:,ww));
 

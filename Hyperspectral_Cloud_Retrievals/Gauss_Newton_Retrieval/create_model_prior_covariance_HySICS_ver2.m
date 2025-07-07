@@ -54,8 +54,9 @@ if use_TBLUT_estimates==true
     % GN_inputs.model.apriori = [tblut.minRe, 0.7058*tblut.minRe, tblut.minTau];
 
     % *** Test Values for new HySICS retrieval ***
-    % for column water vapor, guess is in mm^2 (equivelant to kg/m^2)
-    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 20];
+    % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
+    % equivelant to 1 mm)
+    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 12];
 
 
     % The first two values are the standard deviation of the effective
