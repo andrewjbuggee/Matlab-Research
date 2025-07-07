@@ -444,7 +444,7 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    inputs.folderpath_2save = inputs.folderpath_reflectance;
+    inputs.folderpath_2save = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
 
 
