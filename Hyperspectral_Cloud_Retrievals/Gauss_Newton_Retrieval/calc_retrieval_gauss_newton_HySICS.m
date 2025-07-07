@@ -113,7 +113,7 @@ for ii = 1:num_iterations
         % we compute the forward model at our previous estimate of the state vector
         % Therefore, we ask, 'what is the reflectance of a cloud with our
         % current state vector guess?'
-        measurement_estimate = compute_forward_model_HySICS(current_guess, GN_inputs, spec_response, folder_paths);
+        measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
 
         % compute residual, rss residual, the difference between the
         % iterate and the prior, and the product of the jacobian with
@@ -130,7 +130,7 @@ for ii = 1:num_iterations
 
 
     % compute the jacobian
-    Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
+    Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
         hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -166,7 +166,8 @@ for ii = 1:num_iterations
     [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
         constrained_guesses(1,:)<=30 & ...
         constrained_guesses(2,:)>0   & ...
-        constrained_guesses(3,:)>0));
+        constrained_guesses(3,:)>0   & ...
+        constrained_guesses(4,:)>0));
 
     % if the maximum value of a is 0, then there is no solution space
     % with the current Gauss-Newton direction that will result in r_top
@@ -250,7 +251,7 @@ for ii = 1:num_iterations
             if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                     constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS(constrained_guesses(:,mm),...
+                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(constrained_guesses(:,mm),...
                     GN_inputs, spec_response, folder_paths);
 
             else
@@ -414,7 +415,7 @@ end
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_ver2(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);

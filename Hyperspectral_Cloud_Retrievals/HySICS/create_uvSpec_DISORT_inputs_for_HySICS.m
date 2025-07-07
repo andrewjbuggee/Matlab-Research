@@ -158,21 +158,30 @@ else
 
     % ----------------- Simulating HySICS spectral channels ------------------
     % number of channels = 636 ranging from center wavelengths: [351, 2297]
-    % inputs.bands2run = (1:1:636)';
+    %     inputs.bands2run = (1:1:636)';
 
     % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
     % and other gaseous absorbers
+    % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+    %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+    %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+    %     618, 620, 623, 625]';
+
+
+    % Using all 35 spectral channels above that avoid water vapor and other
+    % gaseous absorbers, AND 12 bands in the wings of water vapor absorption
+    % features for a total of 47 bands
     inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-        222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-        426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-        618, 620, 623, 625]';
+        222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+        346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+        570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
 
 
-    % The same 35 spectral channels above that avoid water vapor and other
+    % Using almost all 35 spectral channels above that avoid water vapor and other
     % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
     % features for a total of 66 bands
     % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    %     198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    %     198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
     %     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
     %     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
     %     543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
@@ -185,6 +194,9 @@ else
     % test bands
     % 500 nm
     % inputs.bands2run = 49;
+
+    % 1598 nm
+    % inputs.bands2run = 408;
 
     % 1652 nm
     % inputs.bands2run = 426;
@@ -329,8 +341,11 @@ end
 % ----- Define the day of the year to account for Earth-Sun distance -----
 if load_parameters_from_measurement==true
 
-    % day of the year
-    inputs.RT.day_of_year = sim_meas.inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+    if isfield(sim_meas.inputs.RT, 'day_of_year')
+        % day of the year
+        inputs.RT.day_of_year = sim_meas.inputs.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
+
+    end
 
 else
 
@@ -367,6 +382,10 @@ inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for p
 
 % Water Cloud depth
 inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = false;
+
 % ------------------------------------------------------------------------
 
 
@@ -382,7 +401,7 @@ inputs.RT.use_custom_mie_calcs = false;
 % function.
 inputs.RT.parameterization_str = 'mie';
 
-% define the wavelength used for the optical depth as the 650 nm
+% define the wavelength used for the optical depth as the 500 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
 inputs.RT.lambda_forTau = 500;            % nm
@@ -534,11 +553,17 @@ end
 % --------------------------------------------------------------
 if load_parameters_from_measurement==true
 
-    % Load the measure atm grid inputs
-    inputs.RT.define_atm_grid = sim_meas.inputs.RT.define_atm_grid;
+    if isfield(sim_meas.inputs.RT, 'define_atm_grid')
+        % Load the measure atm grid inputs
+        inputs.RT.define_atm_grid = sim_meas.inputs.RT.define_atm_grid;
 
-    % Set the vertical grid to include the cloud layers
-    inputs.RT.atm_z_grid = sim_meas.inputs.RT.define_atm_grid;  % km
+    end
+
+    if isfield(sim_meas.inputs.RT, 'define_atm_grid')
+        % Set the vertical grid to include the cloud layers
+        inputs.RT.atm_z_grid = sim_meas.inputs.RT.define_atm_grid;  % km
+
+    end
 
 else
 
@@ -598,7 +623,7 @@ else
 
     inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
     % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-    % inputs.RT.sza = 50;           % degree
+    % inputs.RT.sza = 10;           % degree
 
 end
 
@@ -620,7 +645,7 @@ else
     % 360
     %inputs.RT.phi0 = mod(293.8140 + 180, 360);
     inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.phi0 = 210;         % degree
+    % inputs.RT.phi0 = 0;         % degree
 
 end
 
@@ -636,8 +661,8 @@ if load_parameters_from_measurement==true
 else
 
     inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-    % inputs.RT.vza = acosd(0.85);                              % degree - for Platnick (2000)
-    % inputs.RT.vza = 10;                             % values are in degrees;
+    % inputs.RT.vza = acosd(0.75);                              % degree - for Platnick (2000)
+    % inputs.RT.vza = 20;                             % values are in degrees;
 
 end
 
@@ -659,7 +684,7 @@ else
     % south. No transformation is needed
 
     % inputs.RT.vaz = -103+360;     % degree
-    % inputs.RT.vaz = 180;            % degree
+    % inputs.RT.vaz = 210;            % degree
 
     % to properly map the MODIS azimuth angle onto the reference plane used by
     % libRadTran...
@@ -680,7 +705,7 @@ inputs.RT.wind_speed = 3;             % m/s
 
 % ------------------------------------------------------------------------
 % --------- specify various cross-section models for  -----------
-inputs.RT.specify_cross_section_model = false;
+inputs.RT.specify_cross_section_model = true;
 
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
 % inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
@@ -699,19 +724,26 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 
 
-% --------------------------------------------------------
-% --------- What is column water vapor amount? -----------
-
-% Use a custom H2O profile
-inputs.RT.H2O_profile = 'afglus_H2O_none_inside_cloud.dat';
-
+% --------------------------------------------------------------------
+% --------- What is total column water vapor amount? -----------------
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_total_columnWaterVapor = false;
 
-inputs.RT.waterVapor_column = 0;              % mm - milimeters of water condensed in a column
+inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+
+% ------------------------------------------------------------------------
+
 
 
 % ------------------------------------------------------------------------
@@ -771,8 +803,11 @@ inputs.RT.O3_mixing_ratio = 0;       % ppm
 % Note, that thermal emission of molecules is also switched off.
 if load_parameters_from_measurement==true
 
-    % Load the setting for molecular absorption
-    inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
+    if isfield(sim_meas.inputs.RT, 'no_molecular_abs')
+        % Load the setting for molecular absorption
+        inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
+
+    end
 
 else
 
@@ -786,9 +821,15 @@ end
 % ------------ Do you want to turn off scattering? -------------
 if load_parameters_from_measurement==true
 
-    % Load the settings for molecular scattering and aerosol scattering
-    inputs.RT.no_scattering_mol = sim_meas.inputs.RT.no_scattering_mol;
-    inputs.RT.no_scattering_aer = sim_meas.inputs.RT.no_scattering_aer;
+    if isfield(sim_meas.inputs.RT, 'no_scattering_mol')
+        % Load the settings for molecular scattering and aerosol scattering
+        inputs.RT.no_scattering_mol = sim_meas.inputs.RT.no_scattering_mol;
+
+    end
+
+    if isfield(sim_meas.inputs.RT, 'no_scattering_aer')
+        inputs.RT.no_scattering_aer = sim_meas.inputs.RT.no_scattering_aer;
+    end
 
 else
 

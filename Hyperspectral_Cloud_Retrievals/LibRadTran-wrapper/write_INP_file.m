@@ -4,7 +4,7 @@
 %%
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs,...
-                        wavelengths, wc_filename, mc_basename)
+                        wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename)
 
 
 
@@ -150,6 +150,17 @@ if inputs.RT.yesCloud==true
     formatSpec = '%s %s %5s %s \n\n';
     fprintf(fileID, formatSpec,'wc_properties', inputs.RT.wc_parameterization, ' ', '# optical properties parameterization technique');
 
+
+    if isfield(inputs.RT, 'modify_wc_opticalDepth')==true && inputs.RT.modify_wc_opticalDepth==true
+
+        % Manually set the water cloud optical depth
+        % ----------------------------------------------------------------------
+        formatSpec = '%s %f %5s %s \n\n';
+        fprintf(fileID, formatSpec,'wc_modify tau set', wc_modify_tau, ' ', '# optical properties parameterization technique');
+
+    end
+
+
 end
 
 
@@ -210,9 +221,9 @@ end
 
 
 
-% Define the column water vapor amount
+% Define the total column water vapor amount
 % --------------------------------------------------------------------
-if inputs.RT.modify_waterVapor==true
+if isfield(inputs.RT, 'modify_total_columnWaterVapor') && inputs.RT.modify_total_columnWaterVapor==true
 
     % If true, modify the amount of column water vapor
     % --------------------------------------------------------------
@@ -221,6 +232,24 @@ if inputs.RT.modify_waterVapor==true
 
 
 end
+
+
+
+% Alter the above cloud column water vapor amount
+% --------------------------------------------------------------------
+if isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_aboveCloud_columnWaterVapor==true
+
+    % If true, define the filename for the new custom column water vapor
+    % density profile
+    % ----------------------------------------------------------------
+    formatSpec = '%s %s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'mol_file H2O ', waterVaporProfile_filename, ' cm_3', ' ', '# Custom water vapor profile');
+
+
+end
+
+
+
 
 
 % Define the concentration of carbon dioxide
