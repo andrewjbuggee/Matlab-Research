@@ -729,7 +729,7 @@ inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 
 % Using measurements from the AMSR2 instrument, a passive microwave
 % radiometer for 17 Jan 2024
-inputs.RT.modify_total_columnWaterVapor = false;
+inputs.RT.modify_total_columnWaterVapor = true;
 
 inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
 % ------------------------------------------------------------------------
@@ -740,7 +740,7 @@ inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a co
 % -------- Write a custom water vapor profile for above cloud -----------
 
 % Alter the above cloud column water vapor amount
-inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+inputs.RT.modify_aboveCloud_columnWaterVapor = false;
 
 % ------------------------------------------------------------------------
 
