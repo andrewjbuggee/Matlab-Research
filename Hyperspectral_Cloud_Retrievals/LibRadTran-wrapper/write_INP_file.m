@@ -239,6 +239,13 @@ end
 % --------------------------------------------------------------------
 if isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_aboveCloud_columnWaterVapor==true
 
+    % check to make sure the input for this setting exists
+    if exist("waterVaporProfile_filename", "var")==false
+
+        error([newline, 'No custom file defined for a water vapor density profile.', newline])
+
+    end
+
     % If true, define the filename for the new custom column water vapor
     % density profile
     % ----------------------------------------------------------------
