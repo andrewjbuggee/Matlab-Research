@@ -88,15 +88,16 @@ elseif strcmp(which_computer,'curc')==true
     folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
 
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/';
+
+
     % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT';
 
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    folder_paths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 end
 
@@ -131,7 +132,7 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
 
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';  % sza = 0, vza = 0
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1';  % sza = 0, vza = 0
         
 
 
