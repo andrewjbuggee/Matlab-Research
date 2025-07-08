@@ -110,6 +110,15 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
 
+inputs.calc_type = 'simulated_spectra';
+
+%% Set the total column water vapor?
+
+inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
+inputs.RT.waterVapor_column = 20;    % mm
+
+inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
+
 
 %% Write each INP file
 

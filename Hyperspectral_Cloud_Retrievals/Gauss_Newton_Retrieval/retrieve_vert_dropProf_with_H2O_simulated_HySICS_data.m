@@ -85,7 +85,7 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS simulated spectrum folder
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra';
+    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
 
 
     % water cloud file location
@@ -202,6 +202,7 @@ toc
 GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
 disp('Dont forget to check the inputs and change if needed!!')
 
+GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
