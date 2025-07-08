@@ -807,6 +807,10 @@ if load_parameters_from_measurement==true
         % Load the setting for molecular absorption
         inputs.RT.no_molecular_abs = sim_meas.inputs.RT.no_molecular_abs;
 
+    else
+
+        inputs.RT.no_molecular_abs = false; 
+
     end
 
 else

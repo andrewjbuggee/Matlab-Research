@@ -85,25 +85,26 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS simulated spectrum folder
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra';
+    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/';
 
 
     % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT';
 
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    folder_paths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 end
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.folderpath_inp, 'dir')
+if ~exist(folder_paths.libRadtran_inp, 'dir')
 
-    mkdir(folder_paths.folderpath_inp)
+    mkdir(folder_paths.libRadtran_inp)
 
 end
 
@@ -130,8 +131,9 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);  % sza = 0, vza = 0
+
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1';  % sza = 0, vza = 0
+        
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -201,7 +203,12 @@ toc
 GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
 disp('Dont forget to check the inputs and change if needed!!')
 
+GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
+%% We're retrieving above cloud column water vapor. Make sure input settings are correct
+
+GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
 

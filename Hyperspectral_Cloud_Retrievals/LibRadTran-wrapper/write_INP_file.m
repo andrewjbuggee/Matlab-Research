@@ -355,7 +355,7 @@ end
 
 % Define the atm grid
 % ------------------------------------------------
-if inputs.RT.define_atm_grid==true
+if isfield(inputs.RT, 'define_atm_grid') && inputs.RT.define_atm_grid==true
     % Define a custom atm grid
     % ------------------------------------------------
     formatSpec = '%s %s %5s %s \n\n';
