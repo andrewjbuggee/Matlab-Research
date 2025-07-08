@@ -193,13 +193,32 @@ end
 simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
+%% Create the name of the file to save all output to
+
+rev = 1;
+
+folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+    'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+
+
+while isfile(filename)
+    rev = rev+1;
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
 tic
-%tblut_retrieval = TBLUT_for_HySICS(simulated_measurements, folder_paths);
-tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
-toc
 
+tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
+
+disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
 
 
 %% CREATE GAUSS-NEWTON INPUTS
@@ -262,26 +281,7 @@ if ~exist(folder_paths.HySICS_retrievals, 'dir')
 end
 
 
-
-rev = 1;
-
-filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(GN_inputs.bands2run)),...
-    'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-
-
-
-while isfile(filename)
-    rev = rev+1;
-    if rev<10
-        filename = [filename(1:end-5), num2str(rev),'.mat'];
-    elseif rev>10
-        filename = [filename(1:end-6), num2str(rev),'.mat'];
-    end
-end
-
-
-save(filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths");
+save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
