@@ -98,6 +98,11 @@ elseif strcmp(which_computer,'curc')==true
     % Define the folder path where all .INP files will be saved
     folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT';
 
+    
+    % *** Start parallel pool ***
+    
+    parpool();
+
 
 end
 
@@ -239,57 +244,45 @@ tic
 
 toc
 
-%% Save the Outputs!
-rev = 1;
-if modisInputs.flags.useAdvection == true
 
-    filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-        '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-        '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
+%%
+% ----------------------------------------------
+% ------------ SAVE OUTPUT STRUCTURE -----------
+% ----------------------------------------------
 
-    % Check to see if this file name already exists
-    while isfile(filename)==true
-
-        rev = rev+1;
-
-        filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-            '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-            '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
-
-    end
-
-    save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-        "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
+% Save the version without an measurement uncertainty. Then we can add
+% uncertainty and save the new file
 
 
+% If the folder path doesn't exit, create a new directory
+if ~exist(folder_paths.HySICS_retrievals, 'dir')
 
-else
-
-    filename = [modisInputs.savedCalculations_folderName,'GN_inputs_outputs_withoutAdvection__rt-cov_',num2str(r_top_apriori_percentage*100),...
-        '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-        '_',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    % Check to see if this file name already exists
-    while isfile(filename)==true
-
-        rev = rev+1;
-
-        filename = [modisInputs.savedCalculations_folderName, 'GN_inputs_outputs_withAdvection_rt-cov_',num2str(r_top_apriori_percentage*100),...
-            '_rb-cov_', num2str(r_bot_apriori_percentage_vector(rb)*100),'_tc-cov_', num2str(tau_c_apriori_percentage_vector(tc)*100),...
-            '_',char(datetime("today")), '_rev', num2str(rev), '.mat'];
-
-    end
-
-    save(filename,"GN_outputs","GN_inputs", "vocalsRex", "modisInputs",...
-        "r_top_apriori_percentage", "r_bot_apriori_percentage", "tau_c_apriori_percentage");
-
-
+    mkdir(folder_paths.HySICS_retrievals)
 
 end
 
 
 
-toc
+rev = 1;
+
+filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(GN_inputs.bands2run)),...
+    'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+
+
+
+while isfile(filename)
+    rev = rev+1;
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+save(filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths");
+
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
 modis_pixel_2_plot = 1;
