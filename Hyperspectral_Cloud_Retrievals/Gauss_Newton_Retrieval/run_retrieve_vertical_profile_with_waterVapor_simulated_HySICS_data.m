@@ -83,31 +83,16 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
-    % Define the HySICS simulated spectrum folder
+    % Define the MODIS folder name
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra';
+    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/HySICS/Simulated_spectra/';
 
 
-    % water cloud file location
+        % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
-    % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/';
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    folder_paths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 end
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.libRadtran_inp, 'dir')
-
-    mkdir(folder_paths.libRadtran_inp)
-
-end
-
-
 
 
 
@@ -130,9 +115,8 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';  % sza = 0, vza = 0
-        
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
+        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);  % sza = 0, vza = 0
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -156,15 +140,22 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
-    % bands
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20;
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
+    
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
+    % Bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+    
+    
     
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
 
-    
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -174,17 +165,13 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
-    % bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
+    error([newline, 'No simulated measurements stored on the CURC!', newline])
 
 
 
 end
 
 
-simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
@@ -203,10 +190,6 @@ GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measu
 disp('Dont forget to check the inputs and change if needed!!')
 
 
-%% We're retrieving above cloud column water vapor. Make sure input settings are correct
-
-GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
 
