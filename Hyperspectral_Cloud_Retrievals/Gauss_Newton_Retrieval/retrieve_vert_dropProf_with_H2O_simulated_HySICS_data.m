@@ -85,7 +85,7 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS simulated spectrum folder
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/HySICS/Simulated_spectra/';
+    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra';
 
 
     % water cloud file location
