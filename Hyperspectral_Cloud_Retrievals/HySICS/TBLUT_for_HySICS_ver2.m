@@ -235,7 +235,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
     % save the calculated reflectances and the inputs
-    save(inputs_tblut.save_mat_filename, "inputs_tblut", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file
+    save(folder_paths.saveOutput_filename, "inputs_tblut", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file
 
 
 
