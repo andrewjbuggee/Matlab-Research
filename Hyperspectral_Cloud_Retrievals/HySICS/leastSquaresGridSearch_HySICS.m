@@ -8,7 +8,7 @@
 
 %%
 
-function [tblut_retrieval] = leastSquaresGridSearch_HySICS(simulated_measurement, modelRefl, inputs)
+function [tblut_retrieval] = leastSquaresGridSearch_HySICS(simulated_measurement, modelRefl, inputs, folder_paths)
 
 
 
@@ -179,7 +179,7 @@ end
 
 
 
-save(inputs.save_mat_filename,"tblut_retrieval",'-append'); % save inputSettings to the same folder as the input and output file
+save(folder_paths.saveOutput_filename,"tblut_retrieval",'-append'); % save inputSettings to the same folder as the input and output file
 
 
 

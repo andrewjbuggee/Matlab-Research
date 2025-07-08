@@ -254,7 +254,7 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs_tblut);
+tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs_tblut, folder_paths);
 
 
 
