@@ -203,6 +203,10 @@ GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measu
 disp('Dont forget to check the inputs and change if needed!!')
 
 
+%% We're retrieving above cloud column water vapor. Make sure input settings are correct
+
+GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
 
