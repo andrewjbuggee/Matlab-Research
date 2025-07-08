@@ -101,9 +101,9 @@ elseif strcmp(which_computer,'curc')==true
 end
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.folderpath_inp, 'dir')
+if ~exist(folder_paths.libRadtran_inp, 'dir')
 
-    mkdir(folder_paths.folderpath_inp)
+    mkdir(folder_paths.libRadtran_inp)
 
 end
 
@@ -130,8 +130,9 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, ...
-        'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat']);  % sza = 0, vza = 0
+
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-14-May-2025_rev1.mat';  % sza = 0, vza = 0
+        
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
