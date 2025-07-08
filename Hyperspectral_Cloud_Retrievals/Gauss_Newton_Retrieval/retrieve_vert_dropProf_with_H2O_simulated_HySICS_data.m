@@ -92,7 +92,7 @@ elseif strcmp(which_computer,'curc')==true
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.folderpath_inp = '/scratch/alpine/anbu8374/HySICS/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/';
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
@@ -155,14 +155,15 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20;
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
+    % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
     
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
 
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
+    
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -172,13 +173,17 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    error([newline, 'No simulated measurements stored on the CURC!', newline])
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
 
 
 
 end
 
 
+simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
