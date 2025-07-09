@@ -204,7 +204,7 @@ for ii = 1:num_iterations
 
         % Use the new guess to compute the rss residual, which is used
         % to detmerine convergence
-        new_measurement_estimate = compute_forward_model_HySICS(new_guess, GN_inputs, spec_response, folder_paths);
+        new_measurement_estimate = compute_forward_model_HySICS_ver3(new_guess, GN_inputs, spec_response, folder_paths);
         residual(:,ii+1) = measurements - new_measurement_estimate;
         rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
@@ -261,7 +261,7 @@ for ii = 1:num_iterations
             if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                     constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(constrained_guesses(:,mm),...
+                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver3(constrained_guesses(:,mm),...
                     GN_inputs, spec_response, folder_paths);
 
             else

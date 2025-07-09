@@ -76,9 +76,7 @@ for xx = 1:num_state_variables
 
 end
 
-% Add a final column that includes the index for the spectral response
-% function. These always increase chronologically
-changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variables, 1)];
+
 
 % how many INP files?
 num_INP_files = size(changing_variables, 1);
@@ -143,77 +141,55 @@ aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVa
     state_vectors_with_change(end,end));
 
 
+% ----- Add filenames to changing_variable matrix ------
+% Also, create the file names
+
+wc_and_H2O_filenames = cell(num_INP_files, 2);
+
+wc_and_H2O_filenames(1:num_wl, 1) = wc_re_top_change{1};
+wc_and_H2O_filenames(1:num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+
+wc_and_H2O_filenames(num_wl+1:2*num_wl, 1) = wc_re_middle_change{1};
+wc_and_H2O_filenames(num_wl+1:2*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+
+wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 1) = wc_re_bot_change{1};
+wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+
+wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 1) = wc_tau_change{1};
+wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+
+wc_and_H2O_filenames(4*num_wl+1:end, 1) = wc_with_no_change{1};
+wc_and_H2O_filenames(4*num_wl+1:end, 2) = aboveCloud_waterVaporColumn_fileName_withChange;
+
+
+
+% Add a final column that includes the index for the spectral response
+% function. These always increase chronologically
+changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variables, 1)];
+
+
+
+
+
+
 new_measurement_estimate = zeros(num_INP_files, 1);
 
-parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+% parfor nn = 1:num_INP_files
+for nn = 1:num_INP_files
 
 
-    % figure out which wc_filename to use
-    if nn>=1 && nn<=(num_wl)
-
-        wc_filename = wc_re_top_change;
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
-
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
-             '_rMid_', num2str(r_middle), '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+    % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(changing_variables(nn, 1)),...
+             '_rMid_', num2str(changing_variables(2, 1)), '_rBot_', num2str(changing_variables(3, 1)),'_tauC_',...
+             num2str(changing_variables(4, 1)), '_CWV_', num2str(changing_variables(5, 1)),...
             '.INP'];
-
-
-    elseif nn>=(num_wl+1) && nn<=(2*num_wl)
-
-        wc_filename = wc_re_middle_change;
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
-
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(state_vectors_with_change(2,2)),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
-
-    elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
-
-        wc_filename = wc_re_bot_change;
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
-
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
-            '_rBot_', num2str(state_vectors_with_change(3,3)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
-
-
-    elseif nn>=(3*num_wl+1) && nn<=(4*num_wl)
-
-        wc_filename = wc_tau_change;
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
-
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(4,4)), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
-
-    elseif nn>=(4*num_wl+1)
-
-        wc_filename = wc_with_no_change;
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_withChange;
-
-
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(state_vectors_with_change(end,end)),...
-            '.INP'];
-
-    end
-
-
-
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
 
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
-        changing_variables(nn, 6:7), wc_filename{1}, [], [], waterVaporProfile_filename);
+        changing_variables(nn, 6:7), wc_and_H2O_filenames(nn, 1), [], [], wc_and_H2O_filenames(nn,2));
 
 
 
@@ -233,8 +209,8 @@ parfor nn = 1:num_INP_files
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    idx_wl = source_wavelength>=(changing_variables(nn,5) - wl_perturb) &...
-        source_wavelength<=(changing_variables(nn,6) + wl_perturb);
+    idx_wl = source_wavelength>=(changing_variables(nn,6) - wl_perturb) &...
+        source_wavelength<=(changing_variables(nn,7) + wl_perturb);
 
     [new_measurement_estimate(nn), ~] = reflectanceFunction_ver2(GN_inputs, ds,...
         source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
