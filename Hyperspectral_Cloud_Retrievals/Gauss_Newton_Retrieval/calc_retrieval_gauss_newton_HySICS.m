@@ -472,8 +472,20 @@ end
 
 
 
+% -------------------------------------------------------------
+% ------ Compute the retrieval covariance for each channel ----
+posterior_cov_perChannel = zeros(num_parameters, num_parameters, num_bands);
+posterior_cov_perChannel(:,:,1) = model_cov;
+
+for nn = 1:num_bands
+    
+    posterior_cov_perChannel(:,:, nn) = [];
+
+end
 
 
+
+% ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
 GN_output.residual = residual;

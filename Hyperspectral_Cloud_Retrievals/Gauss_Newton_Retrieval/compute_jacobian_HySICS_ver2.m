@@ -12,11 +12,7 @@ function jacobian = compute_jacobian_HySICS_ver2(state_vector, measurement_estim
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;
 
-% --- Define the filename to save all calculations ---
-saveCalculations_fileName = folder_paths.HySICS_retrievals;
 
-% --- Define the INP Folder location ---
-INP_folderName = folder_paths.libRadtran_inp;
 
 % --- compute the Jacobian at out current estimate ---
 r_top = state_vector(1);
@@ -25,10 +21,18 @@ tau_c = state_vector(3);
 wv_col_aboveCloud = state_vector(4);
 
 
+% ----- unpack parallel for loop variables ------
+% We want to avoid large broadcast variables!
+wavelengths2run = GN_inputs.RT.wavelengths2run;
+libRadtran_inp = folder_paths.libRadtran_inp;
+libRadtran_data_path = GN_inputs.libRadtran_data_path;
+which_computer = GN_inputs.which_computer;
+
+
 
 
 % Read the solar flux file over the wavelength range specified
-wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
+wavelength_vec = [min(wavelengths2run,[],"all"), max(wavelengths2run, [], "all")];
 
 [source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, GN_inputs.RT.source_file);   % W/nm/m^2
 
@@ -65,7 +69,7 @@ changing_variables = [];
 for xx = 1:num_state_variables
 
     changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
-        GN_inputs.RT.wavelengths2run];
+        wavelengths2run];
 
 end
 
@@ -106,22 +110,22 @@ re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),.
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1);
+    GN_inputs.compute_weighting_functions, which_computer, 1);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2);
+    GN_inputs.compute_weighting_functions, which_computer, 2);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3);
+    GN_inputs.compute_weighting_functions, which_computer, 3);
 
 wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 4);
+    GN_inputs.compute_weighting_functions, which_computer, 4);
 
 % -----------------------------------------------------------
 % create water vapor density profiles - there are only two!
@@ -192,7 +196,7 @@ parfor nn = 1:num_INP_files
 
 
     % ----- Write an INP file --------
-    write_INP_file(folder_paths.libRadtran_inp, GN_inputs.libRadtran_data_path, inputFileName, GN_inputs,...
+    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
         changing_variables(nn, 5:6), wc_filename{1}, [], [], waterVaporProfile_filename);
 
 
@@ -203,13 +207,12 @@ parfor nn = 1:num_INP_files
 
 
     % compute INP file
-    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
-        GN_inputs.which_computer);
+    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName, which_computer);
 
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName, GN_inputs,...
+    [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName, GN_inputs,...
         GN_inputs.RT.compute_reflectivity_uvSpec);
 
 
