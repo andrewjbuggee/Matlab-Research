@@ -146,20 +146,20 @@ aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVa
 
 wc_and_H2O_filenames = cell(num_INP_files, 2);
 
-wc_and_H2O_filenames(1:num_wl, 1) = wc_re_top_change{1};
-wc_and_H2O_filenames(1:num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+wc_and_H2O_filenames(1:num_wl, 1) = wc_re_top_change;
+wc_and_H2O_filenames(1:num_wl, 2) = {aboveCloud_waterVaporColumn_fileName_noChange};
 
-wc_and_H2O_filenames(num_wl+1:2*num_wl, 1) = wc_re_middle_change{1};
-wc_and_H2O_filenames(num_wl+1:2*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+wc_and_H2O_filenames(num_wl+1:2*num_wl, 1) = wc_re_middle_change;
+wc_and_H2O_filenames(num_wl+1:2*num_wl, 2) = {aboveCloud_waterVaporColumn_fileName_noChange};
 
-wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 1) = wc_re_bot_change{1};
-wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 1) = wc_re_bot_change;
+wc_and_H2O_filenames(2*num_wl+1:3*num_wl, 2) = {aboveCloud_waterVaporColumn_fileName_noChange};
 
-wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 1) = wc_tau_change{1};
-wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 2) = aboveCloud_waterVaporColumn_fileName_noChange;
+wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 1) = wc_tau_change;
+wc_and_H2O_filenames(3*num_wl+1:4*num_wl, 2) = {aboveCloud_waterVaporColumn_fileName_noChange};
 
-wc_and_H2O_filenames(4*num_wl+1:end, 1) = wc_with_no_change{1};
-wc_and_H2O_filenames(4*num_wl+1:end, 2) = aboveCloud_waterVaporColumn_fileName_withChange;
+wc_and_H2O_filenames(4*num_wl+1:end, 1) = wc_with_no_change;
+wc_and_H2O_filenames(4*num_wl+1:end, 2) = {aboveCloud_waterVaporColumn_fileName_withChange};
 
 
 
@@ -180,8 +180,8 @@ for nn = 1:num_INP_files
 
     % define the input file name
         inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(changing_variables(nn, 1)),...
-             '_rMid_', num2str(changing_variables(2, 1)), '_rBot_', num2str(changing_variables(3, 1)),'_tauC_',...
-             num2str(changing_variables(4, 1)), '_CWV_', num2str(changing_variables(5, 1)),...
+             '_rMid_', num2str(changing_variables(nn, 2)), '_rBot_', num2str(changing_variables(nn, 3)),'_tauC_',...
+             num2str(changing_variables(nn, 4)), '_CWV_', num2str(changing_variables(nn, 5)),...
             '.INP'];
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
@@ -189,7 +189,7 @@ for nn = 1:num_INP_files
 
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
-        changing_variables(nn, 6:7), wc_and_H2O_filenames(nn, 1), [], [], wc_and_H2O_filenames(nn,2));
+        changing_variables(nn, 6:7), wc_and_H2O_filenames{nn, 1}, [], [], wc_and_H2O_filenames{nn,2});
 
 
 
