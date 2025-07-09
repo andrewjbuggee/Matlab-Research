@@ -35,7 +35,8 @@ elseif strcmp(whatComputer,'curc')==true
     % Add paths to all functions needed
     addpath('/projects/anbu8374/Matlab-Research/')
     addpath('/projects/anbu8374/software/gsl-2.6/')
-    addpath('/projects/anbu8374/libRadtran-2.0.5/')
+    addpath('/projects/anbu8374/software/libRadtran-2.0.5/')
+
 
 end
 
