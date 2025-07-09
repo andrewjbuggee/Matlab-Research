@@ -1,7 +1,7 @@
 %% Create model priori covariance inputs
 
 
-% Create inputs to retrieve r_top, r_bot, tau_c, cwv
+% Create inputs to retrieve r_top, r_middle, r_bot, tau_c, cwv
 
 
 
@@ -13,7 +13,7 @@
 
 %%
 
-function [GN_inputs] = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut, use_TBLUT_estimates)
+function [GN_inputs] = create_model_prior_covariance_HySICS_ver3(GN_inputs, tblut, use_TBLUT_estimates)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -60,7 +60,7 @@ if use_TBLUT_estimates==true
     % *** Test Values for new HySICS retrieval ***
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 8];
+    GN_inputs.model.apriori = [tblut.minRe, 0.75*tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 8];
 
 
     % The first two values are the standard deviation of the effective
@@ -107,12 +107,14 @@ if use_TBLUT_estimates==true
 
     % *** TESTING NEW UNCERTAINTY ***
     stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-        GN_inputs.model.apriori(2) * 3*effRad_uncert,...
-        GN_inputs.model.apriori(3) * optThick_uncert,...
-        GN_inputs.model.apriori(4) * colWaterVapor_uncert];
+        GN_inputs.model.apriori(2) * 2*effRad_uncert,...
+        GN_inputs.model.apriori(3) * 3*effRad_uncert,...
+        GN_inputs.model.apriori(4) * optThick_uncert,...
+        GN_inputs.model.apriori(5) * colWaterVapor_uncert];
 
     % variance for the effective radius (microns squared) and optical thickness respectively
-    GN_inputs.model.variance = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2, stdev_variables(4)^2];
+    GN_inputs.model.variance = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2,...
+                    stdev_variables(4)^2, stdev_variables(5)^2];
 
 
 

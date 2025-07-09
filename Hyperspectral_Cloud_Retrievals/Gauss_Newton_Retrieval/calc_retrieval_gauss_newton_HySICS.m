@@ -113,7 +113,12 @@ for ii = 1:num_iterations
         % we compute the forward model at our previous estimate of the state vector
         % Therefore, we ask, 'what is the reflectance of a cloud with our
         % current state vector guess?'
-        measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
+  
+        % For the retrieval of r_top, r_bot, tau_c, cwv
+%         measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
+
+        % For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
+        measurement_estimate = compute_forward_model_HySICS_ver3(current_guess, GN_inputs, spec_response, folder_paths);
 
         % compute residual, rss residual, the difference between the
         % iterate and the prior, and the product of the jacobian with
@@ -129,8 +134,13 @@ for ii = 1:num_iterations
     end
 
 
-    % compute the jacobian
-    Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
+    % **** compute the jacobian ****
+    % For the retrieval of r_top, r_bot, tau_c, cwv
+%     Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
+%         hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+    % For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
+    Jacobian = compute_jacobian_HySICS_ver3(current_guess, measurement_estimate, GN_inputs,...
         hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -472,8 +482,20 @@ end
 
 
 
+% -------------------------------------------------------------
+% ------ Compute the retrieval covariance for each channel ----
+posterior_cov_perChannel = zeros(num_parameters, num_parameters, num_bands);
+posterior_cov_perChannel(:,:,1) = model_cov;
+
+for nn = 1:num_bands
+    
+    posterior_cov_perChannel(:,:, nn) = [];
+
+end
 
 
+
+% ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
 GN_output.residual = residual;
