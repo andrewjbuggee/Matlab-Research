@@ -478,7 +478,7 @@ GN_output.rss_residual = rss_residual;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;
-
+GN_output.Jacobian_final = Jacobian;
 
 
 
