@@ -100,8 +100,10 @@ elseif strcmp(which_computer,'curc')==true
 
     
     % *** Start parallel pool ***
-    
-    parpool();
+    % first read the local number of workers avilabile.
+    p = parcluster('local');
+    % start the cluster with the number of workers available
+    parpool(p.NumWorkers);
 
 
 end
