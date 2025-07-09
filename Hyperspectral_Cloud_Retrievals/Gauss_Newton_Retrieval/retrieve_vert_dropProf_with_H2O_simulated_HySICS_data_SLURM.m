@@ -68,7 +68,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/'];
 
-     % water cloud file location
+    % water cloud file location
     folder_paths.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
 
@@ -96,9 +96,9 @@ elseif strcmp(which_computer,'curc')==true
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT/';
 
-    
+
     % *** Start parallel pool ***
     % first read the local number of workers avilabile.
     p = parcluster('local');
@@ -108,9 +108,13 @@ elseif strcmp(which_computer,'curc')==true
         % Leave some cores for overhead
         parpool(p.NumWorkers - 8);
 
-    else
+    elseif p.NumWorkers<=64 && p.NumWorkers>10
 
         parpool(p.NumWorkers - 2);
+
+    elseif p.NumWorkers<=10
+
+        parpool(p.NumWorkers);
 
     end
 
@@ -148,7 +152,7 @@ if strcmp(which_computer,'anbu8374')==true
 
 
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1';  % sza = 0, vza = 0
-        
+
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -176,11 +180,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
-    
+
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
 
-    
+
 
 
 elseif strcmp(which_computer,'curc')==true
