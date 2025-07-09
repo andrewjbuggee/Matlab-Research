@@ -183,7 +183,13 @@ elseif strcmp(which_computer,'curc')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
     % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
+    %filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
+
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1.mat';
 
 
 
@@ -283,90 +289,4 @@ end
 
 save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
-%% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-modis_pixel_2_plot = 1;
-plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
-
-
-%% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
-
-listing = dir([modisInputs.savedCalculations_folderName]);
-
-% save all posterior covariance matrices
-retreived_cov = [];
-
-% which pixel would you like to plot?
-% This is an index value
-modis_pixel_2_plot = 2;
-
-% compute the L2 norm value of the variance of each retrieved variable
-L2_mag_total_var = nan(1, length(listing));
-
-% create an empty array for the RMS residual
-rms_residual = zeros(length(listing), length(vocalsRex.modisIndex_minDist));
-
-
-% loop through and read covariance of retrieved variables
-for nn = 1:length(listing)
-
-    % We're looking for files with a unique covariance matrix. These files
-    % have names longer than 60 characters
-    if length(listing(nn).name)>=57
-
-
-        % yes, it is a file that was run with a changing covariance
-        % load the data
-        d = load(listing(nn).name);
-
-
-        % read the retrieval covaraince
-        retreived_cov = cat(3, retreived_cov, d.GN_outputs.posterior_cov(:,:,modis_pixel_2_plot));
-
-
-        % to determine which file had the lowest overall variance
-        % between all of the retrieved variables, we need to compute
-        % the L2 for each file. If no file, leave as zero.
-        L2_mag_total_var(nn) = sqrt(retreived_cov(1,1,end).^2 + retreived_cov(2,2,end).^2 + retreived_cov(3,3,end).^2);
-
-
-        % plot the retrieved profile
-        plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, d.GN_outputs, d.GN_inputs, modis_pixel_2_plot)
-
-
-        % Plot the RMS residual versus the r_top and tau_c covariance
-        %             r_top_apriori_percentage(nn) = d.r_top_apriori_percentage;
-        %             r_bot_apriori_percentage(nn) = d.r_bot_apriori_percentage;
-        %             tau_c_apriori_percentage(nn) = d.tau_c_apriori_percentage;
-
-        % Store all values in an array for each file
-
-        for pp = 1:length(d.GN_outputs.rms_residual)
-
-            rms_residual(nn, pp) = d.GN_outputs.rms_residual{pp}(end);
-
-        end
-
-
-
-    else
-
-        rms_residual(nn,:) = nan;
-
-    end
-
-end
-
-% Find the minimum rms residual
-[min_rms, min_rms_idx] = min(rms_residual, [], 'all');
-% find the file and pixel associated with the minimum rms
-[file_num, pixel_idx] = ind2sub(size(rms_residual), min_rms_idx);
-disp([newline, 'File with smallest rms residual: ', listing(file_num).name,newline,...
-    'Pixel with smallest rms residual: ', num2str(pixel_idx), newline,...
-    'The minimum rms residual is: ', num2str(round(min_rms, 6))])
-
-
-% find the collective minimum variance of the retrieved variables
-% first set
-
-[min_val, min_idx] = min(L2_mag_total_var);
