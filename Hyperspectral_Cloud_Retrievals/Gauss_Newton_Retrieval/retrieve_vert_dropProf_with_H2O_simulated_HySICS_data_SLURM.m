@@ -114,7 +114,7 @@ elseif strcmp(which_computer,'curc')==true
 
         elseif p.NumWorkers<=64 && p.NumWorkers>10
 
-            parpool(p.NumWorkers - 2);
+            parpool(p.NumWorkers - 1);
 
         elseif p.NumWorkers<=10
 
@@ -261,8 +261,12 @@ disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newlin
 
 %% CREATE GAUSS-NEWTON INPUTS
 
-% We use the estimates calcualted by the TBLUT as our a priori
-GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+% Create inputs to retrieve r_top, r_bot, tau_c, cwv
+% GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+
+% Create inputs to retrieve r_top, r_middle, r_bot, tau_c, cwv
+GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver3(simulated_measurements);
+
 disp('Dont forget to check the inputs and change if needed!!')
 
 GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
@@ -283,7 +287,11 @@ GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the col
 
 use_TBLUT_estimates = true;
 
-GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+% Create inputs to retrieve r_top, r_bot, tau_c, cwv
+% GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+
+% Create inputs to retrieve r_top, r_middle, r_bot, tau_c, cwv
+GN_inputs = create_model_prior_covariance_HySICS_ver3(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
 GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
 

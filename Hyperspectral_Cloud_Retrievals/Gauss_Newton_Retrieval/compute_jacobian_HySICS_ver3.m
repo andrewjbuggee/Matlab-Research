@@ -1,13 +1,13 @@
 % --- Compute Jacobian matrix for HySICS channels-----
 
 
-% For the retrieval of r_top, r_bot, tau_c, cwv
+% For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
 
 
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_HySICS_ver2(state_vector, measurement_estimate, GN_inputs,...
+function jacobian = compute_jacobian_HySICS_ver3(state_vector, measurement_estimate, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
@@ -18,9 +18,10 @@ measurement_variance = GN_inputs.measurement.variance;
 
 % --- compute the Jacobian at out current estimate ---
 r_top = state_vector(1);
-r_bottom = state_vector(2);
-tau_c = state_vector(3);
-wv_col_aboveCloud = state_vector(4);
+r_middle = state_vector(2);
+r_bottom = state_vector(3);
+tau_c = state_vector(4);
+wv_col_aboveCloud = state_vector(5);
 
 
 % ----- unpack parallel for loop variables ------
@@ -54,7 +55,7 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud];
+change_in_state = [0.1 * r_top, 0.2 * r_middle, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud];
 
 % ----------------------------------------------------------------
 
@@ -90,21 +91,24 @@ num_INP_files = size(changing_variables, 1);
 % create droplet profile - there are four unique ones!
 % ----------------------------------------------------------
 
-re_with_topChange = create_droplet_profile2([changing_variables(1,1), changing_variables(1,2)],...
+re_with_topChange = create_droplet_profile2([changing_variables(1,1), changing_variables(1,2), changing_variables(1,3)],...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-re_with_botChange = create_droplet_profile2([changing_variables(num_wl+1,1), changing_variables(num_wl+1,2)],...
+re_with_middleChange = create_droplet_profile2([changing_variables(num_wl+1,1), changing_variables(num_wl+1,2), changing_variables(num_wl+1,3)],...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), changing_variables(2*num_wl +1,2)],...
+re_with_botChange = create_droplet_profile2([changing_variables(2*num_wl+1,1), changing_variables(2*num_wl+1,2), changing_variables(2*num_wl+1,3)],...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),...
+re_with_tauChange = create_droplet_profile2([changing_variables(3*num_wl +1,1), changing_variables(3*num_wl +1,2), changing_variables(3*num_wl +1,3)],...
+    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+
+re_with_noChange = create_droplet_profile2(changing_variables(4*num_wl +1,1:3),...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
 
 % -----------------------------------------------------------
-%    create water-cloud file - there are four unique ones!
+%    create water-cloud file - there are five unique ones!
 % -----------------------------------------------------------
 
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
@@ -112,17 +116,22 @@ wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
     GN_inputs.compute_weighting_functions, which_computer, 1);
 
-wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
+wc_re_middle_change = write_wc_file(re_with_middleChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
     GN_inputs.compute_weighting_functions, which_computer, 2);
 
-wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
+wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(2*num_wl+1,3), GN_inputs.RT.z_topBottom,...
+    GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
+    GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
+    GN_inputs.compute_weighting_functions, which_computer, 2);
+
+wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(3*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
     GN_inputs.compute_weighting_functions, which_computer, 3);
 
-wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl +1,3), GN_inputs.RT.z_topBottom,...
+wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(4*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
     GN_inputs.compute_weighting_functions, which_computer, 4);
@@ -150,40 +159,50 @@ parfor nn = 1:num_INP_files
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
         % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
+             '_rMid_', num2str(r_middle), '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
             '.INP'];
 
 
     elseif nn>=(num_wl+1) && nn<=(2*num_wl)
 
+        wc_filename = wc_re_middle_change;
+        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
+
+        % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(state_vectors_with_change(2,2)),...
+            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+            '.INP'];
+
+    elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
+
         wc_filename = wc_re_bot_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
         % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-            '_rBot_', num2str(state_vectors_with_change(2,2)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
+            '_rBot_', num2str(state_vectors_with_change(3,3)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
             '.INP'];
 
 
-    elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
+    elseif nn>=(3*num_wl+1) && nn<=(4*num_wl)
 
         wc_filename = wc_tau_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
         % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(3,3)), '_CWV_', num2str(wv_col_aboveCloud),...
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
+            '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(4,4)), '_CWV_', num2str(wv_col_aboveCloud),...
             '.INP'];
 
-    elseif nn>=(3*num_wl+1)
+    elseif nn>=(4*num_wl+1)
 
         wc_filename = wc_with_no_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_withChange;
 
 
         % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_nm_rTop_', num2str(r_top), '_rMid_', num2str(r_middle),...
             '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(state_vectors_with_change(end,end)),...
             '.INP'];
 
@@ -197,7 +216,7 @@ parfor nn = 1:num_INP_files
 
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
-        changing_variables(nn, 5:6), wc_filename{1}, [], [], waterVaporProfile_filename);
+        changing_variables(nn, 6:7), wc_filename{1}, [], [], waterVaporProfile_filename);
 
 
 

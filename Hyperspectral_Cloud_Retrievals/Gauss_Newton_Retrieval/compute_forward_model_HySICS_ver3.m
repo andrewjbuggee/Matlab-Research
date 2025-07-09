@@ -5,20 +5,21 @@
 % profile over any number spectral channels
 
 
-% For the retrieval of r_top, r_bot, tau_c, cwv
+% For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
 % ** Version 2 includes above cloud water vapor in the state vector **
 
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths)
+function measurement_estimate = compute_forward_model_HySICS_ver3(current_guess, GN_inputs, spec_response, folder_paths)
 
 
 % --- compute the forward model at our current estimate ---
 r_top = current_guess(1);
-r_bottom = current_guess(2);
-tau_c = current_guess(3);
-wv_col_aboveCloud = current_guess(4);
+r_middle = current_guess(2);
+r_bottom = current_guess(3);
+tau_c = current_guess(4);
+wv_col_aboveCloud = current_guess(5);
 
 
 % ----- unpack parallel for loop variables ------
@@ -61,8 +62,7 @@ wl_perturb = GN_inputs.RT.source_file_resolution/3;   % nm
 %       Physically, this too forces subadiabatic behavior at mid-levels.
 
 
-% re is a column vector that starts at cloud base and grows towards cloud top
-re = create_droplet_profile2([r_top, r_bottom], GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+re = create_droplet_profile2([r_top, r_middle, r_bottom], GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
 
 

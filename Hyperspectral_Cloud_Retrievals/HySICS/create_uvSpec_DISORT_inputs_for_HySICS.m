@@ -473,48 +473,74 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % --------- NON-HOMOGENOUS CLOUD -------------
 
-        % For a cloud with a nonconstant droplet profile
-        % constraint - the physical constraint (string) - there are four
-        %       different string options for a physical constraint:
-        %       (a) 'adiabatic' - this assumption forces the liquid water content to
-        %       be proportionl to z, the altitude.
-        %       (b) 'subadiabatic_aloft' - this assumption assumes there is
-        %       increasing entrainment and drying towards the cloud top.
-        %       (c) 'linear_with_z' - this constraint forces the effective droplet profile
-        %       to behave linearly with z (re(z)~z). Physically we are forcing subadiabtatic
-        %       behavior at mid-levels.
-        %       (d) 'linear_with_tau' - this constraint forces the effective
-        %       droplet radius to have linearly with optical depth (re(z)~tau).
-        %       Physically, this too forces subadiabatic behavior at mid-levels.
+        if isfield(inputs.model.profile, 'r_middle')==false
 
-        % ** Values used in Platnick (2000) **
-        % inputs.RT.r_top = 12;     % microns
-        % inputs.RT.r_bot = 5;        % microns
-        % inputs.RT.tau_c = 8;
+            % For a cloud with a nonconstant droplet profile
+            % constraint - the physical constraint (string) - there are four
+            %       different string options for a physical constraint:
+            %       (a) 'adiabatic' - this assumption forces the liquid water content to
+            %       be proportionl to z, the altitude.
+            %       (b) 'subadiabatic_aloft' - this assumption assumes there is
+            %       increasing entrainment and drying towards the cloud top.
+            %       (c) 'linear_with_z' - this constraint forces the effective droplet profile
+            %       to behave linearly with z (re(z)~z). Physically we are forcing subadiabtatic
+            %       behavior at mid-levels.
+            %       (d) 'linear_with_tau' - this constraint forces the effective
+            %       droplet radius to have linearly with optical depth (re(z)~tau).
+            %       Physically, this too forces subadiabatic behavior at mid-levels.
 
-        % simulating measurement from value for pixel used in Figure 3.a from paper 1
-        inputs.RT.r_top = 9.2516;     % microns
-        inputs.RT.r_bot = 5.3192;        % microns
-        inputs.RT.tau_c = 6.1312;
-
-        % inputs.RT.r_top = 8.6;     % microns
-        % inputs.RT.r_bot = 3.6;        % microns
-        % inputs.RT.tau_c = 9.6;
-
-        % inputs.RT.r_top = [9,10];     % microns
-        % inputs.RT.r_bot = [4:6];        % microns
-        % inputs.RT.tau_c = [10:5:25];
-
-        % inputs.RT.r_top = 3:20;       % microns
-        % inputs.RT.r_bot = 2:14;        % microns
-        % inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
-
-        % inputs.RT.r_top = 3:20;       % microns
-        % inputs.RT.r_bot = 2:14;        % microns
-        % inputs.RT.tau_c = 7.5:0.5:15;
+            inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
 
 
-        inputs.RT.profile_type = 'adiabatic'; % type of water droplet profile
+            % ** Values used in Platnick (2000) **
+            % inputs.RT.r_top = 12;     % microns
+            % inputs.RT.r_bot = 5;        % microns
+            % inputs.RT.tau_c = 8;
+
+            % simulating measurement from value for pixel used in Figure 3.a from paper 1
+            inputs.RT.r_top = 9.2516;     % microns
+            inputs.RT.r_bot = 5.3192;        % microns
+            inputs.RT.tau_c = 6.1312;
+
+            % inputs.RT.r_top = 8.6;     % microns
+            % inputs.RT.r_bot = 3.6;        % microns
+            % inputs.RT.tau_c = 9.6;
+
+            % inputs.RT.r_top = [9,10];     % microns
+            % inputs.RT.r_bot = [4:6];        % microns
+            % inputs.RT.tau_c = [10:5:25];
+
+            % inputs.RT.r_top = 3:20;       % microns
+            % inputs.RT.r_bot = 2:14;        % microns
+            % inputs.RT.tau_c = [5.5, 6, 6.5, 7, 7.5];
+
+            % inputs.RT.r_top = 3:20;       % microns
+            % inputs.RT.r_bot = 2:14;        % microns
+            % inputs.RT.tau_c = 7.5:0.5:15;
+
+
+
+
+        else
+
+            % We have three variables, r_top, r_middle, and r_bot
+
+            % ** Values used in Platnick (2000) **
+            % inputs.RT.r_top = 12;     % microns
+            % inputs.RT.r_bot = 5;        % microns
+            % inputs.RT.tau_c = 8;
+
+            % simulating measurement from value for pixel used in Figure 3.a from paper 1
+            inputs.RT.r_top = 9.2516;     % microns
+            inputs.RT.r_middle = 7;       % microns
+            inputs.RT.r_bot = 5.3192;     % microns
+            inputs.RT.tau_c = 6.1312;
+
+
+            inputs.RT.profile_type = 'linear_with_tau'; % type of water droplet profile
+
+
+        end
 
         % *** Use 250 if creating weighting functions using DISORT ***
         % inputs.RT.n_layers = 250;                          % number of layers to model within cloud

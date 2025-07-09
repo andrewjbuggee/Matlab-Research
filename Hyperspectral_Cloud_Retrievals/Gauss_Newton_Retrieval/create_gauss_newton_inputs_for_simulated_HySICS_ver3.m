@@ -1,9 +1,9 @@
 % simulated measurements is an input used to define certain parameters
 
-% ** Retrieving 4 variables: r_top, r_bot, tau_c, cwv
+% ** Retrieving 5 variables: r_top, r_middle, r_bot, tau_c, cwv
 
 
-function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements)
+function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver3(simulated_measurements)
 
 
 % Which computer are you using?
@@ -68,7 +68,7 @@ GN_inputs.model.prior = 'gaussian';
 
 
 % define the number of model parameters to solve for
-GN_inputs.num_model_parameters = 4;
+GN_inputs.num_model_parameters = 5;
 
 
 
@@ -77,10 +77,13 @@ GN_inputs.num_model_parameters = 4;
 % --- Stuff for the Model Parameter Prior ---
 % -------------------------------------------
 
-% Using the King and Vaughn (2012) method, we retireve 3 parameters
+% retireve 5 parameters
 %   (1) r_top = effective droplet size at the cloud top
-%   (2) r_bottom = effective droplet size at the cloud bottom
-%   (3) tau_c = cloud optical depth
+%   (2) r_middle = effective droplet size at the middle of the cloud
+%   (tau_c/2)
+%   (3) r_bottom = effective droplet size at the cloud bottom
+%   (4) tau_c = cloud optical depth
+%   (5) cwv = column water vapor
 % a good starting place is to assume the droplet size at cloud top and
 % bottom are the same value
 
@@ -88,8 +91,8 @@ GN_inputs.num_model_parameters = 4;
 
     
 
-GN_inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
-    'Cloud Optical Depth', 'Above Cloud Column Water Vapor'};
+GN_inputs.model.param_names = {'Effective Radius at Top of Cloud','Effective Radius at Cloud Middle',...
+    'Effective Radius at Bottom of Cloud', 'Cloud Optical Depth', 'Above Cloud Column Water Vapor'};
 
 
 % ---------------------------------------
@@ -125,8 +128,9 @@ GN_inputs.measurement.covariance_type = 'independent';
 % x is determined by the choice of droplet profile within the function
 % create_droplet_profile.m
 
-GN_inputs.model.profile.type = 'adiabatic';
+GN_inputs.model.profile.type = 'linear_with_tau';
 GN_inputs.model.profile.r_top = 10; % microns - value for our model
+GN_inputs.model.profile.r_middle = 7; % microns - value for our model
 GN_inputs.model.profile.r_bottom = 5; % microns - value for our model
 
 
