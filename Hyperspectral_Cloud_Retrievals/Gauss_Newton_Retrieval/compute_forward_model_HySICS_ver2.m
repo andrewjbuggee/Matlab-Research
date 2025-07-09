@@ -4,6 +4,8 @@
 % transfer solver. It will do this for a water cloud with a droplet
 % profile over any number spectral channels
 
+% ** Version 2 includes above cloud water vapor in the state vector **
+
 
 % By Andrew J. Buggee
 %%

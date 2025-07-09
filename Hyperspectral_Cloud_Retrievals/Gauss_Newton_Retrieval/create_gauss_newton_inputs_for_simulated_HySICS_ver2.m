@@ -159,8 +159,13 @@ GN_inputs.save_calcs_fileName = ['uvspec_GaussNewton_calcs_',date,'.mat'];
 % Use geometry inputs from the simulated measurements
 load_parameters_from_measurement = true;
 
+% how similar should the forward model be to the simulated measurements?
+% options: (1) 'exact'  (2) 'subset'
+
+simulated_measurements_likeness = 'exact';
+
 [GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements);
+    simulated_measurements, simulated_measurements_likeness);
 
 
 

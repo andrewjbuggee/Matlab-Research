@@ -103,8 +103,16 @@ elseif strcmp(which_computer,'curc')==true
     % first read the local number of workers avilabile.
     p = parcluster('local');
     % start the cluster with the number of workers available
-    parpool(p.NumWorkers);
+    if p.NumWorkers>64
+        % Likely the amilan128c partition with 2.1 GB per core
+        % Leave some cores for overhead
+        parpool(p.NumWorkers - 8);
 
+    else
+
+        parpool(p.NumWorkers - 2);
+
+    end
 
 end
 
