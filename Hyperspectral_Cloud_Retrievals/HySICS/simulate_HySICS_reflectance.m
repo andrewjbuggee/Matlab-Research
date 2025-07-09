@@ -108,7 +108,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 % Define the parameters of the INP file
 
-[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], 'exact');
 
 inputs.calc_type = 'simulated_spectra';
 

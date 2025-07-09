@@ -100,23 +100,31 @@ elseif strcmp(which_computer,'curc')==true
 
 
     % *** Start parallel pool ***
-    % first read the local number of workers avilabile.
-    p = parcluster('local');
-    % start the cluster with the number of workers available
-    if p.NumWorkers>64
-        % Likely the amilan128c partition with 2.1 GB per core
-        % Leave some cores for overhead
-        parpool(p.NumWorkers - 8);
+    % Is parpool running?
+    p = gcp('nocreate');
+    if isempty(p)==true
 
-    elseif p.NumWorkers<=64 && p.NumWorkers>10
+        % first read the local number of workers avilabile.
+        p = parcluster('local');
+        % start the cluster with the number of workers available
+        if p.NumWorkers>64
+            % Likely the amilan128c partition with 2.1 GB per core
+            % Leave some cores for overhead
+            parpool(p.NumWorkers - 8);
 
-        parpool(p.NumWorkers - 2);
+        elseif p.NumWorkers<=64 && p.NumWorkers>10
 
-    elseif p.NumWorkers<=10
+            parpool(p.NumWorkers - 2);
 
-        parpool(p.NumWorkers);
+        elseif p.NumWorkers<=10
+
+            parpool(p.NumWorkers);
+
+        end
 
     end
+
+
 
 end
 
@@ -176,10 +184,20 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
-    % bands
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47 bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
+    % Bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+  
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, ALL bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
