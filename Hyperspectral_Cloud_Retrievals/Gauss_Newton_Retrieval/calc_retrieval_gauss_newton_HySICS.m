@@ -242,8 +242,11 @@ for ii = 1:num_iterations
         % measurements is less than the previous guess and the measurements
         constrained_measurement_estimate = zeros(num_bands, length(a));
 
-        parfor mm = 1:length(a)
-        % for mm = 1:length(a)
+        % This loop cannot be a parfor loop because the function within the
+        % loop also uses parfor! compute_forward_model_HySICS_ver2 uses a
+        % for loop. You could rewrite this whole loop so ALL constrained
+        % guess can run in a single parfor loop...
+        for mm = 1:length(a)
 
             % some guesses might be out of the appropriate range for
             % the Mie Interpolation function. If so, set the
