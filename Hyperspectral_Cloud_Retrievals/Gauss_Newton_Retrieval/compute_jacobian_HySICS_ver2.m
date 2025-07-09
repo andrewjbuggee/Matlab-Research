@@ -48,7 +48,7 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud]; 
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud];
 
 % ----------------------------------------------------------------
 
@@ -64,8 +64,8 @@ state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(
 changing_variables = [];
 for xx = 1:num_state_variables
 
-changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
-    GN_inputs.RT.wavelengths2run];
+    changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
+        GN_inputs.RT.wavelengths2run];
 
 end
 
@@ -127,71 +127,82 @@ wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl 
 % create water vapor density profiles - there are only two!
 % -----------------------------------------------------------
 aboveCloud_waterVaporColumn_fileName_noChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-                                                                            wv_col_aboveCloud);
+    wv_col_aboveCloud);
 
 aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-                                                                            state_vectors_with_change(end,end));
+    state_vectors_with_change(end,end));
 
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
-    
+    % for nn = 1:num_INP_files
+
 
     % figure out which wc_filename to use
     if nn>=1 && nn<=(num_wl)
 
         wc_filename = wc_re_top_change;
+        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
+
+        % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
+            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+            '.INP'];
+
 
     elseif nn>=(num_wl+1) && nn<=(2*num_wl)
 
         wc_filename = wc_re_bot_change;
+        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
+
+        % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+            '_rBot_', num2str(state_vectors_with_change(2,2)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+            '.INP'];
+
 
     elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
 
         wc_filename = wc_tau_change;
+        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
+
+        % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+            '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(3,3)), '_CWV_', num2str(wv_col_aboveCloud),...
+            '.INP'];
 
     elseif nn>=(3*num_wl+1)
 
         wc_filename = wc_with_no_change;
-
-    end
-
-
-    % figure out which water vapor density profile to use
-    if nn>=1 && nn<=(3*num_wl)
-
-        waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
-
-    elseif nn>=(3*num_wl +1)
-
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_withChange;
 
+
+        % define the input file name
+        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(state_vectors_with_change(end,end)),...
+            '.INP'];
+
     end
 
 
 
-
-    % define the input file name
-    inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-        '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud), '.INP'];
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
-    
+
     % ----- Write an INP file --------
     write_INP_file(folder_paths.libRadtran_inp, GN_inputs.libRadtran_data_path, inputFileName, GN_inputs,...
         changing_variables(nn, 5:6), wc_filename{1}, [], [], waterVaporProfile_filename);
 
-    
-    
+
+
     % ----------------------------------------------------
     % --------------- RUN RADIATIVE TRANSFER -------------
     % ----------------------------------------------------
 
 
-     % compute INP file
+    % compute INP file
     runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
         GN_inputs.which_computer);
 
@@ -210,7 +221,7 @@ parfor nn = 1:num_INP_files
         source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
 
 
-    
+
 end
 
 
@@ -233,7 +244,7 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
-    
+
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)
 
