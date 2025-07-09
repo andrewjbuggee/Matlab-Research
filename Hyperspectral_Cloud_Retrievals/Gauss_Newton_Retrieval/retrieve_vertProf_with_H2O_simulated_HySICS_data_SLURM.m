@@ -1,7 +1,7 @@
 %% Retreive vertical profiles in a loop using simulated HySICS reflectance measurements
 % The loop can be used to change pixels or to change retrieval settings
 
-% This script uses my own TBLUT algorithm as the apriori values
+% This script retrieves 4 variables: r_top, r_bot, tau_c, and cwvs
 
 
 
@@ -262,10 +262,8 @@ disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newlin
 %% CREATE GAUSS-NEWTON INPUTS
 
 % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-% GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
 
-% Create inputs to retrieve r_top, r_middle, r_bot, tau_c, cwv
-GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver3(simulated_measurements);
 
 disp('Dont forget to check the inputs and change if needed!!')
 
@@ -288,10 +286,8 @@ GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the col
 use_TBLUT_estimates = true;
 
 % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-% GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
-% Create inputs to retrieve r_top, r_middle, r_bot, tau_c, cwv
-GN_inputs = create_model_prior_covariance_HySICS_ver3(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
 GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
 
