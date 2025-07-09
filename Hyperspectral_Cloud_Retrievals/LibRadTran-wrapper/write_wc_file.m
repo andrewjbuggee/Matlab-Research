@@ -106,6 +106,11 @@
 %   If many fiels are written in a for loop, each file will be tagged with
 %   the number in the loop.
 
+%   (13) num_re_parameters - There can be 1 free droplet size parameter for 
+%   homogeneous clouds, or 2/3 for inhomogeneous clouds. For inhomogeneous,
+%   there are either 2 free parameters (re_top and re_bot)
+%   or 3 (re_top, re_middle, and re_bot)
+
 
 % OUTPUTS:
 %   (1) .Dat file saved in the libRadTran folder:
@@ -120,7 +125,7 @@
 
 function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type,...
     distribution_var, vert_homogeneous_str, parameterization_str, ind_var, compute_weighting_functions,...
-    computer_name, index)
+    computer_name, index, num_re_parameters)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -942,14 +947,46 @@ for nn = 1:num_files_2write
         % create the water cloud file name
         if index==0
 
-            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
-                '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+            if num_re_parameters==2
+
+                % print top and bottom
+
+                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+
+            elseif num_re_parameters==3
+
+                % print top, middle and bottom
+                % find the cloud middle
+                [~, idx_middle] = min(abs(z - ((max(z) - min(z))/2 + min(z)) ) );
+
+                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)), '_rmid', num2str(round(re(idx_middle,nn),3)),...
+                    '_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+
+            end
 
 
         elseif index>0
 
+            if num_re_parameters==2
+
+                % print top and bottom
+
             fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
                 '_', distribution_type,'_nn',num2str(index), '.DAT'];
+
+            elseif num_re_parameters==3
+
+                % print top, middle and bottom
+                % find the cloud middle
+                [~, idx_middle] = min(abs(z - ((max(z) - min(z))/2 + min(z)) ) );
+
+                fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)), '_rmid',num2str(round(re(idx_middle,nn),3)),...
+                    '_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+                '_', distribution_type,'_nn',num2str(index), '.DAT'];
+
+            end
 
         end
 
@@ -998,7 +1035,6 @@ for nn = 1:num_files_2write
         lwc = 4/3 * (re(nn)*1e-6) * rho_liquid_water * tau_c(nn)./...
             (Qext(nn) * (H(nn)*1e3));                                                % g/m^3 - grams of water per meter cubed of air
 
-        % when assuming a di
         % create the water cloud file name
         if index==0
             fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...

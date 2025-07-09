@@ -78,7 +78,7 @@ loop_var = 0;
 
 wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.lambda_forTau,...
     GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var, GN_inputs.RT.vert_homogeneous_str,...
-    GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer, loop_var);
+    GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer, loop_var, 3);
 wc_filename = wc_filename{1};
 
 % ------------------------------------------------------

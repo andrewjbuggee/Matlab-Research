@@ -1,7 +1,7 @@
-% This script retrieves 4 variables: r_top, r_bot, tau_c, and cwvs
+% This script retrieves 5 variables: r_top, r_middle, r_bot, tau_c, and cwvs
 
 
-function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, hysics, folder_paths)
+function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver3(GN_inputs, hysics, folder_paths)
 
 
 % ----- unpack inputs -----
@@ -116,9 +116,9 @@ for ii = 1:num_iterations
         % Therefore, we ask, 'what is the reflectance of a cloud with our
         % current state vector guess?'
   
-        % For the retrieval of r_top, r_bot, tau_c, cwv
-        measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
 
+        % For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
+        measurement_estimate = compute_forward_model_HySICS_ver3(current_guess, GN_inputs, spec_response, folder_paths);
 
         % compute residual, rss residual, the difference between the
         % iterate and the prior, and the product of the jacobian with
@@ -135,10 +135,10 @@ for ii = 1:num_iterations
 
 
     % **** compute the jacobian ****
-    % For the retrieval of r_top, r_bot, tau_c, cwv
-    Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
-        hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+    % For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
+    Jacobian = compute_jacobian_HySICS_ver3(current_guess, measurement_estimate, GN_inputs,...
+        hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
     diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -250,7 +250,7 @@ for ii = 1:num_iterations
         constrained_measurement_estimate = zeros(num_bands, length(a));
 
         % This loop cannot be a parfor loop because the function within the
-        % loop also uses parfor! compute_forward_model_HySICS_ver2 uses a
+        % loop also uses parfor! compute_forward_model_HySICS_ver3 uses a
         % for loop. You could rewrite this whole loop so ALL constrained
         % guess can run in a single parfor loop...
         for mm = 1:length(a)
@@ -425,7 +425,8 @@ end
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS_ver2(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+% For the retrieval of r_top, r_middle, r_bot, tau_c, cwv
+Jacobian = compute_jacobian_HySICS_ver3(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
