@@ -114,7 +114,7 @@ elseif strcmp(which_computer,'curc')==true
 
         elseif p.NumWorkers<=64 && p.NumWorkers>10
 
-            parpool(p.NumWorkers - 1);
+            parpool(p.NumWorkers);
 
         elseif p.NumWorkers<=10
 
