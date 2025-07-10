@@ -205,8 +205,12 @@ elseif numel(re_topBottom)==3
 
 
         % boundary conditions for r as a function of tau
-        a0 = @(x) re_topBottom(1)^(2 + 3/x);
-        a1 = @(x) re_topBottom(1)^(2 + 3/x) - re_topBottom(2)^(2 + 3/x);
+        a0_baseMiddle = re_topBottom(2);
+        a0_middleTop = re_topBottom(1);
+
+        a1_baseMiddle = re_topBottom(2) - re_topBottom(3);
+        a1_middleTop = re_topBottom(1) - re_topBottom(2);
+
 
         % boundary conditions for r as a function of z
 
@@ -223,8 +227,22 @@ elseif numel(re_topBottom)==3
 
         if strcmp(independentVariable,'optical_depth')==true
 
-            
-            re = (a0(x) - a1(x)*(zT./zT(end))).^(x/(2*x + 3));
+
+            tau_c = max(zT);
+            half_tauC = tau_c/2;
+            [~, idx_half_tauC] = min(abs(zT - half_tauC));
+
+            % This computes the droplet profile from cloud base to cloud
+            % middle
+            re_middleToBase = a0_baseMiddle - a1_baseMiddle * (zT(1:idx_half_tauC)./zT(idx_half_tauC));
+
+            re_topToMiddle = a0_middleTop - a1_middleTop * ((zT(idx_half_tauC:end) - zT(idx_half_tauC))./(zT(end)-zT(idx_half_tauC)));
+
+
+            % combine these! And don't forgot to skip the repeated value at
+            % cloud middle
+            % ** This vector starts at cloud top (largest value)
+            re = [re_topToMiddle, re_middleToBase(2:end)]; % microns
 
 
         elseif strcmp(independentVariable,'altitude')==true
