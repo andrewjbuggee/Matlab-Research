@@ -99,7 +99,9 @@ parfor ww = 1:size(wavelengths2run,1)
 
     % define the input file name
     inputFileName = [num2str(mean(wavelengths2run(ww,:))), '_','nm_rTop_', num2str(r_top),...
-        '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud), '.INP'];
+        '_rMid_', num2str(r_middle), '_rBot_', num2str(r_bottom),...
+        '_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud), '.INP'];
+
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
