@@ -298,7 +298,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         temp = write_wc_file(re, changing_variables(idx_unique_indVars(nn), 3),...
             inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, idx_unique_indVars(nn));
+            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+            idx_unique_indVars(nn), inputs.RT.num_re_parameters);
 
         temp_names{nn} = temp{1};
 
@@ -311,33 +312,79 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 
     % Now write all the INP files
-    parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+    % Now write all the INP files
+    if inputs.RT.num_re_parameters==2
+
+        parfor nn = 1:num_INP_files
+            % for nn = 1:num_INP_files
 
 
-        % set the wavelengths for each file
-        wavelengths = changing_variables(nn, end-2:end-1);
+            % set the wavelengths for each file
+            wavelengths = changing_variables(nn, end-2:end-1);
 
-        % ------------------------------------------------
-        % ---- Define the input and output filenames! ----
-        % ------------------------------------------------
-        % input_names need a unique identifier. Let's give them the nn value so
-        % they can be traced, and are writen over in memory
-
-
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
-            '_rBot_', num2str(changing_variables(nn,2)),'_tauC_', num2str(changing_variables(nn,3)), '_',...
-            inputs.RT.atm_file(1:end-4),'.INP'];
+            % ------------------------------------------------
+            % ---- Define the input and output filenames! ----
+            % ------------------------------------------------
+            % input_names need a unique identifier. Let's give them the nn value so
+            % they can be traced, and are writen over in memory
 
 
+            inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
+                '_rBot_', num2str(changing_variables(nn,2)),'_tauC_', num2str(changing_variables(nn,3)), '_',...
+                inputs.RT.atm_file(1:end-4),'.INP'];
 
-        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
 
 
-        % ------------------ Write the INP File --------------------
-        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-            wavelengths, wc_filename{nn});
+            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
 
+
+            % ------------------ Write the INP File --------------------
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+                wavelengths, wc_filename{nn});
+
+
+        end
+
+
+
+
+    elseif inputs.RT.num_re_parameters==3
+
+
+
+        parfor nn = 1:num_INP_files
+            % for nn = 1:num_INP_files
+
+
+            % set the wavelengths for each file
+            wavelengths = changing_variables(nn, end-2:end-1);
+
+            % ------------------------------------------------
+            % ---- Define the input and output filenames! ----
+            % ------------------------------------------------
+            % input_names need a unique identifier. Let's give them the nn value so
+            % they can be traced, and are writen over in memory
+
+
+            inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
+                '_rMiddle_', num2str(changing_variables(nn,2)), '_rBot_', num2str(changing_variables(nn,3)),...
+                '_tauC_', num2str(changing_variables(nn,4)), '_', inputs.RT.atm_file(1:end-4),'.INP'];
+
+
+
+            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+            % ------------------ Write the INP File --------------------
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+                wavelengths, wc_filename{nn});
+
+
+        end
+
+    else
+
+        error([newline, 'How many free parameters are used to model the droplet profile?', newline])
 
     end
 
