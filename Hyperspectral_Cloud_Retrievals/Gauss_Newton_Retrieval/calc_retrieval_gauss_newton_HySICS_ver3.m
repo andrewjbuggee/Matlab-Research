@@ -237,6 +237,9 @@ for ii = 1:num_iterations
 
 
     else
+        
+
+        disp([newline, 'Computing new direction using predefined constraints...', newline])
 
         % We want to make sure the new step is within the feasible
         % range, not at the boundaries. So we only accept a values that
@@ -347,10 +350,10 @@ for ii = 1:num_iterations
 
 
     if new_guess(3)>25
-        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 20 \mum'])
+        disp([newline,'r_bottom = ',num2str(new_guess(3)),'. Set to 20 \mum'])
         new_guess(3) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
     elseif new_guess(3)<3.5
-        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 3.5 \mum'])
+        disp([newline,'r_bottom = ',num2str(new_guess(3)),'. Set to 3.5 \mum'])
         new_guess(3) = 3.5; % microns
     end
 

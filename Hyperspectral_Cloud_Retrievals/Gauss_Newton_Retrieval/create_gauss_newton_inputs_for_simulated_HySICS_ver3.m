@@ -110,6 +110,9 @@ GN_inputs.measurement.covariance_type = 'independent';
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------
 
+% we model two free parameters, r_top, r_middle and r_bot
+GN_inputs.RT.num_re_parameters = 3;
+
 % we have to assume a vertical profile of droplet size with cloud optical
 % depth exsists. And we only retrieve the droplet size at the top and
 % bottom. This is the method of King and Vaughn (2012)

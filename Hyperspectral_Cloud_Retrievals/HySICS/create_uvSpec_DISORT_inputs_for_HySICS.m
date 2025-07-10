@@ -473,7 +473,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % --------- NON-HOMOGENOUS CLOUD -------------
 
-        if isfield(inputs.model.profile, 'r_middle')==false
+        if inputs.RT.num_re_parameters==2
 
             % For a cloud with a nonconstant droplet profile
             % constraint - the physical constraint (string) - there are four
@@ -521,9 +521,11 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
 
-        else
+        elseif inputs.RT.num_re_parameters==3
 
             % We have three variables, r_top, r_middle, and r_bot
+
+            inputs.RT.profile_type = 'linear_with_tau'; % type of water droplet profile
 
             % ** Values used in Platnick (2000) **
             % inputs.RT.r_top = 12;     % microns
@@ -536,9 +538,13 @@ if strcmp(sim_meas_likeness, 'exact')==true
             inputs.RT.r_bot = 5.3192;     % microns
             inputs.RT.tau_c = 6.1312;
 
+   
 
-            inputs.RT.profile_type = 'linear_with_tau'; % type of water droplet profile
 
+        else
+
+            error([newline, 'I need to know the number of free parameters defining the droplet profile', newline])
+            
 
         end
 
