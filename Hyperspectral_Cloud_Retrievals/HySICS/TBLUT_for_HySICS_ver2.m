@@ -18,6 +18,7 @@
 
 function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_paths)
 
+disp([newline, 'Computing the TBLUT retrieval...', newline])
 
 
 %% Create an input structure that helps write the INP files

@@ -473,16 +473,16 @@ idx_nans = find(isnan(retrieval(3,:)));
 
 if isempty(idx_nans)~=true
 
-    GN_output.tau_vector = linspace(0, retrieval(3,idx_nans(1)-1), 100);
+    GN_output.tau_vector = linspace(0, retrieval(4,idx_nans(1)-1), 100);
 
-    GN_output.re_profile = create_droplet_profile2([retrieval(1,idx_nans(1)-1), retrieval(2,idx_nans(1)-1)],...
+    GN_output.re_profile = create_droplet_profile2([retrieval(1,idx_nans(1)-1), retrieval(2,idx_nans(1)-1), retrieval(3,idx_nans(1)-1)],...
         GN_output.tau_vector, 'optical_depth', GN_inputs.model.profile.type);
 
 else
 
-    GN_output.tau_vector = linspace(0, retrieval(3, end), 100);
+    GN_output.tau_vector = linspace(0, retrieval(4, end), 100);
 
-    GN_output.re_profile = create_droplet_profile2([retrieval(1, end), retrieval(2, end)],...
+    GN_output.re_profile = create_droplet_profile2([retrieval(1, end), retrieval(2, end), retrieval(3, end)],...
         GN_output.tau_vector, 'optical_depth', GN_inputs.model.profile.type);
 
 

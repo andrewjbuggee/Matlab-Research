@@ -14,6 +14,8 @@
 function measurement_estimate = compute_forward_model_HySICS_ver3(current_guess, GN_inputs, spec_response, folder_paths)
 
 
+disp([newline, 'Estimating spectral measurements...', newline])
+
 % --- compute the forward model at our current estimate ---
 r_top = current_guess(1);
 r_middle = current_guess(2);

@@ -280,6 +280,8 @@ GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
 GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
+% 
+
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
 
 % I don't need anything but the covariance matrix and the expected values

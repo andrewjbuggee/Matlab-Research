@@ -53,11 +53,12 @@ waterVapor_column = atm(:, 7);
 % convert water vapor densities to m^(-3)
 waterVapor_column = waterVapor_column * 1e6;  % molecules/m^3
 
+
 %% Solve for the scalar value that alters the above cloud column water vapor amount
 
 % First, interpolate the profile so that the cloud top height and the
 % sensor altitude are included
-if ischar(inputs.RT.sensor_altitude) & strcmp(inputs.RT.sensor_altitude, 'toa')==true
+if ischar(inputs.RT.sensor_altitude) && strcmp(inputs.RT.sensor_altitude, 'toa')==true
 
     new_z = sort([z; inputs.RT.z_topBottom(1)*1e3], 'descend');  % m
 

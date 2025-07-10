@@ -190,6 +190,9 @@ if numel(re_topBottom)==2
 
 
 
+
+
+
 % For the retrieval of r_top, r_middle, r_bot
 elseif numel(re_topBottom)==3
 
@@ -220,6 +223,7 @@ elseif numel(re_topBottom)==3
 
         if strcmp(independentVariable,'optical_depth')==true
 
+            
             re = (a0(x) - a1(x)*(zT./zT(end))).^(x/(2*x + 3));
 
 
