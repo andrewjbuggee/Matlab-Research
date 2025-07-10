@@ -177,14 +177,14 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variable
 new_measurement_estimate = zeros(num_INP_files, 1);
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
     % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(changing_variables(nn, 1)),...
-             '_rMid_', num2str(changing_variables(nn, 2)), '_rBot_', num2str(changing_variables(nn, 3)),'_tauC_',...
-             num2str(changing_variables(nn, 4)), '_CWV_', num2str(changing_variables(nn, 5)),...
-            '.INP'];
+    inputFileName = [num2str(mean(changing_variables(nn, 6:7))), '_','nm_rTop_', num2str(changing_variables(nn, 1)),...
+        '_rMid_', num2str(changing_variables(nn, 2)), '_rBot_', num2str(changing_variables(nn, 3)),'_tauC_',...
+        num2str(changing_variables(nn, 4)), '_CWV_', num2str(changing_variables(nn, 5)),...
+        '.INP'];
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
