@@ -294,8 +294,7 @@ save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_mea
 
 %% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
 
-modis_pixel_2_plot = 1;
-plot_vocalsRex_with_MODIS_retrieved_re_and_vertProf_retrieval(vocalsRex, modis, modisInputs, GN_outputs, GN_inputs, modis_pixel_2_plot)
+plot_HySICS_retrieved_and_simualted_vertProf(simulated_measurements, GN_outputs, GN_inputs, tblut_retrieval)
 
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS

@@ -232,6 +232,8 @@ for ii = 1:num_iterations
 
     else
 
+        disp([newline, 'Computing new direction using predefined constraints...', newline])
+
         % We want to make sure the new step is within the feasible
         % range, not at the boundaries. So we only accept a values that
         % are less than the max a value.

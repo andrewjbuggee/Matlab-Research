@@ -119,6 +119,9 @@ inputs.RT.waterVapor_column = 20;    % mm
 
 inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
 
+% determine the above cloud column water vapor amount
+inputs.RT.aboveCloud_cwv = aboveCloud_CWV_simulated_hysics_spectra(inputs);
+
 
 %% Write each INP file
 

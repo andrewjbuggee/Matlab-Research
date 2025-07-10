@@ -18,6 +18,7 @@
 
 function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_paths)
 
+disp([newline, 'Computing the TBLUT retrieval...', newline])
 
 
 %% Create an input structure that helps write the INP files
@@ -108,7 +109,7 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1));
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1);
 
         temp_names{nn} = temp{1};
 
