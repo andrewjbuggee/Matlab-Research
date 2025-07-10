@@ -105,6 +105,9 @@ GN_inputs.measurement.covariance_type = 'independent';
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------
 
+% we model two free parameters, r_top and r_bot
+GN_inputs.RT.num_re_parameters = 2;
+
 % we have to assume a vertical profile of droplet size with cloud optical
 % depth exsists. And we only retrieve the droplet size at the top and
 % bottom. This is the method of King and Vaughn (2012)
@@ -159,8 +162,13 @@ GN_inputs.save_calcs_fileName = ['uvspec_GaussNewton_calcs_',date,'.mat'];
 % Use geometry inputs from the simulated measurements
 load_parameters_from_measurement = true;
 
+% how similar should the forward model be to the simulated measurements?
+% options: (1) 'exact'  (2) 'subset'
+
+simulated_measurements_likeness = 'exact';
+
 [GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements);
+    simulated_measurements, simulated_measurements_likeness);
 
 
 
