@@ -215,13 +215,13 @@ elseif strcmp(which_computer,'curc')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
     % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    %filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
 
 
     % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
     % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1.mat';
+%     filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1.mat';
 
 
 
