@@ -481,12 +481,27 @@ end
 
 % -------------------------------------------------------------
 % ------ Compute the retrieval covariance for each channel ----
-posterior_cov_perChannel = zeros(num_parameters, num_parameters, num_bands);
-posterior_cov_perChannel(:,:,1) = model_cov;
+% Which channels have the highest information content above that of the a priori?
 
-for nn = 1:num_bands
-    
-    posterior_cov_perChannel(:,:, nn) = [];
+
+
+H_above_aPriori = zeros(num_parameters, num_bands);
+
+parfor nn = 1:num_bands
+
+    posterior_cov_perChannel_above_apriori = [];
+
+    % The retrieval covariance using only the model covaraince
+    posterior_cov_perChannel_above_apriori = model_cov - (model_cov * Jacobian(nn,:)')*(model_cov * Jacobian(nn,:)')' /...
+        (1 + (model_cov * Jacobian(nn,:)')' * Jacobian(nn,:)');
+
+    dH = [];
+
+    % The change in information content from the model a priori for each channel 
+    dH = 1/2 * (log2(model_cov) - log2(posterior_cov_perChannel_above_apriori));
+
+    % Let's grab just the main diagonal components and take the square root
+    H_above_aPriori(:, nn) = sqrt(diag(dH));
 
 end
 
@@ -501,6 +516,8 @@ GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;
 GN_output.Jacobian_final = Jacobian;
+GN_output.H_above_aPriori = H_above_aPriori;
+
 
 
 

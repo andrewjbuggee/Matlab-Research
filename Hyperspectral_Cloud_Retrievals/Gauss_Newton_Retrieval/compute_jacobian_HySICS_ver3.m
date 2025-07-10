@@ -174,8 +174,8 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variable
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
-% parfor nn = 1:num_INP_files
-for nn = 1:num_INP_files
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
 
     % define the input file name
