@@ -487,7 +487,7 @@ end
 
 H_above_aPriori = zeros(num_parameters, num_bands);
 
-parfor nn = 1:num_bands
+for nn = 1:num_bands
 
     posterior_cov_perChannel_above_apriori = [];
 

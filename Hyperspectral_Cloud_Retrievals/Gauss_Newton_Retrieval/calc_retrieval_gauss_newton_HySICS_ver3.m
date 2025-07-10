@@ -171,10 +171,12 @@ for ii = 1:num_iterations
     % is the value of the second row.
     % find the maximum a where this is satisfied
     [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-        constrained_guesses(1,:)<=30 & ...
+        constrained_guesses(2,:)>=constrained_guesses(3,:) & ...
+        constrained_guesses(1,:)<=25 & ...
         constrained_guesses(2,:)>0   & ...
         constrained_guesses(3,:)>0   & ...
-        constrained_guesses(4,:)>0));
+        constrained_guesses(4,:)>0  & ...
+        constrained_guesses(5,:)>0));
 
     % if the maximum value of a is 0, then there is no solution space
     % with the current Gauss-Newton direction that will result in r_top
@@ -332,11 +334,20 @@ for ii = 1:num_iterations
     end
 
     if new_guess(2)>25
-        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 20 \mum'])
+        disp([newline,'r_middle = ',num2str(new_guess(2)),'. Set to 20 \mum'])
         new_guess(2) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
     elseif new_guess(2)<3.5
-        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 3.5 \mum'])
+        disp([newline,'r_middle = ',num2str(new_guess(2)),'. Set to 3.5 \mum'])
         new_guess(2) = 3.5; % microns
+    end
+
+
+    if new_guess(3)>25
+        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 20 \mum'])
+        new_guess(3) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+    elseif new_guess(3)<3.5
+        disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 3.5 \mum'])
+        new_guess(3) = 3.5; % microns
     end
 
 
@@ -482,12 +493,24 @@ end
 
 % -------------------------------------------------------------
 % ------ Compute the retrieval covariance for each channel ----
-posterior_cov_perChannel = zeros(num_parameters, num_parameters, num_bands);
-posterior_cov_perChannel(:,:,1) = model_cov;
+
+H_above_aPriori = zeros(num_parameters, num_bands);
 
 for nn = 1:num_bands
-    
-    posterior_cov_perChannel(:,:, nn) = [];
+
+    posterior_cov_perChannel_above_apriori = [];
+
+    % The retrieval covariance using only the model covaraince
+    posterior_cov_perChannel_above_apriori = model_cov - (model_cov * Jacobian(nn,:)')*(model_cov * Jacobian(nn,:)')' /...
+        (1 + (model_cov * Jacobian(nn,:)')' * Jacobian(nn,:)');
+
+    dH = [];
+
+    % The change in information content from the model a priori for each channel 
+    dH = 1/2 * (log2(model_cov) - log2(posterior_cov_perChannel_above_apriori));
+
+    % Let's grab just the main diagonal components and take the square root
+    H_above_aPriori(:, nn) = sqrt(diag(dH));
 
 end
 
@@ -502,7 +525,7 @@ GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;
 GN_output.Jacobian_final = Jacobian;
-
+GN_output.H_above_aPriori = H_above_aPriori;
 
 
 
