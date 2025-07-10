@@ -103,6 +103,11 @@ delete([inputs.folderpath_inp, '*.OUT'])
 
 
 
+%% Do you want to model 2 parameters for the droplet profile (r_top and r_bot)
+% or 3 (r_top, r_middle, r_bot)
+
+inputs.RT.num_re_parameters = 2;
+
 %% ---- First, let's simulate water clouds ----
 
 
@@ -187,7 +192,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
             changing_variables(idx_unique_indVars(nn), 2),inputs.RT.z_topBottom,...
             inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, idx_unique_indVars(nn));
+            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+            idx_unique_indVars(nn), inputs.RT.num_re_parameters);
 
         temp_names{nn} = temp{1};
 
