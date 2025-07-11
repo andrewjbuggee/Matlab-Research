@@ -768,8 +768,8 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    warning([newline, 'No folder to store things in!', newline])
-
+    
+    inputs.folderpath_2save = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/weighting_functions/';
 
 
 end
