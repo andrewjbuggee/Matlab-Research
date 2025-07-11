@@ -175,10 +175,10 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
         % and other gaseous absorbers
-        % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-        %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-        %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-        %     618, 620, 623, 625]';
+        inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+            222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+            426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+            618, 620, 623, 625]';
 
 
         % Using all 35 spectral channels above that avoid water vapor and other
@@ -193,11 +193,11 @@ if strcmp(sim_meas_likeness, 'exact')==true
         % Using almost all 35 spectral channels above that avoid water vapor and other
         % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
         % features for a total of 66 bands
-        inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-            198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
-            346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-            462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-            543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
+%         inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+%             198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+%             346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+%             462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+%             543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
 
 
 
@@ -831,7 +831,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
     % Using measurements from the AMSR2 instrument, a passive microwave
     % radiometer for 17 Jan 2024
-    inputs.RT.modify_total_columnWaterVapor = false;
+    inputs.RT.modify_total_columnWaterVapor = true;
 
     inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
     % ------------------------------------------------------------------------
@@ -842,7 +842,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
     % -------- Write a custom water vapor profile for above cloud -----------
 
     % Alter the above cloud column water vapor amount
-    inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+    inputs.RT.modify_aboveCloud_columnWaterVapor = false;
 
 
     % ------------------------------------------------------------------------
