@@ -1,0 +1,91 @@
+[AB] Hello, could you help me understand a paper? I've uploaded it. I've been trying to implement section 3 into MATLAB code, but my results don't look right.
+
+I'd be happy to help you understand this paper and troubleshoot your MATLAB implementation! This is a classic paper by Clive Rodgers on information content and optimization for high spectral resolution measurements.
+
+Looking at Section 3, the key concepts for implementation are:
+
+## Core Theory
+The paper describes two approaches for sequential channel selection:
+1. **Forward selection**: Start with no channels, add the one that maximizes the figure of merit
+2. **Backward elimination**: Start with all channels, remove the one that degrades the figure of merit least
+
+## Key Equations for Implementation
+
+**Sequential update of retrieval covariance (Equation 10):**
+```
+S_i^(-1) = S_(i-1)^(-1) + k_i * k_i^T / σ_i^2
+```
+
+**Alternative form (Equation 11):**
+```
+S_i = S_(i-1) - S_(i-1) * k_i * k_i^T * S_(i-1) / (1 + k_i^T * S_(i-1) * k_i)
+```
+
+**Information content change (Equation 13):**
+```
+δS_i = ln(1 + k_i^T * S_(i-1) * k_i)
+```
+
+**Degrees of freedom change (Equation 15):**
+```
+δd_s = (S_(i-1) * k_i)^T * (S_(i-1) * k_i) / (1 + k_i^T * S_(i-1) * k_i)
+```
+
+## Common Implementation Issues
+
+1. **Matrix dimensions**: Ensure K is m×n (measurements × state)
+2. **Initialization**: Start with S_0 = S_a (prior covariance)
+3. **Noise handling**: The measurement error covariance S_ε should be diagonal
+4. **Numerical stability**: Use the Sherman-Morrison formula carefully
+
+Could you share:
+1. What specific results look wrong?
+2. A snippet of your MATLAB code?
+3. What figures of merit you're computing?
+
+This will help me identify where the implementation might be going astray!
+
+
+[AB] I've attached some code. I'm confused why the first block that computes H sequentially is the same as the second block that computes H_above_aPriori
+
+Great question! Looking at your code, I can see the issue. The problem is in how you're computing the information content change. Let me explain what's happening and how to fix it.
+
+## The Problem
+
+Your first block is supposed to compute **sequential** information content (how much each additional channel adds given the previous channels), but your second block computes **individual** information content (how much each channel adds relative to the prior alone).
+
+However, both blocks are actually computing the same thing because of how you're calculating the information content change.
+
+## Issues in Your Code
+
+1. **Information content formula**: You're using `1/2 * (log2(S_old) - log2(S_new))` but this should be applied to the determinant, not element-wise to the matrices.
+
+2. **Sequential vs Individual**: The first loop should use the updated covariance from the previous iteration, but you're not properly accumulating the information.
+
+## Corrected Implementation
+
+Here's how to fix it:## Key Differences in the Corrected Code
+
+1. **Proper Information Content Calculation**: Uses `log2(1 + k_i' * S * k_i / σ_i^2)` instead of element-wise matrix logarithms
+
+2. **Sequential vs Individual**: 
+   - **Sequential**: Each channel's contribution depends on what was selected before
+   - **Individual**: Each channel's contribution relative to the prior only
+
+3. **Covariance Update**: Uses the Sherman-Morrison formula correctly for rank-1 updates
+
+4. **Measurement Error**: Properly incorporates the measurement error variance `σ_i^2`
+
+## Expected Results
+
+- **Individual information content**: Should show which channels contain the most information relative to the prior (like the upper curve in Figure 1 of the paper)
+- **Sequential information content**: Should decrease as you add more channels, because each additional channel provides less new information
+- **Cumulative information content**: Should increase logarithmically with the number of channels (as mentioned in the paper)
+
+## Additional Notes
+
+1. Make sure your `measurement_cov` matrix is properly defined and diagonal
+2. The Jacobian should be organized as `[num_channels × num_parameters]`
+3. Consider implementing the channel selection algorithm from Section 3 to reproduce Figure 2 from the paper
+
+Does this help clarify the difference and fix your implementation?
