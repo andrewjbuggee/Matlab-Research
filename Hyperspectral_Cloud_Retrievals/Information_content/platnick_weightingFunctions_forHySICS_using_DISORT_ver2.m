@@ -665,7 +665,7 @@ if inputs.RT.monochromatic_calc==true
 
         [~,idx2plot] = min(abs(inputs.RT.wavelengths2run(:,1) - wl_2plot(ww)));
 
-        plot(f(:,idx2plot), tau_midPoint, 'Color', mySavedColors(ww, 'fixed'), 'LineStyle', '-')
+        plot(f(:,idx2plot), tau_midPoint, 'LineStyle', '-')
 
         hold on
 
