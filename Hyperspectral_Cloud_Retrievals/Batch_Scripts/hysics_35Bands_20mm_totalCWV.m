@@ -34,7 +34,7 @@ folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyp
 
 % ---- Define where the retrievals will be stored ---
 folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-    'HySICS/Droplet_profile_retrievals/'];
+    'HySICS/Droplet_profile_retrievals'];
 
 % Define the folder path where all .INP files will be saved
 folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
@@ -65,7 +65,7 @@ delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 % ------ Folders on the CU Super Computer --------
 % ------------------------------------------------
 
-filename = 'simulated_measurement_HySICS_reflectance_35-nonWaterVaporBands_10mm_total-WV-content_sim-ran-on-11-Jul-2025.mat';
+filename = 'simulated_measurement_HySICS_reflectance_35-nonWaterVaporBands_20mm_total-WV-content_sim-ran-on-11-Jul-2025.mat';
 
 
 
