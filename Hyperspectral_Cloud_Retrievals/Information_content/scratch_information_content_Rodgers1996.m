@@ -1,13 +1,16 @@
 % -------------------------------------------------------------
 % ------ Compute the retrieval covariance for each channel ----
-posterior_cov_perChannel = zeros(num_parameters, num_parameters, num_bands+1);
+posterior_cov_perChannel = zeros(GN_inputs.num_model_parameters, GN_inputs.num_model_parameters,...
+                                numel(GN_inputs.bands2run)+1);
+
 posterior_cov_perChannel(:,:,1) = model_cov;
 
-dH = zeros(num_parameters, num_parameters, num_bands);
+dH = zeros(GN_inputs.num_model_parameters, GN_inputs.num_model_parameters,...
+                                numel(GN_inputs.bands2run));
 
-H = zeros(num_parameters, num_bands);
+H = zeros(GN_inputs.num_model_parameters, numel(GN_inputs.bands2run));
 
-for nn = 2:(num_bands+1)
+for nn = 2:(numel(GN_inputs.bands2run)+1)
 
     
     % The retrieval covariance for channels 1:nn
@@ -26,7 +29,7 @@ end
 
 
 % plot the change in bits for each channel and each parameter
-figure; plot(mean(GN_inputs.RT.wavelengths2run, 2), H, '.-', 'MarkerSize', 20, 'LineWidth', 1.5)
+figure; plot(mean(GN_inputs.RT.wavelengths2run, 2), GN_outputs.H_above_aPriori, '.-', 'MarkerSize', 20, 'LineWidth', 1.5)
 grid on; grid minor
 xlabel('Spectral Channel')
 ylabel('Change in bits')

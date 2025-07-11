@@ -330,7 +330,12 @@ if ~exist(folder_paths.HySICS_retrievals, 'dir')
 
 end
 
+if exist(folder_paths.saveOutput_filename, 'file')==true
+    % append
+    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
-save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
+else
+    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths");
 
+end
 
