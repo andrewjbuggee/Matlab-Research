@@ -1,7 +1,7 @@
-% This script retrieves 4 variables: r_top, r_bot, and tau_c
+% This script retrieves 4 variables: r_top, r_bot, tau_c, and cwvs
 
 
-function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, hysics, folder_paths)
+function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, hysics, folder_paths)
 
 
 % ----- unpack inputs -----
@@ -116,8 +116,8 @@ for ii = 1:num_iterations
         % Therefore, we ask, 'what is the reflectance of a cloud with our
         % current state vector guess?'
   
-        % For the retrieval of r_top, r_bot, tau_c
-        measurement_estimate = compute_forward_model_HySICS(current_guess, GN_inputs, spec_response, folder_paths);
+        % For the retrieval of r_top, r_bot, tau_c, cwv
+        measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
 
 
         % compute residual, rss residual, the difference between the
@@ -135,8 +135,8 @@ for ii = 1:num_iterations
 
 
     % **** compute the jacobian ****
-    % For the retrieval of r_top, r_bot, tau_c
-    Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
+    % For the retrieval of r_top, r_bot, tau_c, cwv
+    Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
         hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -173,7 +173,8 @@ for ii = 1:num_iterations
     [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
         constrained_guesses(1,:)<=30 & ...
         constrained_guesses(2,:)>0   & ...
-        constrained_guesses(3,:)>0));
+        constrained_guesses(3,:)>0   & ...
+        constrained_guesses(4,:)>0));
 
     % if the maximum value of a is 0, then there is no solution space
     % with the current Gauss-Newton direction that will result in r_top
@@ -203,7 +204,7 @@ for ii = 1:num_iterations
 
         % Use the new guess to compute the rss residual, which is used
         % to detmerine convergence
-        new_measurement_estimate = compute_forward_model_HySICS(new_guess, GN_inputs, spec_response, folder_paths);
+        new_measurement_estimate = compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths);
         residual(:,ii+1) = measurements - new_measurement_estimate;
         rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
@@ -251,7 +252,7 @@ for ii = 1:num_iterations
         constrained_measurement_estimate = zeros(num_bands, length(a));
 
         % This loop cannot be a parfor loop because the function within the
-        % loop also uses parfor! compute_forward_model_HySICS uses a
+        % loop also uses parfor! compute_forward_model_HySICS_ver2 uses a
         % for loop. You could rewrite this whole loop so ALL constrained
         % guess can run in a single parfor loop...
         for mm = 1:length(a)
@@ -262,7 +263,7 @@ for ii = 1:num_iterations
             if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                     constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS(constrained_guesses(:,mm),...
+                constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(constrained_guesses(:,mm),...
                     GN_inputs, spec_response, folder_paths);
 
             else
@@ -426,7 +427,7 @@ end
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_ver2(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);

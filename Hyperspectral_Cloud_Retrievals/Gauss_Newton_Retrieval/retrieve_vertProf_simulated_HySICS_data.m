@@ -138,19 +138,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % r_top = 9.5, r_bot = 4, tau_c = 6
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20;
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
-    
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
-    % Bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
-    
-    
+    filename = 'simulated_measurement_HySICS_reflectance_35Bands_no_H2O_sim-ran-on-05-Jun-2025_rev1.mat';
     
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
@@ -186,7 +174,7 @@ toc
 %% CREATE GAUSS-NEWTON INPUTS
 
 % We use the estimates calcualted by the TBLUT as our a priori
-GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements);
 disp('Dont forget to check the inputs and change if needed!!')
 
 
@@ -202,7 +190,7 @@ disp('Dont forget to check the inputs and change if needed!!')
 
 use_TBLUT_estimates = true;
 
-GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+GN_inputs = create_model_prior_covariance_HySICS(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
 GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
 

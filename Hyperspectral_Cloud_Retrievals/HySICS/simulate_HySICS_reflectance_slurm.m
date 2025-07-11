@@ -1,5 +1,4 @@
 %% Create simulated HySICS measurements
-% Include Gaussian random noise
 
 
 % By Andrew John Buggee
