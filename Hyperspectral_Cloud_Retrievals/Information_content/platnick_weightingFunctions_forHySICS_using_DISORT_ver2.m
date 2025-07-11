@@ -31,6 +31,9 @@ if strcmp(inputs.which_computer,'anbu8374')==true
     % the INP files for libRadtran
     inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
 
+    % water cloud file location
+    inputs.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
+
 
 
 
@@ -52,6 +55,10 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
     inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/data/'];
 
+    % water cloud file location
+    inputs.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
 
 
 
@@ -72,6 +79,9 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
     inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+
+    % water cloud file location
+    inputs.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
 end
@@ -101,14 +111,63 @@ end
 delete([inputs.folderpath_inp, '*.INP'])
 delete([inputs.folderpath_inp, '*.OUT'])
 
-
+% delete old wc files
+delete([inputs.water_cloud_folder_path, '*.DAT'])
 
 
 %% Write the INP files
 
+% Set the number of free parameters for the droplet profile
+inputs.RT.num_re_parameters=2;
+
+% how similar should the forward model be to the simulated measurements?
+% options: (1) 'exact'  (2) 'subset'
+simulated_measurements_likeness = 'exact';
 
 % set up the inputs to create an INP file for DISORT!
-[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], simulated_measurements_likeness);
+
+% ----------------------------------------------------------------
+% ******************* Redefine a few settings ********************
+% ----------------------------------------------------------------
+
+% set the calculation type
+inputs.calc_type = 'weighting_functions';
+
+% set the albedo to be 0
+inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
+
+
+% compute monochromatic caluclations and reflectance
+inputs.RT.monochromatic_calc = true;
+inputs.RT.compute_reflectivity_uvSpec = true;
+
+ % ** Values used in Platnick (2000) **
+inputs.RT.r_top = 12;     % microns
+inputs.RT.r_bot = 5;        % microns
+inputs.RT.tau_c = 8;
+
+% set the sensor altitude at cloud top
+inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+
+% Don't modify the total column water vapor
+inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+% Don't modify the above cloud column water vapor
+inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+
+
+% set the geometry
+inputs.RT.sza = 10;           % degree
+inputs.RT.phi0 = 0;         % degree
+inputs.RT.vza = 19;         % values are in degrees;
+inputs.RT.vaz = 210;            % degree
+
+% ----------------------------------------------------------------
+% ----------------------------------------------------------------
+
+
+
+
 
 % ********************************************
 % *** Vary The Optical Thickness Linearly! ***
@@ -212,7 +271,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
             inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer, nn);
+            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+            nn, inputs.RT.num_re_parameters);
 
         wc_filename{nn} = wc_filename_hold{1};
 
@@ -284,7 +344,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         else
 
             write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
+                wavelengths, wc_filename{nn}, [], changing_variables(nn,2), []);
 
         end
 
@@ -764,7 +824,7 @@ re_midPoint = flipud(re(1:end-1) + diff(re)/2);
 
 re_est = zeros(1, size(f,2));
 
-for ww = 1:size(f,2)`
+for ww = 1:size(f,2)
 
     re_est(ww) = trapz(tau_midPoint, re_midPoint .* f(:,ww));
 
