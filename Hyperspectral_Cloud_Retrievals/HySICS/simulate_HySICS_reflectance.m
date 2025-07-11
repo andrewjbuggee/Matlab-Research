@@ -708,7 +708,7 @@ if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
         % There is one state vector computed for a range of wavelengths
         plot(mean(inputs.RT.wavelengths2run,2),Refl_model,...
-            '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(1, 'fixed'))
+            '-', 'linewidth', 3, 'Color', mySavedColors(1, 'fixed'))
 
 
         title('Simulated Reflectance - liquid water cloud','Interpreter', 'latex')
@@ -729,7 +729,7 @@ if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
             plot(mean(inputs.RT.wavelengths2run,2),...
                 reshape(Refl_model(:,r_top_2Plot, r_bot_2Plot, nn), 1, []),...
-                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
+                '-', 'linewidth', 3, 'Color', mySavedColors(nn, 'fixed'))
 
             hold on
 
@@ -746,7 +746,7 @@ if size(inputs.RT.wavelengths2run,1)>1 && size(inputs.RT.wavelengths2run,2)>1
 
             plot(mean(inputs.RT.wavelengths2run,2),...
                 reshape(Refl_model(:,1, 1, nn), length(inputs.bands2run), []),...
-                '.-', 'linewidth', 1, 'markersize', 35, 'Color', mySavedColors(nn, 'fixed'))
+                '-', 'linewidth', 3, 'Color', mySavedColors(nn, 'fixed'))
 
             hold on
 
