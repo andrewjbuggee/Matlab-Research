@@ -258,9 +258,14 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
     wc_filename = cell(num_tau_layers, 1);
 
     % first, let's compute all water cloud files
+    % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
     parfor nn = 1:num_tau_layers
-    % for nn = 1:num_tau_layers
+        % for nn = 1:num_tau_layers
 
+        % Some stuff for CURC debugging
+
+        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+        pause(0.1 * rand());
 
         % -----------------------------------------------
         % ----------- Write a Water Cloud file! ---------
