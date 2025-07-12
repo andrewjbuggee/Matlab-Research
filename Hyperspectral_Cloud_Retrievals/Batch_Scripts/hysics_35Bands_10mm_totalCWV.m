@@ -27,7 +27,7 @@ scriptPlotting_wht;
 % ------------------------------------------------
 
 
-% Define the MODIS folder name
+% Define the HySICS folder name
 
 folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
     'HySICS/Simulated_spectra/'];
@@ -72,7 +72,8 @@ filename = 'simulated_measurement_HySICS_reflectance_35-nonWaterVaporBands_10mm_
 simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
-%%     % *** Start parallel pool ***
+%%  *** Start parallel pool ***
+
 % Is parpool running?
 p = gcp('nocreate');
 if isempty(p)==true

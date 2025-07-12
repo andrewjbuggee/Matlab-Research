@@ -83,13 +83,21 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
-    % Define the MODIS folder name
+    % Define the HySICS folder name
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/HySICS/Simulated_spectra/';
+folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    'HySICS/Simulated_spectra/'];
+
+% ---- Define where the retrievals will be stored ---
+folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    'HySICS/Droplet_profile_retrievals/'];
+
+% Define the folder path where all .INP files will be saved
+folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
 
 
-    % water cloud file location
-    folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+% water cloud file location
+folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
 end
@@ -178,6 +186,33 @@ if isfield(simulated_measurements, 'Refl_model_with_noise')==true
     % Then we're using measurements with noise and we set this to be the
     % Reflectance measurements
     simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
+
+end
+
+
+%%  *** Start parallel pool ***
+
+% Is parpool running?
+p = gcp('nocreate');
+if isempty(p)==true
+
+    % first read the local number of workers avilabile.
+    p = parcluster('local');
+    % start the cluster with the number of workers available
+    if p.NumWorkers>64
+        % Likely the amilan128c partition with 2.1 GB per core
+        % Leave some cores for overhead
+        parpool(p.NumWorkers - 8);
+
+    elseif p.NumWorkers<=64 && p.NumWorkers>10
+
+        parpool(p.NumWorkers);
+
+    elseif p.NumWorkers<=10
+
+        parpool(p.NumWorkers);
+
+    end
 
 end
 
