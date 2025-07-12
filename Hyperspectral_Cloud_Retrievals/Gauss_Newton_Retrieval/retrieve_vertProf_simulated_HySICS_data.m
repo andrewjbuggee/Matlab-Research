@@ -257,8 +257,8 @@ disp('Dont forget to check the inputs and change if needed!!')
 
 %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
-GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-inputs.RT.waterVapor_column = 10;   % mm - milimeters of water condensed in a column
+GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
+GN_inputs.RT.waterVapor_column = 10;   % mm - milimeters of water condensed in a column
 
 GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
 
