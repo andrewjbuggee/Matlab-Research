@@ -55,8 +55,9 @@ waterVapor_column = waterVapor_column * 1e6;  % molecules/m^3
 % define constants
 con = physical_constants;
 
-if inputs.RT.modify_total_columnWaterVapor==true
-
+if isfield(inputs.RT, 'modify_total_columnWaterVapor')==true && inputs.RT.modify_total_columnWaterVapor==true || ...
+        isfield(inputs.RT, 'modify_total_columnWaterVapor') && inputs.RT.modify_total_columnWaterVapor==true
+    
     % if true, then we must scale the profile accordingly
     c = inputs.RT.waterVapor_column / (-(con.Mol_mass_h20_vap/con.N_A) *trapz(z, waterVapor_column));
 

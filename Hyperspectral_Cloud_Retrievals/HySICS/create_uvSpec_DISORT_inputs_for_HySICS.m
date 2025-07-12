@@ -831,7 +831,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
     % Using measurements from the AMSR2 instrument, a passive microwave
     % radiometer for 17 Jan 2024
-    inputs.RT.modify_total_columnWaterVapor = true;
+    inputs.RT.modify_total_columnWaterVapor = false;
 
     inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
     % ------------------------------------------------------------------------

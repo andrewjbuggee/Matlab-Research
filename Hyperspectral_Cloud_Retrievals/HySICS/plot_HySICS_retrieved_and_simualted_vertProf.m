@@ -112,14 +112,28 @@ yl0.LabelHorizontalAlignment = 'left';
 % plot the HySICS simulated above cloud column water vapor
 hysics_CWV_2plot = aboveCloud_CWV_simulated_hysics_spectra(hysics.inputs); % kg/m^2
 
-% plot the retrieved column water vapor
-retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+% plot the retrieved column water vapor if it was retireved
+if size(GN_outputs.retrieval, 1)>3
 
+    retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+    % Print the simulated value and the retrieved value
+    str = ['$CWV_{simulated} = \,$',num2str(round(hysics_CWV_2plot,2)),' $kg/m^{2}$', newline,...
+    '$CWV_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $kg/m^{2}$'];
+
+else
+
+    assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(GN_inputs); % kg/m^2
+
+    % print the simulated value and the foward model assumption
+    str = ['$CWV_{measurements} = \,$',num2str(round(hysics_CWV_2plot,2)),' $kg/m^{2}$', newline,...
+    '$CWV_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $kg/m^{2}$'];
+
+end
 
 
 dim = [.137 .35 .3 .3];
-str = ['$CWV_{simulated} = \,$',num2str(round(hysics_CWV_2plot,2)),' $kg/m^{2}$', newline,...
-    '$CWV_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $kg/m^{2}$'];
+
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])
