@@ -119,7 +119,7 @@ inputs.calc_type = 'simulated_spectra';
 
 %% Set the total column water vapor?
 
-inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
+inputs.RT.modify_total_columnWaterVapor = false;             % modify the full column
 inputs.RT.waterVapor_column = 20;    % mm
 
 inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
@@ -557,8 +557,8 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
 
     elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
 
-        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
+            num2str(numel(inputs.bands2run)), 'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     end
 
@@ -572,7 +572,7 @@ else
 
     elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
 
-        filename = [inputs.folderpath_2save,'simulated_measurement_HySICS_reflectance_',...
+        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
             'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
     end
@@ -599,7 +599,7 @@ save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
 % inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
-inputs.measurement.uncert = 0;
+inputs.measurement.uncert = 0.01;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -649,10 +649,10 @@ if any(inputs.measurement.uncert > 0)
                     'inhomogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
                     '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
 
-            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+            elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
 
-                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_inhomogeneous_droplet_profile_',...
-                    'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
+                filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_', num2str(numel(inputs.bands2run)),...
+                    'bands_with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...
                     char(datetime("today")), '_rev', num2str(ver),'.mat'];
 
             end
@@ -667,7 +667,7 @@ if any(inputs.measurement.uncert > 0)
                     'homogeneous_droplet_profile_with_',num2str(inputs.measurement.uncert(uu)*100),...
                     '%_uncertainty_sim-ran-on-', char(datetime("today")), '_rev', num2str(ver),'.mat'];
 
-            elseif strcmp(inputs.calc_type, 'simulated_measurement')==true
+            elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
 
                 filename = [inputs.folderpath_2save,'simulated_HySICS_reflectance_homogeneous_droplet_profile_',...
                     'with_',num2str(inputs.measurement.uncert(uu)*100), '%_uncertainty_sim-ran-on-',...

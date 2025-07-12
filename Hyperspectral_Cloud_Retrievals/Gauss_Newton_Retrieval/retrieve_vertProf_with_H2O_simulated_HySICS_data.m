@@ -292,7 +292,7 @@ end
 
 save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
-%% PLOT RETRIEVED VERTICAL PROFILE WITH MODIS RETRIEVAL
+%% PLOT RETRIEVED VERTICAL PROFILE WITH TBLUT RETRIEVAL
 
 plot_HySICS_retrieved_and_simualted_vertProf(simulated_measurements, GN_outputs, GN_inputs, tblut_retrieval)
 
