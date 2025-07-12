@@ -49,10 +49,21 @@ elseif strcmp(covariance_type,'independent') == true
     % multiply these percentages with the modis reflectance values to
     % get the uncertainty in reflectance.
 
-    % For now, let's define the measurement uncertainty as 0.3% for all
-    % HySICS spectral bands
-    measurement_uncertainty_percent = 0.01;      % percent!
+    if isfield(simulated_measurements.inputs, 'measurement')==true &&...
+            isfield(simulated_measurements.inputs.measurement, 'uncert')==true
 
+        % use the definine measurement uncertainty. Convert to a percent
+        measurement_uncertainty_percent = simulated_measurements.inputs.measurement.uncert * 100;
+    
+    else
+
+        % If you're not modeling measurement uncertainty, assume a near zero value for all
+        % HySICS spectral bands
+        measurement_uncertainty_percent = 0.01;      % percent!
+
+    end
+
+    % Define the forward model uncertainty
     forward_model_uncertainty = 0.01;               % percent
 
     GN_inputs.measurement.uncertainty = linspace((measurement_uncertainty_percent + forward_model_uncertainty)/100,...

@@ -93,11 +93,11 @@ folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspect
     'HySICS/Droplet_profile_retrievals/'];
 
 % Define the folder path where all .INP files will be saved
-folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
+folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT_2/';
 
 
 % water cloud file location
-folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc_2/';
 
 
 end
@@ -144,7 +144,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % r_top = 9.5, r_bot = 4, tau_c = 6
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_35bands_sim-ran-on-12-Jul-2025_rev1.mat';
+    % filename = 'simulated_measurement_HySICS_reflectance_35Bands_no_H2O_sim-ran-on-05-Jun-2025_rev1.mat';
 
     % r_top = 9.5, r_bot = 4, tau_c = 6, 35 bands from first paper with 1%
     % uncertainty
@@ -257,7 +257,7 @@ disp('Dont forget to check the inputs and change if needed!!')
 
 %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
-GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
 inputs.RT.waterVapor_column = 10;   % mm - milimeters of water condensed in a column
 
 GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
@@ -307,7 +307,7 @@ if ~exist(folder_paths.HySICS_retrievals, 'dir')
 
 end
 
-if exist(folder_paths.saveOutput_filename, 'file')==2
+if exist(folder_paths.saveOutput_filename, 'file')==true
     % append
     save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
