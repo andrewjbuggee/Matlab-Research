@@ -151,6 +151,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % simulated calcs for MODIS obs on fig 3.a for paper 1
     filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
 
+
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
 

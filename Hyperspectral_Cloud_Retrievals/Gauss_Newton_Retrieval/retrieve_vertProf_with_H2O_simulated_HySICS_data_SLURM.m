@@ -196,8 +196,13 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, ALL bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
 
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, 66 bands from first paper with 1%
+    % uncertainty
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
@@ -237,12 +242,24 @@ end
 simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
+% *** Check to see if these measure have added uncertainty or not ***
+
+if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+
+    disp([newline, 'Using measurements with added uncertianty...', newline])
+
+    % Then we're using measurements with noise and we set this to be the
+    % Reflectance measurements
+    simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
+
+end
+
 %% Create the name of the file to save all output to
 
 rev = 1;
 
 folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
 
@@ -307,7 +324,7 @@ tic
 % --------------------------------------------------------------
 % ---------------- Retrieve Vertical Profile! ------------------
 % --------------------------------------------------------------
-[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, simulated_measurements, folder_paths);
+[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
 % --------------------------------------------------------------
 % --------------------------------------------------------------
 
