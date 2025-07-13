@@ -266,7 +266,7 @@ tic
 % --------------------------------------------------------------
 % ---------------- Retrieve Vertical Profile! ------------------
 % --------------------------------------------------------------
-[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, simulated_measurements, folder_paths);
+[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
 % --------------------------------------------------------------
 % --------------------------------------------------------------
 
