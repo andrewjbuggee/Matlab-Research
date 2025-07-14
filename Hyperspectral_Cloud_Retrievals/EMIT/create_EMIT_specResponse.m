@@ -3,7 +3,7 @@
 % By Andrew John Buggee
 
 
-function spec_response = create_EMIT_specResponse(emit, inputs)
+function [inputs, spec_response] = create_EMIT_specResponse(emit, inputs)
 
 
 % -------------------------------------------------------------------
@@ -73,7 +73,7 @@ for ww = 1:length(emit.radiance.wavelength)
 
     % In libRadtran, everything is computed on the source wavelength grid.
     % So if the source is defined at integer values of wavelength (100,
-    % 101, ...), then the computations must be done at those wavelengths 
+    % 101, ...), then the computations must be done at those wavelengths
 
     % Find solar flux wavelength closest to each center wavelength of the
     % EMIT spectrometer
@@ -94,7 +94,25 @@ for ww = 1:length(emit.radiance.wavelength)
     spec_response.value(ww, :) = pdf('Normal', spec_response.wavelength(ww, :), lambda_center, sigma);
 
 
+
+
 end
+
+
+% Now, define the wavelength range for each channel being modeled for EMIT
+% now define the wavelength range of each spectral channel
+inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
+
+for ww = 1:numel(inputs.bands2run)
+
+    % The wavelength vector for libRadTran is simply the lower and upper
+    % bounds
+    inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
+        spec_response.wavelength(ww, end)];
+
+end
+
+
 
 
 end

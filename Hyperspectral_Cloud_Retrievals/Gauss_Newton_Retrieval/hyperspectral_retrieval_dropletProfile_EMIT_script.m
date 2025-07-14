@@ -1,5 +1,8 @@
 %% Optimal estimation of a vertical droplet profile using EMIT data
 
+% Retrieve a droplet profile from EMIT data
+% Use spectral reflectances outside of water vapor bands
+
 
 % By Andrew John Buggee
 
@@ -26,10 +29,18 @@ emitDataFolder = '17_Jan_2024_coast/';
 
 %% Load EMIT data and define folders 
 
-folderpaths = define_EMIT_dataPath_and_saveFolders();
+folder_paths = define_EMIT_dataPath_and_saveFolders();
 
-[emit,L1B_fileName] = retrieveEMIT_data([folderpaths.emitDataPath, emitDataFolder]);
+[emit,L1B_fileName] = retrieveEMIT_data([folder_paths.emitDataPath, emitDataFolder]);
 
+
+%%   Delete old files?
+% First, delete files in the HySICS folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 
 %% Define the pixels to use for the retrieval
 
@@ -112,7 +123,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folderpaths, L1B_fileName, emit);
+GN_inputs = create_gauss_newton_inputs_for_emit(emitDataFolder, folder_paths, L1B_fileName, emit);
 %inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
@@ -120,7 +131,7 @@ inputs = create_emit_inputs_hyperspectral_top_bottom(emitDataFolder, folderpaths
 %% Define the spectral response function of EMIT for the desired Bands
 
 % create the spectral response functions
-emit.spec_response = create_EMIT_specResponse(emit, inputs);
+[GN_inputs, spec_response] = create_EMIT_specResponse(emit, GN_inputs);
 
 
 %% Define the solar source file name and read in the solar source data
@@ -129,12 +140,12 @@ emit.spec_response = create_EMIT_specResponse(emit, inputs);
 % The source flux is integrated with the EMIT spectral response function
 
 % define the source file using the input resolution
-inputs = define_source_for_EMIT(inputs, emit);
+GN_inputs = define_source_for_EMIT(GN_inputs, emit);
 
 
 %% Convert radiance measurements to TOA reflectance for the desired pixels
 
-emit = convert_EMIT_radiance_2_reflectance(emit, inputs);
+emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 
 
 %% Compute the radiance measurement uncertainty 
@@ -144,37 +155,68 @@ emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
 
 %% Compute the reflectance uncertainty
 
-emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, inputs);
+emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, GN_inputs);
 
 % Use the reflectance uncertainty to define the convergence limit
-inputs.convergence_limit = 0.25 * sqrt(mean(emit.reflectance.uncertainty.^2));
+GN_inputs.convergence_limit = 0.25 * sqrt(mean(emit.reflectance.uncertainty.^2));
+
+
+
+
+%%  *** Start parallel pool ***
+
+% Is parpool running?
+p = gcp('nocreate');
+if isempty(p)==true
+
+    % first read the local number of workers avilabile.
+    p = parcluster('local');
+    % start the cluster with the number of workers available
+    if p.NumWorkers>64
+        % Likely the amilan128c partition with 2.1 GB per core
+        % Leave some cores for overhead
+        parpool(p.NumWorkers - 8);
+
+    elseif p.NumWorkers<=64 && p.NumWorkers>10
+
+        parpool(p.NumWorkers);
+
+    elseif p.NumWorkers<=10
+
+        parpool(p.NumWorkers);
+
+    end
+
+end
+
+
 
 
 %% Check the thermodynamic phase of the defined pixels
 
-inputs.cloudPhase = determine_cloud_phase_emit(emit, pixels2use);
+%GN_inputs.cloudPhase = determine_cloud_phase_emit(emit, pixels2use);
 
 
 %% Compute the TBLUT retrieval estimate
 
 tic
-tblut_retrieval = TBLUT_forEMIT(emit, emitDataFolder, folderpaths, pixels2use);
+tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_paths);
 disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
 
 %% Create the Model and Measurement prior
  
 
-inputs = create_model_prior_covariance_EMIT_top_bottom(inputs, pixels2use, tblut_retrieval, true);
+GN_inputs = create_model_prior_covariance_EMIT_top_bottom(GN_inputs, pixels2use, tblut_retrieval, true);
 %inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
 
-inputs = create_EMIT_measurement_covariance(inputs, emit, pixels2use);
+GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit, pixels2use);
 
 
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
 % Compute the retrieval variables
 tic
-[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit ,pixels2use);
+[retrieval, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit ,pixels2use);
 disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
 %[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
@@ -182,17 +224,17 @@ disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', 
 % --- save the output ---
 rev = 1;
 
-filename = [inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName,...
+filename = [GN_inputs.folder2save.reflectance_calcs, GN_inputs.reflectance_calculations_fileName,...
     '_rev', num2str(rev),'.mat'];
 
 while isfile(filename)
     rev = rev+1;
-    filename = [inputs.folder2save.reflectance_calcs, inputs.reflectance_calculations_fileName,...
+    filename = [GN_inputs.folder2save.reflectance_calcs, GN_inputs.reflectance_calculations_fileName,...
     '_rev', num2str(rev),'.mat'];
 end
 
 
-save(filename, "inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
+save(filename, "GN_inputs", "pixels2use", "retrieval", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
 
 
 %% Make plot of the retrieved profile
@@ -208,20 +250,20 @@ plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
 hold on
 
 % plot the emit reflectance versus the forward model computed reflectance
-errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.computed_reflectance,...
-    emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
+errorbar(emit.reflectance.value(GN_inputs.bands2run,1), retrieval.computed_reflectance,...
+    emit.reflectance.uncertainty(GN_inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
     'Color', mySavedColors(1, 'fixed'))
 
-xlim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
-    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
-ylim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
-    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
+xlim([0.95 * min([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance])])
+ylim([0.95 * min([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance])])
 grid on; grid minor
 
 xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Calculated Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 title(['$RMS(F(\vec{x}) - \vec{m}) / RMS(\delta \vec{m})$ = ', num2str(retrieval.rms_residual{1}(end)/...
-    sqrt(mean(emit.reflectance.uncertainty(inputs.bands2run).^2)))...
+    sqrt(mean(emit.reflectance.uncertainty(GN_inputs.bands2run).^2)))...
     ], 'Interpreter', 'latex', 'Fontsize', 35);
 
 % set figure size
@@ -239,21 +281,21 @@ plot(linspace(0,1,100), linspace(0,1,100), 'k', "LineWidth", 1)
 hold on
 
 % plot the emit reflectance versus the forward model computed reflectance
-errorbar(emit.reflectance.value(inputs.bands2run,1), retrieval.computed_reflectance,...
-    emit.reflectance.uncertainty(inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
+errorbar(emit.reflectance.value(GN_inputs.bands2run,1), retrieval.computed_reflectance,...
+    emit.reflectance.uncertainty(GN_inputs.bands2run,1), 'horizontal', '.', 'markersize', 25,...
     'Color', mySavedColors(1, 'fixed'))
 
-xlim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
-    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
-ylim([0.95 * min([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance]),...
-    1.05 * max([emit.reflectance.value(inputs.bands2run,1); retrieval.computed_reflectance])])
+xlim([0.95 * min([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance])])
+ylim([0.95 * min([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance]),...
+    1.05 * max([emit.reflectance.value(GN_inputs.bands2run,1); retrieval.computed_reflectance])])
 grid on; grid minor
 
 xlabel('EMIT Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 ylabel('Retrieved Reflectance ($1/sr$)', 'Interpreter', 'latex', 'Fontsize', 35);
 
 % compute the rms percent difference
-rms_percent_diff = sqrt(mean((100*(1 - retrieval.computed_reflectance./emit.reflectance.value(inputs.bands2run))).^2));
+rms_percent_diff = sqrt(mean((100*(1 - retrieval.computed_reflectance./emit.reflectance.value(GN_inputs.bands2run))).^2));
 
 
 title(['RMS Percent Difference = ', num2str(round(rms_percent_diff,2)), '\%'],...
@@ -268,12 +310,12 @@ set(gcf, 'Position', [0 0 700 700])
 figure;
 
 % plot the emit reflectance versus wavelength
-errorbar(emit.radiance.wavelength(inputs.bands2run), emit.reflectance.value(inputs.bands2run,1),...
-    emit.reflectance.uncertainty(inputs.bands2run), 'vertical', '.-', 'MarkerSize', 25,...
+errorbar(emit.radiance.wavelength(GN_inputs.bands2run), emit.reflectance.value(GN_inputs.bands2run,1),...
+    emit.reflectance.uncertainty(GN_inputs.bands2run), 'vertical', '.-', 'MarkerSize', 25,...
     'LineWidth', 1, 'Color', mySavedColors(1,'fixed'))
 
 hold on;
-plot(emit.radiance.wavelength(inputs.bands2run), retrieval.computed_reflectance,...
+plot(emit.radiance.wavelength(GN_inputs.bands2run), retrieval.computed_reflectance,...
     '.-', 'MarkerSize', 25,...
     'LineWidth', 1, 'Color', mySavedColors(2, 'fixed'))
 

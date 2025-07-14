@@ -5,7 +5,7 @@
 
 %%
 
-function [folderpaths] = define_EMIT_dataPath_and_saveFolders()
+function [folder_paths] = define_EMIT_dataPath_and_saveFolders()
 
 % Determine which computer you're using
 
@@ -17,20 +17,23 @@ if strcmp(whatComputer,'anbu8374')==true
 
     % Define the EMIT data folder path
 
-    folderpaths.emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+    folder_paths.emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
     % Define the folder path where all .INP files will be saved
-    folderpaths.libRadTran_INP_OUT = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/';
+    folder_paths.libRadtran_inp = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/';
 
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    folderpaths.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+    folder_paths.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
 
 
     % Define the folder path where the mat files of reflectances will be
     % saved
-    folderpaths.reflectance_calcs = folderpaths.emitDataPath;
+    folder_paths.reflectance_calcs = folder_paths.emitDataPath;
 
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
@@ -39,23 +42,27 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 
     % Define the EMIT data folder path
 
-    folderpaths.emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+    folder_paths.emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
 
     % Define the folder path where all .INP and .OUT files will be saved
-    folderpaths.libRadTran_INP_OUT = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+    folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/'];
 
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    folderpaths.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    folder_paths.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/data/'];
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
 
 
     % Define the folder path where the mat files of reflectances will be
     % saved
-    folderpaths.reflectance_calcs = folderpaths.emitDataPath;
+    folder_paths.reflectance_calcs = folder_paths.emitDataPath;
 
 
 elseif strcmp(whatComputer,'curc')==true
@@ -64,39 +71,42 @@ elseif strcmp(whatComputer,'curc')==true
     % ------ Folders on the CU Supercomputer /projects folder --------
 
     % Define the folder path where .mat files of relfectance will be stored
-    folderpaths.reflectance_calcs = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+    folder_paths.reflectance_calcs = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
 
 
 
     % Define the folder path where all .INP files will be saved
-    folderpaths.libRadTran_INP_OUT = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
 
 
     % Define the libRadtran data files path. All paths must be absolute in
     % the INP files for libRadtran
-    folderpaths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+    folder_paths.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 
     % Define the EMIT data folder path
-    folderpaths.emitDataPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+    folder_paths.emitDataPath = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
 end
 
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folderpaths.reflectance_calcs, 'dir')
+if ~exist(folder_paths.reflectance_calcs, 'dir')
 
-    mkdir(folderpaths.reflectance_calcs);
+    mkdir(folder_paths.reflectance_calcs);
 
 end
 
 
 
 % If the folder path doesn't exit, create a new directory
-if ~exist(folderpaths.libRadTran_INP_OUT, 'dir')
+if ~exist(folder_paths.libRadtran_inp, 'dir')
 
-    mkdir(folderpaths.libRadTran_INP_OUT);
+    mkdir(folder_paths.libRadtran_inp);
 
 end
 

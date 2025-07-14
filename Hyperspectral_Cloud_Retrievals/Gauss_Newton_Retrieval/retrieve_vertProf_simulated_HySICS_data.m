@@ -86,19 +86,19 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS folder name
 
-folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-    'HySICS/Simulated_spectra/'];
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
 
-% ---- Define where the retrievals will be stored ---
-folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-    'HySICS/Droplet_profile_retrievals/'];
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Droplet_profile_retrievals/'];
 
-% Define the folder path where all .INP files will be saved
-folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
 
 
-% water cloud file location
-folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
 end
@@ -227,13 +227,13 @@ rev = 1;
 if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
     folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_withNoise_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        'bands_withNoise_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 else
 
 
-folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+        'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 end
 
