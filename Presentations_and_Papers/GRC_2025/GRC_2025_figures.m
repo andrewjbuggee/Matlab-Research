@@ -617,3 +617,105 @@ legend('HySICS Reflectance', 'Wavelengths used in retrieval', 'Location', 'best'
 
 
 
+
+
+%% Plot the HySICS spectrum for the 35 channels avoiding water vapor with different total column water vapor assumptions
+
+
+
+
+clear variables
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+end
+
+
+% define the mat files for each retreival to plot
+filenames = {'simulated_spectra_HySICS_reflectance_35bands_5mm-totalCWV_sim-ran-on-14-Jul-2025_rev2.mat',...
+    'simulated_spectra_HySICS_reflectance_35bands_10mm-totalCWV_sim-ran-on-14-Jul-2025_rev1.mat',...
+    'simulated_spectra_HySICS_reflectance_35bands_15mm-totalCWV_sim-ran-on-14-Jul-2025_rev1.mat',...
+    'simulated_spectra_HySICS_reflectance_35bands_20mm-totalCWV_sim-ran-on-14-Jul-2025_rev1.mat',...
+    'simulated_spectra_HySICS_reflectance_35bands_25mm-totalCWV_sim-ran-on-14-Jul-2025_rev1.mat'};
+
+
+
+
+% Step through each file
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+length(filenames)), 'fixed');
+
+lgnd_str = cell(1, length(filenames));
+
+
+figure;
+
+
+for nn = 1:length(filenames)
+
+    % Load a data set
+    ds = load([folder_paths, filenames{nn}]);
+
+    % plot each spectrum
+    plot(mean(ds.inputs.RT.wavelengths2run,2), ds.Refl_model, '.-', 'linewidth', 1, 'Markersize', 20,...
+        'Color', C(nn,:))
+
+    hold on
+
+    lgnd_str{nn} = ['Total CWV = ', num2str(ds.inputs.RT.waterVapor_column), ' $kg/m^{2}$'];
+
+end
+
+
+% Create a Legend with only the two black curves
+legend(lgnd_str, 'Interpreter','latex', 'Location','best', 'FontSize', 25)
+
+
+xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
+ylabel('Reflectance ($1/sr$)', Interpreter='latex', FontSize=30)
+grid on; grid minor
+
+
+% set figure size
+set(gcf, 'Position', [0 0 1250 700])
+
+% create title
+title('Simulated HySICS reflectance with different total CWV', ...
+    'FontSize', 25, 'Interpreter','latex')
+
