@@ -223,9 +223,18 @@ end
 
 rev = 1;
 
-folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
+    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+    'bands_withNoise_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+else
+
+
+folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+end
 
 
 while isfile(filename)
@@ -259,7 +268,7 @@ disp('Dont forget to check the inputs and change if needed!!')
 %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
 GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
-GN_inputs.RT.waterVapor_column = 10;   % mm - milimeters of water condensed in a column
+GN_inputs.RT.waterVapor_column = 23;   % mm - milimeters of water condensed in a column
 
 GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
 
