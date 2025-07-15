@@ -70,13 +70,9 @@ elseif strcmp(whatComputer,'curc')==true
 
     % ------ Folders on the CU Supercomputer /projects folder --------
 
-    % Define the folder path where .mat files of relfectance will be stored
-    folder_paths.reflectance_calcs = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
-
-
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/EMIT/INP_OUT/';
 
 
     % Define the libRadtran data files path. All paths must be absolute in
@@ -89,6 +85,10 @@ elseif strcmp(whatComputer,'curc')==true
 
     % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+
+    % Define the folder path where the mat files of reflectances will be
+    % saved
+    folder_paths.reflectance_calcs = folder_paths.emitDataPath;
 
 
 end
