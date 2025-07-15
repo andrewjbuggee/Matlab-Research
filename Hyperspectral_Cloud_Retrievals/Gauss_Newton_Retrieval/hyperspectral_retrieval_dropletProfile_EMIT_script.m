@@ -19,10 +19,10 @@ scriptPlotting_wht;
 % ------- PICK EMIT DATA SET  --------
 % -------------------------------------
 
-emitDataFolder = '17_Jan_2024_coast/';
+% emitDataFolder = '17_Jan_2024_coast/';
 
 % 27 january has overlap with MODIS observations
-%emitDataFolder = '27_Jan_2024/';
+emitDataFolder = '27_Jan_2024/';
 
 % -------------------------------------
 
