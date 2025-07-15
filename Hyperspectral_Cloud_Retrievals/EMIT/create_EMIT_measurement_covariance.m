@@ -4,15 +4,15 @@
 % By Andrew J. Buggee
 %%
 
-function [inputs] = create_EMIT_measurement_covariance(inputs, emit, pixels2use)
+function [GN_inputs] = create_EMIT_measurement_covariance(GN_inputs, emit, pixels2use)
 
 
 % define the covariance type
-covariance_type = inputs.measurement.covariance_type;
+covariance_type = GN_inputs.measurement.covariance_type;
 
 
 % Define the number of spectral channels
-num_bands_2run = length(inputs.bands2run);
+num_bands_2run = length(GN_inputs.bands2run);
 
 % define the number of pixels to run
 num_pixels = length(pixels2use);
@@ -26,14 +26,14 @@ num_pixels = length(pixels2use);
 if strcmp(covariance_type,'computed') == true
 
     data = cat(3,emit.EV.m250.reflectance,emit.EV.m500.reflectance);
-    data = data(:,:,inputs.spectral_bins);
-    for bb = 1:length(inputs.spectral_bins)
+    data = data(:,:,GN_inputs.spectral_bins);
+    for bb = 1:length(GN_inputs.spectral_bins)
         for ii = 1:length(modisInputs.pixels2use.res500m.row)
             data2run(ii,bb) = data(modisInputs.pixels2use.res500m.row(ii),modisInputs.pixels2use.res500m.col(ii),bb);
         end
     end
 
-    inputs.measurement.covariance = cov(data2run);
+    GN_inputs.measurement.covariance = cov(data2run);
 
 
 
@@ -64,10 +64,24 @@ elseif strcmp(covariance_type,'independent') == true
     % variance of the measurement uncertainty. Since we assume Gaussian
     % statistics, the uncertainty is assumed to be the standard deviaiton.
     % The values should be in units of reflectance
-    inputs.measurement.variance = (emit.reflectance.uncertainty(inputs.bands2run,:)).^2;      % variance in reflectance
+    GN_inputs.measurement.variance = (emit.reflectance.uncertainty(GN_inputs.bands2run,:)).^2;      % variance in reflectance
 
 
-    inputs.measurement.covariance = zeros(num_bands_2run, num_bands_2run, num_pixels);
+    % ***** Define the forward model uncertainty *****
+    GN_inputs.measurement.forward_model_uncertainty = 3;               % percent
+
+    % let's story the total uncertainty
+    GN_inputs.measurement.uncertainty = linspace((measurement_uncertainty_percent + forward_model_uncertainty)/100,...
+        (measurement_uncertainty_percent + forward_model_uncertainty)/100,...
+        length(GN_inputs.bands2run))';        % fraction
+
+    % Compute the Root-Sum-Sqaure of the total measurement uncertainty
+    GN_inputs.measurement.rss_uncert = sqrt(sum( (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2))';   % 1/sr - reflectance
+
+    
+
+
+    GN_inputs.measurement.covariance = zeros(num_bands_2run, num_bands_2run, num_pixels);
 
     % Step through each pixel being used
     for pp = 1:num_pixels
@@ -82,7 +96,7 @@ elseif strcmp(covariance_type,'independent') == true
 
         % Create a diagonal matrix where each entry is the variance of that
         % spectral channel for reflectance measurements
-        inputs.measurement.covariance(:,:,pp) = diag(inputs.measurement.variance(:,pp));
+        GN_inputs.measurement.covariance(:,:,pp) = diag(GN_inputs.measurement.variance(:,pp));
 
     end
 

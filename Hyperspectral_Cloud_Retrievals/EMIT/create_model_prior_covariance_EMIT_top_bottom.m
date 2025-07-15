@@ -29,7 +29,7 @@ num_pixels_2run = length(pixels2use);
 if use_TBLUT_estimates==false
 
     %-----------------------------------------------------
-    % ---- use my own TBLUT estimates to define priors ---
+    % ------ use my own estimates to define priors ------
     %-----------------------------------------------------
 
 
