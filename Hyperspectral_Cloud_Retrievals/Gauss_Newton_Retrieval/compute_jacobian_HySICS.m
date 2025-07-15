@@ -16,11 +16,6 @@ disp([newline, 'Computing the Jacobian...', newline])
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;
 
-% --- Define the filename to save all calculations ---
-saveCalculations_fileName = folder_paths.HySICS_retrievals;
-
-% --- Define the INP Folder location ---
-INP_folderName = folder_paths.libRadtran_inp;
 
 % --- compute the Jacobian at out current estimate ---
 r_top = state_vector(1);

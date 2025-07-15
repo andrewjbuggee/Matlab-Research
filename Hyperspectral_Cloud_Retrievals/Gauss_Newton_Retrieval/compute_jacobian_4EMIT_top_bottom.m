@@ -5,12 +5,16 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_4EMIT_top_bottom(emit, state_vector, measurement_estimate, inputs,...
-    pixels2use, pp, jacobian_barPlot_flag)
+function jacobian = compute_jacobian_4EMIT_top_bottom(state_vector, measurement_estimate, GN_inputs, spec_response,...
+    jacobian_barPlot_flag, folder_paths)
+
+
+disp([newline, 'Computing the Jacobian...', newline])
 
 
 % Define the measurement variance for the current pixel
-measurement_variance = inputs.measurement.variance(:,pp);
+measurement_variance = GN_inputs.measurement.variance;
+
 
 
 
@@ -20,99 +24,172 @@ r_bottom = state_vector(2);
 tau_c = state_vector(3);
 
 
+% Read the solar flux file over the wavelength range specified
+wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
+
+[source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, GN_inputs.RT.source_file);   % W/nm/m^2
+
+
+% we will add and subtract a small fraction of the source file resolution
+% to ensure rounding errors don't cause an issue when selecting the
+% wavelengths needed from the source file
+wl_perturb = GN_inputs.RT.source_file_resolution/3;   % nm
+
+
+
+% how many wavelengths are there?
+num_wl = size(GN_inputs.RT.wavelengths2run,1);
+
+% how many state variables are there?
+num_state_variables = length(state_vector);
+
+
+
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-%change_in_state = [0.35 * r_top, 0.35 * r_bottom, 0.15 * tau_c];
-%change_in_state = [0.03 * r_top, 0.25 * r_bottom, 0.04 * tau_c];        % values that just exceed measurement uncertainty for the Nov 2009 data set
-change_in_state = [0.05 * r_top, 0.2 * r_bottom, 0.025 * tau_c]; 
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c];
 % ----------------------------------------------------------------
+
+
+% each column is a unique state vector with once variable being adjusted
+state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(change_in_state);
+
+% ----------------------------------------------------------
+
+% changing variable steps through reff, tauC, and wavelength
+% in for loop speak, it would be:
+% for xx = 1:state_variable
+%    for ww = 1:num_wl
+changing_variables = [];
+for xx = 1:num_state_variables
+
+    changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
+        GN_inputs.RT.wavelengths2run];
+
+end
+
+% Add a final column that includes the index for the spectral response
+% function. These always increase chronologically
+changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variables, 1)];
+
+% how many INP files?
+num_INP_files = size(changing_variables, 1);
+
+
+% Lets step through each model variable and compute the derivative
+jacobian = zeros(num_wl, num_state_variables);
+change_in_measurement = zeros(num_wl, num_state_variables);
+
+
+
 
 
 
 
 % ----------------------------------------------------------
+% create droplet profile - there are only three unique ones!
+% ----------------------------------------------------------
 
-% Set up a few constants for the water cloud
-H = inputs.RT.cloudDepth;                                % km - geometric thickness of cloud
-n_layers = inputs.RT.cloud_layers;                          % number of layers to model within cloud
+re_with_topChange = create_droplet_profile2([changing_variables(1,1), changing_variables(1,2)],...
+    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-% Cloud top
-z_top = inputs.RT.cloudTop_height(pp);        % km -  cloud top height
+re_with_botChange = create_droplet_profile2([changing_variables(num_wl+1,1), changing_variables(num_wl+1,2)],...
+    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-%z0 = 0.9;                                 % km - base height of cloud
-z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
-
-indVar = 'altitude';                    % string that tells the code which independent variable we used
-
-profile_type = inputs.model.profile.type; % type of water droplet profile
-num_model_parameters = inputs.num_model_parameters;
-dist_str = inputs.RT.drop_distribution_str;                         % droplet distribution
-
-% -- For now, lets assume this is constant --
-dist_var = linspace(inputs.RT.drop_distribution_var, inputs.RT.drop_distribution_var,...
-    inputs.RT.cloud_layers);              % distribution variance
-vert_homogeneous_str = inputs.RT.vert_homogeneous_str;          % This tells the function whether of not to create a multi-layered cloud
-z_topBottom = [z(end), z(1)];           % km - boundaries of the altitude vector.
-
-% Tell the code to use a pre-computed mie table for the extinction
-% efficiency, or to use the value of the extinction paradox -> Qe = 2
-parameterization_str = inputs.RT.parameterization_str;
-
-% Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
-% the cloud properties
-wavelength_tau_c = emit.radiance.wavelength(inputs.bands2run(1));    % nm - Wavelength used for cloud optical depth calculation
-
-% Lets step through each model variable and compute the derivative
-jacobian = zeros(length(measurement_estimate), num_model_parameters);
-change_in_measurement = zeros(length(measurement_estimate), num_model_parameters);
-
-% ----- Let's define the 3 new state vectors -----
-% each new state vector perturbs one variable only
+re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), changing_variables(2*num_wl +1,2)],...
+    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
 
-for xx = 1:num_model_parameters
-    
-    % We start with the original state vector
-    newState_vector = state_vector;
-    
-    % Then we alter just one of them
-    newState_vector(xx) = state_vector(xx) + change_in_state(xx);
-    
-    new_r_top = newState_vector(1);
-    new_r_bottom = newState_vector(2);
-    new_tau_c = newState_vector(3);
-    % --------------------------------------------
-    % create water cloud file with droplet profile
-    % --------------------------------------------
-    
-    new_re = create_droplet_profile2([new_r_top, new_r_bottom], z, indVar, profile_type);     % microns - effective radius vector
-    
-    
-    loop_var = 0;
+% -----------------------------------------------------------
+% create water-cloud file - there are only three unique ones!
+% -----------------------------------------------------------
 
-    wc_filename = write_wc_file(new_re, new_tau_c, z_topBottom, wavelength_tau_c(1,1), dist_str,...
-        dist_var, vert_homogeneous_str, parameterization_str, loop_var);
-    
-    
+wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
+    GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
+    GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1, 2);
+
+wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
+    GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
+    GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2, 2);
+
+wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
+    GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
+    GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3, 2);
+
+new_measurement_estimate = zeros(num_INP_files, 1);
+
+
+
+parfor nn = 1:num_INP_files
+
+
+    if nn>=1 && nn<=(num_wl)
+
+        wc_filename = wc_re_top_change;
+
+    elseif nn>=(num_wl+1) && nn<=(2*num_wl)
+
+        wc_filename = wc_re_bot_change;
+
+    elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
+
+        wc_filename = wc_tau_change;
+
+    end
+
+
+    % define the input file name
+    inputFileName = [num2str(mean(changing_variables(nn, 4:5))), '_','nm_rTop_', num2str(r_top),...
+        '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '.INP'];
+
+    outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
+
+
     % ----- Write an INP file --------
-    names.inp = write_INP_file_4EMIT_Gauss_Newton(inputs, pixels2use(pp), emit, wc_filename);
-    
-    % now lets write the output names
-    
-    names.out = writeOutputNames(names.inp);
-    
-    % ---- Run uvspec for the files created -----
-    [new_measurement_estimate,~] = runReflectanceFunction_4EMIT_gaussNewton(names, inputs, emit.spec_response.value);
-    
-    change_in_measurement(:,xx) = new_measurement_estimate' - measurement_estimate;
-
-    jacobian(:,xx) = change_in_measurement(:,xx)./change_in_state(xx);
+    write_INP_file(folder_paths.libRadtran_inp, GN_inputs.libRadtran_data_path, inputFileName, GN_inputs,...
+        changing_variables(nn, 4:5), wc_filename{1});
 
 
-    
+
+    % ----------------------------------------------------
+    % --------------- RUN RADIATIVE TRANSFER -------------
+    % ----------------------------------------------------
+
+
+    % compute INP file
+    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
+        GN_inputs.which_computer);
+
+
+    % read .OUT file
+    % radiance is in units of mW/nm/m^2/sr
+    [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName, GN_inputs,...
+        GN_inputs.RT.compute_reflectivity_uvSpec);
+
+
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    idx_wl = source_wavelength>=(changing_variables(nn,4) - wl_perturb) &...
+        source_wavelength<=(changing_variables(nn,5) + wl_perturb);
+
+    [new_measurement_estimate(nn), ~] = reflectanceFunction_ver2(GN_inputs, ds,...
+        source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+
+
+
 end
 
+
+
+
+% Compute the change in the measurement and the jacobian matrix
+change_in_measurement = reshape(new_measurement_estimate, num_wl, num_state_variables) - ...
+    repmat(measurement_estimate, 1, num_state_variables);
+
+jacobian = change_in_measurement./repmat(change_in_state,num_wl,1);
 
 % ----- Check to see if there are any NaN values in the Jacobian Matrix -----
 
@@ -127,27 +204,20 @@ end
 
 if jacobian_barPlot_flag==true
 
-    spectral_bands = zeros(1,length(inputs.bands2run));
-    for bb = 1:length(inputs.bands2run)
+    spectral_bands = zeros(1,length(GN_inputs.spec_response));
+    for bb = 1:length(GN_inputs.spec_response)
 
-        spectral_bands(bb) = round(median(emit.spec_response.wavelength(inputs.bands2run(bb), :)));
-
+        spectral_bands(bb) = round(median(GN_inputs.spec_response{bb}(:,1)));
     end
-
-    % turn the spectral channels into a string array
-    string_bands = string(spectral_bands);
-
-    % create a categorical array
-    string_bands_cat = categorical(string_bands);
-    % reorder the categorical array to fix the order of the bar chart
-    string_bands_cat_reorder = reordercats(string_bands_cat, string_bands);
+    [~, index_sort] = sort(spectral_bands);
+    string_bands = string(spectral_bands(index_sort));
 
 
-    f = figure; bar(string_bands_cat_reorder, abs(change_in_measurement))
+    f = figure; bar(abs(change_in_measurement(index_sort,:)))
     hold on;
-    plot(sqrt(measurement_variance), 'k--')
+    plot(sqrt(measurement_variance(index_sort)), 'k--')
     hold on
-
+    xticklabels(string_bands);
     xlabel('Wavelength $(nm)$', 'Interpreter','latex')
     ylabel('$\triangle$ Reflectance','Interpreter','latex')
     legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
@@ -162,35 +232,6 @@ if jacobian_barPlot_flag==true
 
 
 end
-
-
-
-%-------------------------------------------------------------
-% ---- SPECIAL PLOT FOR r_bot --------------------------------
-%-------------------------------------------------------------
-
-% spectral_bands = modisBands(1:7);
-% [~, index_sort] = sort(spectral_bands);
-% string_bands = string(round(spectral_bands(index_sort(:,1),1)));
-% 
-% load('jacobian_rt-10_rb-9_tau-20.mat', 'change_in_measurement')
-% change_r_bot = change_in_measurement(index_sort(:,1),2);
-% load('jacobian_rt-10_rb-9_tau-15.mat', 'change_in_measurement')
-% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
-% load('jacobian_rt-10_rb-9_tau-10.mat', 'change_in_measurement','measurement_variance')
-% change_r_bot = [change_r_bot, change_in_measurement(index_sort(:,1),2)];
-% 
-% f = figure; bar([abs(change_r_bot),sqrt(measurement_variance(index_sort(:,1)))])
-% hold on
-% xticklabels(string_bands);
-% xlabel('Wavelength $(nm)$', 'Interpreter','latex')
-% ylabel('$\triangle$ Reflectance','Interpreter','latex')
-% legend('$\tau_c = 20$','$\tau_c = 15$', '$\tau_c = 10$','$\sigma_\lambda$',...
-%      'interpreter', 'latex', 'Location','best','Fontsize',20); 
-% grid on; grid minor
-% set(f, 'Position',[0 0 1000 500])
-% title('$\partial F(\vec{x})/\partial r_{bot}$', 'Interpreter','latex')
-
 
 
 
