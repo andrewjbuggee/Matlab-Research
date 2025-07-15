@@ -79,8 +79,8 @@ eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 % radiance_uncertainty = 0.05 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
 
 % Let's set it to 3%
-radiance_uncertainty_percent_perChannel = 0.03;
-radiance_uncertainty = 0.03 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
+radiance_uncertainty_percent_perChannel = 3;                         % percent
+radiance_uncertainty = (radiance_uncertainty_percent_perChannel/100) .* emit.radiance.measurements;              % microW/cm^2/nm/sr
 
 
 

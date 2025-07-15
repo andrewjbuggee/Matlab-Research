@@ -215,21 +215,29 @@ GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the co
 %% Create the Model and Measurement prior
  
 
-GN_inputs = create_model_prior_covariance_EMIT_top_bottom(GN_inputs, pixels2use, tblut_retrieval, true);
+GN_inputs = create_model_prior_covariance_EMIT_top_bottom(GN_inputs, tblut_retrieval, true);
 %inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
 
-GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit, pixels2use);
+GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit);
 
 
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
-% Compute the retrieval variables
+
+% --------------------------------------------------------------
+% ---------------- Retrieve Vertical Profile! ------------------
+% --------------------------------------------------------------
+
 tic
+
 [retrieval, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit ,pixels2use);
+
 disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
-%[retrieval, inputs] = calc_retrieval_gauss_newton_4EMIT_top_middle(inputs, emit ,pixels2use);
 
+% --------------------------------------------------------------
+% --------------------------------------------------------------
 
+%%
 % --- save the output ---
 rev = 1;
 
