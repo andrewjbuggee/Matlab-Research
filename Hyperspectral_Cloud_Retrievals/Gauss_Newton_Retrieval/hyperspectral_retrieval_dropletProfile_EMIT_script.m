@@ -27,12 +27,27 @@ emitDataFolder = '17_Jan_2024_coast/';
 % -------------------------------------
 
 
-%% Load EMIT data and define folders 
+%% Define EMIT Data locations and LibRadTran paths
 
 folder_paths = define_EMIT_dataPath_and_saveFolders();
 
+
+%% Load EMIT Data
+
 [emit,L1B_fileName] = retrieveEMIT_data([folder_paths.emitDataPath, emitDataFolder]);
 
+
+%% Set INP filename
+
+folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, '_', emitDataFolder(1:end-1), '_', L1B_fileName{1}(27:30),'/'];
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folder_paths.libRadtran_inp, 'dir')
+
+    mkdir(folder_paths.libRadtran_inp)
+
+end
 
 %%   Delete old files?
 % First, delete files in the HySICS folder
@@ -148,7 +163,7 @@ GN_inputs = define_source_for_EMIT(GN_inputs, emit);
 emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 
 
-%% Compute the radiance measurement uncertainty 
+%% Compute the radiance measurement uncertainty
 
 [emit.radiance.uncertainty, emit.radiance.uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit);
 
@@ -213,7 +228,7 @@ GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the co
 
 
 %% Create the Model and Measurement prior
- 
+
 
 GN_inputs = create_model_prior_covariance_EMIT_top_bottom(GN_inputs, tblut_retrieval, true);
 %inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
@@ -230,7 +245,7 @@ GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit);
 
 tic
 
-[retrieval, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit ,pixels2use);
+[retrieval, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit, spec_response, folder_paths);
 
 disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
 
@@ -247,7 +262,7 @@ filename = [GN_inputs.folder2save.reflectance_calcs, GN_inputs.reflectance_calcu
 while isfile(filename)
     rev = rev+1;
     filename = [GN_inputs.folder2save.reflectance_calcs, GN_inputs.reflectance_calculations_fileName,...
-    '_rev', num2str(rev),'.mat'];
+        '_rev', num2str(rev),'.mat'];
 end
 
 

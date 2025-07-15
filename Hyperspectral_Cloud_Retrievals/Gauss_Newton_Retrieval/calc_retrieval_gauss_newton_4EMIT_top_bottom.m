@@ -1,27 +1,27 @@
 
 
 
-function [retrieval_output, inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(inputs, emit, spec_response)
+function [retrieval_output, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit, spec_response, folder_paths)
 
 
 % ----- unpack inputs -----
 
-model_apriori = inputs.model.apriori'; % a priori expected values for the model parameters
-model_cov = inputs.model.covariance; % model parameter covariance matrix
-measurement_cov = inputs.measurement.covariance; % measurement covaraince matrix
-initialGuess = inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
+model_apriori = GN_inputs.model.apriori'; % a priori expected values for the model parameters
+model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
+measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
+initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Retrieve the convergence limit
-absolute_convergence_limit = inputs.convergence_limit;
+absolute_convergence_limit = GN_inputs.convergence_limit;
 
 % retrieve the percent limit change between successive iterations
-percent_change_limit = inputs.percent_change_limit;
+percent_change_limit = GN_inputs.percent_change_limit;
 
 
 % Create the measurement vectors for each pixel!
 % Each column is associated with a specific pixel, and each row represents
 % the reflectance measurement at a specific modis band
-measurements = emit.reflectance.value(inputs.bands2run,:); % each column represents one pixel
+measurements = emit.reflectance.value(GN_inputs.bands2run,:); % each column represents one pixel
 
 
 
@@ -31,8 +31,8 @@ jacobian_barPlot_flag = false;
 % -----------------------------------------------------------------------
 
 
-num_iterations = inputs.GN_iterations; % number of iterations to preform
-num_parameters = inputs.num_model_parameters; % number of parameters to solve for
+num_iterations = GN_inputs.GN_iterations; % number of iterations to preform
+num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve for
 
 
 % ----- define number of spectral bands to use -----
@@ -76,7 +76,7 @@ jacobian_diff_guess_prior = zeros(num_bands,num_iterations);      % this is an e
 % approach and the hyperspectal approach
 
 % define the initial guess
-retrieval{pp}(:,1) = initialGuess(:,pp);
+retrieval(:,1) = initialGuess;
 
 % -----------------------------------------------
 % ----- USING King and Vaughn (2012) Method -----
@@ -91,13 +91,13 @@ retrieval{pp}(:,1) = initialGuess(:,pp);
 
 for ii = 1:num_iterations
 
-    disp(['(iteration,pixel): (',num2str(ii),',',num2str(pp),')']) % this tells the user where we are in the process
+    disp(['iteration: ',num2str(ii)]) % this tells the user where we are in the process
 
     % at each iteration I need to compute the forward model at my current
     % state vector estimate
 
 
-    current_guess = retrieval{pp}(:,ii);
+    current_guess = retrieval(:,ii);
 
 
     if ii==1
@@ -106,13 +106,13 @@ for ii = 1:num_iterations
         % we compute the forward model at our previous estimate of the state vector
         % Therefore, we ask, 'what is the reflectance of a cloud with our
         % current state vector guess?'
-        measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, current_guess,inputs, pixels2use, pp)';
+        measurement_estimate = compute_forward_model_4EMIT_top_bottom(current_guess, GN_inputs, spec_response.value, folder_paths);
 
         % compute residual, rms residual, the difference between the
         % iterate and the prior, and the product of the jacobian with
         % the difference between the current guess and the prior
-        residual{pp}(:,ii) = measurements(:,pp) - measurement_estimate;
-        rms_residual{pp}(ii) = sqrt(mean(residual{pp}(:,ii).^2));
+        residual(:,ii) = measurements - measurement_estimate;
+        rss_residual(ii) = sqrt(sum(residual(:,ii).^2));
 
     else
 
@@ -123,12 +123,12 @@ for ii = 1:num_iterations
 
 
     % compute the jacobian
-    Jacobian = compute_jacobian_4EMIT_top_bottom(emit,current_guess,measurement_estimate,inputs,...
+    Jacobian = compute_jacobian_4EMIT_top_bottom(emit,current_guess,measurement_estimate,GN_inputs,...
         pixels2use, pp, jacobian_barPlot_flag);
 
 
-    diff_guess_prior{pp}(:,ii) = current_guess - model_apriori(:,pp);
-    jacobian_diff_guess_prior{pp}(:,ii) = Jacobian*diff_guess_prior{pp}(:,ii);
+    diff_guess_prior(:,ii) = current_guess - model_apriori;
+    jacobian_diff_guess_prior(:,ii) = Jacobian*diff_guess_prior(:,ii);
 
 
     % -----------------------------------------------------------------
@@ -140,7 +140,7 @@ for ii = 1:num_iterations
     % et al 2003)
     % compute the Gauss-Newton direction for each retrevial variable
     new_direction = (model_cov(:,:,pp)^(-1) + Jacobian' * measurement_cov(:,:,pp)^(-1) *Jacobian)^(-1) *...
-        (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual{pp}(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior{pp}(:,ii));
+        (Jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii) - model_cov(:,:,pp)^(-1) * diff_guess_prior(:,ii));
 
     % find the maximum non-negative value, a, that satisfies the
     % following: l< current_guess + new_direction <u
@@ -158,7 +158,7 @@ for ii = 1:num_iterations
     % find the maximum a where this is satisfied
 
     % --- the max re value depends on the parameterization used ---
-    if strcmp(inputs.RT.parameterization_str, 'mie')==true
+    if strcmp(GN_inputs.RT.parameterization_str, 'mie')==true
         % mie parameterization is valid for effective radii between
         % [1,25] microns
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
@@ -167,7 +167,7 @@ for ii = 1:num_iterations
             constrained_guesses(2,:) >= 1   & ...
             constrained_guesses(3,:) > 0));
 
-    elseif strcmp(inputs.RT.parameterization_str, 'hu')==true
+    elseif strcmp(GN_inputs.RT.parameterization_str, 'hu')==true
         % Hu and Stamnes  parameterization is valid for effective
         % radii between [3.5, 60] microns
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
@@ -206,9 +206,9 @@ for ii = 1:num_iterations
 
         % Use the new guess to compute the rms residual, which is used
         % to detmerine convergence
-        new_measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, new_guess, inputs, pixels2use, pp)';
-        residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
-        rms_residual{pp}(ii+1) = sqrt(mean(residual{pp}(:,ii+1).^2));
+        new_measurement_estimate = compute_forward_model_4EMIT_top_bottom(emit, new_guess, GN_inputs, pixels2use, pp)';
+        residual(:,ii+1) = measurements - new_measurement_estimate;
+        rms_residual(ii+1) = sqrt(mean(residual(:,ii+1).^2));
 
 
     elseif max_a==0 && ii>1
@@ -223,11 +223,11 @@ for ii = 1:num_iterations
 
         % Clear the rest of the zeros that are place holders for later
         % iterations
-        retrieval{pp}(:,ii+1:end) = [];
-        rms_residual{pp}(ii+1:end) = [];
-        residual{pp}(:,ii+1:end) = [];
-        diff_guess_prior{pp}(:,ii+1:end) = [];
-        jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+        retrieval(:,ii+1:end) = [];
+        rms_residual(ii+1:end) = [];
+        residual(:,ii+1:end) = [];
+        diff_guess_prior(:,ii+1:end) = [];
+        jacobian_diff_guess_prior(:,ii+1:end) = [];
 
         break
 
@@ -252,14 +252,14 @@ for ii = 1:num_iterations
         constrained_measurement_estimate = zeros(num_bands, length(a));
         for mm = 1:length(a)
             constrained_measurement_estimate(:,mm) = compute_forward_model_4EMIT_top_bottom(emit, constrained_guesses(:,mm),...
-                inputs, pixels2use, pp)';
+                GN_inputs, pixels2use, pp)';
         end
 
         % compute the rms_residual for the constrained state vector
-        rms_residual_constrained = sqrt(mean((constrained_measurement_estimate - repmat(measurements(:,pp), 1, length(a))).^2, 1));
+        rms_residual_constrained = sqrt(mean((constrained_measurement_estimate - repmat(measurements, 1, length(a))).^2, 1));
         % find the smallest rms residual that is less than the previus
         % itereates rms residual
-        [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual{pp}(ii)));
+        [min_val_lessThanPrevious, ~] = min(rms_residual_constrained(rms_residual_constrained < rms_residual(ii)));
 
         % Check to see if all rms_residuals are greater than the
         % previous iterate
@@ -283,8 +283,8 @@ for ii = 1:num_iterations
         % Select the step length by choosing the a value with the minimumum
         % residual
         new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-        residual{pp}(:,ii+1) = measurements(:,pp) - new_measurement_estimate;
-        rms_residual{pp}(ii+1) = sqrt(mean(residual{pp}(:,ii+1).^2));
+        residual(:,ii+1) = measurements - new_measurement_estimate;
+        rms_residual(ii+1) = sqrt(mean(residual(:,ii+1).^2));
         new_guess = constrained_guesses(:, min_residual_idx);
 
 
@@ -299,12 +299,12 @@ for ii = 1:num_iterations
 
 
     % ----- new_guess using the model prior mean value -----
-    %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual{pp}(:,ii) + jacobian_diff_guess_prior{pp}(:,ii));
+    %new_guess = model_apriori + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii) + jacobian_diff_guess_prior(:,ii));
 
     % -----------------------------------------------------------------
     % -----------------------------------------------------------------
 
-    if strcmp(inputs.RT.parameterization_str, 'mie')==true
+    if strcmp(GN_inputs.RT.parameterization_str, 'mie')==true
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
 
@@ -326,7 +326,7 @@ for ii = 1:num_iterations
 
 
 
-    elseif strcmp(inputs.RT.parameterization_str, 'hu')==true
+    elseif strcmp(GN_inputs.RT.parameterization_str, 'hu')==true
 
         % If the new guess is outside the bounds of the Hu and
         % Stamnes parameterization, we must reset the values
@@ -353,7 +353,7 @@ for ii = 1:num_iterations
 
 
     % store the latest guess
-    retrieval{pp}(:,ii+1) = new_guess;
+    retrieval(:,ii+1) = new_guess;
 
     % -------------------------------------------------------------
     % -------------------- Convergence checks ---------------------
@@ -362,18 +362,18 @@ for ii = 1:num_iterations
     % GN_inputs strucute, break the for loop. We've converged
 
 
-    if rms_residual{pp}(ii+1)<absolute_convergence_limit
+    if rms_residual(ii+1)<absolute_convergence_limit
 
         disp([newline, 'Convergence reached in ', num2str(ii),' iterations.', newline,...
-            'RMS = ', num2str(rms_residual{pp}(ii+1))])
+            'RMS = ', num2str(rms_residual(ii+1))])
 
         % Clear the rest of the zeros that are place holders for later
         % iterations
-        retrieval{pp}(:,ii+2:end) = [];
-        rms_residual{pp}(ii+2:end) = [];
-        residual{pp}(:,ii+2:end) = [];
-        diff_guess_prior{pp}(:,ii+1:end) = [];
-        jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+        retrieval(:,ii+2:end) = [];
+        rms_residual(ii+2:end) = [];
+        residual(:,ii+2:end) = [];
+        diff_guess_prior(:,ii+1:end) = [];
+        jacobian_diff_guess_prior(:,ii+1:end) = [];
 
         break
 
@@ -382,18 +382,18 @@ for ii = 1:num_iterations
     % if the rms residual starts to increase, break the loop
     if ii>1 && ii<5
 
-        if rms_residual{pp}(ii+1)>rms_residual{pp}(ii)
+        if rms_residual(ii+1)>rms_residual(ii)
 
             disp([newline, 'RMS residual started to increase. Lowest value was: ',...
-                'RMS = ', num2str(rms_residual{pp}(ii)), newline])
+                'RMS = ', num2str(rms_residual(ii)), newline])
 
             % Clear the rest of the zeros that are place holders for later
             % iterations
-            retrieval{pp}(:,ii+2:end) = [];
-            rms_residual{pp}(ii+2:end) = [];
-            residual{pp}(:,ii+2:end) = [];
-            diff_guess_prior{pp}(:,ii+1:end) = [];
-            jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+            retrieval(:,ii+2:end) = [];
+            rms_residual(ii+2:end) = [];
+            residual(:,ii+2:end) = [];
+            diff_guess_prior(:,ii+1:end) = [];
+            jacobian_diff_guess_prior(:,ii+1:end) = [];
 
             break
 
@@ -406,42 +406,42 @@ for ii = 1:num_iterations
     % You're not going to do any better
     if ii>1 && ii<5
 
-        if abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)==0
+        if abs(rms_residual(ii+1) - rms_residual(ii))/rms_residual(ii)==0
 
             if isempty(min_val_lessThanPrevious)==true
                 disp([newline, 'There is no new direction that reduces the RMS uncertainty.', newline,...
-                    'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
+                    'Lowest value was: ','RMS = ', num2str(rms_residual(ii+1))])
 
             else
 
                 disp([newline, 'RMS residual did not change at all from the previous iteration.', newline,...
-                    'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
+                    'Lowest value was: ','RMS = ', num2str(rms_residual(ii+1))])
 
             end
 
             % Clear the rest of the zeros that are place holders for later
             % iterations
-            retrieval{pp}(:,ii+2:end) = [];
-            rms_residual{pp}(ii+2:end) = [];
-            residual{pp}(:,ii+2:end) = [];
-            diff_guess_prior{pp}(:,ii+1:end) = [];
-            jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+            retrieval(:,ii+2:end) = [];
+            rms_residual(ii+2:end) = [];
+            residual(:,ii+2:end) = [];
+            diff_guess_prior(:,ii+1:end) = [];
+            jacobian_diff_guess_prior(:,ii+1:end) = [];
 
             break
 
-        elseif abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii)<percent_change_limit
+        elseif abs(rms_residual(ii+1) - rms_residual(ii))/rms_residual(ii)<percent_change_limit
 
             disp([newline, 'RMS residual has plataued. The current value differs from the previous value by ',...
-                num2str(abs(rms_residual{pp}(ii+1) - rms_residual{pp}(ii))/rms_residual{pp}(ii) * 100), '%', newline,...
-                'Lowest value was: ','RMS = ', num2str(rms_residual{pp}(ii+1))])
+                num2str(abs(rms_residual(ii+1) - rms_residual(ii))/rms_residual(ii) * 100), '%', newline,...
+                'Lowest value was: ','RMS = ', num2str(rms_residual(ii+1))])
 
             % Clear the rest of the zeros that are place holders for later
             % iterations
-            retrieval{pp}(:,ii+2:end) = [];
-            rms_residual{pp}(ii+2:end) = [];
-            residual{pp}(:,ii+2:end) = [];
-            diff_guess_prior{pp}(:,ii+1:end) = [];
-            jacobian_diff_guess_prior{pp}(:,ii+1:end) = [];
+            retrieval(:,ii+2:end) = [];
+            rms_residual(ii+2:end) = [];
+            residual(:,ii+2:end) = [];
+            diff_guess_prior(:,ii+1:end) = [];
+            jacobian_diff_guess_prior(:,ii+1:end) = [];
 
             break
 
@@ -461,7 +461,7 @@ end
 % First compute the latest measurement estimate
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_4EMIT_top_bottom(emit, retrieval{pp}(:,end), new_measurement_estimate, inputs,...
+Jacobian = compute_jacobian_4EMIT_top_bottom(emit, retrieval(:,end), new_measurement_estimate, GN_inputs,...
     pixels2use, pp, jacobian_barPlot_flag);
 
 posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) *...
@@ -473,8 +473,8 @@ posterior_cov(:,:,pp) = (Jacobian' * measurement_cov(:,:,pp)^(-1) *...
 % Compute the retireved Liquid water path with the final profile
 
 % define the altitude vector
-z = linspace(inputs.RT.cloudTop_height(pp) - inputs.RT.cloudDepth,...
-    inputs.RT.cloudTop_height(pp), inputs.RT.cloud_layers)*1e3;        % m - altitude above ground vector
+z = linspace(GN_inputs.RT.cloudTop_height(pp) - GN_inputs.RT.cloudDepth,...
+    GN_inputs.RT.cloudTop_height(pp), GN_inputs.RT.cloud_layers)*1e3;        % m - altitude above ground vector
 
 
 
@@ -485,10 +485,10 @@ z = linspace(inputs.RT.cloudTop_height(pp) - inputs.RT.cloudDepth,...
 % computing Qe for each r value in my profile later on
 
 density_liquid_water = 10^6;                % g/m^3
-re_profile = create_droplet_profile2([retrieval{pp}(1,end), retrieval{pp}(2,end)],...
-    z, 'altitude', inputs.model.profile.type);                               % microns
+re_profile = create_droplet_profile2([retrieval(1,end), retrieval(2,end)],...
+    z, 'altitude', GN_inputs.model.profile.type);                               % microns
 
-retrieval_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,end) * trapz(z, (re_profile*1e-6).^3)/...
+retrieval_output.LWP(pp) = 2/3 * density_liquid_water * retrieval(3,end) * trapz(z, (re_profile*1e-6).^3)/...
     trapz(z, (re_profile*1e-6).^2);           %g/m^2
 % -------------------------------------------------------------------
 
@@ -497,21 +497,21 @@ retrieval_output.LWP(pp) = 2/3 * density_liquid_water * retrieval{pp}(3,end) * t
 % -------------------------------------------------------------------
 % Get rid of the Nan values and create droplet profiles with the
 % retrieval
-idx_nans = find(isnan(retrieval{pp}(3,:)));
+idx_nans = find(isnan(retrieval(3,:)));
 
 if isempty(idx_nans)~=true
 
-    retrieval_output.tau_vector(:, pp) = linspace(0, retrieval{pp}(3,idx_nans(1)-1), 100);
+    retrieval_output.tau_vector(:, pp) = linspace(0, retrieval(3,idx_nans(1)-1), 100);
 
-    retrieval_output.re_profile(:, pp) = create_droplet_profile2([retrieval{pp}(1,idx_nans(1)-1), retrieval{pp}(2,idx_nans(1)-1)],...
-        retrieval_output.tau_vector(:, pp), 'optical_depth', inputs.model.profile.type);
+    retrieval_output.re_profile(:, pp) = create_droplet_profile2([retrieval(1,idx_nans(1)-1), retrieval(2,idx_nans(1)-1)],...
+        retrieval_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
 
 else
 
-    retrieval_output.tau_vector(:, pp) = linspace(0, retrieval{pp}(3, end), 100);
+    retrieval_output.tau_vector(:, pp) = linspace(0, retrieval(3, end), 100);
 
-    retrieval_output.re_profile(:, pp) = create_droplet_profile2([retrieval{pp}(1, end), retrieval{pp}(2, end)],...
-        retrieval_output.tau_vector(:, pp), 'optical_depth', inputs.model.profile.type);
+    retrieval_output.re_profile(:, pp) = create_droplet_profile2([retrieval(1, end), retrieval(2, end)],...
+        retrieval_output.tau_vector(:, pp), 'optical_depth', GN_inputs.model.profile.type);
 
 
 end
