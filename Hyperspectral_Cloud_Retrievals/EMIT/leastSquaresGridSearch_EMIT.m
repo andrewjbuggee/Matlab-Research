@@ -18,11 +18,12 @@ tau_c = inputs_tblut.RT.tau_c;
 interpGridScaleFactor = inputs_tblut.interpGridScaleFactor;
 bands2run = inputs_tblut.bands2run; % bands to run through uvspec
 
+% extract size of forward modeled calcualtions
+num_rEff = length(re);
+num_tauC = length(tau_c);
+
 % folder where the .mat file of reflectances is stored
 saveCalcs_folder = inputs_tblut.saveOutput_fileName;
-
-% save calculations
-saveCalcs_filename = inputs_tblut.saveOutput_fileName;
 
 
 
@@ -35,15 +36,16 @@ band_midPoint = inputs_tblut.source.wavelength(inputs_tblut.bands2run);      % n
 % in our model data, the column space, which spans the x direction, varies
 % with tau. The row space, which spans the y direction, vaires with re
 
-[T0,Re0] = meshgrid(tau_c,re);
+[Re0, T0] = meshgrid(re,tau_c);
 
 % now lets expand the two variables in question to the preferred size
 
 newTau_c = linspace(min(tau_c),max(tau_c),interpGridScaleFactor*length(tau_c));
 new_re = linspace(min(re),max(re),interpGridScaleFactor*length(re));
 
+
 % set up the new grid to interpolate on
-[T,Re] = meshgrid(newTau_c,new_re);
+[Re, T] = meshgrid(new_re, newTau_c);
 
 
 
@@ -53,7 +55,7 @@ new_re = linspace(min(re),max(re),interpGridScaleFactor*length(re));
 
 % grab the observations for the pair of bands desired for the
 % retrieval
-observations = emitRefl.value(bands2run', :);     % 1/sr - reflectance
+observations = emitRefl.value(bands2run');     % 1/sr - reflectance
 
 
 
@@ -69,22 +71,16 @@ interp_modelRefl_band1 = interp2(Re0, T0, modelRefl_band1_array, Re, T);
 interp_modelRefl_band2 = interp2(Re0, T0, modelRefl_band2_array, Re, T);
 
 
-% the third dimension is the spectral dimension. Step through each
-% wavelength and perform the 2D interpolation
-for bb = 1:length(bands2run)
-    interp_modelRefl(:,:,bb) = interp2(T0, Re0, modelRefl_array(:,:,bb), T, Re);
-end
-
 
 
 % finally, lets create an array with the same shape as the new
 % interpolated array, but where every value is the observed
 % reflectance
 % for band 1...
-observations_newGrid_band1 = repmat(observations(bands2run(1)),...
+observations_newGrid_band1 = repmat(observations(1),...
                   length(newTau_c), length(new_re));
 % for band 2...
-observations_newGrid_band2 = repmat(observations(bands2run(2)),...
+observations_newGrid_band2 = repmat(observations(2),...
                   length(newTau_c), length(new_re));
 
 
@@ -109,16 +105,16 @@ leastSquaresGrid = sqrt(mean((cat(3, interp_modelRefl_band1, interp_modelRefl_ba
 % If we assume that there is a unique global minimum, we can search for it
 % using the minimum function. If we have more complicated scenario we need
 % to use the optimization tools to search for global and local minima
-[tblut_retrieval.minLSD(pp),index] = min(leastSquaresGrid,[],'all','linear');
+[tblut_retrieval.minLSD,index] = min(leastSquaresGrid,[],'all','linear');
 [row,col] = ind2sub(size(leastSquaresGrid),index);
 
 % Save the effective radius and optical depth associated with the
 % minimum RMS difference
-tblut_retrieval.minRe(pp) = Re(row,col);
-tblut_retrieval.minTau(pp) = T(row,col);
+tblut_retrieval.minRe = Re(row,col);
+tblut_retrieval.minTau = T(row,col);
 
 % Save the reflectance associated with the minimum RMS difference
-tblut_retrieval.reflectance(:,pp) = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
+tblut_retrieval.reflectance = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
 
 
 
@@ -202,7 +198,7 @@ end
 
 
 
-save([saveCalcs_folder, saveCalcs_filename],"tblut_retrieval",'-append'); % save inputSettings to the same folder as the input and output file
+save(saveCalcs_folder,"tblut_retrieval",'-append'); % save inputSettings to the same folder as the input and output file
 
 
 
