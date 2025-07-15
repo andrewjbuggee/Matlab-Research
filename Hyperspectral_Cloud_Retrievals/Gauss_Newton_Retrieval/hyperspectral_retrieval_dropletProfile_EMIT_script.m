@@ -230,6 +230,13 @@ tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_path
 disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
 
 
+
+%% Override input settings with MODIS derived values
+
+% override the cloud top height
+GN_inputs.RT.z_topBottom = [];
+
+
 %% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
 
 GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
