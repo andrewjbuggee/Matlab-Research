@@ -23,8 +23,14 @@ wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = GN_inputs.libRadtran_data_path;
 which_computer = GN_inputs.which_computer;
-source_flux = GN_inputs.source.flux;
-source_wavelength = GN_inputs.source.wavelength;
+
+
+% Read the solar flux file over the wavelength range specified
+wavelength_vec = [min(wavelengths2run,[],"all"), max(wavelengths2run, [], "all")];
+
+% we need the source flux on the the same wavelength grid as the radiative
+% transfer calculations
+[source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, GN_inputs.RT.source_file);   % W/nm/m^2
 
 
 % we will add and subtract a small fraction of the source file resolution
@@ -84,7 +90,7 @@ wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.la
 measurement_estimate = zeros(size(GN_inputs.RT.wavelengths2run,1), 1);
 
 parfor ww = 1:size(wavelengths2run,1)
-    % for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
+% for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
 
     % define the input file name
     inputFileName = [num2str(mean(wavelengths2run(ww,:))), '_','nm_rTop_', num2str(r_top),...

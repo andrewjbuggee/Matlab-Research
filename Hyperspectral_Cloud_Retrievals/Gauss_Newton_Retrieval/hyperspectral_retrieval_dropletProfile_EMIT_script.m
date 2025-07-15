@@ -238,12 +238,10 @@ GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit);
 
 %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
-
+tic
 % --------------------------------------------------------------
 % ---------------- Retrieve Vertical Profile! ------------------
 % --------------------------------------------------------------
-
-tic
 
 [retrieval, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit, spec_response, folder_paths);
 
