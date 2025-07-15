@@ -5,13 +5,15 @@
 % ---------------------------------------
 % (1) emit - EMIT data structure
 
-% (2) emitDataFolder - this is the data folder where the EMIT data is
+% (2) spec_response - EMIT spectral response for each channel
+
+% (3) emitDataFolder - this is the data folder where the EMIT data is
 % located
 
-% (3) folderpaths - this is a structure with all the folder paths needed to
+% (4) folderpaths - this is a structure with all the folder paths needed to
 % read ad store files
 
-% (4) pixels2use - these are the pixels to use for the retrieval
+
 
 
 
@@ -19,7 +21,7 @@
 
 %%
 
-function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folderpaths)
+function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_paths)
 
 
 disp([newline, 'Computing the TBLUT retrieval...', newline])
@@ -28,7 +30,7 @@ disp([newline, 'Computing the TBLUT retrieval...', newline])
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folderpaths, emit, spec_response);
+inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response);
 
 
 %% Define the solar source file name and read in the solar source data
@@ -131,7 +133,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folderpaths.libRadtran_inp, folderpaths.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
+        write_INP_file(folder_paths.libRadtran_inp, folder_paths.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
             wavelengths, wc_filename{nn});
 
 
@@ -145,8 +147,7 @@ else
     % if the files already exist, just grab the names!
     error([newline, 'Dont know how to do this!', newline])
 
-    % [names.inp, inputs] = getMODIS_INPnames_withClouds(simulated_reflectance.solar, inputs, pixels2use);
-    % names.out = writeOutputNames(names.inp);
+
 
 end
 
@@ -195,13 +196,13 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
         % compute INP file
-        runUVSPEC_ver2(folderpaths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+        runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
             inputs_tblut.which_computer);
 
 
         % read .OUT file
         % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC_ver2(folderpaths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+        [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
             inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
