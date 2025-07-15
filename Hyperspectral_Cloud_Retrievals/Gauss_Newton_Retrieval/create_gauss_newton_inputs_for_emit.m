@@ -196,7 +196,7 @@ data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', 
     'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
-GN_inputs.folder2save.libRadTran_INP_OUT = [folderpaths.libRadTran_INP_OUT, 'EMIT_',char(data_date),...
+GN_inputs.folder2save.libRadtran_inp = [folderpaths.libRadtran_inp, 'EMIT_',char(data_date),...
     '_time_', L1B_fileName{1}(27:30), '/'];
 
 
