@@ -108,18 +108,11 @@ if use_TBLUT_estimates==true
 
 
 
-
-
-    GN_inputs.model.variance = [stdev_variables(1)^2, stdev_variables(2)^2,...
-        stdev_variables(3)^2]; % variance for the effective radius (microns squared) and optical thickness respectively
-
-
-
     %----------------------------------------------------
     % ----------- Set the Initial guess  ----------------
     %----------------------------------------------------
 
-    % Define teh initial guess as the a priori value
+    % Define the initial guess as the a priori value
     GN_inputs.model.initialGuess = GN_inputs.model.apriori;
 
 

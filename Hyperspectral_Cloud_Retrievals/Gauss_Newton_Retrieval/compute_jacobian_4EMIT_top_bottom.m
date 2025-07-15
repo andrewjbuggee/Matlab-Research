@@ -1,20 +1,21 @@
-% --- Compute Jacobian matrix for HySICS channels-----
+% --- Compute Jacobian matrix for EMIT channels-----
 
 
 
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_HySICS(state_vector, measurement_estimate, GN_inputs,...
-    spec_response, jacobian_barPlot_flag, folder_paths)
+function jacobian = compute_jacobian_4EMIT_top_bottom(state_vector, measurement_estimate, GN_inputs, spec_response,...
+    jacobian_barPlot_flag, folder_paths)
 
 
 disp([newline, 'Computing the Jacobian...', newline])
 
 
-
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;
+
+
 
 
 % --- compute the Jacobian at out current estimate ---
@@ -23,11 +24,11 @@ r_bottom = state_vector(2);
 tau_c = state_vector(3);
 
 
-
 % Read the solar flux file over the wavelength range specified
 wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
 
 [source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, GN_inputs.RT.source_file);   % W/nm/m^2
+
 
 % we will add and subtract a small fraction of the source file resolution
 % to ensure rounding errors don't cause an issue when selecting the
@@ -42,12 +43,14 @@ num_wl = size(GN_inputs.RT.wavelengths2run,1);
 % how many state variables are there?
 num_state_variables = length(state_vector);
 
+
+
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c]; 
-
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c];
 % ----------------------------------------------------------------
+
 
 % each column is a unique state vector with once variable being adjusted
 state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(change_in_state);
@@ -61,8 +64,8 @@ state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(
 changing_variables = [];
 for xx = 1:num_state_variables
 
-changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
-    GN_inputs.RT.wavelengths2run];
+    changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
+        GN_inputs.RT.wavelengths2run];
 
 end
 
@@ -77,6 +80,11 @@ num_INP_files = size(changing_variables, 1);
 % Lets step through each model variable and compute the derivative
 jacobian = zeros(num_wl, num_state_variables);
 change_in_measurement = zeros(num_wl, num_state_variables);
+
+
+
+
+
 
 
 % ----------------------------------------------------------
@@ -114,8 +122,10 @@ wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
+
+
 parfor nn = 1:num_INP_files
-    
+
 
     if nn>=1 && nn<=(num_wl)
 
@@ -138,19 +148,19 @@ parfor nn = 1:num_INP_files
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
-    
+
     % ----- Write an INP file --------
     write_INP_file(folder_paths.libRadtran_inp, GN_inputs.libRadtran_data_path, inputFileName, GN_inputs,...
         changing_variables(nn, 4:5), wc_filename{1});
 
-    
-    
+
+
     % ----------------------------------------------------
     % --------------- RUN RADIATIVE TRANSFER -------------
     % ----------------------------------------------------
 
 
-     % compute INP file
+    % compute INP file
     runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
         GN_inputs.which_computer);
 
@@ -169,8 +179,9 @@ parfor nn = 1:num_INP_files
         source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
 
 
-    
+
 end
+
 
 
 
@@ -192,7 +203,7 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
-    
+
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)
 
@@ -221,7 +232,6 @@ if jacobian_barPlot_flag==true
 
 
 end
-
 
 
 

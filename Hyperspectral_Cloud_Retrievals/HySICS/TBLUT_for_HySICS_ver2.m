@@ -159,8 +159,6 @@ else
     % if the files already exist, just grab the names!
     error([newline, 'Dont know how to do this!', newline])
 
-    % [names.inp, inputs] = getMODIS_INPnames_withClouds(simulated_reflectance.solar, inputs, pixels2use);
-    % names.out = writeOutputNames(names.inp);
 
 end
 
