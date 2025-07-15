@@ -77,8 +77,8 @@ delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 
 % 17_Jan_2024_coast - my TBLUT algorithm found an optical depth of 6.57 and
 % an effective radius of 10.79
-pixels2use.row = 932;
-pixels2use.col = 960;
+% pixels2use.row = 932;
+% pixels2use.col = 960;
 
 % 17_Jan_2024_coast - optical depth of 3.2 and 3.8
 % pixels2use.row = [932, 932];
@@ -122,6 +122,17 @@ pixels2use.col = 960;
 % 17_Jan_2024_coast - optical depths of 0(clear sky), 6.6, 9.22, 11.6, 14.53 19.8
 % pixels2use.row = [1021, 932, 969, 969, 969, 969];
 % pixels2use.col = [536, 960, 989, 984, 980, 957];
+
+
+
+% 27_Jan_2024 - ** Overlap with MODIS **
+% ** Time difference bu a couple minutes **
+% MODIS retrieved an optical depth of 32.63 and
+% an effective radius of 13.27
+% modis_pixel_row = 1458;
+% modis_pixel_col = 1288;
+pixels2use.row = 1154;
+pixels2use.col = 1064;
 
 
 % Grab the pixel indices
