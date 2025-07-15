@@ -12,7 +12,7 @@ measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince mat
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Retrieve the convergence limit
-absolute_convergence_limit = GN_inputs.convergence_limit;
+convergence_limit = GN_inputs.convergence_limit;
 
 % retrieve the percent limit change between successive iterations
 percent_change_limit = GN_inputs.percent_change_limit;
@@ -250,7 +250,8 @@ for ii = 1:num_iterations
             if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                     constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                constrained_measurement_estimate(:,mm) = compute_forward_model_4EMIT_top_bottom(constrained_guesses(:,mm), GN_inputs, spec_response.value, folder_paths);
+                constrained_measurement_estimate(:,mm) = compute_forward_model_4EMIT_top_bottom(constrained_guesses(:,mm),...
+                    GN_inputs, spec_response.value, folder_paths);
                 
 
             else
@@ -299,13 +300,7 @@ for ii = 1:num_iterations
 
 
 
-    % ----- new_guess using the previous iteration -----
-    %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
-
-
-    % ----- new_guess using the model prior mean value -----
-    %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii) + jacobian_diff_guess_prior(:,ii));
-
+  
     % -----------------------------------------------------------------
     % -----------------------------------------------------------------
 
