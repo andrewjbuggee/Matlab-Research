@@ -459,15 +459,15 @@ rev = 1;
 
 
 % This is the name of the .mat file with the reflectance calcs
-inputs.reflectance_calculations_fileName = [inputs.folder2save.reflectance_calcs,...
-    'droplet_profile_retrieval_EMIT_', char(datetime("today")),'.mat'];
+inputs.saveOutput_fileName = [inputs.folder2save.reflectance_calcs,...
+    'droplet_profile_retrieval_EMIT_ran_on_', char(datetime("today")),'.mat'];
 
 
 
-while isfile(inputs.reflectance_calculations_fileName)
+while isfile(inputs.saveOutput_fileName)
     rev = rev+1;
-    inputs.reflectance_calculations_fileName = [inputs.folder2save.reflectance_calcs,...
-        'droplet_profile_retrieval_EMIT_', char(datetime("today")),...
+    inputs.saveOutput_fileName = [inputs.folder2save.reflectance_calcs,...
+        'droplet_profile_retrieval_EMIT_ran_on_', char(datetime("today")),...
         '_rev', num2str(rev),'.mat'];
 end
 
