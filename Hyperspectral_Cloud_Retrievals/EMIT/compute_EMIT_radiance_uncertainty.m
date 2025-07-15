@@ -5,7 +5,7 @@
 
 %%
 
-function radiance_uncertainty = compute_EMIT_radiance_uncertainty(emit)
+function [radiance_uncertainty, radiance_uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit)
 
 
 %% Which computer is this?
@@ -76,7 +76,11 @@ eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 %% ---- The above equations describe a noise model for the instrument ----
 
 % Peter thinks I should set the EMIT radiance at uncertainty at 5% 
-radiance_uncertainty = 0.05 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
+% radiance_uncertainty = 0.05 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
+
+% Let's set it to 3%
+radiance_uncertainty_percent_perChannel = 0.03;
+radiance_uncertainty = 0.03 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
 
 
 

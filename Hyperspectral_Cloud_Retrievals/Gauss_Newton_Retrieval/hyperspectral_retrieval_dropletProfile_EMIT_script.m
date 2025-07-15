@@ -150,7 +150,7 @@ emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 
 %% Compute the radiance measurement uncertainty 
 
-emit.radiance.uncertainty = compute_EMIT_radiance_uncertainty(emit);
+[emit.radiance.uncertainty, emit.radiance.uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit);
 
 
 %% Compute the reflectance uncertainty
@@ -202,6 +202,15 @@ end
 tic
 tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_paths);
 disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline])
+
+
+%% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
+
+GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
+GN_inputs.RT.waterVapor_column = 30;   % mm - milimeters of water condensed in a column
+
+GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+
 
 %% Create the Model and Measurement prior
  

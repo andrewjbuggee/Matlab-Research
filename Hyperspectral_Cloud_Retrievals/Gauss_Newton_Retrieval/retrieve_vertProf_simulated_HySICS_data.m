@@ -266,7 +266,7 @@ disp('Dont forget to check the inputs and change if needed!!')
 
 
 
-%% We're retrieving above cloud column water vapor. Make sure input settings are correct
+%% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
 
 GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
 GN_inputs.RT.waterVapor_column = 30;   % mm - milimeters of water condensed in a column
