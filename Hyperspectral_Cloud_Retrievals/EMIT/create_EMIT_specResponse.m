@@ -107,8 +107,8 @@ for ww = 1:numel(inputs.bands2run)
 
     % The wavelength vector for libRadTran is simply the lower and upper
     % bounds
-    inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(ww, 1),...
-        spec_response.wavelength(ww, end)];
+    inputs.RT.wavelengths2run(ww,:) = [spec_response.wavelength(inputs.bands2run(ww), 1),...
+        spec_response.wavelength(inputs.bands2run(ww), end)];
 
 end
 

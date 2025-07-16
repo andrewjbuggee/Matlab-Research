@@ -77,11 +77,6 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variable
 num_INP_files = size(changing_variables, 1);
 
 
-% Lets step through each model variable and compute the derivative
-jacobian = zeros(num_wl, num_state_variables);
-change_in_measurement = zeros(num_wl, num_state_variables);
-
-
 
 
 
