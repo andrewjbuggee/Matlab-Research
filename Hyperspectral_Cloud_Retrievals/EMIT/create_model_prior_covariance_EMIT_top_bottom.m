@@ -168,7 +168,7 @@ else
     % 5%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    optThick_uncert = 0.025;
+    optThick_uncert = 0.1;
 
     % stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
     %     GN_inputs.model.apriori(2) * 6*effRad_uncert,...
