@@ -37,7 +37,7 @@ inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec
 
 % Values for 27_Jan_2024 - ** pixel [1242, 973] **
 % override the cloud top height
-inputs_tblut.RT.z_topBottom = [700, 500];
+inputs_tblut.RT.z_topBottom = [0.700, 0.500];    % km
 
 % Values for 27_Jan_2024 - ** pixel [1242, 973] **
 inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
@@ -195,7 +195,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
     parfor nn = 1:num_INP_files
-        % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+        % for nn = 1:num_INP_files
 
 
         disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
