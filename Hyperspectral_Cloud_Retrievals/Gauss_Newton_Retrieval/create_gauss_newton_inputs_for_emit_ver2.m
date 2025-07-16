@@ -1,16 +1,35 @@
-% simulated measurements is an input used to define certain parameters
+%% ----- CREATE INPUTS NEEDED TO COMPUTE DROPLET RADIUS PROFILE USING HYPERSPECTRAL MEASUREMENTS FROM EMIT -----
 
 % ** Retrieving 4 variables: r_top, r_bot, tau_c, cwv
 
+% INPUTS:
+%   (1) emitDataFolder - 
 
-function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements)
+%   (2) folder2save - 
+
+%   (3) L1B_filename - 
+
+%   (4) emit - 
+
+
+% OUTPUTS:
+%   (1) GN_inputs - effective droplet radius profile
+
+
+% By Andrew John Buggee
+%%
+
+function GN_inputs = create_gauss_newton_inputs_for_emit_ver2(emitDataFolder, folderpaths, L1B_fileName, emit)
 
 
 % Which computer are you using?
 GN_inputs.which_computer = whatComputer;
 
 
-% Find the folder where the mie calculations are stored
+% --- SAVE THE EMIT FILE NAME ----
+GN_inputs.emitDataFolder = emitDataFolder;
+
+
 % find the folder where the water cloud files are stored.
 if strcmp(GN_inputs.which_computer,'anbu8374')==true
 
@@ -50,9 +69,15 @@ elseif strcmp(GN_inputs.which_computer,'curc')==true
 end
 
 
-
-
 %%
+
+% ----- Save the L1B file name -----
+GN_inputs.L1B_filename = L1B_fileName{1};
+ 
+
+% -----------------------------------------------------------
+% --------------- Iterations and Convergence ----------------
+% -----------------------------------------------------------
 
 % define the number of iterations for the gauss-newton solver
 GN_inputs.GN_iterations = 5;
@@ -63,6 +88,7 @@ GN_inputs.GN_iterations = 5;
 % than the iterative process is stopped.
 GN_inputs.percent_change_limit = 0.03;
 
+
 % define the type of model prior pdf
 GN_inputs.model.prior = 'gaussian';
 
@@ -71,25 +97,9 @@ GN_inputs.model.prior = 'gaussian';
 GN_inputs.num_model_parameters = 4;
 
 
-
-
-% -------------------------------------------
-% --- Stuff for the Model Parameter Prior ---
-% -------------------------------------------
-
-% Using the King and Vaughn (2012) method, we retireve 3 parameters
-%   (1) r_top = effective droplet size at the cloud top
-%   (2) r_bottom = effective droplet size at the cloud bottom
-%   (3) tau_c = cloud optical depth
-% a good starting place is to assume the droplet size at cloud top and
-% bottom are the same value
-
-
-
-    
-
 GN_inputs.model.param_names = {'Effective Radius at Top of Cloud', 'Effective Radius at Bottom of Cloud',...
     'Cloud Optical Depth', 'Above Cloud Column Water Vapor'};
+
 
 
 % ---------------------------------------
@@ -102,6 +112,9 @@ GN_inputs.measurement.prior = 'gaussian';
 %   (1) 'independent - thus all off diagonal elements are 0
 %   (2) 'computed' - uses measured data to compute covaraince
 GN_inputs.measurement.covariance_type = 'independent';
+
+
+
 
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
@@ -141,11 +154,48 @@ GN_inputs.model.profile.r_bottom = 5; % microns - value for our model
 % -----------------------------------------------
 % --------------- Define flags  -----------------
 % -----------------------------------------------
+% define flags that tell the codes to either run certain things, or don't
+% run certain things
+
+GN_inputs.flags.findSuitablePixels = false; % if true, this will search the modis data set for pixels to use
+
+% if true, the code will load an older set of pixels that has already been used before, and 
+% likely has INP files. If false, it tells the code to find a new random subset of pixels
+GN_inputs.flags.loadPixelSet = true; 
+GN_inputs.flags.writeINPfiles = true; % if true, this will create inp files for each the length of vector pixel.row
+GN_inputs.flags.runUVSPEC = true; % if true, this will run all of the inp files create from the above flag through uvspec
+GN_inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot 
 
 
 
 
 
+% --------------------------------------------
+% Create a new folder to save all calculations
+% --------------------------------------------
+
+% Define the folder that stores the GN_inputs and calculated reflectanes
+% using todays date
+data_date = datetime([L1B_fileName{1}(18:21), '-', L1B_fileName{1}(22:23), '-', L1B_fileName{1}(24:25)],...
+    'InputFormat','yyyy-MM-dd');
+
+% Store the file name for the libRadTran INP and OUT files
+GN_inputs.folder2save.libRadtran_inp = [folderpaths.libRadtran_inp, 'EMIT_',char(data_date),...
+    '_time_', L1B_fileName{1}(27:30), '/'];
+
+
+% This is the folder where the reflectance calculations will be stored
+GN_inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataFolder]; 
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(GN_inputs.folder2save.reflectance_calcs, 'dir')
+
+    mkdir(GN_inputs.folder2save.reflectance_calcs);
+
+end
+
+% This is the name of the .mat file with the reflectance calcs
+GN_inputs.reflectance_calculations_fileName = ['hyperspectral_reflectance_calculations_', char(datetime("today")),'.mat'];
 
 
 
@@ -157,16 +207,8 @@ GN_inputs.model.profile.r_bottom = 5; % microns - value for our model
 
 % Define the parameters of the INP file
 
-% Use geometry inputs from the simulated measurements
-load_parameters_from_measurement = true;
 
-% how similar should the forward model be to the simulated measurements?
-% options: (1) 'exact'  (2) 'subset'
-
-simulated_measurements_likeness = 'exact';
-
-[GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements, simulated_measurements_likeness);
+GN_inputs = create_uvSpec_DISORT_inputs_for_EMIT(GN_inputs,emit);
 
 
 
@@ -176,5 +218,9 @@ simulated_measurements_likeness = 'exact';
 
 
 
+
+% ----- ISSUE A WARNING! SETTINGS SHOULD BE CHECKED -----
+
+warning([newline, 'Check GN_inputs structure to make sure the settings reflect the situation you wish to model!', newline]);
 
 end

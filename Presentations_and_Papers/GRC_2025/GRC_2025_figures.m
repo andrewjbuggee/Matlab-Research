@@ -719,3 +719,171 @@ set(gcf, 'Position', [0 0 1250 700])
 title('Simulated HySICS reflectance with different total CWV', ...
     'FontSize', 25, 'Interpreter','latex')
 
+
+
+
+%% Plot EMIT spectrum and bands used to run retreival 
+
+clear variables
+
+% --- Load EMIT Data ---
+
+% -------------------------------------
+% ------- PICK EMIT DATA SET  --------
+% -------------------------------------
+
+% 27 january has overlap with MODIS observations
+emitDataFolder = '27_Jan_2024/';
+
+% -------------------------------------
+
+
+% Determine which computer you're using
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(whatComputer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+    % Define the EMIT data folder path
+
+    emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+
+    % Define the folder path where all .INP files will be saved
+    folder2save.libRadTran_INP_OUT = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/'];
+
+    % Define the folder path where the mat files of reflectances will be
+    % saved
+    folder2save.reflectance_calcs = emitDataPath;
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the EMIT data folder path
+
+    emitDataPath = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
+
+
+    % Define the folder path where all .INP and .OUT files will be saved
+    folder2save.libRadTran_INP_OUT = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/'];
+
+    % Define the folder path where the mat files of reflectances will be
+    % saved
+    folder2save.reflectance_calcs = emitDataPath;
+
+
+
+
+end
+
+% Define EMIT Data locations and LibRadTran paths
+
+folder_paths = define_EMIT_dataPath_and_saveFolders();
+
+[emit,L1B_fileName] = retrieveEMIT_data([emitDataPath, emitDataFolder]);
+
+
+% --- Define the pixels to use for the retrieval ---
+
+% 27_Jan_2024 - ** Overlap with MODIS **
+% ** Time difference bu a couple minutes **
+% MODIS retrieved an optical depth of 12.07 and
+% an effective radius of 7.94
+% modis_pixel_row = 1481;
+% modis_pixel_col = 1285;
+pixels2use.row = 1242;
+pixels2use.col = 640;
+
+
+% Grab the pixel indices
+pixels2use = grab_pixel_indices(pixels2use, size(emit.radiance.measurements));
+
+
+
+% --- Remove data that is not needed ---
+
+emit = remove_unwanted_emit_data(emit, pixels2use);
+
+% this is a built-in function that is defined at the bottom of this script
+GN_inputs = create_gauss_newton_inputs_for_emit(emitDataFolder, folder_paths, L1B_fileName, emit);
+
+% --- Define the spectral response function of EMIT for the desired Bands
+% ---
+
+% create the spectral response functions
+[GN_inputs, spec_response] = create_EMIT_specResponse(emit, GN_inputs);
+
+% --- Define the solar source file name and read in the solar source data
+% ---
+
+% ********* IMPORTANT *************
+% The source flux is integrated with the EMIT spectral response function
+
+% define the source file using the input resolution
+GN_inputs = define_source_for_EMIT(GN_inputs, emit);
+
+
+% --- Convert radiance measurements to TOA reflectance for the desired
+% pixels ---
+
+emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
+
+
+
+% --- Second plot shows the spectral bands used in the hyperspectral
+% retireval ---
+
+
+% *** Define the first 35 bands ***
+% --- New New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
+% libRadtran estimates of reflectance below 500 nm consistently
+% overestimate the measured values from EMIT. Let's ignore wavelengths
+% below 500
+GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
+
+figure;
+% plot(emit.radiance.wavelength, emit.reflectance.value, '.-', 'MarkerSize', 20,...
+%     'LineWidth',1, 'Color', mySavedColors(3, 'fixed'))
+plot(emit.radiance.wavelength, emit.reflectance.value, 'Color', mySavedColors(3, 'fixed'))
+xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
+ylabel('Reflectance ($1/sr$)', Interpreter='latex', FontSize=30)
+grid on; grid minor
+
+% define the color of the filled patch
+C = [0 0.4470 0.7410];
+C = [0 0 0];
+
+wl_range = [140, 160];
+%wl_range = [100, 200];
+
+for bb = 1:length(GN_inputs.bands2run)
+
+    hold on
+    % plot the bands used as transparent area
+    x = [spec_response.wavelength(GN_inputs.bands2run(bb), wl_range),...
+        fliplr(spec_response.wavelength(GN_inputs.bands2run(bb), wl_range))];
+    %y = [1,1, 0,0];
+    y = [1e5,1e5, 1e-15,1e-15];
+    fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
+
+end
+
+% set ylimits
+ylim([0, 1.1*max(emit.reflectance.value)])
+
+% Create legend
+legend('EMIT Reflectance', 'Wavelengths used in retrieval', 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', 25, 'Position',[0.690049780273438 0.8386 0.289800439453125 0.129])
+
+% set figure size
+set(gcf, 'Position', [0 0 1250 500])
+
+

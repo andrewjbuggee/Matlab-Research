@@ -183,15 +183,10 @@ GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(
 
 %% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
 
-GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
+GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
 
-% Values for 27_Jan_2024 - ** pixel [1242, 973] **
-% GN_inputs.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column
-
-% Values for 27_Jan_2024 - ** pixel [1242, 640] **
-GN_inputs.RT.waterVapor_column = 26;   % mm - milimeters of water condensed in a column
-
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+% *** Retreive Column Water Vapor! ***
+GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
 %% Set output filename
 
