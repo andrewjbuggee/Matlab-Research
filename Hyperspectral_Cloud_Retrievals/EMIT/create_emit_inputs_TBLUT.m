@@ -336,7 +336,8 @@ inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 416;       % ppm - concentration of CO2
+% Using values measured by OCO-3 on 27 Jan 2024 off the coast of Chile
+inputs.RT.CO2_mixing_ratio = 418;       % ppm - concentration of CO2
 % ------------------------------------------------------------------------
 
 

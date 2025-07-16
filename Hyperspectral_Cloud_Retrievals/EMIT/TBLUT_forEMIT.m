@@ -39,6 +39,15 @@ inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec
 % override the cloud top height
 inputs_tblut.RT.z_topBottom = [0.700, 0.500];    % km
 
+% change inputs that depend on z_topBottom
+% Water Cloud depth
+GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
+GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
+
+
+
 % Values for 27_Jan_2024 - ** pixel [1242, 973] **
 inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
 inputs_tblut.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column

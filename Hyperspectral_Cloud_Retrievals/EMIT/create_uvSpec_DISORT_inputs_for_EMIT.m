@@ -126,6 +126,10 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % ****************************************************************
 % *-*-*-*- Only keep wavelengths that avoid water vapor -*-*-*-*-*
 
+% --- Use all 285 spectral channels -
+% inputs.bands2run = (1:285)';
+
+
 
 % --- First 7 MODIS spectral channels -
 % inputs.bands2run = [17, 24, 36, 65, 116, 170, 235]';
@@ -167,6 +171,17 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
+
+
+% --- Indexes using same 35 as above, in addition to 29 water vapor bands ---
+% This set has a total of 64 bands. They are not exactly the same set as
+% the 66 HySICS bands used to retrieve column water vapor because the
+% HySICS channels are more narrow.
+% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+%     94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+%     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+%     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
 % ------------------------------------------------------------------------
@@ -633,7 +648,8 @@ inputs.RT.use_phaseRetrieval_columnWaterVapor = false;
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 416;       % ppm
+% Using values measured by OCO-3 on 27 Jan 2024 off the coast of Chile
+inputs.RT.CO2_mixing_ratio = 418;       % ppm
 % inputs.RT.CO2_mixing_ratio = 0;       % ppm
 % ------------------------------------------------------------------------
 

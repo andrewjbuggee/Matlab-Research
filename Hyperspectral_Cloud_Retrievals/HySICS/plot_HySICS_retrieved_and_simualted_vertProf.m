@@ -13,8 +13,7 @@
 function plot_HySICS_retrieved_and_simualted_vertProf(hysics, GN_outputs, GN_inputs, tblut_retrieval)
 
 
-% I want a subplot with the number concentration and altitude, and the
-% effective radius with altitude
+
 C = mySavedColors(1:2, 'fixed');
 
 
@@ -22,7 +21,7 @@ figure;
 
 
 
- title('Comparison between simulated and retrieved profile', 'Interpreter','latex',...
+ title('Comparison between simulated and retrieved profile using HySICS', 'Interpreter','latex',...
         'FontSize', 26)
 
 
