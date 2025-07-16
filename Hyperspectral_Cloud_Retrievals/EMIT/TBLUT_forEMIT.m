@@ -43,14 +43,10 @@ inputs_tblut.RT.z_topBottom = [0.700, 0.500];    % km
 % Water Cloud depth
 inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
-inputs_tblut.RT.z_edges = linspace(inputs_tblut.RT.z_topBottom(2), inputs_tblut.RT.z_topBottom(1), inputs_tblut.RT.n_layers+1);   % km - the edges of each layer
-inputs_tblut.RT.z = linspace(inputs_tblut.RT.z_topBottom(2), inputs_tblut.RT.z_topBottom(1), inputs_tblut.RT.n_layers);        % km - altitude above ground vector
 
-
-
-% Values for 27_Jan_2024 - ** pixel [1242, 973] **
 inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
-inputs_tblut.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column
+% Values for 27_Jan_2024 - ** pixel [1242, 640] **
+inputs_tblut.RT.waterVapor_column = 26;   % mm - milimeters of water condensed in a column
 
 
 
