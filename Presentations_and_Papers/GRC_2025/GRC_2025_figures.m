@@ -561,6 +561,24 @@ end
 
 ds = load([folderpath, filename]);
 
+
+% The same 35 spectral channels above that avoid water vapor and other
+% gaseous absorbers, AND 31 bands in the wings of water vapor absorption
+% features for a total of 66 bands
+bands_with_H2O = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+    198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
+    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+    543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
+
+
+
+bands_without_H2O = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+            222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+            426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+            618, 620, 623, 625]';
+
+
 % --- Create plot ---
 
 figure;
@@ -572,19 +590,9 @@ grid on; grid minor
 
 
 
-
-% The same 35 spectral channels above that avoid water vapor and other
-% gaseous absorbers, AND 31 bands in the wings of water vapor absorption
-% features for a total of 66 bands
-bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    198, 217, 220, 245, 249, 254, 264, 222, 224, 227, 237, 288, 290, 293,...
-    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-    543, 547, 570, 574, 577, 579, 582, 613, 616,618, 620, 623, 625]';
-
 % define the color of the filled patch
 
-for bb = 1:length(bands2run)
+for bb = 1:length(bands_with_H2O)
 
     % hold on
     % % plot the bands used as transparent area
@@ -595,10 +603,29 @@ for bb = 1:length(bands2run)
     % fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
 
     hold on
-    xline(mean(ds.spec_response.wavelength(bands2run(bb), :)), 'Color', mySavedColors(61, 'fixed'),...
+    xline(mean(ds.spec_response.wavelength(bands_with_H2O(bb), :)), 'Color', mySavedColors(65, 'fixed'),...
         'linewidth', 2)
 
 end
+
+% Now color the bands without water vapor absorption in a different color
+for bb = 1:length(bands_without_H2O)
+
+    % hold on
+    % % plot the bands used as transparent area
+    % x = [ds.spec_response.wavelength(bands2run(bb), :),...
+    %     fliplr(emit.spec_response.wavelength(inputs.bands2run(bb), wl_range))];
+    % %y = [1,1, 0,0];
+    % y = [1e5,1e5, 1e-15,1e-15];
+    % fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
+
+    hold on
+    xline(mean(ds.spec_response.wavelength(bands_without_H2O(bb), :)), 'Color', mySavedColors(63, 'fixed'),...
+        'linewidth', 2)
+
+end
+
+
 
 % Define x limits
 xlim([300, 2400])
@@ -612,8 +639,9 @@ title('Wavelengths used to retrieve droplet profile and above cloud column water
     'FontSize', 25, 'Interpreter','latex')
 
 % Create legend
-legend('HySICS Reflectance', 'Wavelengths used in retrieval', 'Location', 'best',...
-    'Interpreter', 'latex', 'FontSize', 25, 'Position',[0.690049780273438 0.7386 0.25 0.129])
+legend('Simulated HySICS reflectance', 'Water vapor absorption bands', 'non-water vapor absorption bands',...
+    'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', 25)
 
 
 
@@ -839,40 +867,48 @@ emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 % retireval ---
 
 
+% *** Define the 64 bands that include water vapor information ***
+bands_with_H2O = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+    94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+    157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+    220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+
+
 % *** Define the first 35 bands ***
 % --- New New New New New indexs - using HiTran - avoid water vapor and other absorbing gasses! With Pilewskie input ---
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+bands_without_H2O = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
+% define the colors!
+C = mySavedColors(62:64, 'fixed');
+
 figure;
 % plot(emit.radiance.wavelength, emit.reflectance.value, '.-', 'MarkerSize', 20,...
 %     'LineWidth',1, 'Color', mySavedColors(3, 'fixed'))
-plot(emit.radiance.wavelength, emit.reflectance.value, 'Color', mySavedColors(3, 'fixed'))
+plot(emit.radiance.wavelength, emit.reflectance.value, 'Color', C(1,:))
 xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
 ylabel('Reflectance ($1/sr$)', Interpreter='latex', FontSize=30)
 grid on; grid minor
 
-% define the color of the filled patch
-C = [0 0.4470 0.7410];
-C = [0 0 0];
+
 
 wl_range = [140, 160];
 %wl_range = [100, 200];
 
-for bb = 1:length(GN_inputs.bands2run)
+for bb = 1:length(bands_with_H2O)
 
     hold on
     % plot the bands used as transparent area
-    x = [spec_response.wavelength(GN_inputs.bands2run(bb), wl_range),...
-        fliplr(spec_response.wavelength(GN_inputs.bands2run(bb), wl_range))];
+    x = [spec_response.wavelength(bands_with_H2O(bb), wl_range),...
+        fliplr(spec_response.wavelength(bands_with_H2O(bb), wl_range))];
     %y = [1,1, 0,0];
     y = [1e5,1e5, 1e-15,1e-15];
-    fill(x,y, C, 'EdgeAlpha', 0, 'FaceAlpha', 1)
+    fill(x,y, C(2,:), 'EdgeAlpha', 0, 'FaceAlpha', 1)
 
 end
 
