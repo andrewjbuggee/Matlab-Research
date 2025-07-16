@@ -161,7 +161,7 @@ emit = remove_unwanted_emit_data(emit, pixels2use);
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-GN_inputs = create_gauss_newton_inputs_for_emit(emitDataFolder, folder_paths, L1B_fileName, emit);
+GN_inputs = create_gauss_newton_inputs_for_emit_ver2(emitDataFolder, folder_paths, L1B_fileName, emit);
 %inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
 % *** Check Inputs ***
@@ -291,7 +291,7 @@ disp([newline, 'TBLUT retrieval took ', num2str(toc), 'seconds to run', newline]
 %% Create the Model and Measurement prior
 
 
-GN_inputs = create_model_prior_covariance_EMIT_top_bottom(GN_inputs, tblut_retrieval, true);
+GN_inputs = create_model_prior_covariance_EMIT_top_bottom_ver2(GN_inputs, tblut_retrieval, true);
 %inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
 
 GN_inputs = create_EMIT_measurement_covariance(GN_inputs, emit);
@@ -304,7 +304,7 @@ tic
 % ---------------- Retrieve Vertical Profile! ------------------
 % --------------------------------------------------------------
 
-[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom(GN_inputs, emit, spec_response, folder_paths);
+[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_4EMIT_top_bottom_ver2(GN_inputs, emit, spec_response, folder_paths);
 
 disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
 
