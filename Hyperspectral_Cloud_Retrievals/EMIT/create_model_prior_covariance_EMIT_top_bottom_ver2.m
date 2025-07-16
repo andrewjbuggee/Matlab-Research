@@ -111,7 +111,7 @@ else
     % *** Test Values for new EMIT retrieval ***
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = [tblut_retrieval.minRe, 0.5*tblut_retrieval.minRe, tblut_retrieval.minTau, 8];
+    GN_inputs.model.apriori = [tblut_retrieval.minRe, 0.5*tblut_retrieval.minRe, tblut_retrieval.minTau, 28];
 
 
 
@@ -177,7 +177,7 @@ else
     %     GN_inputs.model.apriori(3) * optThick_uncert];
 
     % let's define the uncertainty of the a priori above cloud column water vapor
-    colWaterVapor_uncert = 0.1;
+    colWaterVapor_uncert = 0.15;
 
     % -------------------------------
     % *** TESTING NEW UNCERTAINTY ***
