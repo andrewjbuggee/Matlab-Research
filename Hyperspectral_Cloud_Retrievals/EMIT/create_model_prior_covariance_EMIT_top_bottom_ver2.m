@@ -177,7 +177,7 @@ else
     %     GN_inputs.model.apriori(3) * optThick_uncert];
 
     % let's define the uncertainty of the a priori above cloud column water vapor
-    colWaterVapor_uncert = 0.1;
+    colWaterVapor_uncert = 0.15;
 
     % -------------------------------
     % *** TESTING NEW UNCERTAINTY ***
