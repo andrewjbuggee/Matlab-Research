@@ -133,8 +133,18 @@ delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 % an effective radius of 13.27
 % modis_pixel_row = 1458;
 % modis_pixel_col = 1288;
+% pixels2use.row = 1242;
+% pixels2use.col = 973;
+
+
+% 27_Jan_2024 - ** Overlap with MODIS **
+% ** Time difference bu a couple minutes **
+% MODIS retrieved an optical depth of 12.07 and
+% an effective radius of 7.94
+% modis_pixel_row = 1481;
+% modis_pixel_col = 1285;
 pixels2use.row = 1242;
-pixels2use.col = 973;
+pixels2use.col = 640;
 
 
 % Grab the pixel indices
@@ -165,9 +175,13 @@ GN_inputs.RT.z_topBottom = [0.700, 0.500];    % km
 
 %% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
 
-% Values for 27_Jan_2024 - ** pixel [1242, 973] **
 GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
-GN_inputs.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column
+
+% Values for 27_Jan_2024 - ** pixel [1242, 973] **
+% GN_inputs.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column
+
+% Values for 27_Jan_2024 - ** pixel [1242, 640] **
+GN_inputs.RT.waterVapor_column = 26;   % mm - milimeters of water condensed in a column
 
 GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
 

@@ -12,7 +12,7 @@ measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince mat
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Retrieve the convergence limit
-convergence_limit = GN_inputs.convergence_limit;
+convergence_limit = GN_inputs.measurement.rss_uncert;
 
 % retrieve the percent limit change between successive iterations
 percent_change_limit = GN_inputs.percent_change_limit;

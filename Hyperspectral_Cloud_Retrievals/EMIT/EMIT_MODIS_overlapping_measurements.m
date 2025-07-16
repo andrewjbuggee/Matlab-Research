@@ -153,17 +153,6 @@ sm2 = geoscatter(modis_lat_emitOverlap, modis_long_emitOverlap, 100, H_860_emitO
 hold on
 colorbar
 
-%%
-
-% Find all MODIS pixels within the footprint of EMIT (** not exact **)
-emit_lat_min = min(emit.radiance.geo.lat, [], "all");
-emit_lat_max = max(emit.radiance.geo.lat, [], "all");
-
-emit_long_min = min(emit.radiance.geo.long, [], "all");
-emit_long_max = max(emit.radiance.geo.long, [], "all");
-
-idx_lat = modis.geo.lat>=emit_lat_min & modis.geo.lat<=emit_lat_max;
-idx_long = modis.geo.long>=emit_long_min & modis.geo.long<=emit_long_max;
 
 %% Find distance between each MODIS and EMIT pixel
 
@@ -191,6 +180,18 @@ idx_long = modis.geo.long>=emit_long_min & modis.geo.long<=emit_long_max;
 
 
 
+%%
+
+% Find all MODIS pixels within the footprint of EMIT (** not exact **)
+emit_lat_min = min(emit.radiance.geo.lat, [], "all");
+emit_lat_max = max(emit.radiance.geo.lat, [], "all");
+
+emit_long_min = min(emit.radiance.geo.long, [], "all");
+emit_long_max = max(emit.radiance.geo.long, [], "all");
+
+idx_lat = modis.geo.lat>=emit_lat_min & modis.geo.lat<=emit_lat_max;
+idx_long = modis.geo.long>=emit_long_min & modis.geo.long<=emit_long_max;
+
 
 %%
 
@@ -199,17 +200,17 @@ idx_long = modis.geo.long>=emit_long_min & modis.geo.long<=emit_long_max;
 is_liquidWater = modis.cloud.phase==2;           % 2 is the value designated for liquid water
 
 % find a cloud with an optical thickness of atleast 4
-is_tauGreaterThan4 = modis.cloud.optThickness17>=4;
+is_tauGreaterThan4andLessThan20 = modis.cloud.optThickness17>=4 & modis.cloud.optThickness17<=20;
 
 % find a pixel where the effective radius retreival uncertainty is less
 % than 10 percent
 is_reUncertLessThan10Percent = modis.cloud.effRad_uncert_17<=10;
 
 % find where the inhomogeneity index is less than 0.3
-is_H_lessThan = modis.cloud.inhomogeneity_index(:,:,2)<1;
+is_H_lessThan = modis.cloud.inhomogeneity_index(:,:,2)<1.25;
 
 % let's combine these to find all values that meet these requirements
-idx_combined_master = logical(idx_lat .* idx_long .* is_liquidWater .* is_tauGreaterThan4 .*...
+idx_combined_master = logical(idx_lat .* idx_long .* is_liquidWater .* is_tauGreaterThan4andLessThan20 .*...
                         is_reUncertLessThan10Percent .* is_H_lessThan);
 
 

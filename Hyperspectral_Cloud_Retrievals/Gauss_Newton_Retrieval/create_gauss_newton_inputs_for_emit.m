@@ -88,18 +88,6 @@ GN_inputs.GN_iterations = 5;
 GN_inputs.percent_change_limit = 0.03;
 
 
-% Define the convergence limit. Convergence is defined using the residual,
-% which is the difference between the true and estimated measurements.
-% We take the RMS of the residual using all spectral channels. This is how
-% we define the convergence limit. If the residual is the difference
-% between the true measurement and the estimated measurement, and the true
-% measurement has an uncertainty of 10%, then our estimate measurement
-% should be within this uncertainty. Using MODIS, we can compute the
-% RMS uncertainty vector and set this as the convergence limit.
-
-GN_inputs.convergence_limit = 0.005;  % generic convergence limit
-
-
 % define the type of model prior pdf
 GN_inputs.model.prior = 'gaussian';
 

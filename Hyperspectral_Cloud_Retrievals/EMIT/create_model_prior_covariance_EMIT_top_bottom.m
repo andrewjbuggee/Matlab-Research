@@ -162,7 +162,7 @@ else
     % 20%. This is a factor of two larger than the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    effRad_uncert = 0.2;
+    effRad_uncert = 0.1;
 
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for
@@ -179,7 +179,7 @@ else
     % -------------------------------
     % The uncertainty for the a priori at cloud bottom is 50%
     stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-        GN_inputs.model.apriori(2) * 5*effRad_uncert,...
+        GN_inputs.model.apriori(2) * 3*effRad_uncert,...
         GN_inputs.model.apriori(3) * optThick_uncert];
 
 
