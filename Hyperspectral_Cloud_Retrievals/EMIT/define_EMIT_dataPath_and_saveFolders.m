@@ -19,6 +19,7 @@ if strcmp(whatComputer,'anbu8374')==true
 
     folder_paths.emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
+
     % Define the folder path where all .INP files will be saved
     folder_paths.libRadtran_inp = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/EMIT';
 
