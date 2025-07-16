@@ -33,6 +33,18 @@ disp([newline, 'Computing the TBLUT retrieval...', newline])
 inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response);
 
 
+%% SPECIAL CASES
+
+% Values for 27_Jan_2024 - ** pixel [1242, 973] **
+% override the cloud top height
+inputs_tblut.RT.z_topBottom = [700, 500];
+
+% Values for 27_Jan_2024 - ** pixel [1242, 973] **
+inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
+inputs_tblut.RT.waterVapor_column = 36;   % mm - milimeters of water condensed in a column
+
+
+
 %% Define the solar source file name and read in the solar source data
 
 % ********* IMPORTANT *************

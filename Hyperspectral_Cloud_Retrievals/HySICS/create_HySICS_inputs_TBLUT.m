@@ -433,8 +433,7 @@ rev = 1;
 
 
 
-    inputs.save_mat_filename = [folder_paths.HySICS_retrievals,'droplet_profile_retrieval_',...
-        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+inputs.save_mat_filename = folder_paths.saveOutput_filename;
 
 
 

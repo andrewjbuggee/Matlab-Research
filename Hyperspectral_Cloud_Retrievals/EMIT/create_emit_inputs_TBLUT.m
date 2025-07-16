@@ -16,7 +16,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, folderpaths, emit, spec_response)
+function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response)
 
 
 %%
@@ -28,7 +28,7 @@ inputs.which_computer = whatComputer;
 inputs.emitDataFolder = emitDataFolder;
 
 % read the contents of the EMIT data folder
-folder_contents = dir([folderpaths.emitDataPath, emitDataFolder]);
+folder_contents = dir([folder_paths.emitDataPath, emitDataFolder]);
 
 % ----- Save the L1B file name -----
 for nn = 1:length(folder_contents)
@@ -75,12 +75,11 @@ data_date = datetime([inputs.L1B_filename(18:21), '-', inputs.L1B_filename(22:23
     'InputFormat','yyyy-MM-dd');
 
 % Store the file name for the libRadTran INP and OUT files
-inputs.folder2save.libRadTran_INP_OUT = [folderpaths.libRadtran_data_path, 'EMIT_',char(data_date),...
-    '_time_', inputs.L1B_filename(27:30), '/'];
+inputs.folder2save.libRadTran_INP_OUT = folder_paths.libRadtran_inp;
 
 
 % This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = [folderpaths.reflectance_calcs, emitDataFolder];
+inputs.folder2save.reflectance_calcs = [folder_paths.reflectance_calcs, emitDataFolder];
 
 
 
@@ -323,7 +322,7 @@ inputs.RT.vaz = emit.obs.sensor.azimuth;
 
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_total_columnWaterVapor = false;
 
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column
@@ -450,7 +449,6 @@ inputs.RT.errMsg = 'verbose';
 
 
 
-
 % --------------------------------------------------------------
 % --- Create a file name for the droplet profile retrieval -----
 % --------------------------------------------------------------
@@ -458,21 +456,18 @@ inputs.RT.errMsg = 'verbose';
 rev = 1;
 
 
-% This is the name of the .mat file with the reflectance calcs
-inputs.saveOutput_fileName = [inputs.folder2save.reflectance_calcs,...
-    'droplet_profile_retrieval_EMIT_ran_on_', char(datetime("today")),'.mat'];
+
+inputs.saveOutput_fileName = folder_paths.saveOutput_filename;
+
 
 
 
 while isfile(inputs.saveOutput_fileName)
     rev = rev+1;
-    inputs.saveOutput_fileName = [inputs.folder2save.reflectance_calcs,...
-        'droplet_profile_retrieval_EMIT_ran_on_', char(datetime("today")),...
-        '_rev', num2str(rev),'.mat'];
+    inputs.saveOutput_fileName = [inputs.saveOutput_fileName(1:end-5), num2str(rev),'.mat'];
 end
 
-% --------------------------------------------------------------
-% --------------------------------------------------------------
+
 
 
 
