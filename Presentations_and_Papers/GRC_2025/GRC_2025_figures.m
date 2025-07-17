@@ -1084,10 +1084,53 @@ dim = [.137 .2 .3 .3];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
-set(gcf,'Position',[0 0 1200 630])
-
-
 
 
 % set figure size
 set(gcf,'Position',[0 0 1200 630])
+
+
+%% Jacobian plot
+
+clear variables
+
+load('dropletRetrieval_HySICS_636bands_sim-ran-on-09-Jul-2025_rev1.mat');
+
+
+C = mySavedColors(9:12, 'fixed');
+
+
+% Normalize each variable by the absolute maximum value in the Jacobian
+% matrix
+% J_norm = GN_outputs.Jacobian_final./max(abs(GN_outputs.Jacobian_final), [], 1);
+J_norm = abs(GN_outputs.Jacobian_final)./max(abs(GN_outputs.Jacobian_final), [], 1);
+
+
+% imagesc(J_norm); colorbar
+% Set custom tick positions
+% yticks([mean(GN_inputs.RT.wavelengths2run,2)]')
+% 
+% % Set custom tick labels
+% xticklabels({string(mean(GN_inputs.RT.wavelengths2run,2))'})
+
+
+figure; 
+
+for nn = 1:4
+
+    plot(mean(GN_inputs.RT.wavelengths2run,2), J_norm(:,nn), 'Color', C(nn,:), 'LineWidth',2)
+
+    hold on
+
+end
+
+
+grid on; grid minor
+
+% Create a Legend with only the two black curves
+legend('$r_{top}$', '$r_{bot}$', '$\tau_c$', 'wvp', 'Interpreter','latex',...
+    'Location','northwest', 'FontSize', 25)
+
+xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
+ylabel('Normalized Jacobian', Interpreter='latex', FontSize=30)
+
