@@ -969,6 +969,7 @@ end
 ds = load([folderpath, filename]);
 
 
+
 C = mySavedColors(1:2, 'fixed');
 
 % Plot the Gauss-Newton Retrieval
@@ -1062,6 +1063,173 @@ modis_retrieved_aboveCloud_CWV = 26;   % mm - % Values for 27_Jan_2024 - ** pixe
 if size(ds.GN_outputs.retrieval, 1)>3
 
     retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+    % Print the simulated value and the retrieved value
+    str = ['$WVP_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
+           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+
+else
+
+    % plot the assumed column water vapor used in the forward model
+    % plot the HySICS simulated above cloud column water vapor
+    assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+    % print the simulated value and the foward model assumption
+    str = ['$WVP_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
+           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+
+end
+
+
+dim = [.137 .2 .3 .3];
+
+
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
+
+
+% set figure size
+set(gcf,'Position',[0 0 1200 630])
+
+
+
+%% Plot Droplet profile Retrieval using EMIT data with water vapor retrieval
+
+
+clear variables
+
+
+
+
+% Determine which computer you're using
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(whatComputer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+    % Define the Simulated HySICS data folder path
+
+    folderpath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    % filename
+    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-02-Jun-2025_ALL_BANDS.mat';
+
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the Simulated HySICS data folder path
+
+    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/',...
+        '27_Jan_2024/Droplet_profile_retrievals/'];
+
+    % filename
+    filename = '64bands_ran-on-16-Jul-2025_rev6_useForGRC.mat';
+
+
+end
+
+ds = load([folderpath, filename]);
+
+load('64bands_ran-on-16-Jul-2025_rev5.mat', 'tblut_retrieval');
+
+
+C = mySavedColors(1:2, 'fixed');
+
+% Plot the Gauss-Newton Retrieval
+
+figure;
+
+title('Retrieved droplet profile using EMIT', 'Interpreter','latex',...
+    'FontSize', 26)
+
+plot(ds.GN_outputs.re_profile, ds.GN_outputs.tau_vector', 'Color',...
+    C(1,:),'LineStyle',':', 'LineWidth',3)
+
+% flip y-axis and provide axes labels
+set(gca,'YDir','reverse')
+ylabel('$\tau$','interpreter','latex','FontSize',35);
+xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
+grid on; grid minor; hold on;
+
+% Plot the retrieval uncertainty of the radius at cloud top
+errorbar(ds.GN_outputs.re_profile(1), ds.GN_outputs.tau_vector(1), sqrt(ds.GN_outputs.posterior_cov(1,1)),...
+    'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+% Plot the retrieval uncertainty of the radius at cloud bottom
+errorbar(ds.GN_outputs.re_profile(end), ds.GN_outputs.tau_vector(end), sqrt(ds.GN_outputs.posterior_cov(2,2)),...
+    'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+% Plot the retrieval uncertainty of the optical depth
+errorbar(ds.GN_outputs.re_profile(end), ds.GN_outputs.tau_vector(end), sqrt(ds.GN_outputs.posterior_cov(3,3)),...
+    'vertical', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+
+
+% Label cloud top and cloud bottom
+% Create textbox
+annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
+    'String',{'Cloud','Top'},...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontSize',22,...
+    'FitBoxToText','off');
+
+% Create textbox
+annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
+    'String',{'Cloud','Bottom'},...
+    'LineStyle','none',...
+    'Interpreter','latex',...
+    'FontSize',22,...
+    'FitBoxToText','off');
+
+
+
+% Plot the emit TBLUT droplet estimate as a constant vertical line
+
+xl0 = xline(tblut_retrieval.minRe,':',...
+    ['Two-Band Look-up Table $r_{e} = $',num2str(round(tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',24,...
+    'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
+xl0.LabelVerticalAlignment = 'top';
+xl0.LabelHorizontalAlignment = 'right';
+
+% Plot the emit optical depth TBLUT retrieval as a constant horizontal line
+yl0 = yline(tblut_retrieval.minTau,':',...
+    ['Two-Band Look-up Table $\tau_{c} = $',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',24,...
+    'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
+yl0.LabelVerticalAlignment = 'top';
+yl0.LabelHorizontalAlignment = 'right';
+
+
+% compute the LWP estimate using the TBLUT retrieval
+rho_liquid_water = 10^6;        % g/m^3
+
+lwp_emit_tblut = (2*rho_liquid_water*(tblut_retrieval.minRe/1e6) * tblut_retrieval.minTau)/3; % g/m^2
+
+% grab the hypersepctral retrieval estimate of LWP
+retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
+
+% Print this information on the figure
+
+dim = [.137 .4 .3 .3];
+str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
+    '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
+
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
+set(gcf,'Position',[0 0 1200 630])
+
+
+% Plot the MODIS measured above cloud column water vapor
+modis_retrieved_aboveCloud_CWV = 26;   % mm - % Values for 27_Jan_2024 - ** pixel [1242, 640] **
+
+
+% plot the retrieved column water vapor if it was retireved
+if size(ds.GN_outputs.retrieval, 1)>3
+
+    retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
     % Print the simulated value and the retrieved value
     str = ['$WVP_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
