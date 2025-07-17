@@ -117,10 +117,13 @@ inputs.RT.num_re_parameters = 2;
 
 inputs.calc_type = 'simulated_spectra';
 
+%% Set the optical depth!
+inputs.RT.tau_c = 20;
+
 %% Set the total column water vapor?
 
 inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
-inputs.RT.waterVapor_column = 25;    % mm
+inputs.RT.waterVapor_column = 10;    % mm
 
 inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
 
