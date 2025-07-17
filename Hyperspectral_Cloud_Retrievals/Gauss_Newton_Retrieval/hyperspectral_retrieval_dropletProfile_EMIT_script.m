@@ -168,7 +168,7 @@ GN_inputs = create_gauss_newton_inputs_for_emit(emitDataFolder, folder_paths, L1
 
 %% Override input settings with MODIS derived values
 
-% Values for 27_Jan_2024 - ** pixel [1242, 973] **
+% Values for 27_Jan_2024 - ** pixel [1242, 640] **
 % override the cloud top height
 GN_inputs.RT.z_topBottom = [0.700, 0.500];    % km
 
@@ -339,6 +339,6 @@ end
 
 %% Make plot of the retrieved profile
 
-plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval)
+plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
 
 

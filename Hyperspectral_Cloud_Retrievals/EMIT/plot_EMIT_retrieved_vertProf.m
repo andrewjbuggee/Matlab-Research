@@ -8,7 +8,7 @@
 
 %%
 
-function plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval)
+function plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
 
 
 C = mySavedColors(1:2, 'fixed');
@@ -65,16 +65,17 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 % Plot the emit TBLUT droplet estimate as a constant vertical line
 
 xl0 = xline(tblut_retrieval.minRe,':',...
-    ['$$r_{e} = $$',num2str(round(tblut_retrieval.minRe, 1)), '$$\mu m$$'], 'Fontsize',22,...
-    'Interpreter','latex','LineWidth',3,'Color', C(2,:));
-xl0.LabelVerticalAlignment = 'bottom';
+    ['Two-Band Look-up Table $r_{e} = $',num2str(round(tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',22,...
+    'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
+xl0.LabelVerticalAlignment = 'top';
+xl0.LabelHorizontalAlignment = 'left';
 
 % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
 yl0 = yline(tblut_retrieval.minTau,':',...
-    ['$$\tau_{c} = $$',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',22,...
-    'Interpreter','latex','LineWidth',3,'Color', C(2,:));
+    ['Two-Band Look-up Table $\tau_{c} = $',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',22,...
+    'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
 yl0.LabelVerticalAlignment = 'top';
-yl0.LabelHorizontalAlignment = 'left';
+yl0.LabelHorizontalAlignment = 'right';
 
 
 % compute the LWP estimate using the TBLUT retrieval
@@ -91,10 +92,41 @@ dim = [.137 .35 .3 .3];
 str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
-annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',20,'FontWeight','bold');
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 set(gcf,'Position',[0 0 1200 630])
 
 
+% Plot the MODIS measured above cloud column water vapor
+
+
+
+
+
+% plot the retrieved column water vapor if it was retireved
+if size(GN_outputs.retrieval, 1)>3
+
+    retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+    % Print the simulated value and the retrieved value
+    str = ['$CWV_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $kg/m^{2}$'];
+
+else
+
+    % plot the assumed column water vapor used in the forward model
+    % plot the HySICS simulated above cloud column water vapor
+    assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(GN_inputs); % kg/m^2
+
+    % print the simulated value and the foward model assumption
+    str = ['$CWV_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$'];
+
+end
+
+
+dim = [.137 .2 .3 .3];
+
+
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
+set(gcf,'Position',[0 0 1200 630])
 
 
 % set figure size
