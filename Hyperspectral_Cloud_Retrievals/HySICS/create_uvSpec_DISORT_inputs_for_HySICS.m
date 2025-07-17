@@ -171,14 +171,17 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % ----------------- Simulating HySICS spectral channels ------------------
         % number of channels = 636 ranging from center wavelengths: [351, 2297]
-%         inputs.bands2run = (1:1:636)';
+        % inputs.bands2run = (1:1:636)';
+
+        % First 7 MODIS spectral channels
+        inputs.bands2run = [39, 67, 98, 169, 291, 421, 581];
 
         % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
         % and other gaseous absorbers
-        inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
-            222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
-            426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
-            618, 620, 623, 625]';
+        % inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 217, 220,...
+        %     222, 224, 227, 237, 288, 290, 293, 388, 390, 393,...
+        %     426, 434, 436, 570, 574, 577, 579, 582, 613, 616,...
+        %     618, 620, 623, 625]';
 
 
         % Using all 35 spectral channels above that avoid water vapor and other

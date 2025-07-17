@@ -242,7 +242,7 @@ set(gcf,'Position',[0 0 1200 630])
 %% Plot the retrieved droplet size at cloud top and bottom for the 4 profiles with different amounts of assumed CWV and
 % the one file with retrieved column water vapor
 
-
+% *** Using HySICS data ***
 
 clear variables
 
@@ -423,6 +423,197 @@ ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
 xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
 
 set(gcf,'Position',[0 0 950 750])
+
+
+
+
+
+%% Plot the retrieved droplet size at cloud top and bottom for the 4 profiles with different amounts of assumed CWV and
+% the one file with retrieved column water vapor
+
+% *** Using EMIT data ***
+
+clear variables
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'EMIT/EMIT_data/27_Jan_2024/Droplet_profile_retrievals/'];
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'EMIT/EMIT_data/27_Jan_2024/Droplet_profile_retrievals/'];
+
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+end
+
+
+% define the mat files for each retreival to plot
+% filenames = {'dropletRetrieval_HySICS_35bands_withNoise_10mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
+%     'dropletRetrieval_HySICS_35bands_withNoise_15mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
+%     'dropletRetrieval_HySICS_35bands_withNoise_20mm-totalCWV_sim-ran-on-13-Jul-2025_rev1.mat',...
+%     'dropletRetrieval_HySICS_35bands_withNoise_25mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
+%     'dropletRetrieval_HySICS_66bands_withNoise_cwvRetrieval_sim-ran-on-12-Jul-2025_rev1.mat'};
+
+% define the mat files for each retreival to plot
+filenames = {'35bands_assumed-15mm_totalCWV_ran-on-17-Jul-2025_rev1.mat',...
+    '35bands_assumed-20mm_totalCWV_ran-on-17-Jul-2025_rev1.mat',...
+    '64bands_ran-on-16-Jul-2025_rev6_useForGRC.mat',...
+    '35bands_assumed-30mm_totalCWV_ran-on-17-Jul-2025_rev1.mat'};
+
+
+% Step through each file
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+length(filenames)+1), 'fixed');
+
+lgnd_str = cell(1, length(filenames) + 2);
+
+load('35bands_assumed-26mm_totalCWV_ran-on-16-Jul-2025_rev5.mat', 'tblut_retrieval')
+
+
+figure;
+
+
+for nn = 1:length(filenames)
+
+
+    % Load a data set
+    ds = load([folder_paths.HySICS_retrievals, filenames{nn}]);
+
+    if nn==3
+
+
+        % first, plot the simulated profile values as two lines
+        % xline(ds.tblut_retrieval.minRe, ':', ['Simulated $r_{bot}$'],...
+        %     'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
+        %     'LabelVerticalAlignment','bottom');
+        % 
+        % hold on
+
+        yline(tblut_retrieval.minRe, ':', ['MODIS $r_{e}$'],...
+            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
+            'LabelVerticalAlignment','top');
+        hold on
+
+
+        % Show the MODIS retrieved above cloud column water vapor
+
+        title(['MODIS retrieved above cloud cwv = 26 $ mm$'],...
+            'Fontsize', 25, 'Interpreter', 'latex');
+
+        % Skip the first two legend entries
+        lgnd_str{1} = '';
+
+    end
+
+
+
+    % plot the retrieved droplet profile
+    if nn==1 || nn==2 || nn==4
+
+        hold on
+
+
+        % Plot the retrieval uncertainty of the radius at cloud top and
+        % bottom
+        e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+            sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+            sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+            'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+            'Color', C(nn+1,:));
+
+        e1.Bar.LineStyle = 'dotted';
+
+        hold on
+
+
+
+    else
+
+        % give a different marker type for the retrieval using 66 bands
+        % that also retrieved above cloud column water vapor
+
+
+        errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+            sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+            sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+            'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+            'Color', C(nn+1,:))
+
+        hold on
+
+
+    end
+
+
+
+    % create the legend string
+    if nn==1 || nn==2 || nn==4
+
+        % what was the assumed above cloud column water vapor path?
+        assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+        lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed cwv = ',...
+            num2str(round(assumed_CWV,2)), ' $kg/m^2$'];
+
+
+
+
+
+    else
+
+        % create the string for the retrieval using CWV
+
+        % what was the retrieved above cloud column water vapor path above
+        % cloud?
+        retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+        lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved cwv = ',...
+            num2str(round(retrieved_CWV, 2)), ' $kg/m^2$'];
+
+    end
+
+end
+
+
+% Create a Legend with only the two black curves
+legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+grid on; grid minor
+ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+set(gcf,'Position',[0 0 950 750])
+
+
 
 
 
@@ -641,7 +832,8 @@ title('Wavelengths used to retrieve droplet profile and above cloud column water
     'FontSize', 25, 'Interpreter','latex')
 
 % Create legend
-legend('Simulated HySICS reflectance', 'Water vapor absorption bands', 'non-water vapor absorption bands',...
+legend('Simulated HySICS reflectance', 'Wavelengths within water vapor absorption bands',...
+    'Wavelengths outside water vapor absorption bands',...
     'Location', 'best',...
     'Interpreter', 'latex', 'FontSize', 25)
 
@@ -961,7 +1153,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
         '27_Jan_2024/Droplet_profile_retrievals/'];
 
     % filename
-    filename = '35bands_ran-on-16-Jul-2025_rev5.mat';
+    filename = '35bands_assumed-26mm_totalCWV_ran-on-16-Jul-2025_rev5.mat';
 
 
 end
@@ -1024,14 +1216,14 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 % Plot the emit TBLUT droplet estimate as a constant vertical line
 
 xl0 = xline(ds.tblut_retrieval.minRe,':',...
-    ['Two-Band Look-up Table $r_{e} = $',num2str(round(ds.tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',24,...
+    ['MODIS $r_{e} = $',num2str(round(ds.tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',24,...
     'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
 xl0.LabelVerticalAlignment = 'top';
 xl0.LabelHorizontalAlignment = 'left';
 
 % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
 yl0 = yline(ds.tblut_retrieval.minTau,':',...
-    ['Two-Band Look-up Table $\tau_{c} = $',num2str(round(ds.tblut_retrieval.minTau, 1))], 'Fontsize',24,...
+    ['MODIS $\tau_{c} = $',num2str(round(ds.tblut_retrieval.minTau, 1))], 'Fontsize',24,...
     'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'right';
@@ -1048,7 +1240,7 @@ retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
 % Print this information on the figure
 
 dim = [.137 .4 .3 .3];
-str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
+str = ['$LWP_{MODIS} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
@@ -1065,8 +1257,8 @@ if size(ds.GN_outputs.retrieval, 1)>3
     retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
     % Print the simulated value and the retrieved value
-    str = ['$WVP_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
-           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+    str = ['$acpw_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
+           '$acpw_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
 
 else
 
@@ -1075,8 +1267,8 @@ else
     assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
 
     % print the simulated value and the foward model assumption
-    str = ['$WVP_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
-           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+    str = ['$acpw_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
+           '$acpw_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
 
 end
 
@@ -1086,6 +1278,9 @@ dim = [.137 .2 .3 .3];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 
+
+ title(['Retrievel using 66 EMIT spectral channels both in and outside water vapor bands'],...
+            'Fontsize', 25, 'Interpreter', 'latex');
 
 % set figure size
 set(gcf,'Position',[0 0 1200 630])
@@ -1191,14 +1386,14 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 % Plot the emit TBLUT droplet estimate as a constant vertical line
 
 xl0 = xline(tblut_retrieval.minRe,':',...
-    ['Two-Band Look-up Table $r_{e} = $',num2str(round(tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',24,...
+    ['MODIS $r_{e} = $',num2str(round(tblut_retrieval.minRe, 1)), '$\mu m$'], 'Fontsize',24,...
     'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
 xl0.LabelVerticalAlignment = 'top';
 xl0.LabelHorizontalAlignment = 'right';
 
 % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
 yl0 = yline(tblut_retrieval.minTau,':',...
-    ['Two-Band Look-up Table $\tau_{c} = $',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',24,...
+    ['MODIS $\tau_{c} = $',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',24,...
     'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'right';
@@ -1215,7 +1410,7 @@ retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
 % Print this information on the figure
 
 dim = [.137 .4 .3 .3];
-str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
+str = ['$LWP_{MODIS} = \,$',num2str(round(lwp_emit_tblut,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
@@ -1232,8 +1427,8 @@ if size(ds.GN_outputs.retrieval, 1)>3
     retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
     % Print the simulated value and the retrieved value
-    str = ['$WVP_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
-           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+    str = ['$acpw_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$', newline,...
+           '$acpw_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
 
 else
 
@@ -1242,8 +1437,8 @@ else
     assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
 
     % print the simulated value and the foward model assumption
-    str = ['$WVP_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
-           '$WVP_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+    str = ['$acpw_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
+           '$acpw_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
 
 end
 
@@ -1252,6 +1447,10 @@ dim = [.137 .2 .3 .3];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
+
+
+ title(['Retrievel using 35 EMIT spectral channels outside water vapor bands'],...
+            'Fontsize', 25, 'Interpreter', 'latex');
 
 
 % set figure size
@@ -1296,9 +1495,49 @@ end
 grid on; grid minor
 
 % Create a Legend with only the two black curves
-legend('$r_{top}$', '$r_{bot}$', '$\tau_c$', 'wvp', 'Interpreter','latex',...
+legend('$r_{top}$', '$r_{bot}$', '$\tau_c$', '$acpw$', 'Interpreter','latex',...
     'Location','northwest', 'FontSize', 25)
 
 xlabel('Wavelength ($nm$)', Interpreter='latex', FontSize=30)
 ylabel('Normalized Jacobian', Interpreter='latex', FontSize=30)
 
+% set figure size
+set(gcf,'Position',[0 0 1200 630])
+
+%% Plot ratios of reflectance!
+
+clear variables
+
+filenames = {'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_5tauC-10mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_5tauC-15mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_5tauC-20mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_5tauC-25mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_10tauC-10mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_10tauC-15mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_10tauC-20mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_10tauC-25mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_15tauC-10mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_15tauC-15mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_15tauC-20mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_15tauC-25mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_20tauC-10mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_20tauC-15mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_20tauC-20mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_20tauC-25mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat',...
+              };
+
+
+
+figure; 
+
+
+for nn = 1:length(filenames)
+
+    ds = load(filenames{nn});
+
+    plot(ds.GN_inputs.RT.tau_c, ds.Refl_model_with_noise())
+
+
+
+
+end
