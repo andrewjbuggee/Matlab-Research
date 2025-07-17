@@ -1,13 +1,14 @@
 %% Retreive vertical profiles in a loop using simulated HySICS reflectance measurements
 % The loop can be used to change pixels or to change retrieval settings
 
-% This script retrieves 4 variables: r_top, r_bot, tau_c, and cwvs
+% This script uses my own TBLUT algorithm as the apriori values
 
 
 
 % By Andrew John Buggee
 
 %% Load paths
+
 
 clear variables
 % add libRadTran libraries to the matlab path
@@ -83,59 +84,24 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
-    % Define the HySICS simulated spectrum folder
+    % Define the HySICS folder name
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
-
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
 
     % ---- Define where the retrievals will be stored ---
-    folder_paths.HySICS_retrievals = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/';
+    folder_paths.HySICS_retrievals = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Droplet_profile_retrievals/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT/'];
 
 
     % water cloud file location
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
-    % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT/';
-
-
-    % *** Start parallel pool ***
-    % Is parpool running?
-    p = gcp('nocreate');
-    if isempty(p)==true
-
-        % first read the local number of workers avilabile.
-        p = parcluster('local');
-        % start the cluster with the number of workers available
-        if p.NumWorkers>64
-            % Likely the amilan128c partition with 2.1 GB per core
-            % Leave some cores for overhead
-            parpool(p.NumWorkers - 8);
-
-        elseif p.NumWorkers<=64 && p.NumWorkers>10
-
-            parpool(p.NumWorkers);
-
-        elseif p.NumWorkers<=10
-
-            parpool(p.NumWorkers);
-
-        end
-
-    end
-
-
 
 end
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.libRadtran_inp, 'dir')
-
-    mkdir(folder_paths.libRadtran_inp)
-
-end
-
-
 
 
 
@@ -159,9 +125,6 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
 
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1';  % sza = 0, vza = 0
-
-
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -182,27 +145,17 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % r_top = 9.5, r_bot = 4, tau_c = 6
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
+    % filename = 'simulated_measurement_HySICS_reflectance_35bands_sim-ran-on-12-Jul-2025_rev1.mat';
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47 bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
-    % Bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
-  
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, ALL bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
-
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, 66 bands from first paper with 1%
+    % r_top = 9.5, r_bot = 4, tau_c = 6, 35 bands from first paper with 1%
     % uncertainty
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+    % filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 10, 35 bands from first paper with 1%
+    % uncertainty
+    filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_10tauC-15mm_totalCWV_sim-ran-on-16-Jul-2025_rev1.mat';
+
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
@@ -217,30 +170,18 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
-    % bands
+    % r_top = 9.5, r_bot = 4, tau_c = 6, 35 bands from first paper with 1%
+    % uncertainty
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    %filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
-
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
-    % bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1.mat';
-
-
-    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, all
-    % bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1.mat';
+    filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
 
 
 
 end
 
 
-simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
+simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 % *** Check to see if these measure have added uncertainty or not ***
 
@@ -254,13 +195,51 @@ if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
 end
 
+
+%%  *** Start parallel pool ***
+
+% Is parpool running?
+p = gcp('nocreate');
+if isempty(p)==true
+
+    % first read the local number of workers avilabile.
+    p = parcluster('local');
+    % start the cluster with the number of workers available
+    if p.NumWorkers>64
+        % Likely the amilan128c partition with 2.1 GB per core
+        % Leave some cores for overhead
+        parpool(p.NumWorkers - 8);
+
+    elseif p.NumWorkers<=64 && p.NumWorkers>10
+
+        parpool(p.NumWorkers);
+
+    elseif p.NumWorkers<=10
+
+        parpool(p.NumWorkers);
+
+    end
+
+end
+
+
+
 %% Create the name of the file to save all output to
 
 rev = 1;
 
-folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
+    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+        'bands_withNoise_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+else
+
+
+    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
+        'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+end
 
 
 while isfile(filename)
@@ -273,31 +252,30 @@ while isfile(filename)
 end
 
 
+
 %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
 tic
-
+%tblut_retrieval = TBLUT_for_HySICS(simulated_measurements, folder_paths);
 tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
+toc
 
-disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
 
 
 %% CREATE GAUSS-NEWTON INPUTS
 
-% Create inputs to retrieve r_top, r_bot, tau_c, cwv
-GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
-
-
+% We use the estimates calcualted by the TBLUT as our a priori
+GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements);
 disp('Dont forget to check the inputs and change if needed!!')
 
-GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
-%% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
-GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
+%% This retrieval does NOT retrieve column water vapor. What should the forward model assumption be?
 
-% 
+GN_inputs.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
+GN_inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
+
+GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
 
 %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
 
@@ -310,9 +288,7 @@ GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the col
 
 use_TBLUT_estimates = true;
 
-% Create inputs to retrieve r_top, r_bot, tau_c, cwv
-GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
-
+GN_inputs = create_model_prior_covariance_HySICS(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
 
 GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
 
@@ -324,12 +300,11 @@ tic
 % --------------------------------------------------------------
 % ---------------- Retrieve Vertical Profile! ------------------
 % --------------------------------------------------------------
-[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
+[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS(GN_inputs, simulated_measurements, folder_paths);
 % --------------------------------------------------------------
 % --------------------------------------------------------------
 
-disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
-
+toc
 
 %%
 % ----------------------------------------------
@@ -347,7 +322,7 @@ if ~exist(folder_paths.HySICS_retrievals, 'dir')
 
 end
 
-if exist(folder_paths.saveOutput_filename, 'file')==true
+if exist(folder_paths.saveOutput_filename, 'file')==2
     % append
     save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
 
@@ -356,3 +331,12 @@ else
 
 end
 
+
+
+toc
+
+%% PLOT RETRIEVED VERTICAL PROFILE WITH TBLUT RETRIEVAL
+
+plot_HySICS_retrieved_and_simualted_vertProf(simulated_measurements, GN_outputs, GN_inputs, tblut_retrieval)
+
+%%
