@@ -244,11 +244,6 @@ emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 
 emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, GN_inputs);
 
-% Use the reflectance uncertainty to define the convergence limit
-GN_inputs.convergence_limit = 0.25 * sqrt(mean(emit.reflectance.uncertainty.^2));
-
-
-
 
 %%  *** Start parallel pool ***
 

@@ -57,7 +57,7 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud];
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.2*wv_col_aboveCloud];
 % ----------------------------------------------------------------
 
 
