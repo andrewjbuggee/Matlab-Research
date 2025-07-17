@@ -73,6 +73,9 @@ elseif strcmp(covariance_type,'independent') == true
     % Compute the Root-Sum-Sqaure of the total measurement uncertainty
     GN_inputs.measurement.rss_uncert = sqrt(sum( (emit.reflectance.value(GN_inputs.bands2run).* GN_inputs.measurement.uncertainty_total).^2))';   % 1/sr - reflectance
 
+    % Define the convergence limit as the root-sum-square of the
+    % reflectance uncertainty
+    GN_inputs.convergence_limit = sqrt( sum( (emit.reflectance.uncertainty(GN_inputs.bands2run)).^2 ));
 
 
     % Lets assume the percentage given is the standard deviation
