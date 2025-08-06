@@ -4,7 +4,8 @@
 %%
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs,...
-                        wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename)
+                        wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename,...
+                        total_column_precipitable_water)
 
 
 
@@ -225,10 +226,25 @@ end
 % --------------------------------------------------------------------
 if isfield(inputs.RT, 'modify_total_columnWaterVapor') && inputs.RT.modify_total_columnWaterVapor==true
 
-    % If true, modify the amount of column water vapor
-    % --------------------------------------------------------------
-    formatSpec = '%s %f %s %5s %s \n\n';
-    fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+    if exist("total_column_precipitable_water", "var")==true && isempty(total_column_precipitable_water)==false
+
+
+        % If true, modify the amount of column water vapor
+        % --------------------------------------------------------------
+        formatSpec = '%s %f %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'mol_modify H2O ', total_column_precipitable_water, ' MM', ' ', '# Column water vapor amount');
+
+
+    else
+
+        % If true, modify the amount of column water vapor
+        % --------------------------------------------------------------
+        formatSpec = '%s %f %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'mol_modify H2O ', inputs.RT.waterVapor_column, ' MM', ' ', '# Column water vapor amount');
+
+
+    end
 
 
 end

@@ -174,7 +174,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
         % inputs.bands2run = (1:1:636)';
 
         % First 7 MODIS spectral channels
-        inputs.bands2run = [39, 67, 98, 169, 291, 421, 581];
+        % inputs.bands2run = [39, 67, 98, 169, 291, 421, 581];
 
         % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
         % and other gaseous absorbers
@@ -204,7 +204,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
 
-        % inputs.bands2run = [49, 426, 613]';
+        inputs.bands2run = [49, 426, 613]';
 %         inputs.bands2run = [49, 57, 288, 408, 613]';
 
         % test bands

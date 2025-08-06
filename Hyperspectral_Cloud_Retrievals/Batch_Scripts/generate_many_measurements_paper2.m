@@ -1,0 +1,451 @@
+%% Generate many measurements with different optical depths, cloud droplet size at top and bottom, and different total column water vapor amounts
+
+
+clear variables
+
+
+%% Define the path location where INP files will be stored, and where Reflectances will be stored
+
+clear inputs
+
+% Determine which computer this is being run on
+inputs.which_computer = whatComputer;
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+
+    % Define the folder path where .mat files of relfectance will be stored
+    inputs.folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+
+    % Define the folder path where all .INP files will be saved
+    inputs.libRadtran_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+
+    % water cloud file location
+    inputs.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+
+    % Define the folder path where .mat files of relfectance will be stored
+    inputs.folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
+
+
+    % Define the folder path where all .INP files will be saved
+    inputs.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/HySICS/'];
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/data/'];
+
+
+    % water cloud file location
+    inputs.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
+
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------ Folders on the CU Supercomputer /projects folder --------
+
+    % Define the folder path where .mat files of relfectance will be stored
+    inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/hyperspectral_retrieval/HySICS/';
+
+
+
+    % Define the folder path where all .INP files will be saved
+    inputs.libRadtran_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/HySICS/INP-OUT/';
+
+    % Define the libRadtran data files path. All paths must be absolute in
+    % the INP files for libRadtran
+    inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+
+    % water cloud file location
+    inputs.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+
+
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.libRadtran_inp, 'dir')
+
+    mkdir(inputs.libRadtran_inp)
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folderpath_reflectance, 'dir')
+
+    mkdir(inputs.folderpath_reflectance)
+
+end
+
+
+%%  Delete old files?
+% First, delete files in the HySICS folder
+delete([inputs.libRadtran_inp, '*.INP'])
+delete([inputs.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([inputs.water_cloud_folder_path, '*.DAT'])
+
+%%
+
+% define the range of independent parameters
+r_top = 5:15;
+r_bot = 3:10;
+tau_c = 5:3:29;
+tcpw = 5:3:35;
+
+
+% r_top = 14:15;
+% r_bot = 3:4;
+% tau_c = 26:3:29;
+% tcpw = 32:3:35;    % mm
+
+
+
+% ----- unpack parallel for loop variables ------
+% We want to avoid large broadcast variables!
+libRadtran_inp = inputs.libRadtran_inp;
+libRadtran_data_path = inputs.libRadtran_data_path;
+which_computer = inputs.which_computer;
+
+
+
+
+% Do you want to model 2 parameters for the droplet profile (r_top and r_bot)
+% or 3 (r_top, r_middle, r_bot)
+
+inputs.RT.num_re_parameters = 2;
+
+% ---- First, let's simulate water clouds ----
+
+
+% Define the parameters of the INP file
+
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], 'exact');
+
+
+%% Set the total column water vapor?
+
+inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
+
+inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
+
+
+
+%%
+
+% num wavelengths
+num_wl = length(inputs.bands2run);
+
+% length of each independent variable
+num_rTop = length(r_top);
+num_rBot = length(r_bot);
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+
+num_INP_files = num_rTop * num_rBot * num_tauC * num_tcpw * num_wl;
+
+inputFileName = cell(num_INP_files, 1);
+outputFileName = cell(num_INP_files, 1);
+
+
+inputs.calc_type = 'simulated_spectra';
+
+% Set the total column water vapor?
+inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
+
+inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
+
+
+
+% changing variable steps through rTop, rBot, tauC, tcpw, and wavelength
+% in for loop speak, it would be:
+% for rt = 1:num_rTop
+%   for rb = 1:num_rBot
+%       for tt = 1:num_tauC
+%           for pw = 1:num_tcpw
+%               for ww = 1:num_wl
+changing_variables = [reshape(repmat(r_top, num_rBot * num_tauC * num_tcpw * num_wl,1), [],1),...
+    repmat(reshape(repmat(r_bot, num_tauC * num_tcpw * num_wl,1), [],1), num_rTop, 1),...
+    repmat(reshape(repmat(tau_c, num_tcpw * num_wl,1), [],1), num_rBot * num_rTop, 1),...
+    repmat(reshape(repmat(tcpw,  num_wl,1), [],1), num_rBot * num_rTop * num_tauC, 1),...
+    repmat(inputs.RT.wavelengths2run, num_rTop * num_rBot * num_tauC * num_tcpw, 1)];
+
+
+% Add a final column that includes the index for the spectral response
+% function. These always increase chronologically
+changing_variables = [changing_variables, repmat((1:num_wl)', num_rTop * num_rBot * num_tauC * num_tcpw, 1)];
+
+% First, write all the wc files
+temp_names = cell(num_rTop * num_rBot * num_tauC, 1);
+wc_filename = cell(num_INP_files, 1);
+
+
+
+
+
+% only jump on indexes where there is a unique r_top, r_bot and tau pair
+idx_unique_wcFiles_idx = 1:(num_wl * num_tcpw):num_INP_files;
+
+parfor nn = 1:length(idx_unique_wcFiles_idx)
+
+    % --------------------------------------
+    % ---- Write all Water Cloud files! ----
+    % --------------------------------------
+
+    re = create_droplet_profile2([changing_variables(idx_unique_wcFiles_idx(nn), 1),...
+        changing_variables(idx_unique_wcFiles_idx(nn), 2)],...
+        inputs.RT.z, inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
+
+
+    temp = write_wc_file(re, changing_variables(idx_unique_wcFiles_idx(nn), 3),...
+        inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+        inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+        inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+        idx_unique_wcFiles_idx(nn), inputs.RT.num_re_parameters);
+
+    temp_names{nn} = temp{1};
+
+end
+
+% the wc_filenames should be the same for different wavelengths and total
+% precipitable water
+for ww = 0:(num_wl * num_tcpw)-1
+    wc_filename(idx_unique_wcFiles_idx + ww) = temp_names;
+end
+
+
+
+
+
+% Now write all the INP files
+parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
+
+
+    % set the wavelengths for each file
+    wavelengths = changing_variables(nn, end-2:end-1);
+
+    % ------------------------------------------------
+    % ---- Define the input and output filenames! ----
+    % ------------------------------------------------
+    % input_names need a unique identifier. Let's give them the nn value so
+    % they can be traced, and are writen over in memory
+
+
+    inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_rTop_', num2str(changing_variables(nn,1)),...
+        '_rBot_', num2str(changing_variables(nn,2)),'_tauC_', num2str(changing_variables(nn,3)), '_tcpw_',...
+        num2str(changing_variables(nn,4)),'mm.INP'];
+
+
+
+    outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+    % ------------------ Write the INP File --------------------
+    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName{nn}, inputs,...
+        wavelengths, wc_filename{nn}, [], [], [], changing_variables(nn, 4));
+
+
+end
+
+
+
+
+
+
+
+
+
+
+%% Calculate Reflectance
+
+% Read the solar flux file over the wavelength range specified
+wavelength_vec = [min(inputs.RT.wavelengths2run,[],"all"), max(inputs.RT.wavelengths2run, [], "all")];
+[source_flux, source_wavelength] = read_solar_flux_file(wavelength_vec, inputs.RT.source_file);   % W/nm/m^2
+
+% we will add and subtract a small fraction of the source file resolution
+% to ensure rounding errors don't cause an issue when selecting the
+% wavelengths needed from the source file
+wl_perturb = inputs.RT.source_file_resolution/3;   % nm
+
+
+
+% define only the spec_response so the wavelengths are passed into the
+% memory of the parallel for loop
+spec_response_value = spec_response.value;
+
+
+tic
+
+
+
+% store the reflectances
+Refl_model = zeros(num_INP_files, 1);
+
+
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
+
+
+    disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
+
+
+    % ----------------------------------------------------
+    % --------------- RUN RADIATIVE TRANSFER -------------
+    % ----------------------------------------------------
+
+    % compute INP file
+    runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},which_computer);
+
+
+    % read .OUT file
+    % radiance is in units of mW/nm/m^2/sr
+    [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
+        inputs.RT.compute_reflectivity_uvSpec);
+
+
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables(nn, end-1) + wl_perturb);
+
+
+    % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+    [Refl_model(nn), ~] = reflectanceFunction_ver2(inputs, ds,...
+        source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:));
+
+
+
+end
+
+
+toc
+
+
+%% Rearrange the reflectances
+
+Refl_model = reshape(Refl_model, num_wl, []);
+
+%%
+% ----------------------------------------------
+% ---------- SAVE REFLECTANCE OUTPUT! ----------
+% ----------------------------------------------
+
+% Save the version without an measurement uncertainty. Then we can add
+% uncertainty and save the new file
+
+if strcmp(inputs.which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+
+
+elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/'];
+
+
+elseif strcmp(inputs.which_computer,'curc')==true
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    inputs.folderpath_2save = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+
+
+end
+
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folderpath_2save, 'dir')
+
+    mkdir(inputs.folderpath_2save)
+
+end
+
+
+
+rev = 1;
+
+if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+
+    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
+
+        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
+            num2str(numel(inputs.bands2run)), 'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    end
+
+
+else
+
+    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
+
+        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
+            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
+
+        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
+            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+    end
+
+end
+
+
+while isfile(filename)
+    rev = rev+1;
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
+
+
+
