@@ -267,7 +267,7 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -----------------------------------------------
 % ------- EFFECTIVE DROPLET RADIUS FITTING ------
 % -----------------------------------------------
-[max__re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
+[max_re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
 
 % figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
 % title('r_e best distribution fit'); ylabel('Counts')
@@ -793,7 +793,7 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -----------------------------------------------
 % ------- EFFECTIVE DROPLET RADIUS FITTING ------
 % -----------------------------------------------
-[max__re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
+[max_re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
 
 figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
 title('r_e best distribution fit'); ylabel('Counts')
@@ -2347,7 +2347,7 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -----------------------------------------------
 % ------- EFFECTIVE DROPLET RADIUS FITTING ------
 % -----------------------------------------------
-[max__re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
+[max_re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
 
 % figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
 % title('r_e best distribution fit'); ylabel('Counts')

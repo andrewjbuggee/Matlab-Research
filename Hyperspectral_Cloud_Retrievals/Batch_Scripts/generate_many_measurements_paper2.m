@@ -81,6 +81,32 @@ elseif strcmp(inputs.which_computer,'curc')==true
     inputs.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
 
+    % *** Start parallel pool ***
+    % Is parpool running?
+    p = gcp('nocreate');
+    if isempty(p)==true
+
+        % first read the local number of workers avilabile.
+        p = parcluster('local');
+        % start the cluster with the number of workers available
+        if p.NumWorkers>64
+            % Likely the amilan128c partition with 2.1 GB per core
+            % Leave some cores for overhead
+            parpool(p.NumWorkers - 8);
+
+        elseif p.NumWorkers<=64 && p.NumWorkers>10
+
+            parpool(p.NumWorkers);
+
+        elseif p.NumWorkers<=10
+
+            parpool(p.NumWorkers);
+
+        end
+
+    end
+
+
 
 end
 
@@ -112,16 +138,22 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 %%
 
 % define the range of independent parameters
-r_top = 5:15;
-r_bot = 3:10;
-tau_c = 5:3:29;
-tcpw = 5:3:35;
+% r_top = 5:15;
+% r_bot = 3:10;
+% tau_c = 5:3:29;
+% tcpw = 5:3:35;
 
 
-% r_top = 14:15;
-% r_bot = 3:4;
+% r_top = 10:15;
+% r_bot = 3:6;
 % tau_c = 26:3:29;
 % tcpw = 32:3:35;    % mm
+
+
+r_top = 14:15;
+r_bot = 3:4;
+tau_c = 26:3:29;
+tcpw = 32:3:35;    % mm
 
 
 
@@ -175,10 +207,6 @@ outputFileName = cell(num_INP_files, 1);
 
 inputs.calc_type = 'simulated_spectra';
 
-% Set the total column water vapor?
-inputs.RT.modify_total_columnWaterVapor = true;             % modify the full column
-
-inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
 
 
 
@@ -309,7 +337,7 @@ Refl_model = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -350,6 +378,58 @@ toc
 
 Refl_model = reshape(Refl_model, num_wl, []);
 
+
+
+%% Add Gaussian Noise to the measurements
+
+% --- meausrement uncertainty ---
+% define this as a fraction of the measurement
+% inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
+inputs.measurement.uncert = 0.00001;
+
+% Define a gaussian where the mean value is the true measurement, and twice
+% the standard deviation is the product of the measurement uncertainty and
+% the true measurements.
+% Remember: +/- 1*sigma = 68% of the area under the gaussian curve
+%           +/- 2*sigma = 95% of the area under the gaussian curve
+%           +/- 3*sigma = 99.7% of the area under the gaussian curve
+
+% Compute the new synethtic measurement with gaussian noise
+% *** Gaussian noise can be either positive or negative. Meaning, an
+% uncertainty of 5% implies the true value can lie anywhere between
+% +/- 5% of the measured value
+
+% To sample a normal distribution with mean mu, and standard deviation s,
+% we compute the following: y = s * randn() + mu
+
+% We define the standard deviation as the measurement uncertainty divided
+% by three. Therefore, after sample a large number of times, 99% of
+% measurements will be within +/- measurement uncertainy of the mean
+
+if any(inputs.measurement.uncert > 0)
+
+    inputs.measurement.standard_dev = inputs.measurement.uncert/3;       % this is still just a fraction
+
+    for uu = 1:length(inputs.measurement.uncert)
+
+        clear Refl_model_with_noise Refl_model_uncert
+
+
+        Refl_model_with_noise = (inputs.measurement.standard_dev(uu) .* Refl_model) .* randn(size(Refl_model))...
+            + Refl_model;
+
+
+        % define the synthetic relfectance uncertainty
+        Refl_model_uncert = inputs.measurement.uncert(uu) .* Refl_model_with_noise;    % 1/sr
+
+
+
+    end
+
+end
+
+
+
 %%
 % ----------------------------------------------
 % ---------- SAVE REFLECTANCE OUTPUT! ----------
@@ -365,7 +445,7 @@ if strcmp(inputs.which_computer,'anbu8374')==true
     % -----------------------------------------
 
     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
 
 
 
@@ -376,7 +456,7 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/'];
 
 
 elseif strcmp(inputs.which_computer,'curc')==true
@@ -385,7 +465,8 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    inputs.folderpath_2save = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+    inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/paper2_variableSweep/'];
 
 
 
@@ -400,52 +481,30 @@ if ~exist(inputs.folderpath_2save, 'dir')
 end
 
 
+% *** save each wavelength grouping as a standalone measurement ***
 
-rev = 1;
+for nn = 1:(num_INP_files/num_wl)
 
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
+    % Grab the reflectance group for the given state vector
+    Refl_model_2save = Refl_model(:,nn);
+    Refl_model_with_noise_2save = Refl_model_with_noise(:,nn);
+    Refl_model_uncert_2save = Refl_model_uncert(:,nn);
 
-    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
-
-        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-            'inhomogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
-
-        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
-            num2str(numel(inputs.bands2run)), 'bands_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    end
+    % grab the state vector
+    changing_variables_2save = changing_variables((nn*num_wl - (num_wl-1)) : (nn*num_wl) ,:);
 
 
-else
+    filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
+        num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert',...
+        '_rTop_', num2str(changing_variables_2save(1,1)),...
+        '_rBot_', num2str(changing_variables_2save(1,2)), '_tauC_', num2str(changing_variables_2save(1,3)),...
+        '_tcwv_', num2str(changing_variables_2save(1,4)),'_sim-ran-on-',char(datetime("today")),'.mat'];
 
-    if strcmp(inputs.calc_type, 'forward_model_calcs_forRetrieval')==true
 
-        filename = [inputs.folderpath_2save,'forward_model_calcs_forRetrieval_HySICS_reflectance_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    elseif strcmp(inputs.calc_type, 'simulated_spectra')==true
-
-        filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
-            'homogeneous_droplet_profile_sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-    end
+    save(filename, "Refl_model_2save", "Refl_model_with_noise_2save", "Refl_model_uncert_2save",...
+        "inputs", "spec_response", "changing_variables_2save");
 
 end
-
-
-while isfile(filename)
-    rev = rev+1;
-    if rev<10
-        filename = [filename(1:end-5), num2str(rev),'.mat'];
-    elseif rev>10
-        filename = [filename(1:end-6), num2str(rev),'.mat'];
-    end
-end
-
-
-save(filename, "Refl_model","inputs", "spec_response", "changing_variables");
 
 
 
