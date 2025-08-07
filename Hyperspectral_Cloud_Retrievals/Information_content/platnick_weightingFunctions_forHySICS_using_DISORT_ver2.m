@@ -115,7 +115,7 @@ delete([inputs.folderpath_inp, '*.OUT'])
 delete([inputs.water_cloud_folder_path, '*.DAT'])
 
 
-%% Write the INP files
+u%% Write the INP files
 
 % Set the number of free parameters for the droplet profile
 inputs.RT.num_re_parameters=2;
@@ -515,7 +515,7 @@ end
 
 f = zeros(size(w));
 
-N_mov_avg = 10;
+N_mov_avg = 30;
 
 
 tau_midPoint = tau_2run(1:end-1,:) + diff(tau_2run, 1, 1);
@@ -669,7 +669,7 @@ if inputs.RT.monochromatic_calc==true
 
         hold on
 
-        lgnd_str{ww} = ['$\lambda = $', num2str(round(inputs.RT.wavelengths2run(idx2plot, 1), 1)), ' $nm$'];
+        lgnd_str{ww} = ['$\lambda = $', num2str(round(inputs.RT.wavelengths2run(idx2plot, 1))), ' $nm$'];
 
     end
 
@@ -720,8 +720,7 @@ legend(lgnd_str,'Interpreter','latex','Location','northwest','FontSize',22)
 dim = [0.155714285714286 0.144548492431641 0.196462309701102 0.382951507568359];
 
 if ischar(inputs.RT.sensor_altitude)==true
-    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
-        ['$sza$ = ',num2str(inputs.RT.sza)],...
+    texBox_str = {['$sza$ = ',num2str(inputs.RT.sza)],...
         ['$vza$ = ',num2str(inputs.RT.vza)],...
         ['$z_{out}$ = ', inputs.RT.sensor_altitude],...
         ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...
@@ -731,8 +730,7 @@ if ischar(inputs.RT.sensor_altitude)==true
         ['$\tau_0$ = ', num2str(inputs.RT.tau_c)],...
         ['$A_0$ = ', num2str(inputs.RT.surface_albedo)]};
 else
-    texBox_str = {['N layers = ', num2str(inputs.RT.n_layers)],...
-        ['$sza$ = ',num2str(inputs.RT.sza)],...
+    texBox_str = {['$sza$ = ',num2str(inputs.RT.sza)],...
         ['$vza$ = ',num2str(inputs.RT.vza)],...
         ['$z_{out}$ = ', num2str(inputs.RT.sensor_altitude), ' km'],...
         ['$Cloud\;top$ = ', num2str(inputs.RT.z_topBottom(1)), ' km'],...

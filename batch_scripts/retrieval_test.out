@@ -1,0 +1,18 @@
+Starting MATLAB job at Wed Jul  9 22:22:28 MDT 2025
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2021 The MathWorks, Inc.
+             R2021b Update 3 (9.11.0.1873467) 64-bit (glnxa64)
+                              February 3, 2022
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+Starting parallel pool (parpool) using the 'local' profile ...
+Connected to the parallel pool (number of workers: 18).
+
+real	0m59.234s
+user	3m2.719s
+sys	0m34.098s
+Finished MATLAB job at Wed Jul  9 22:23:28 MDT 2025
