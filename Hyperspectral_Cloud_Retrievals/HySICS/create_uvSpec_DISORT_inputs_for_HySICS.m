@@ -204,7 +204,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
 
-%         inputs.bands2run = [49, 426, 613]';
+        % inputs.bands2run = [49, 426, 613]';
 %         inputs.bands2run = [49, 57, 288, 408, 613]';
 
         % test bands
