@@ -144,16 +144,16 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tcpw = 5:3:35;
 
 
-% r_top = 10:15;
-% r_bot = 3:6;
-% tau_c = 26:3:29;
-% tcpw = 32:3:35;    % mm
-
-
 r_top = 14:15;
 r_bot = 3:4;
 tau_c = 26:3:29;
 tcpw = 32:3:35;    % mm
+
+
+% r_top = 5:15;
+% r_bot = 3:10;
+% tau_c = 5:3:11;
+% tcpw = 5:3:35;    % mm
 
 
 
