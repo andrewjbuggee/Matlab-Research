@@ -96,7 +96,8 @@ elseif strcmp(inputs.which_computer,'curc')==true
 
         elseif p.NumWorkers<=64 && p.NumWorkers>10
 
-            parpool(p.NumWorkers);
+            % Leave a core for overhead
+            parpool(p.NumWorkers -1);
 
         elseif p.NumWorkers<=10
 
