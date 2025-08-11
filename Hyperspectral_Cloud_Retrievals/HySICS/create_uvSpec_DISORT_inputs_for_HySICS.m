@@ -972,7 +972,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
 
-    
+
     % **************************************************************
     % **************************************************************
     % **************************************************************
@@ -1813,8 +1813,8 @@ elseif strcmp(sim_meas_likeness, 'subset')==true
 
     % --------------------------------------------------------------
     % Do you want to print an error message?
-    % inputs.RT.errMsg = 'verbose';
-    inputs.RT.errMsg = 'quiet';
+    inputs.RT.errMsg = 'verbose';
+    % inputs.RT.errMsg = 'quiet';
     % --------------------------------------------------------------
 
 

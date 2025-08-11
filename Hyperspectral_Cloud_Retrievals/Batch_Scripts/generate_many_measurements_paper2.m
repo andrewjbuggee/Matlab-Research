@@ -147,10 +147,16 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tcpw = 5:3:35;
 
 
-r_top = 14:15;
-r_bot = 3:4;
-tau_c = 26:3:29;
-tcpw = 32:3:35;    % mm
+r_top = 10;
+r_bot = 4;
+tau_c = 5:10;
+tcpw = 20;    % mm
+
+
+% r_top = 14:15;
+% r_bot = 3:4;
+% tau_c = 26:3:29;
+% tcpw = 32:3:35;    % mm
 
 
 % r_top = 13:15;
@@ -281,7 +287,7 @@ end
 
 % Now write all the INP files
 parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
 
     % set the wavelengths for each file
@@ -501,6 +507,9 @@ for nn = 1:(num_INP_files/num_wl)
 
     % grab the state vector
     changing_variables = changing_variables_allStateVectors((nn*num_wl - (num_wl-1)) : (nn*num_wl) ,:);
+
+    % set the inputs to have the proper state variables
+
 
 
     filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
