@@ -187,6 +187,10 @@ inputs.RT.num_re_parameters = 2;
 
 [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], 'exact');
 
+%% NO ERROR FILES!
+
+inputs.RT.errMsg = 'quiet';
+
 
 %% Set the total column water vapor?
 
