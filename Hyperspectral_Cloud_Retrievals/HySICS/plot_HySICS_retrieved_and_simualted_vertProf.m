@@ -25,12 +25,13 @@ figure;
         'FontSize', 26)
 
 
+tau_sim = linspace(0, hysics.inputs.RT.tau_c, 100);
 
 % create a droplet profile from simulated measurement inputs
 re_sim = create_droplet_profile2([hysics.inputs.RT.r_top, hysics.inputs.RT.r_bot],...
-        GN_outputs.tau_vector, 'optical_depth', GN_inputs.model.profile.type);
+        tau_sim, 'optical_depth', GN_inputs.model.profile.type);
 
-tau_sim = linspace(0, hysics.inputs.RT.tau_c, 100);
+
 
 
 % Plot the simulated measurement
