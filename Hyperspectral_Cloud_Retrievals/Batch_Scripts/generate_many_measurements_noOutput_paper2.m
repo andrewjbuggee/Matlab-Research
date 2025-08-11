@@ -153,16 +153,22 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tcpw = 32:3:35;    % mm
 
 
-r_top = 13:15;
-r_bot = 3:5;
-tau_c = 23:3:29;
-tcpw = 29:3:35;    % mm
+% r_top = 13:15;
+% r_bot = 3:5;
+% tau_c = 23:3:29;
+% tcpw = 29:3:35;    % mm
 
 
 % r_top = 10;
 % r_bot = 4;
 % tau_c = 5:3:29;
 % tcpw = 5:3:35;    % mm
+
+
+r_top = 9:10;
+r_bot = 4:5;
+tau_c = 5:5:10;
+tcpw = 10:10:20;    % mm
 
 
 
@@ -512,11 +518,21 @@ for nn = 1:(num_INP_files/num_wl)
     changing_variables = changing_variables_allStateVectors((nn*num_wl - (num_wl-1)) : (nn*num_wl) ,:);
 
 
+    % set the inputs to have the proper state variables
+    inputs.RT.r_top = changing_variables(1,1);
+    inputs.RT.r_bot = changing_variables(1,2);
+    inputs.RT.tau_c = changing_variables(1,3);
+    inputs.RT.waterVapor_column = changing_variables(1,4);
+
+
     filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
         num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert',...
         '_rTop_', num2str(changing_variables(1,1)),...
         '_rBot_', num2str(changing_variables(1,2)), '_tauC_', num2str(changing_variables(1,3)),...
-        '_tcwv_', num2str(changing_variables(1,4)),'_sim-ran-on-',char(datetime("today")),'.mat'];
+        '_tcwv_', num2str(changing_variables(1,4)),'_vza_', num2str(round(inputs.RT.vza)),...
+        '_vaz_', num2str(round(inputs.RT.vaz)), '_sza_', num2str(round(inputs.RT.sza)),...
+        '_saz_', num2str(round(inputs.RT.phi0)),...
+        '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
     save(filename, "Refl_model", "Refl_model_with_noise", "Refl_model_uncert",...

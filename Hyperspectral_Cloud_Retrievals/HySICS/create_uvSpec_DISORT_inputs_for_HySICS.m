@@ -693,7 +693,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
         % inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-        % inputs.RT.phi0 = 0;         % degree
+        % inputs.RT.sza = 0;         % degree
 
     end
 
