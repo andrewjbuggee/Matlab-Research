@@ -141,34 +141,25 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 %%
 
 % define the range of independent parameters
+
 % r_top = 5:15;
 % r_bot = 3:10;
 % tau_c = 5:3:29;
 % tcpw = 5:3:35;
 
+% r_top = 10;
+% r_bot = 3:10;
+% tau_c = 5:3:29;
+% tcpw = 5:3:35;
 
+
+% Test parameters
 r_top = 10;
 r_bot = 4;
 tau_c = 5:5:10;
-tcpw = 20;    % mm
+tcpw = 20;       % mm
 
 
-% r_top = 14:15;
-% r_bot = 3:4;
-% tau_c = 26:3:29;
-% tcpw = 32:3:35;    % mm
-
-
-% r_top = 13:15;
-% r_bot = 3:5;
-% tau_c = 23:3:29;
-% tcpw = 29:3:35;    % mm
-
-
-% r_top = 10;
-% r_bot = 4;
-% tau_c = 5:3:29;
-% tcpw = 5:3:35;    % mm
 
 
 
@@ -192,6 +183,19 @@ inputs.RT.num_re_parameters = 2;
 % Define the parameters of the INP file
 
 [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], 'exact');
+
+%% NO ERROR FILES!
+
+inputs.RT.errMsg = 'quiet';
+
+%% Define the geometry
+
+inputs.RT.sza = 0;         % degrees - Solar Zenith Angle
+inputs.RT.phi0 = 0;        % degrees - Solar Azimuth Angle
+inputs.RT.vza = 0;        % degrees - Viewing Zenith Angle
+inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
+
+
 
 
 %% Set the total column water vapor?
@@ -287,7 +291,7 @@ end
 
 % Now write all the INP files
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
     % set the wavelengths for each file
@@ -352,10 +356,6 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
-
-
-    disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
 
     % ----------------------------------------------------
@@ -507,6 +507,7 @@ for nn = 1:(num_INP_files/num_wl)
 
     % grab the state vector
     changing_variables = changing_variables_allStateVectors((nn*num_wl - (num_wl-1)) : (nn*num_wl) ,:);
+
 
     % set the inputs to have the proper state variables
     inputs.RT.r_top = changing_variables(1,1);
