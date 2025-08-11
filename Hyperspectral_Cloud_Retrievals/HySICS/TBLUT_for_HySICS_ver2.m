@@ -261,6 +261,10 @@ elseif isfield(simulated_measurements, 'Refl_model_2save')==true
 
     tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_measurements.Refl_model_2save, Refl_model_tblut, inputs_tblut, folder_paths);
 
+else
+
+    error([newline, 'What simualted measurements should I use?', newline])
+
 end
 
 

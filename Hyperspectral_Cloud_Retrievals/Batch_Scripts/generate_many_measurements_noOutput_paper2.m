@@ -147,16 +147,16 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tcpw = 5:3:35;
 
 
-r_top = 14:15;
-r_bot = 3:4;
-tau_c = 26:3:29;
-tcpw = 32:3:35;    % mm
+% r_top = 14:15;
+% r_bot = 3:4;
+% tau_c = 26:3:29;
+% tcpw = 32:3:35;    % mm
 
 
-% r_top = 13:15;
-% r_bot = 3:5;
-% tau_c = 23:3:29;
-% tcpw = 29:3:35;    % mm
+r_top = 13:15;
+r_bot = 3:5;
+tau_c = 23:3:29;
+tcpw = 29:3:35;    % mm
 
 
 % r_top = 10;
@@ -186,6 +186,10 @@ inputs.RT.num_re_parameters = 2;
 % Define the parameters of the INP file
 
 [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], 'exact');
+
+%% NO ERROR FILES!
+
+inputs.RT.errMsg = 'quiet';
 
 
 %% Set the total column water vapor?
@@ -346,10 +350,6 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
-
-
-    disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
 
     % ----------------------------------------------------

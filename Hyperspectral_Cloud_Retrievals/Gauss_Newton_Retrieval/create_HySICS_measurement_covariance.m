@@ -29,7 +29,7 @@ if strcmp(covariance_type,'computed') == true
 
 
 elseif strcmp(covariance_type,'independent') == true
-    
+
     % -------------------------------------------------
     % *** Compute the Measurement Covariance Matrix ***
     % -------------------------------------------------
@@ -54,7 +54,7 @@ elseif strcmp(covariance_type,'independent') == true
 
         % use the definine measurement uncertainty. Convert to a percent
         measurement_uncertainty_percent = simulated_measurements.inputs.measurement.uncert * 100;
-    
+
     else
 
         % If you're not modeling measurement uncertainty, assume a near zero value for all
@@ -70,7 +70,10 @@ elseif strcmp(covariance_type,'independent') == true
         (measurement_uncertainty_percent + forward_model_uncertainty)/100,...
         length(GN_inputs.bands2run))';        % fraction
 
+
     GN_inputs.measurement.rss_uncert = sqrt(sum( (simulated_measurements.Refl_model.* GN_inputs.measurement.uncertainty).^2))';   % 1/sr - reflectance
+
+
 
     % Lets assume the percentage given is the standard deviation
     % According to King and Vaughn (2012): 'the values along the main

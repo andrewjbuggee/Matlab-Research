@@ -1796,7 +1796,8 @@ elseif strcmp(sim_meas_likeness, 'subset')==true
 
     % --------------------------------------------------------------
     % Do you want to print an error message?
-    inputs.RT.errMsg = 'verbose';
+    % inputs.RT.errMsg = 'verbose';
+    inputs.RT.errMsg = 'quiet';
     % --------------------------------------------------------------
 
 
