@@ -191,6 +191,15 @@ inputs.RT.num_re_parameters = 2;
 
 inputs.RT.errMsg = 'quiet';
 
+%% Define the geometry
+
+inputs.RT.sza = 0;         % degrees - Solar Zenith Angle
+inputs.RT.phi0 = 0;        % degrees - Solar Azimuth Angle
+inputs.RT.vza = 0;        % degrees - Viewing Zenith Angle
+inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
+
+
+
 
 %% Set the total column water vapor?
 
