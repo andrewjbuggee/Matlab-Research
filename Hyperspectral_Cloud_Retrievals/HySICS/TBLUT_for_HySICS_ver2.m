@@ -16,7 +16,7 @@
 
 %%
 
-function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_reflectance, folder_paths)
+function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths)
 
 disp([newline, 'Computing the TBLUT retrieval...', newline])
 
@@ -24,22 +24,22 @@ disp([newline, 'Computing the TBLUT retrieval...', newline])
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_reflectance.inputs);
+inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements.inputs);
 
 
 
 %% Find the measurements closest to the bands to run
 
-[~, idx_1] = min(abs(simulated_reflectance.inputs.bands2run - inputs_tblut.bands2run(1)));
+[~, idx_1] = min(abs(simulated_measurements.inputs.bands2run - inputs_tblut.bands2run(1)));
 
-[~, idx_2] = min(abs(simulated_reflectance.inputs.bands2run - inputs_tblut.bands2run(2)));
+[~, idx_2] = min(abs(simulated_measurements.inputs.bands2run - inputs_tblut.bands2run(2)));
 
 % error if the values found are at least 15nm from the intended wavlengths
-if abs(mean(simulated_reflectance.inputs.RT.wavelengths2run(idx_1,:)) - 650)>15
+if abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_1,:)) - 650)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 650 nm', newline])
 
-elseif abs(mean(simulated_reflectance.inputs.RT.wavelengths2run(idx_2,:)) - 2130)>15
+elseif abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_2,:)) - 2130)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 650 nm', newline])
 
@@ -51,7 +51,7 @@ else
     inputs_tblut.bands2plot = inputs_tblut.bands2run;
 
     % ---- Define the wavelengths ----
-    inputs_tblut.RT.wavelengths2run = simulated_reflectance.inputs.RT.wavelengths2run(inputs_tblut.bands2run_from_set_of_measurements,:);
+    inputs_tblut.RT.wavelengths2run = simulated_measurements.inputs.RT.wavelengths2run(inputs_tblut.bands2run_from_set_of_measurements,:);
 
 
 
@@ -189,7 +189,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
 
-    spec_response = simulated_reflectance.spec_response.value;
+    spec_response = simulated_measurements.spec_response.value;
 
 
     % store the reflectances
@@ -253,7 +253,15 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_reflectance.Refl_model, Refl_model_tblut, inputs_tblut, folder_paths);
+if isfield(simulated_measurements, 'Refl_model')==true
+
+    tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_measurements.Refl_model, Refl_model_tblut, inputs_tblut, folder_paths);
+
+elseif isfield(simulated_measurements, 'Refl_model_2save')==true
+
+    tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_measurements.Refl_model_2save, Refl_model_tblut, inputs_tblut, folder_paths);
+
+end
 
 
 
