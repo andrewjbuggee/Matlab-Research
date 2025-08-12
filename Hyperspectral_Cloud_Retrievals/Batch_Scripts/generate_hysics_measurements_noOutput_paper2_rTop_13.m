@@ -149,7 +149,7 @@ end
 
 r_top = 13;
 r_bot = 3:10;
-tau_c = 5:3:29;
+tau_c = 5:3:32;
 tcpw = 5:3:35;
 
 
@@ -185,9 +185,10 @@ inputs.RT.errMsg = 'quiet';
 
 %% Define the geometry
 
-inputs.RT.sza = 0;         % degrees - Solar Zenith Angle
-inputs.RT.phi0 = 0;        % degrees - Solar Azimuth Angle
-inputs.RT.vza = 0;        % degrees - Viewing Zenith Angle
+% Numbers based off NOAA solar calculator (27 Jan 2024 off coast of Chile)
+inputs.RT.sza = 10;         % degrees - Solar Zenith Angle
+inputs.RT.phi0 = 91.45;        % degrees - Solar Azimuth Angle
+inputs.RT.vza = 7;        % degrees - Viewing Zenith Angle
 inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
 
 
