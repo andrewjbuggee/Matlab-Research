@@ -57,8 +57,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % ***** Define the HySICS Folder with the simulated measurements *****
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
 
     % ---- Define where the retrievals will be stored ---
     folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
@@ -205,7 +208,13 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6, 66 bands from first paper with 1%
     % uncertainty
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+    % filename = 'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+
+
+    % r_top = 10, r_bot = 3, tau_c = 29, tcwv = 15mm, 66 bands from first paper with 0.001%
+    % uncertainty
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_3_tauC_29_tcwv_15_vza_0',...
+        '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
@@ -240,9 +249,19 @@ elseif strcmp(which_computer,'curc')==true
 
     % r_top = 10, r_bot = 5, tau_c = 8, total_column_waterVapor = 14, 66
     % bands
-    % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat';
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0_vaz_210',...
+    %     '_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
 
+    % r_top = 10, r_bot = 5, tau_c = 10, total_column_waterVapor = 20, 66
+    % bands
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_10_tauC_11_tcwv_11_vza_0',...
+    '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+
+    % r_top = 10, r_bot = 5, tau_c = 10, total_column_waterVapor = 20, 66
+    % bands
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_10_tcwv_20_vza_4_vaz_257',...
+    %     '_sza_31_saz_96_sim-ran-on-11-Aug-2025.mat'];
 
 
 end

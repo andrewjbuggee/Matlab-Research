@@ -187,8 +187,10 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    % load all filenames in the folder defined above.
-    filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
+    % load all filenames in the folder defined above that start with a
+    % specific block of text
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10*.mat']);
 
 
 end
