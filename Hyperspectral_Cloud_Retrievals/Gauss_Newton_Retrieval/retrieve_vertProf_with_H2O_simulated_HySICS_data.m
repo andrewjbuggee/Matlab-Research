@@ -177,9 +177,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
   
 
 
-    % r_top = 15, r_bot = 3, tau_c = 26, total_column_waterVapor = 32, 66
+    % r_top = 9, r_bot = 4, tau_c = 5, total_column_waterVapor = 10, 66
     % Bands
-    filename = 'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_15_rBot_3_tauC_26_tcwv_32_sim-ran-on-11-Aug-2025.mat';
+    filename = 'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_9_rBot_4_tauC_5_tcwv_10_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-11-Aug-2025.mat';
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
@@ -309,7 +309,6 @@ save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_mea
 %% PLOT RETRIEVED VERTICAL PROFILE WITH TBLUT RETRIEVAL
 
 plot_HySICS_retrieved_and_simualted_vertProf(simulated_measurements, GN_outputs, GN_inputs, tblut_retrieval)
-
 
 %% FIND ALL FILES WHERE R_TOP AND R_BOT COV VARY AND MAKE PLOTS
 
