@@ -171,7 +171,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % ----------------- Simulating HySICS spectral channels ------------------
         % number of channels = 636 ranging from center wavelengths: [351, 2297]
-        % inputs.bands2run = (1:1:636)';
+%         inputs.bands2run = (1:1:636)';
 
         % First 7 MODIS spectral channels
         % inputs.bands2run = [39, 67, 98, 169, 291, 421, 581];

@@ -81,9 +81,10 @@ inputs.compute_weighting_functions = false;
 
 % Define which HySICS bands to run
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
+% band 89 has a center wavelength of 621 nm
 % band 98 has a center wavelength of 649 nm
 % band 582 has a center wavelength of 2131 nm
-inputs.bands2run = [98, 582]; % these are the bands that we will run uvspec with
+inputs.bands2run = [89, 582]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands

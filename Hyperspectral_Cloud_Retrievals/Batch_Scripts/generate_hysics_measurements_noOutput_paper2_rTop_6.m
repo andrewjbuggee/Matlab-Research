@@ -147,12 +147,10 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tau_c = 5:3:29;
 % tcpw = 5:3:35;
 
-r_top = 7;
+r_top = 6;
 r_bot = 3:10;
 tau_c = 5:3:32;
 tcpw = 5:3:35;
-
-
 
 
 
@@ -255,7 +253,7 @@ wc_filename = cell(num_INP_files, 1);
 idx_unique_wcFiles_idx = 1:(num_wl * num_tcpw):num_INP_files;
 
 parfor nn = 1:length(idx_unique_wcFiles_idx)
-
+% for nn = 1:length(idx_unique_wcFiles_idx)
     % --------------------------------------
     % ---- Write all Water Cloud files! ----
     % --------------------------------------

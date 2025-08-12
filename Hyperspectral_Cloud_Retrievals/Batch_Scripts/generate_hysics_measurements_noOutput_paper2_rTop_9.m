@@ -132,11 +132,11 @@ end
 
 %%  Delete old files?
 % First, delete files in the HySICS folder
-delete([inputs.libRadtran_inp, '*.INP'])
-delete([inputs.libRadtran_inp, '*.OUT'])
+% delete([inputs.libRadtran_inp, '*.INP'])
+% delete([inputs.libRadtran_inp, '*.OUT'])
 
 % delete old wc files
-delete([inputs.water_cloud_folder_path, '*.DAT'])
+% delete([inputs.water_cloud_folder_path, '*.DAT'])
 
 %%
 
@@ -147,7 +147,7 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % tau_c = 5:3:29;
 % tcpw = 5:3:35;
 
-r_top = 7;
+r_top = 9;
 r_bot = 3:10;
 tau_c = 5:3:32;
 tcpw = 5:3:35;
