@@ -85,7 +85,10 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS simulated spectrum folder
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+    % folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
+        'Simulated_spectra/paper2_variableSweep/'];
 
 
     % ---- Define where the retrievals will be stored ---
@@ -232,7 +235,13 @@ elseif strcmp(which_computer,'curc')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, all
     % bands
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1.mat';
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1.mat';
+
+
+    % r_top = 10, r_bot = 5, tau_c = 8, total_column_waterVapor = 14, 66
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    filename = 'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat';
 
 
 
@@ -258,8 +267,17 @@ end
 
 rev = 1;
 
-folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_',...
+    'bands_',num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
+        '_rTop_', num2str(simulated_measurements.inputs.RT.r_top),...
+        '_rBot_', num2str(simulated_measurements.inputs.RT.r_bot),...
+        '_tauC_', num2str(simulated_measurements.inputs.RT.tau_c),...
+        '_tcwv_', num2str(simulated_measurements.inputs.RT.waterVapor_column),...
+        '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
+        '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
+        '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
+        '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
+        '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
 
