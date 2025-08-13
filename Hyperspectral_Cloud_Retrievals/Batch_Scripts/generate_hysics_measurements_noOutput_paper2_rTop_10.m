@@ -164,7 +164,7 @@ end
 % test 
 r_top = 10;
 r_bot = 3:6;
-tau_c = 5:3:14;
+tau_c = 5:3:11;
 tcpw = 5:3:11;
 
 
@@ -191,7 +191,7 @@ inputs.RT.num_re_parameters = 2;
 
 %% NO ERROR FILES!
 
-inputs.RT.errMsg = 'quiet';
+inputs.RT.errMsg = 'verbose';
 
 %% Define the geometry
 
