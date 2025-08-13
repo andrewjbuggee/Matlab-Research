@@ -213,7 +213,13 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % r_top = 10, r_bot = 3, tau_c = 29, tcwv = 15mm, 66 bands from first paper with 0.001%
     % uncertainty
-    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_3_tauC_29_tcwv_15_vza_0',...
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_3_tauC_29_tcwv_15_vza_0',...
+    %     '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+
+    % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14mm, 66 bands from first paper with 0.001%
+    % uncertainty
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0',...
         '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
 
     % test file with just 5 wavelengths
