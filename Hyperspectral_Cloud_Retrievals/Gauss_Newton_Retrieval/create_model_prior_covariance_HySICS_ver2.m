@@ -98,7 +98,7 @@ if use_TBLUT_estimates==true
     optThick_uncert = 0.05;
 
     % let's define the uncertainty of the above cloud column water vapor
-    colWaterVapor_uncert = 0.05;
+    colWaterVapor_uncert = 0.1;
 
     % stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
     %     GN_inputs.model.apriori(2) * 6*effRad_uncert,...

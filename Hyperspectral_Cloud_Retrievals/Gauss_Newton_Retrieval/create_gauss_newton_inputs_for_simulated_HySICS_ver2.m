@@ -168,7 +168,9 @@ simulated_measurements_likeness = 'exact';
 [GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
     simulated_measurements, simulated_measurements_likeness);
 
-
+% Are you simulating a measurement, or making forward model calculations
+% for the retrieval?
+GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 
 
