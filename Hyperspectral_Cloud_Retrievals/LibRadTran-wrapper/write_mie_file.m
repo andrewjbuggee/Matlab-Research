@@ -174,6 +174,7 @@ for ff = 1:numFiles
             fileID = fopen([mie_folder,input_filename], 'w');
 
         elseif isnumeric(index_refraction)==1
+            
             input_filename = ['Mie_calc_refrac_',num2str(index_refraction),'_distribution_',distribution{1},...
                  '_nn-',num2str(index1),'_', num2str(indexRadius),'.INP'];
             output_filename = ['OUTPUT_',input_filename(1:end-4)];

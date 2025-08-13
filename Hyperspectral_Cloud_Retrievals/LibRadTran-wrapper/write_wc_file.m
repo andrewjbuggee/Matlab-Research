@@ -252,8 +252,6 @@ end
 
 
 
-
-% Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
 if strcmp(computer_name,'anbu8374')==true
 

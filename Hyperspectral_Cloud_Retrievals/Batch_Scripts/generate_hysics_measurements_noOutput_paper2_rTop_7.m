@@ -34,6 +34,10 @@ if strcmp(inputs.which_computer,'anbu8374')==true
     inputs.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
 
 
+    % mie folder location
+    inputs.mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+
+
 
 elseif strcmp(inputs.which_computer,'andrewbuggee')==true
 
@@ -55,8 +59,16 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
 
 
     % water cloud file location
+    % inputs.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+    %     'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
     inputs.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc2/'];
+
+
+    % mie folder location
+    inputs.mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
+        'libRadtran-2.0.4/Mie_Calculations/'];
 
 
 
@@ -69,7 +81,6 @@ elseif strcmp(inputs.which_computer,'curc')==true
     inputs.folderpath_reflectance = '/scratch/alpine/anbu8374/hyperspectral_retrieval/HySICS/';
 
 
-
     % Define the folder path where all .INP files will be saved
     inputs.libRadtran_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/HySICS/INP-OUT/';
 
@@ -79,6 +90,12 @@ elseif strcmp(inputs.which_computer,'curc')==true
 
     % water cloud file location
     inputs.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+
+
+    % mie folder location
+    inputs.mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
+
+
 
 
     % *** Start parallel pool ***
@@ -130,6 +147,14 @@ if ~exist(inputs.folderpath_reflectance, 'dir')
 end
 
 
+% If the folder path doesn't exit, create a new directory
+if ~exist(inputs.folderpath_reflectance, 'dir')
+
+    mkdir(inputs.water_cloud_folder_path)
+
+end
+
+
 %%  Delete old files?
 % First, delete files in the HySICS folder
 delete([inputs.libRadtran_inp, '*.INP'])
@@ -137,6 +162,10 @@ delete([inputs.libRadtran_inp, '*.OUT'])
 
 % delete old wc files
 delete([inputs.water_cloud_folder_path, '*.DAT'])
+
+% delete old MIE files
+delete([inputs.mie_folder, '*.INP'])
+delete([inputs.mie_folder, '*.OUT'])
 
 %%
 
@@ -154,8 +183,8 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 
 % test 
 r_top = 7;
-r_bot = 3:5;
-tau_c = 5:3:11;
+r_bot = 3:6;
+tau_c = 5:3:14;
 tcpw = 5:3:11;
 
 
@@ -261,6 +290,7 @@ wc_filename = cell(num_INP_files, 1);
 idx_unique_wcFiles_idx = 1:(num_wl * num_tcpw):num_INP_files;
 
 parfor nn = 1:length(idx_unique_wcFiles_idx)
+% for nn = 1:length(idx_unique_wcFiles_idx)
 
     % --------------------------------------
     % ---- Write all Water Cloud files! ----
