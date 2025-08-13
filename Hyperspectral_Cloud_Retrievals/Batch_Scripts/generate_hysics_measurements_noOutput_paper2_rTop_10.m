@@ -114,7 +114,7 @@ elseif strcmp(inputs.which_computer,'curc')==true
 end
 
 
-% If the folder path doesn't exit, create a new directory
+% If the INP folder path doesn't exist, create a new directory
 if ~exist(inputs.libRadtran_inp, 'dir')
 
     mkdir(inputs.libRadtran_inp)
@@ -122,10 +122,18 @@ if ~exist(inputs.libRadtran_inp, 'dir')
 end
 
 
-% If the folder path doesn't exit, create a new directory
+% If the reflectances folder path doesn't exist, create a new directory
 if ~exist(inputs.folderpath_reflectance, 'dir')
 
     mkdir(inputs.folderpath_reflectance)
+
+end
+
+
+% If the water cloud folder path doesn't exist, create a new directory
+if ~exist(inputs.water_cloud_folder_path, 'dir')
+
+    mkdir(inputs.water_cloud_folder_path)
 
 end
 
