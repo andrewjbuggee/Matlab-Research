@@ -157,7 +157,7 @@ for ii = 1:num_iterations
         (Jacobian' *  measurement_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
 
     % fine the maximum non-negative value, a, that satisfies the
-    % following: l< current_guess + new_direction <u
+    % following: l< current_guess + a*new_direction <u
     % where the variable is bounded: l<x1<u
     % we want to compute the maximum non-negative feasible step within
     % our bounds
