@@ -155,17 +155,17 @@ end
 % tau_c = 5:3:29;
 % tcpw = 5:3:35;
 
-% r_top = 10;
-% r_bot = 3:10;
-% tau_c = 5:3:29;
-% tcpw = 5:3:35;
+r_top = 10;
+r_bot = 3:10;
+tau_c = 5:3:29;
+tcpw = 5:3:35;
 
 
 % test 
-r_top = 10;
-r_bot = 3:6;
-tau_c = 5:3:11;
-tcpw = 5:3:11;
+% r_top = 10;
+% r_bot = 3:6;
+% tau_c = 5:3:11;
+% tcpw = 5:3:11;
 
 
 % ----- unpack parallel for loop variables ------
@@ -191,7 +191,7 @@ inputs.RT.num_re_parameters = 2;
 
 %% NO ERROR FILES!
 
-inputs.RT.errMsg = 'verbose';
+inputs.RT.errMsg = 'quiet';
 
 %% Define the geometry
 
