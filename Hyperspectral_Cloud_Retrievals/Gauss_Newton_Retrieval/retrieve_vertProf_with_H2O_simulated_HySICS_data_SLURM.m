@@ -218,9 +218,15 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14mm, 66 bands from first paper with 0.001%
-    % uncertainty
-    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0',...
-        '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+    % uncertainty - nadir viewing with overhead sun
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0',...
+    %     '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+    % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14mm, 66 bands from first paper with 0.001%
+    % uncertainty, viewing geometry based on EMIT measurement from 27
+    % January, 2024
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_7',...
+        '_vaz_210_sza_10_saz_91_sim-ran-on-14-Aug-2025.mat'];
 
     % test file with just 5 wavelengths
     % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
