@@ -34,7 +34,7 @@ if strcmp(which_computer,'anbu8374')==true
 
     % ***** Define the HySICS Folder with the simulated measurements *****
     folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/'];
 
     % ---- Define where the retrievals will be stored ---
     folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
@@ -90,7 +90,8 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the HySICS simulated spectrum folder
 
-    folder_paths.HySICS_simulated_spectra = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/';
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
+        'Simulated_spectra/paper2_variableSweep/'];
 
 
     % ---- Define where the retrievals will be stored ---
@@ -164,7 +165,7 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
 
-    f% load all filenames in the folder defined above.
+    % load all filenames in the folder defined above.
     filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
 
 
@@ -176,7 +177,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % load all filenames in the folder defined above.
     filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
-    
+
 
 
 
@@ -195,126 +196,153 @@ elseif strcmp(which_computer,'curc')==true
 
 end
 
-%% Load the each measurement one at a time
+%% Step through each measurement and perform the retrieval
 
 
 for nn = 1:size(filenames, 1)
 
-% Load the simulated measurement
-simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
+
+    
+
+    % Load the simulated measurement
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filenames(nn).name]);
 
 
-% *** Check to see if these measure have added uncertainty or not ***
+    % *** Check to see if these measure have added uncertainty or not ***
 
-if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+    if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
-    disp([newline, 'Using measurements with added uncertianty...', newline])
+        disp([newline, 'Using measurements with added uncertianty...', newline])
 
-    % Then we're using measurements with noise and we set this to be the
-    % Reflectance measurements
-    simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
+        % Then we're using measurements with noise and we set this to be the
+        % Reflectance measurements
+        simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
 
-end
-
-%% Create the name of the file to save all output to
-
-rev = 1;
-
-folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_', num2str(numel(simulated_measurements.inputs.bands2run)),...
-    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-
-
-while isfile(filename)
-    rev = rev+1;
-    if rev<10
-        filename = [filename(1:end-5), num2str(rev),'.mat'];
-    elseif rev>10
-        filename = [filename(1:end-6), num2str(rev),'.mat'];
     end
+
+    %% Create the name of the file to save all output to
+
+    rev = 1;
+
+
+    folder_paths.saveOutput_filename = [inputs.folderpath_2save,'dropletRetrieval_HySICS_',...
+        num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert',...
+        '_rTop_', num2str(changing_variables(1,1)),...
+        '_rBot_', num2str(changing_variables(1,2)), '_tauC_', num2str(changing_variables(1,3)),...
+        '_tcwv_', num2str(changing_variables(1,4)),'_vza_', num2str(round(inputs.RT.vza)),...
+        '_vaz_', num2str(round(inputs.RT.vaz)), '_sza_', num2str(round(inputs.RT.sza)),...
+        '_saz_', num2str(round(inputs.RT.phi0)),...
+        '_sim-ran-on-',char(datetime("today")),'.mat'];
+
+
+
+
+    while isfile(folder_paths.saveOutput_filename)
+        rev = rev+1;
+        if rev<10
+            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-5), num2str(rev),'.mat'];
+        elseif rev>10
+            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-6), num2str(rev),'.mat'];
+        end
+    end
+
+
+    %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
+
+    tic
+
+    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
+
+    disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+
+
+    %% CREATE GAUSS-NEWTON INPUTS
+
+    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+
+
+    disp('Dont forget to check the inputs and change if needed!!')
+
+    GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
+
+    % what was the assumed above cloud column water vapor path?
+    GN_inputs.assumed_aboveCloud_totalColumn_precipitableWater = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2
+
+    %% We're retrieving above cloud column water vapor. Make sure input settings are correct
+
+    GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+    GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
+
+    %
+
+    %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
+
+    % I don't need anything but the covariance matrix and the expected values
+    %inputs = create_model_prior(inputs,data_inputs);
+
+    % -------------------------------------------------------
+    % do you want to use your estimates or the MODIS estimate?
+    % -------------------------------------------------------
+
+    use_TBLUT_estimates = true;
+
+    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+
+
+    GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
+
+
+    %% CALCULATE RETRIEVAL PARAMETERS
+
+    tic
+
+    % --------------------------------------------------------------
+    % ---------------- Retrieve Vertical Profile! ------------------
+    % --------------------------------------------------------------
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
+    % --------------------------------------------------------------
+    % --------------------------------------------------------------
+
+    disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+
+
+    %%
+    % ----------------------------------------------
+    % ------------ SAVE OUTPUT STRUCTURE -----------
+    % ----------------------------------------------
+
+    % Save the version without an measurement uncertainty. Then we can add
+    % uncertainty and save the new file
+
+
+    % If the folder path doesn't exit, create a new directory
+    if ~exist(folder_paths.HySICS_retrievals, 'dir')
+
+        mkdir(folder_paths.HySICS_retrievals)
+
+    end
+
+    if exist(folder_paths.saveOutput_filename, 'file')==true
+        % append
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
+
+    else
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths");
+
+    end
+
+
+
+
+    %% Clear variables and start again!
+
+    if nn~=size(filenames,1)
+
+        clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+
+    end
+
+
 end
-
-
-%% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
-
-tic
-
-tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
-
-disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
-
-
-%% CREATE GAUSS-NEWTON INPUTS
-
-% Create inputs to retrieve r_top, r_bot, tau_c, cwv
-GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
-
-
-disp('Dont forget to check the inputs and change if needed!!')
-
-GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
-
-%% We're retrieving above cloud column water vapor. Make sure input settings are correct
-
-GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
-
-% 
-
-%% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
-
-% I don't need anything but the covariance matrix and the expected values
-%inputs = create_model_prior(inputs,data_inputs);
-
-% -------------------------------------------------------
-% do you want to use your estimates or the MODIS estimate?
-% -------------------------------------------------------
-
-use_TBLUT_estimates = true;
-
-% Create inputs to retrieve r_top, r_bot, tau_c, cwv
-GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
-
-
-GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
-
-
-%% CALCULATE RETRIEVAL PARAMETERS
-
-tic
-
-% --------------------------------------------------------------
-% ---------------- Retrieve Vertical Profile! ------------------
-% --------------------------------------------------------------
-[GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
-% --------------------------------------------------------------
-% --------------------------------------------------------------
-
-disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
-
-
-%%
-% ----------------------------------------------
-% ------------ SAVE OUTPUT STRUCTURE -----------
-% ----------------------------------------------
-
-% Save the version without an measurement uncertainty. Then we can add
-% uncertainty and save the new file
-
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.HySICS_retrievals, 'dir')
-
-    mkdir(folder_paths.HySICS_retrievals)
-
-end
-
-if exist(folder_paths.saveOutput_filename, 'file')==true
-    % append
-    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
-
-else
-    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths");
-
-end
-
