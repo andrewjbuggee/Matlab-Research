@@ -1,0 +1,354 @@
+%% This script has been created to develop an above cloud column water vapor retrieval to 
+% use as an a priori for my hyperspectral retrieval algorithm
+
+
+
+% By Andrew John Buggee
+
+%%
+
+clear variables
+
+% add libRadTran libraries to the matlab path
+addLibRadTran_paths;
+scriptPlotting_wht;
+
+
+%% Define the HySICS folders for the machine you're using
+
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ***** Define the HySICS Folder with the simulated measurements *****
+    folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/paper2_variableSweep/'];
+
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Droplet_profile_retrievals/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/';
+
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
+
+    % mie folder location
+    folder_paths.mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+
+
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+
+    % ***** Define the HySICS Folder with the simulated measurements *****
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
+
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/'];
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
+    % mie folder location
+    folder_paths.mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
+        'libRadtran-2.0.4/Mie_Calculations/'];
+
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+    % Define the HySICS simulated spectrum folder
+
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
+        'Simulated_spectra/paper2_variableSweep/'];
+
+
+    % ---- Define where the retrievals will be stored ---
+    folder_paths.HySICS_retrievals = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/';
+
+
+    % water cloud file location
+    folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
+
+    % Define the folder path where all .INP files will be saved
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT/';
+
+    % mie folder location
+    folder_paths.mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
+
+
+    % *** Start parallel pool ***
+    % Is parpool running?
+    p = gcp('nocreate');
+    if isempty(p)==true
+
+        % first read the local number of workers avilabile.
+        p = parcluster('local');
+        % start the cluster with the number of workers available
+        if p.NumWorkers>64
+            % Likely the amilan128c partition with 2.1 GB per core
+            % Leave some cores for overhead
+            parpool(p.NumWorkers - 8);
+
+        elseif p.NumWorkers<=64 && p.NumWorkers>10
+
+            parpool(p.NumWorkers);
+
+        elseif p.NumWorkers<=10
+
+            parpool(p.NumWorkers);
+
+        end
+
+    end
+
+
+
+end
+
+% If the folder path doesn't exit, create a new directory
+if ~exist(folder_paths.libRadtran_inp, 'dir')
+
+    mkdir(folder_paths.libRadtran_inp)
+
+end
+
+
+
+
+
+%%   Delete old files?
+% First, delete files in the HySICS folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.water_cloud_folder_path, '*.DAT'])
+
+% delete old MIE files
+delete([folder_paths.mie_folder, '*.INP'])
+delete([folder_paths.mie_folder, '*.OUT'])
+
+
+%% LOAD SIMULATED HYSICS DATA
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+
+
+
+    %     filename = ['simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile',...
+    %         '_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1'];  % sza = 0, vza = 0
+
+    % r_top = 10, r_bot = 5, tau_c = 11, tcwv = 14mm, 66 bands from first paper with 0.001%
+    % uncertainty, viewing geometry based on EMIT measurement from 27
+    % January, 2024
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11',...
+        '_tcwv_14_vza_7_vaz_210_sza_10_saz_91_sim-ran-on-14-Aug-2025.mat'];
+
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev1.mat']); % sza = 10, vza = 0
+
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-12-May-2025_rev1.mat']); % sza = 0, vza = 0
+
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev2.mat']); % sza = 20, vza = 0
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev3.mat']); % sza = 30, vza = 0
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev4.mat']); % sza = 40, vza = 0
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev5.mat']); % sza = 50, vza = 0
+    % 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-15-May-2025_rev6.mat']); % sza = 60, vza = 0
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-17-Jun-2025_rev1.mat';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47 bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_47Bands_20mm-totalColumnWaterVapor_sim-ran-on-07-Jul-2025_rev1';
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
+    % Bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+  
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, ALL bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1';
+
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, 66 bands from first paper with 1%
+    % uncertainty
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+
+
+    % r_top = 10, r_bot = 3, tau_c = 29, tcwv = 15mm, 66 bands from first paper with 0.001%
+    % uncertainty
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_3_tauC_29_tcwv_15_vza_0',...
+    %     '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+
+    % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14mm, 66 bands from first paper with 0.001%
+    % uncertainty - nadir viewing with overhead sun
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0',...
+    %     '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+    % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14mm, 66 bands from first paper with 0.001%
+    % uncertainty, viewing geometry based on EMIT measurement from 27
+    % January, 2024
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_7',...
+        '_vaz_210_sza_10_saz_91_sim-ran-on-14-Aug-2025.mat'];
+
+    % test file with just 5 wavelengths
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_5wavelength_test_sim-ran-on-10-Jun-2025_rev1.mat';
+
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 47
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    %filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_sim-ran-on-07-Jul-2025_rev1.mat';
+
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, 66
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_66Bands_20mm-aboveCloud-WV_sim-ran-on-08-Jul-2025_rev1.mat';
+
+
+    % r_top = 9.5, r_bot = 4, tau_c = 6, total_column_waterVapor = 20, all
+    % bands
+    % simulated calcs for MODIS obs on fig 3.a for paper 1
+    % filename = 'simulated_measurement_HySICS_reflectance_inhomogeneous_droplet_profile_allBands_20mm-totalColumnWaterVapor_sim-ran-on-08-Jul-2025_rev1.mat';
+
+
+    % r_top = 10, r_bot = 5, tau_c = 8, total_column_waterVapor = 14, 66
+    % bands
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8_tcwv_14_vza_0_vaz_210',...
+    %     '_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+    % r_top = 10, r_bot = 5, tau_c = 10, total_column_waterVapor = 20, 66
+    % bands
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_10_tauC_11_tcwv_11_vza_0',...
+    '_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025.mat'];
+
+
+    % r_top = 10, r_bot = 5, tau_c = 10, total_column_waterVapor = 20, 66
+    % bands
+    % filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_10_tcwv_20_vza_4_vaz_257',...
+    %     '_sza_31_saz_96_sim-ran-on-11-Aug-2025.mat'];
+
+
+end
+
+
+simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
+
+
+
+% *** Check to see if these measure have added uncertainty or not ***
+
+if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+
+    disp([newline, 'Using measurements with added uncertianty...', newline])
+
+    % Then we're using measurements with noise and we set this to be the
+    % Reflectance measurements
+    simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
+
+end
+
+
+%% Create the name of the file to save all output to
+
+rev = 1;
+
+folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'aboveCloud_tcpw_HySICS_',...
+    'bands_',num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
+        '_rTop_', num2str(simulated_measurements.inputs.RT.r_top),...
+        '_rBot_', num2str(simulated_measurements.inputs.RT.r_bot),...
+        '_tauC_', num2str(simulated_measurements.inputs.RT.tau_c),...
+        '_tcwv_', num2str(simulated_measurements.inputs.RT.waterVapor_column),...
+        '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
+        '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
+        '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
+        '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
+        '_sim-ran-on-',char(datetime("today")),'.mat'];
+
+
+
+while isfile(filename)
+    rev = rev+1;
+    if rev<10
+        filename = [filename(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        filename = [filename(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+%% Compute the ratio of two reflectances in and out of water vapor absorption channels
+
+R_window_885 = simulated_measurements.Refl_model(9);        % 1/sr - HySICS channel centered around 881 nm
+R_waterVap_900 = simulated_measurements.Refl_model(10);     % 1/sr - HySICS channel centered around 900 nm
+
+R = R_waterVap_900/R_window_885;
+
+
