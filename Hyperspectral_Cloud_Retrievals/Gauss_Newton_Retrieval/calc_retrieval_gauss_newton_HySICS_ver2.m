@@ -519,12 +519,24 @@ percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN
 
 
 
+% -----------------------------------------------------------------------------
+% ----- compute absolute difference between true and retrieved state vector ----
+% -----------------------------------------------------------------------------
+
+absDiff_stateVec = [abs((GN_inputs.measurement.r_top - retrieval(1,end))),...
+                  abs((GN_inputs.measurement.r_bot - retrieval(2,end))),...
+                  abs((GN_inputs.measurement.tau_c - retrieval(3,end))),...
+                  abs((GN_inputs.measurement.actpw - retrieval(4,end)))]';
+
+
+
 % ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
 GN_output.residual = residual;
 GN_output.rss_residual = rss_residual;
 GN_output.percentDiff_abs = percentDiff_abs;
+GN_output.absDiff = absDiff_stateVec;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;

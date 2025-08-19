@@ -107,7 +107,7 @@ GN_inputs.measurement.covariance_type = 'independent';
 GN_inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
 GN_inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
 GN_inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth
-GN_inputs.measurement.actpw = saboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
+GN_inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
 
 
 % -----------------------------------------------
