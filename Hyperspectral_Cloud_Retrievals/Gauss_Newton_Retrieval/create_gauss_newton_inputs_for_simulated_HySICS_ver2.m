@@ -103,6 +103,13 @@ GN_inputs.measurement.prior = 'gaussian';
 %   (2) 'computed' - uses measured data to compute covaraince
 GN_inputs.measurement.covariance_type = 'independent';
 
+% Store the simulated state vector used to create the measurements
+GN_inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
+GN_inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
+GN_inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth
+GN_inputs.measurement.actpw = saboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
+
+
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------

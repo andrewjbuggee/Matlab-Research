@@ -508,12 +508,23 @@ for nn = 1:num_bands
 end
 
 
+% -----------------------------------------------------------------------------
+% ----- compute percent difference between true and retrieved state vector ----
+% -----------------------------------------------------------------------------
+
+percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN_inputs.measurement.r_top),...
+                  abs((GN_inputs.measurement.r_bot - retrieval(2,end))/GN_inputs.measurement.r_bot),...
+                  abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c),...
+                  abs((GN_inputs.measurement.actpw - retrieval(4,end))/GN_inputs.measurement.actpw)]';
+
+
 
 % ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
 GN_output.residual = residual;
 GN_output.rss_residual = rss_residual;
+GN_output.percentDiff_abs = percentDiff_abs;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;

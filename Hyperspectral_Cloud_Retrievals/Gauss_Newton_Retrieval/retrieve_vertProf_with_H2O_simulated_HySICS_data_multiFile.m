@@ -47,6 +47,10 @@ if strcmp(which_computer,'anbu8374')==true
     % water cloud file location
     folder_paths.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
 
+    % mie folder location
+    folder_paths.mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+
+
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -77,6 +81,10 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folder_paths.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
 
+    % mie folder location
+    folder_paths.mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
+        'libRadtran-2.0.4/Mie_Calculations/'];
+
 
 
 
@@ -103,6 +111,9 @@ elseif strcmp(which_computer,'curc')==true
 
     % Define the folder path where all .INP files will be saved
     folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT/';
+
+    % mie folder location
+    folder_paths.mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
 
 
     % *** Start parallel pool ***
@@ -153,7 +164,9 @@ delete([folder_paths.libRadtran_inp, '*.OUT'])
 % delete old wc files
 delete([folder_paths.water_cloud_folder_path, '*.DAT'])
 
-
+% delete old MIE files
+delete([folder_paths.mie_folder, '*.INP'])
+delete([folder_paths.mie_folder, '*.OUT'])
 
 %% LOAD SIMULATED HYSICS DATA
 
@@ -198,6 +211,7 @@ end
 
 %% Step through each measurement and perform the retrieval
 
+tic
 
 for nn = 1:size(filenames, 1)
 
@@ -225,13 +239,17 @@ for nn = 1:size(filenames, 1)
     rev = 1;
 
 
-    folder_paths.saveOutput_filename = [inputs.folderpath_2save,'dropletRetrieval_HySICS_',...
-        num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert',...
-        '_rTop_', num2str(changing_variables(1,1)),...
-        '_rBot_', num2str(changing_variables(1,2)), '_tauC_', num2str(changing_variables(1,3)),...
-        '_tcwv_', num2str(changing_variables(1,4)),'_vza_', num2str(round(inputs.RT.vza)),...
-        '_vaz_', num2str(round(inputs.RT.vaz)), '_sza_', num2str(round(inputs.RT.sza)),...
-        '_saz_', num2str(round(inputs.RT.phi0)),...
+    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_',...
+        num2str(numel(simulated_measurements.inputs.bands2run)), 'bands_',...
+        num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
+        '_rTop_', num2str(simulated_measurements.changing_variables(1,1)),...
+        '_rBot_', num2str(simulated_measurements.changing_variables(1,2)),...
+        '_tauC_', num2str(simulated_measurements.changing_variables(1,3)),...
+        '_tcwv_', num2str(simulated_measurements.changing_variables(1,4)),...
+        '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
+        '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
+        '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
+        '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
         '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
@@ -249,7 +267,6 @@ for nn = 1:size(filenames, 1)
 
     %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
-    tic
 
     tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
 
@@ -267,7 +284,6 @@ for nn = 1:size(filenames, 1)
     GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
     % what was the assumed above cloud column water vapor path?
-    GN_inputs.assumed_aboveCloud_totalColumn_precipitableWater = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2
 
     %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
@@ -326,10 +342,10 @@ for nn = 1:size(filenames, 1)
 
     if exist(folder_paths.saveOutput_filename, 'file')==true
         % append
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
 
     else
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths");
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
 
     end
 
@@ -346,3 +362,7 @@ for nn = 1:size(filenames, 1)
 
 
 end
+
+disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1), ' files was ', num2str(toc), ' seconds', newline)])
+
+

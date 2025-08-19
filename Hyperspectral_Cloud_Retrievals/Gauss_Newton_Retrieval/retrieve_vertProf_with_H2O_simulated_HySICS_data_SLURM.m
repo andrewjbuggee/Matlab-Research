@@ -282,6 +282,7 @@ end
 simulated_measurements = load([folder_paths.HySICS_simulated_spectra,filename]);
 
 
+
 % *** Check to see if these measure have added uncertainty or not ***
 
 if isfield(simulated_measurements, 'Refl_model_with_noise')==true
@@ -341,6 +342,9 @@ disp('Dont forget to check the inputs and change if needed!!')
 
 GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
+% what was the assumed above cloud column water vapor path?
+GN_inputs.assumed_aboveCloud_totalColumn_precipitableWater = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2
+
 %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
 GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
@@ -398,10 +402,10 @@ end
 
 if exist(folder_paths.saveOutput_filename, 'file')==true
     % append
-    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths", '-append');
+    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
 
 else
-    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "simulated_measurements", "folder_paths");
+    save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths");
 
 end
 
