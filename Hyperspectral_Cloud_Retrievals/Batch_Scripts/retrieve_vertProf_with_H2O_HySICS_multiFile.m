@@ -204,7 +204,7 @@ elseif strcmp(which_computer,'curc')==true
     % load all filenames in the folder defined above that start with a
     % specific block of text
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14*.mat']);
 
 
 end

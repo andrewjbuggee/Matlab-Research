@@ -58,9 +58,11 @@ if use_TBLUT_estimates==true
     % GN_inputs.model.apriori = [tblut.minRe, 0.7058*tblut.minRe, tblut.minTau];
 
     % *** Test Values for new HySICS retrieval ***
+    % Use for now the input used to create the measurements, but scaled to
+    % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 11.5];
+    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 0.75*GN_inputs.measurement.actpw];
 
 
     % The first two values are the standard deviation of the effective
@@ -89,13 +91,13 @@ if use_TBLUT_estimates==true
     % 10%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    effRad_uncert = 0.1;
+    effRad_uncert = 0.15;
 
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    optThick_uncert = 0.05;
+    optThick_uncert = 0.1;
 
     % let's define the uncertainty of the above cloud column water vapor
     colWaterVapor_uncert = 0.1;
