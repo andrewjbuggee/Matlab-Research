@@ -4,7 +4,7 @@
 
 #SBATCH --nodes=1
 #SBATCH --time=02:00:00
-#SBATCH --partition=amilan
+#SBATCH --partition=amem
 #SBATCH --qos=mem
 #SBATCH --mem=215G
 #SBATCH --ntasks=10
