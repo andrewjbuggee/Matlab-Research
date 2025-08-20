@@ -157,7 +157,7 @@ end
 
 
 %%   Delete old files?
-First, delete files in the HySICS folder
+%First, delete files in the HySICS folder
 delete([folder_paths.libRadtran_inp, '*.INP'])
 delete([folder_paths.libRadtran_inp, '*.OUT'])
 
