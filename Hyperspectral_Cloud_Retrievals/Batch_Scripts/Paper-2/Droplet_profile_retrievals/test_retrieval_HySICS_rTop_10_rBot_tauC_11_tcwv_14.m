@@ -157,16 +157,16 @@ end
 
 
 %%   Delete old files?
-% First, delete files in the HySICS folder
-% delete([folder_paths.libRadtran_inp, '*.INP'])
-% delete([folder_paths.libRadtran_inp, '*.OUT'])
-% 
-% % delete old wc files
-% delete([folder_paths.water_cloud_folder_path, '*.DAT'])
-% 
-% % delete old MIE files
-% delete([folder_paths.mie_folder, '*.INP'])
-% delete([folder_paths.mie_folder, '*.OUT'])
+First, delete files in the HySICS folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.water_cloud_folder_path, '*.DAT'])
+
+% delete old MIE files
+delete([folder_paths.mie_folder, '*.INP'])
+delete([folder_paths.mie_folder, '*.OUT'])
 
 %% LOAD SIMULATED HYSICS DATA
 
@@ -323,42 +323,42 @@ for nn = 1:size(filenames, 1)
 % 
 %     disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
 % 
-
-    %%
-    % ----------------------------------------------
-    % ------------ SAVE OUTPUT STRUCTURE -----------
-    % ----------------------------------------------
-
-    % Save the version without an measurement uncertainty. Then we can add
-    % uncertainty and save the new file
-
-
-    % If the folder path doesn't exit, create a new directory
-    if ~exist(folder_paths.HySICS_retrievals, 'dir')
-
-        mkdir(folder_paths.HySICS_retrievals)
-
-    end
-
-    if exist(folder_paths.saveOutput_filename, 'file')==true
-        % append
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
-
-    else
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
-
-    end
-
-
-
-
-    %% Clear variables and start again!
-
-    if nn~=size(filenames,1)
-
-        clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
-
-    end
+% 
+%     %%
+%     % ----------------------------------------------
+%     % ------------ SAVE OUTPUT STRUCTURE -----------
+%     % ----------------------------------------------
+% 
+%     % Save the version without an measurement uncertainty. Then we can add
+%     % uncertainty and save the new file
+% 
+% 
+%     % If the folder path doesn't exit, create a new directory
+%     if ~exist(folder_paths.HySICS_retrievals, 'dir')
+% 
+%         mkdir(folder_paths.HySICS_retrievals)
+% 
+%     end
+% 
+%     if exist(folder_paths.saveOutput_filename, 'file')==true
+%         % append
+%         save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
+% 
+%     else
+%         save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
+% 
+%     end
+% 
+% 
+% 
+% 
+%     %% Clear variables and start again!
+% 
+%     if nn~=size(filenames,1)
+% 
+%         clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+% 
+%     end
 
 
 end

@@ -3,13 +3,13 @@
 #
 
 #SBATCH --nodes=1
-#SBATCH --time=01:30:00
+#SBATCH --time=02:00:00
 #SBATCH --partition=amilan
-#SBATCH --qos=normal
-#SBATCH --mem=32G
-#SBATCH --ntasks=20
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7.out
+#SBATCH --qos=mem
+#SBATCH --mem=215G
+#SBATCH --ntasks=10
+#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_test_highMem
+#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_highMem.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
