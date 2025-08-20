@@ -8,8 +8,8 @@
 #SBATCH --qos=mem
 #SBATCH --mem=250G
 #SBATCH --ntasks=10
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_test_highMem
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_highMem.out
+#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test_highMem
+#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_highMem.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -37,6 +37,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14; exit"
 
 echo "Finished MATLAB job at $(date)"
