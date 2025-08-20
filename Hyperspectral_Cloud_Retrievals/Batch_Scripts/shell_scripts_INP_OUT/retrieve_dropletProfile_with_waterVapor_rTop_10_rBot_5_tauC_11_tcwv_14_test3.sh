@@ -1,15 +1,15 @@
 #!/bin/bash
 
-# This file ran in 266 seconds!
+# 
 
 #SBATCH --nodes=1
-#SBATCH --time=02:00:00
-#SBATCH --partition=amem
-#SBATCH --qos=mem
-#SBATCH --mem=250G
+#SBATCH --time=01:00:00
+#SBATCH --partition=amilan
+#SBATCH --qos=normal
+#SBATCH --mem=30G
 #SBATCH --ntasks=10
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test_highMem
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_highMem.out
+#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test3
+#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test3.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
