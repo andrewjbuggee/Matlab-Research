@@ -5,13 +5,13 @@
 # The amem partition ran the TBLUT retrieval in 320 seconds using 15 tasks and 250G of memory.
 
 #SBATCH --nodes=1
-#SBATCH --time=02:00:00
+#SBATCH --time=01:00:00
 #SBATCH --partition=amem
 #SBATCH --qos=mem
 #SBATCH --mem=250G
-#SBATCH --ntasks=10
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test_highMem
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_highMem.out
+#SBATCH --ntasks=22
+#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder1
+#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder1.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
