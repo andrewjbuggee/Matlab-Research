@@ -6,7 +6,7 @@
 #SBATCH --time=02:00:00
 #SBATCH --partition=amem
 #SBATCH --qos=mem
-#SBATCH --mem=215G
+#SBATCH --mem=250G
 #SBATCH --ntasks=10
 #SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_test_highMem
 #SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_tauC_11_tcwv_14_vza_7_highMem.out
