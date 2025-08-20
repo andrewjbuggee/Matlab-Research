@@ -110,10 +110,10 @@ elseif strcmp(which_computer,'curc')==true
     folder_paths.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
 
     % Define the folder path where all .INP files will be saved
-    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT/';
+    folder_paths.libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT_2/';
 
     % mie folder location
-    folder_paths.mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
+    folder_paths.mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations_2/';
 
 
     % *** Start parallel pool ***
@@ -145,10 +145,18 @@ elseif strcmp(which_computer,'curc')==true
 
 end
 
-% If the folder path doesn't exit, create a new directory
+% If the libRadtran INP folder path doesn't exit, create a new directory
 if ~exist(folder_paths.libRadtran_inp, 'dir')
 
     mkdir(folder_paths.libRadtran_inp)
+
+end
+
+
+% If the mie INP folder path doesn't exit, create a new directory
+if ~exist(folder_paths.mie_folder, 'dir')
+
+    mkdir(folder_paths.mie_folder)
 
 end
 
@@ -189,8 +197,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % load all filenames in the folder defined above.
-    filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
+    filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
 
 
 
@@ -364,6 +371,6 @@ for nn = 1:size(filenames, 1)
 
 end
 
-disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1), ' files was ', num2str(toc), ' seconds', newline)])
 
 

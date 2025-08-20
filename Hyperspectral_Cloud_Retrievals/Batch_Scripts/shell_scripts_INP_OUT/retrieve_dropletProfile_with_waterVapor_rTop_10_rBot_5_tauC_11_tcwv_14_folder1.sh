@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# The amilan partition ran the TBLUT retrieval in 421 seconds using 10 tasks and 30GB of memory.
-# The amilan partition ran the TBLUT retrieval in 452 seconds using 20 tasks and 30GB of memory.
+# The amem partition ran the TBLUT retrieval in 246 seconds using 25 tasks and 250G of memory.
+# The amem partition ran the TBLUT retrieval in 266 seconds using 20 tasks and 250G of memory.
+# The amem partition ran the TBLUT retrieval in 320 seconds using 15 tasks and 250G of memory.
 
 #SBATCH --nodes=1
-#SBATCH --time=01:00:00
-#SBATCH --partition=amilan
-#SBATCH --qos=normal
-#SBATCH --mem=30G
+#SBATCH --time=02:00:00
+#SBATCH --partition=amem
+#SBATCH --qos=mem
+#SBATCH --mem=250G
 #SBATCH --ntasks=10
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test3
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test3.out
+#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test_highMem
+#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_highMem.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
