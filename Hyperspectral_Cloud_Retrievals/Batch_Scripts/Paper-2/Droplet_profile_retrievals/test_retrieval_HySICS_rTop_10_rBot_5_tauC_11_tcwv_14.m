@@ -189,7 +189,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % load all filenames in the folder defined above.
-    filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
 
 
 
@@ -363,6 +364,6 @@ for nn = 1:size(filenames, 1)
 
 end
 
-disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1), ' files was ', num2str(toc), ' seconds', newline)])
+disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
 
 
