@@ -8,8 +8,8 @@
 #SBATCH --qos=normal
 #SBATCH --mem=26G
 #SBATCH --ntasks=10
-#SBATCH --job-name=retrieve_dropletProfile_with_waterVapor_rTop_10_rBot_5_tauC_11_tcwv_14
-#SBATCH --output=retrieve_dropletProfile_with_waterVapor_for_paper2_rTop_10_rBot_5_tauC_11_tcwv_14_test_2.out
+#SBATCH --job-name=retrieve_dropletProfile_with_waterVapor_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7
+#SBATCH --output=retrieve_dropletProfile_with_waterVapor_for_paper2_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_test.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -37,6 +37,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); retrieve_vertProf_with_H2O_HySICS_rTop_10_rBot_tauC_11_acpw_14; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); retrieve_vertProf_with_H2O_HySICS_rTop_10_rBot_tauC_11_tcwv_14; exit"
 
 echo "Finished MATLAB job at $(date)"
