@@ -204,7 +204,7 @@ elseif strcmp(which_computer,'curc')==true
     % load all filenames in the folder defined above that start with a
     % specific block of text
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
 
 
 end
@@ -275,54 +275,54 @@ for nn = 1:size(filenames, 1)
 
     %% CREATE GAUSS-NEWTON INPUTS
 
-    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
-
-
-    disp('Dont forget to check the inputs and change if needed!!')
-
-    GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
-
-    % what was the assumed above cloud column water vapor path?
-
-    %% We're retrieving above cloud column water vapor. Make sure input settings are correct
-
-    GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-    GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
-
-    %
-
-    %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
-
-    % I don't need anything but the covariance matrix and the expected values
-    %inputs = create_model_prior(inputs,data_inputs);
-
-    % -------------------------------------------------------
-    % do you want to use your estimates or the MODIS estimate?
-    % -------------------------------------------------------
-
-    use_TBLUT_estimates = true;
-
-    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
-
-
-    GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
-
-
-    %% CALCULATE RETRIEVAL PARAMETERS
-
-    tic
-
-    % --------------------------------------------------------------
-    % ---------------- Retrieve Vertical Profile! ------------------
-    % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
-    % --------------------------------------------------------------
-    % --------------------------------------------------------------
-
-    disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
-
+%     % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+%     GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+% 
+% 
+%     disp('Dont forget to check the inputs and change if needed!!')
+% 
+%     GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
+% 
+%     % what was the assumed above cloud column water vapor path?
+% 
+%     %% We're retrieving above cloud column water vapor. Make sure input settings are correct
+% 
+%     GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+%     GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
+% 
+%     %
+% 
+%     %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
+% 
+%     % I don't need anything but the covariance matrix and the expected values
+%     %inputs = create_model_prior(inputs,data_inputs);
+% 
+%     % -------------------------------------------------------
+%     % do you want to use your estimates or the MODIS estimate?
+%     % -------------------------------------------------------
+% 
+%     use_TBLUT_estimates = true;
+% 
+%     % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+%     GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+% 
+% 
+%     GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
+% 
+% 
+%     %% CALCULATE RETRIEVAL PARAMETERS
+% 
+%     tic
+% 
+%     % --------------------------------------------------------------
+%     % ---------------- Retrieve Vertical Profile! ------------------
+%     % --------------------------------------------------------------
+%     [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
+%     % --------------------------------------------------------------
+%     % --------------------------------------------------------------
+% 
+%     disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+% 
 
     %%
     % ----------------------------------------------
