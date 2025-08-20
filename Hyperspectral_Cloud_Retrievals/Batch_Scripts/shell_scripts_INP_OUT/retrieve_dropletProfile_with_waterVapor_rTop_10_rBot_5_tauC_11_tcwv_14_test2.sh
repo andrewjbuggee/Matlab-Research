@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# This file ran in 266 seconds!
+# The amem partition ran the TBLUT retrieval in 246 seconds using 25 tasks and 250G of memory.
+# The amem partition ran the TBLUT retrieval in 266 seconds using 20 tasks and 250G of memory.
+# The amem partition ran the TBLUT retrieval in 320 seconds using 15 tasks and 250G of memory.
 
 #SBATCH --nodes=1
 #SBATCH --time=02:00:00
