@@ -8,31 +8,17 @@
 % (2) aboveCloudTotal - This is the total column water vapor amount above
 % cloud in kg/m^2
 
+% (3) atm_folder_path - the location of libRadtrans atmosphere files and
+% where to save the water vapor file
+
 % By Andrew John Buggee
 
 %%
 
-function [filename_fullPath] = alter_aboveCloud_columnWaterVapor_profile(inputs, aboveCloudTotal)
+function [filename_fullPath] = alter_aboveCloud_columnWaterVapor_profile(inputs, aboveCloudTotal, atm_folder_path)
 
 
-% Find the folder where the atmosphere files are stored
 
-if strcmp(inputs.which_computer,'anbu8374')==true
-
-    atm_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
-
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
-
-    atm_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-                       'LibRadTran/libRadtran-2.0.4/data/atmmod/'];
-elseif strcmp(inputs.which_computer,'curc')==true
-
-    atm_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod/';
-
-end
-
-
-%%
 
 % create the modified atm file name
 fileName = [inputs.RT.atm_file(1:end-4), '_H2O_prof_', num2str(aboveCloudTotal), 'mm-aboveCloud.DAT'];

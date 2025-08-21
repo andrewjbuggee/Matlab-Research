@@ -112,6 +112,10 @@
 %   or 3 (re_top, re_middle, and re_bot)
 
 
+%   (14) wc_folder_path - Used to define where the water cloud wc files are
+%   store
+
+
 % OUTPUTS:
 %   (1) .Dat file saved in the libRadTran folder:
 %   /.../libRadtran-2.0.4/data/wc
@@ -125,7 +129,7 @@
 
 function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type,...
     distribution_var, vert_homogeneous_str, parameterization_str, ind_var, compute_weighting_functions,...
-    computer_name, index, num_re_parameters)
+    computer_name, index, num_re_parameters, wc_folder_path)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -135,12 +139,13 @@ function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_to
 % depth, and the altitude vector associated with this cloud
 
 
-if nargin~=13
-    error([newline,'Should be 13 inputs: droplet effective radius, optical depth, altitude,',...
+if nargin~=14
+    error([newline,'Should be 14 inputs: droplet effective radius, optical depth, altitude,',...
         [' wavelength, droplet distribution type, variance of the droplet distribution,',...
         ' homogeneity type, the parameterization used to compute LWC, the independent vertical variable',...
         ', a flag telling the code to compute weighting functions, the computer name,',...
-        'a unique file index, and a number associated with the re free parameters.'], newline])
+        'a unique file index, a number associated with the re free parameters,'...
+        ' and the location where wc files will be saved.'], newline])
 end
 
 % Check to make sure re is the same length as the altitude vector
@@ -248,25 +253,6 @@ else
 
 end
 
-
-
-
-
-% find the folder where the water cloud files are stored.
-if strcmp(computer_name,'anbu8374')==true
-
-    water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
-
-elseif strcmp(computer_name,'andrewbuggee')==true
-
-    water_cloud_folder_path = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/';
-
-elseif strcmp(computer_name,'curc')==true
-
-    water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
-
-
-end
 
 
 
@@ -1145,7 +1131,7 @@ for nn = 1:num_files_2write
             filename{LL} = [fileName{1}(1:end-7), 'layers1-', num2str(nLayers-LL),...
                 '.DAT'];
             % Create the water cloud file
-            fileID = fopen([water_cloud_folder_path,filename{LL}], 'w');
+            fileID = fopen([wc_folder_path,filename{LL}], 'w');
 
             % fprintf writes lines in our text file from top to botom
             % wc.DAT files are written with the higher altitudes at the top, and the
@@ -1178,7 +1164,7 @@ for nn = 1:num_files_2write
 
 
         % Create the water cloud file
-        fileID = fopen([water_cloud_folder_path,fileName{nn}], 'w');
+        fileID = fopen([wc_folder_path,fileName{nn}], 'w');
 
         % fprintf writes lines in our text file from top to botom
         % wc.DAT files are written with the higher altitudes at the top, and the

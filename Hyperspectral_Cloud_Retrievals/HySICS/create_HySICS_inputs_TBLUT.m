@@ -29,46 +29,6 @@ function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement)
 inputs.which_computer = whatComputer;
 
 
-% Find the folder where the mie calculations are stored
-% find the folder where the water cloud files are stored.
-if strcmp(inputs.which_computer,'anbu8374')==true
-
-    % ------ Folders on my Mac Desktop --------
-
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
-
-
-
-
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
-
-    % ------ Folders on my Macbook --------
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/data/'];
-
-
-
-
-
-
-elseif strcmp(inputs.which_computer,'curc')==true
-
-    % ------ Folders on the CU Supercomputer /projects folder --------
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
-
-
-end
-
-
 
 
 

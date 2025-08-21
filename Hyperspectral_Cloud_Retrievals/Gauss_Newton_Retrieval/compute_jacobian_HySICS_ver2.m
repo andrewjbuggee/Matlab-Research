@@ -30,6 +30,8 @@ wv_col_aboveCloud = state_vector(4);
 wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = GN_inputs.libRadtran_data_path;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+atm_folder_path = folder_paths.atm_folder_path;
 which_computer = GN_inputs.which_computer;
 
 
@@ -112,31 +114,31 @@ re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),.
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 1, 2);
+    GN_inputs.compute_weighting_functions, which_computer, 1, 2, wc_folder_path);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 2, 2);
+    GN_inputs.compute_weighting_functions, which_computer, 2, 2, wc_folder_path);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 3, 2);
+    GN_inputs.compute_weighting_functions, which_computer, 3, 2, wc_folder_path);
 
 wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 4, 2);
+    GN_inputs.compute_weighting_functions, which_computer, 4, 2, wc_folder_path);
 
 % -----------------------------------------------------------
 % create water vapor density profiles - there are only two!
 % -----------------------------------------------------------
 aboveCloud_waterVaporColumn_fileName_noChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud);
+    wv_col_aboveCloud, atm_folder_path);
 
 aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    state_vectors_with_change(end,end));
+    state_vectors_with_change(end,end), atm_folder_path);
 
 
 new_measurement_estimate = zeros(num_INP_files, 1);

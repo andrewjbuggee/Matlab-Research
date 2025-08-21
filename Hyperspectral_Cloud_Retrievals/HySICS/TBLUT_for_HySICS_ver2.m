@@ -96,6 +96,9 @@ if inputs_tblut.flags.writeINPfiles == true
     temp_names = cell(num_rEff*num_tauC, 1);
     wc_filename = cell(num_INP_files, 1);
 
+    % Define the water cloud folder path location
+    wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+
     % only jump on indexes where there is a unique r and tau pair
 
     parfor nn = 1:num_rEff*num_tauC
@@ -109,7 +112,8 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1);
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            wc_folder_path);
 
         temp_names{nn} = temp{1};
 
@@ -119,6 +123,12 @@ if inputs_tblut.flags.writeINPfiles == true
     wc_filename(1:num_wl:num_INP_files, 1) = temp_names;
     wc_filename(2:num_wl:num_INP_files, 1) = temp_names;
 
+
+    % define the INP folder location
+    inp_folder_path = folder_paths.libRadtran_inp;
+
+    % define the libRadtran data path
+    libRadtran_data_path = folder_paths.libRadtran_data;
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
@@ -145,7 +155,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folder_paths.libRadtran_inp, inputs_tblut.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
+        write_INP_file(inp_folder_path, libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
             wavelengths, wc_filename{nn});
 
 
@@ -210,13 +220,13 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
         % compute INP file
-        runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+        runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
             inputs_tblut.which_computer);
 
 
         % read .OUT file
         % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+        [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_tblut,...
             inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
