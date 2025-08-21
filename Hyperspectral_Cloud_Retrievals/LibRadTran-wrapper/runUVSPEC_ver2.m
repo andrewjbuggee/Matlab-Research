@@ -12,7 +12,7 @@
 % --- By Andrew J. Buggee ---
 %% Creating the .INP file
 
-function runUVSPEC_ver2(folderName_INP_OUT,inputName,outputName, computer_name)
+function runUVSPEC_ver2(folderName_INP_OUT, inputName, outputName, computer_name)
 %% ---- A Few Checks are Needed ----
 
 if iscell(inputName)==true && iscell(outputName)==false

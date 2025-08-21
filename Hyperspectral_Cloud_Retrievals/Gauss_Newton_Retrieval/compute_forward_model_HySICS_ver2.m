@@ -26,7 +26,8 @@ wv_col_aboveCloud = current_guess(4);
 % We want to avoid large broadcast variables!
 wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
-libRadtran_data_path = GN_inputs.libRadtran_data_path;
+libRadtran_data_path = folder_paths.libRadtran_data;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
 which_computer = GN_inputs.which_computer;
 
 
@@ -79,7 +80,8 @@ loop_var = 0;
 
 wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.lambda_forTau,...
     GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var, GN_inputs.RT.vert_homogeneous_str,...
-    GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer, loop_var, 2);
+    GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer, loop_var, 2,...
+    wc_folder_path);
 wc_filename = wc_filename{1};
 
 % ------------------------------------------------------
