@@ -28,6 +28,7 @@ wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+atm_folder_path = folder_paths.atm_folder_path;
 which_computer = GN_inputs.which_computer;
 
 
@@ -89,7 +90,7 @@ wc_filename = wc_filename{1};
 
 
 % *** Set the above cloud column water vapor amount ***
-aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud);
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud, atm_folder_path);
 
 
 
