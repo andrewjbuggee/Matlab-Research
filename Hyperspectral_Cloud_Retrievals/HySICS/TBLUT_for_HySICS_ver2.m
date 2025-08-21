@@ -102,7 +102,7 @@ if inputs_tblut.flags.writeINPfiles == true
     % only jump on indexes where there is a unique r and tau pair
 
     parfor nn = 1:num_rEff*num_tauC
-        % for nn = 1:num_rEff*num_tauC
+    % for nn = 1:num_rEff*num_tauC
 
         % -----------------------------------
         % ---- Write a Water Cloud file! ----
@@ -130,6 +130,8 @@ if inputs_tblut.flags.writeINPfiles == true
     % define the libRadtran data path
     libRadtran_data_path = folder_paths.libRadtran_data;
 
+   
+
     % Now write all the INP files
     parfor nn = 1:num_INP_files
         % for nn = 1:num_INP_files
@@ -155,8 +157,8 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(inp_folder_path, libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
-            wavelengths, wc_filename{nn});
+        write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn},...
+            inputs_tblut, wavelengths, wc_filename{nn});
 
 
     end

@@ -5,7 +5,7 @@
 # The amem partition ran the TBLUT retrieval in 320 seconds using 15 tasks and 250G of memory.
 
 #SBATCH --nodes=1
-#SBATCH --time=01:00:00
+#SBATCH --time=01:30:00
 #SBATCH --partition=amem
 #SBATCH --qos=mem
 #SBATCH --mem=250G
