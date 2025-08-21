@@ -3,7 +3,7 @@
 % By Andrew John Buggee
 %%
 
-function [] = write_INP_file(INP_folderpath, libRadtran_data_path, inputFileName, inputs,...
+function [] = write_INP_file(INP_folderpath, libRadtran_data_path, wc_folder_path, inputFileName, inputs,...
                         wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename,...
                         total_column_precipitable_water)
 
@@ -140,8 +140,7 @@ if inputs.RT.yesCloud==true
     % Define the water cloud file
     % ------------------------------------------------
     formatSpec = '%s %s %5s %s \n';
-    fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename], ' ', '# Location of water cloud file');
-    %fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_data_path,'wc/', wc_filename{rr,tc}{1}], ' ', '# Location of water cloud file');
+    fprintf(fileID, formatSpec,'wc_file 1D', [wc_folder_path, wc_filename], ' ', '# Location of water cloud file');
 
 
 
