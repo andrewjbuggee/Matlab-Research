@@ -18,13 +18,15 @@
 %   (a) 'exact' - the settings are exactly the same
 %   (b) 'subset'
 
+% (5) print_libRadtran_err - true or false that tells the function to
+% write and save the libRadtran error message file
 
 % By Andrew John Buggee
 
 %%
 
 function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas, ...
-    sim_meas_likeness)
+    sim_meas_likeness, print_libRadtran_err)
 
 
 % ------------------------------------------------------------
@@ -171,7 +173,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
         % ----------------- Simulating HySICS spectral channels ------------------
         % number of channels = 636 ranging from center wavelengths: [351, 2297]
-%         inputs.bands2run = (1:1:636)';
+        %         inputs.bands2run = (1:1:636)';
 
         % First 7 MODIS spectral channels
         % inputs.bands2run = [39, 67, 98, 169, 291, 421, 581];
@@ -205,20 +207,20 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
         % inputs.bands2run = [49, 426, 613]';
-%         inputs.bands2run = [49, 57, 288, 408, 613]';
+        %         inputs.bands2run = [49, 57, 288, 408, 613]';
 
         % test bands
         % 500 nm
         % inputs.bands2run = 49;
 
         % 1598 nm
-%         inputs.bands2run = 408;
+        %         inputs.bands2run = 408;
 
         % 1652 nm
         % inputs.bands2run = 426;
 
         % 2122 nm
-%         inputs.bands2run = 580;
+        %         inputs.bands2run = 580;
 
         % 2236 nm
         % inputs.bands2run = 613;
@@ -541,13 +543,13 @@ if strcmp(sim_meas_likeness, 'exact')==true
             inputs.RT.r_bot = 5.3192;     % microns
             inputs.RT.tau_c = 6.1312;
 
-   
+
 
 
         else
 
             error([newline, 'I need to know the number of free parameters defining the droplet profile', newline])
-            
+
 
         end
 
@@ -967,7 +969,16 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
     % --------------------------------------------------------------
     % Do you want to print an error message?
-    inputs.RT.errMsg = 'verbose';
+
+    if print_libRadtran_err==true
+
+        inputs.RT.errMsg = 'verbose';
+
+    else
+
+        inputs.RT.errMsg = 'quiet';
+
+    end
     % --------------------------------------------------------------
 
 
@@ -1813,8 +1824,16 @@ elseif strcmp(sim_meas_likeness, 'subset')==true
 
     % --------------------------------------------------------------
     % Do you want to print an error message?
-    inputs.RT.errMsg = 'verbose';
-    % inputs.RT.errMsg = 'quiet';
+
+    if print_libRadtran_err==true
+
+        inputs.RT.errMsg = 'verbose';
+
+    else
+
+        inputs.RT.errMsg = 'quiet';
+
+    end
     % --------------------------------------------------------------
 
 

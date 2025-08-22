@@ -11,6 +11,9 @@
 %   geometry of the sun and sensor. So this is the only information that
 %   should be passed along. 
 
+% (3) print_libRadtran_err - true or false that tells the function to
+% write and save the libRadtran error message file
+
 
 
 % OUTPUTS:
@@ -20,7 +23,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement)
+function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement, print_libRadtran_err)
 
 
 %% Find computer and folders
@@ -377,7 +380,17 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.errMsg = 'verbose';
+
+if print_libRadtran_err==true
+
+    inputs.RT.errMsg = 'verbose';
+
+else
+
+   inputs.RT.errMsg = 'quiet';
+
+end
+
 % --------------------------------------------------------------
 
 % --------------------------------------------------------------

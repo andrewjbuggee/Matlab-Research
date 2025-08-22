@@ -9,6 +9,12 @@
 % read and store files, including the path to the simulated data set, the
 % location to save the retirevals, and the location to save the INP files
 
+% (3) print_status_updates - true or false that tells the function to
+% display updates on the progress of the calculation
+
+% (4) print_libRadtran_err - true or false that tells the function to
+% write and save the libRadtran error message file
+
 
 
 
@@ -16,15 +22,15 @@
 
 %%
 
-function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths)
+function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err)
 
-disp([newline, 'Computing the TBLUT retrieval...', newline])
+
 
 
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements.inputs);
+inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements.inputs, print_libRadtran_err);
 
 
 
@@ -99,10 +105,13 @@ if inputs_tblut.flags.writeINPfiles == true
     % Define the water cloud folder path location
     wc_folder_path = folder_paths.libRadtran_water_cloud_files;
 
+    % Define the mie folder path
+    mie_folder_path = folder_paths.libRadtran_mie_folder;
+
     % only jump on indexes where there is a unique r and tau pair
 
     parfor nn = 1:num_rEff*num_tauC
-    % for nn = 1:num_rEff*num_tauC
+        % for nn = 1:num_rEff*num_tauC
 
         % -----------------------------------
         % ---- Write a Water Cloud file! ----
@@ -113,7 +122,7 @@ if inputs_tblut.flags.writeINPfiles == true
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
             inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
-            wc_folder_path);
+            wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
 
@@ -130,7 +139,7 @@ if inputs_tblut.flags.writeINPfiles == true
     % define the libRadtran data path
     libRadtran_data_path = folder_paths.libRadtran_data;
 
-   
+
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
@@ -208,40 +217,88 @@ if inputs_tblut.flags.runUVSPEC == true
     Refl_model_tblut = zeros(num_INP_files, 1);
 
 
-    parfor nn = 1:num_INP_files
-        % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+    if print_status_updates==true
+
+        parfor nn = 1:num_INP_files
+            % for ww = 1:size(inputs.RT.wavelengths2run, 1)
 
 
-        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
 
-        % ----------------------------------------------------
-        % --------------- RUN RADIATIVE TRANSFER -------------
-        % ----------------------------------------------------
+            % ----------------------------------------------------
+            % --------------- RUN RADIATIVE TRANSFER -------------
+            % ----------------------------------------------------
 
 
 
-        % compute INP file
-        runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
-            inputs_tblut.which_computer);
+            % compute INP file
+            runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
+                inputs_tblut.which_computer);
 
 
-        % read .OUT file
-        % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_tblut,...
-            inputs_tblut.RT.compute_reflectivity_uvSpec);
+            % read .OUT file
+            % radiance is in units of mW/nm/m^2/sr
+            [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_tblut,...
+                inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-            source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
 
-        [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-            source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+            [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
+                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
 
+
+
+        end
+
+
+    else
+
+
+        parfor nn = 1:num_INP_files
+            % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+
+
+            % ----------------------------------------------------
+            % --------------- RUN RADIATIVE TRANSFER -------------
+            % ----------------------------------------------------
+
+
+
+            % compute INP file
+            runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
+                inputs_tblut.which_computer);
+
+
+            % read .OUT file
+            % radiance is in units of mW/nm/m^2/sr
+            [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_tblut,...
+                inputs_tblut.RT.compute_reflectivity_uvSpec);
+
+
+            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+
+            [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
+                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+
+
+
+        end
 
 
     end
+
+
+
+
+
+
+
 
 
 

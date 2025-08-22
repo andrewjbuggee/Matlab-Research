@@ -115,6 +115,9 @@
 %   (14) wc_folder_path - Used to define where the water cloud wc files are
 %   store
 
+%   (15) mie_folder_path - Used to define where the mie calculations are
+%   stored
+
 
 % OUTPUTS:
 %   (1) .Dat file saved in the libRadTran folder:
@@ -129,7 +132,7 @@
 
 function [fileName, lwc, ext_bulk_coeff_per_LWC] = write_wc_file(re, tau_c, z_topBottom, lambda, distribution_type,...
     distribution_var, vert_homogeneous_str, parameterization_str, ind_var, compute_weighting_functions,...
-    computer_name, index, num_re_parameters, wc_folder_path)
+    computer_name, index, num_re_parameters, wc_folder_path, mie_folder_path)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -475,14 +478,14 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
 
 
                 % Create a mie file
-                [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re(rr), 4));
+                [input_filename, output_filename] = write_mie_file(mie_program, index_of_refraction,...
+                    mie_radius, lambda, size_distribution, err_msg_str, index, round(re(rr), 4), mie_folder_path);
 
                 % run the mie file
-                [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
+                [~] = runMIE(mie_folder_path,input_filename,output_filename, computer_name);
 
                 % Read the output of the mie file
-                [ds,~,~] = readMIE(mie_folder,output_filename);
+                [ds,~,~] = readMIE(mie_folder_path,output_filename);
 
                 ext_bulk_coeff_per_LWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
 
@@ -594,14 +597,14 @@ elseif isscalar(re) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==tru
 
 
             % Create a mie file
-            [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re, 4));
+            [input_filename, output_filename] = write_mie_file(mie_program, index_of_refraction,...
+                mie_radius, lambda, size_distribution, err_msg_str, index, round(re, 4), mie_folder_path);
 
             % run the mie file
-            [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
+            [~] = runMIE(mie_folder_path,input_filename,output_filename, computer_name);
 
             % Read the output of the mie file
-            [ds,~,~] = readMIE(mie_folder,output_filename);
+            [ds,~,~] = readMIE(mie_folder_path,output_filename);
 
             ext_bulk_coeff_per_LWC = ds.Qext;       % km^-1 / (cm^3 / m^3)
 
@@ -717,14 +720,14 @@ elseif (size(re,1)==1 || size(re,2)==1) && strcmp(vert_homogeneous_str, 'vert-ho
 
 
                 % Create a mie file
-                [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-                    mie_radius, lambda, size_distribution, err_msg_str, computer_name, index, round(re(rr), 4));
+                [input_filename, output_filename] = write_mie_file(mie_program, index_of_refraction,...
+                    mie_radius, lambda, size_distribution, err_msg_str, index, round(re(rr), 4), mie_folder_path);
 
                 % run the mie file
-                [~] = runMIE(mie_folder,input_filename,output_filename, computer_name);
+                [~] = runMIE(mie_folder_path,input_filename,output_filename, computer_name);
 
                 % Read the output of the mie file
-                [ds,~,~] = readMIE(mie_folder,output_filename);
+                [ds,~,~] = readMIE(mie_folder_path,output_filename);
 
                 ext_bulk_coeff_per_LWC(rr) = ds.Qext;       % km^-1 / (cm^3 / m^3)
 

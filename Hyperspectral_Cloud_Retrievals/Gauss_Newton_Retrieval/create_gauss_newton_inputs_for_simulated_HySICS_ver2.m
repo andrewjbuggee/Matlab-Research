@@ -3,51 +3,12 @@
 % ** Retrieving 4 variables: r_top, r_bot, tau_c, cwv
 
 
-function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements)
+function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements, print_libRadtran_err)
 
 
 % Which computer are you using?
 GN_inputs.which_computer = whatComputer;
 
-
-% Find the folder where the mie calculations are stored
-% find the folder where the water cloud files are stored.
-if strcmp(GN_inputs.which_computer,'anbu8374')==true
-
-    % ------ Folders on my Mac Desktop --------
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    GN_inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
-
-   
-
-
-elseif strcmp(GN_inputs.which_computer,'andrewbuggee')==true
-
-    % ------ Folders on my Macbook --------
-
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    GN_inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/data/'];
-
-   
-
-
-elseif strcmp(GN_inputs.which_computer,'curc')==true
-
-    % ------ Folders on the CU Supercomputer /projects folder --------
-
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    GN_inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
-
-
-
-end
 
 
 
@@ -173,7 +134,7 @@ load_parameters_from_measurement = true;
 simulated_measurements_likeness = 'exact';
 
 [GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements, simulated_measurements_likeness);
+    simulated_measurements, simulated_measurements_likeness, print_libRadtran_err);
 
 % Are you simulating a measurement, or making forward model calculations
 % for the retrieval?

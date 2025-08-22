@@ -11,7 +11,7 @@ function jacobian = compute_jacobian_HySICS_ver2(state_vector, measurement_estim
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
-disp([newline, 'Computing the Jacobian...', newline])
+
 
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;

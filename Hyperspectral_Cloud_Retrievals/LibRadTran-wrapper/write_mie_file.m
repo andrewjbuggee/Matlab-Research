@@ -51,25 +51,29 @@
 %       (b) 'verbose' - this prints a very long and detailed message about
 %       the calculation.
 
-%   (7) computer_name - a string with the name of the computer this code on
-%   which this code is running
 
-%   (8) index - a value to append at the end of the file name so that no
+%   (7) index - a value to append at the end of the file name so that no
 %   two filenames are the same while parallel computing is going on
+
+%   (8) indexRadius - a value to append at the end of the file name so that no
+%   two filenames are the same while parallel computing is going on
+
+%   (9) mie_folder_path - Used to define where the mie calculations are
+%   stored
 
 
 % By Andrew John Buggee
 
 %%
 
-function [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_refraction,...
-            re, wavelength, distribution, err_msg_str, computer_name, index1, indexRadius)
+function [input_filename, output_filename] = write_mie_file(mie_program, index_refraction,...
+            re, wavelength, distribution, err_msg_str, index1, indexRadius, mie_folder_path)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
 % ------------------------------------------------------------
 
-% Check to make sure there are 8 inputs
+% Check to make sure there are 9 inputs
 
 
 if nargin~=9
@@ -96,30 +100,6 @@ end
 
 
 
-% Find the folder where the mie calculations are stored
-% find the folder where the water cloud files are stored.
-if strcmp(computer_name,'anbu8374')==true
-
-    mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
-
-elseif strcmp(computer_name,'andrewbuggee')==true
-
-    mie_folder = '/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
-
-elseif strcmp(computer_name,'curc')==true
-
-    
-    mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
-
-    
-    if ~exist(mie_folder, 'dir')
-
-        mkdir(mie_folder)
-    end
-
-
-
-end
 
 %% Determine how many files need to be written
 
@@ -171,7 +151,7 @@ for ff = 1:numFiles
             output_filename = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
-            fileID = fopen([mie_folder,input_filename], 'w');
+            fileID = fopen([mie_folder_path,input_filename], 'w');
 
         elseif isnumeric(index_refraction)==1
             
@@ -180,7 +160,7 @@ for ff = 1:numFiles
             output_filename = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
-            fileID = fopen([mie_folder,input_filename], 'w');
+            fileID = fopen([mie_folder_path,input_filename], 'w');
 
         end
 
@@ -193,7 +173,7 @@ for ff = 1:numFiles
             output_filename{ff} = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
-            fileID = fopen([mie_folder,input_filename{ff}], 'w');
+            fileID = fopen([mie_folder_path,input_filename{ff}], 'w');
 
         elseif isnumeric(index_refraction)==1
             input_filename{ff} = ['Mie_calc_refrac_',num2str(index_refraction(ff,:)),'_distribution_',...
@@ -201,7 +181,7 @@ for ff = 1:numFiles
             output_filename{ff} = ['OUTPUT_',input_filename(1:end-4)];
 
             % Create the water cloud file
-            fileID = fopen([mie_folder,input_filename{ff}], 'w');
+            fileID = fopen([mie_folder_path,input_filename{ff}], 'w');
 
         end
 
