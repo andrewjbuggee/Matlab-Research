@@ -17,6 +17,17 @@ addLibRadTran_paths;
 scriptPlotting_wht;
 
 
+%% print status updates?
+
+% Would you like each function to print messages to the command terminal on
+% the status of the computation?
+print_status_updates = true;
+
+% Would you like to print long libRadtran error messages?
+print_libRadtran_err = true;
+
+
+
 %% Define the HySICS folders for data and storage
 
 

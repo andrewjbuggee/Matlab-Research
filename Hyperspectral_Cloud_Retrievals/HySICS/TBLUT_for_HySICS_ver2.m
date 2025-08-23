@@ -41,7 +41,7 @@ inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements.i
 [~, idx_2] = min(abs(simulated_measurements.inputs.bands2run - inputs_tblut.bands2run(2)));
 
 % error if the values found are at least 15nm from the intended wavlengths
-if abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_1,:)) - 621)>15
+if abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_1,:)) - 502)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 650 nm', newline])
 
