@@ -5,13 +5,13 @@
 
 #SBATCH --nodes=1
 #SBATCH --time=01:30:00
-#SBATCH --partition=amilan
-#SBATCH --qos=normal
-#SBATCH --mem=100G
-#SBATCH --ntasks=20
+#SBATCH --partition=amem
+#SBATCH --qos=mem
+#SBATCH --mem=250G
+#SBATCH --ntasks=30
 #SBATCH --cpus-per-task=1
-#SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_folder_3
-#SBATCH --output=test_retrieval_amilan_20Tasks_FULL_folder_3.out
+#SBATCH --job-name=test_retrieval_amem_30Tasks_FULL_folder_10
+#SBATCH --output=test_retrieval_amem_30Tasks_FULL_folder_10.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -39,6 +39,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; [folder_paths, which_computer] = define_folderPaths_for_HySICS(3); print_status_updates = true;print_libRadtran_err = true; test_retrieval_HySICS_no_msgs_orDefinedFolder; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; [folder_paths, which_computer] = define_folderPaths_for_HySICS(10); test_retrieval_HySICS; exit"
 
 echo "Finished MATLAB job at $(date)"

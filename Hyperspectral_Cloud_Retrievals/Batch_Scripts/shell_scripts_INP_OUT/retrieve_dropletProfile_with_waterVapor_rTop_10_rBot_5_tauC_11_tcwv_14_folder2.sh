@@ -10,6 +10,7 @@
 #SBATCH --qos=mem
 #SBATCH --mem=250G
 #SBATCH --ntasks=25
+#SBATCH --cpus-per-task=1
 #SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL
 #SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL.out
 #SBATCH --mail-user=anbu8374@colorado.edu
