@@ -16,7 +16,6 @@ clear variables
 addLibRadTran_paths;
 scriptPlotting_wht;
 
-
 %% print status updates?
 
 % Would you like each function to print messages to the command terminal on
@@ -27,11 +26,10 @@ print_status_updates = true;
 print_libRadtran_err = true;
 
 
-
 %% Define the HySICS folders for data and storage
 
 
-[folder_paths, which_computer] = define_folderPaths_for_HySICS(2);
+[folder_paths, which_computer] = define_folderPaths_for_HySICS(0);
 
 
 
@@ -116,7 +114,9 @@ for nn = 1:size(filenames, 1)
 
     if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
-        disp([newline, 'Using measurements with added uncertianty...', newline])
+        if print_status_updates==true
+            disp([newline, 'Using measurements with added uncertianty...', newline])
+        end
 
         % Then we're using measurements with noise and we set this to be the
         % Reflectance measurements
@@ -157,19 +157,27 @@ for nn = 1:size(filenames, 1)
 
     %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
+    if print_status_updates==true
+        disp([newline, 'Computing the TBLUT retrieval...', newline])
+    end
 
-    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
 
-    disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
 
 
-    % %% CREATE GAUSS-NEWTON INPUTS
-    % 
+    if print_status_updates==true
+        disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    end
+
+
+    %% CREATE GAUSS-NEWTON INPUTS
+    
     % % Create inputs to retrieve r_top, r_bot, tau_c, cwv
     % GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
     % 
-    % 
-    % disp('Dont forget to check the inputs and change if needed!!')
+    % if print_status_updates==true
+    %     disp('Dont forget to check the inputs and change if needed!!')
+    % end
     % 
     % GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
     % 
@@ -180,7 +188,7 @@ for nn = 1:size(filenames, 1)
     % GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
     % GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
     % 
-    % %
+    % 
     % 
     % %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
     % 
@@ -207,11 +215,13 @@ for nn = 1:size(filenames, 1)
     % % --------------------------------------------------------------
     % % ---------------- Retrieve Vertical Profile! ------------------
     % % --------------------------------------------------------------
-    % [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
+    % [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths, print_status_updates);
     % % --------------------------------------------------------------
     % % --------------------------------------------------------------
     % 
+    % if print_status_updates==true
     % disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+    % end
 
 
     %%
@@ -263,6 +273,9 @@ for nn = 1:size(filenames, 1)
 
 end
 
-disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+
+if print_status_updates==true
+    disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+end
 
 

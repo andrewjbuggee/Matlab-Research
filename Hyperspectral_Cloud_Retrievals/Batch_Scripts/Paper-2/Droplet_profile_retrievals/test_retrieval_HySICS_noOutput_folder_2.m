@@ -16,16 +16,14 @@ clear variables
 addLibRadTran_paths;
 scriptPlotting_wht;
 
-
 %% print status updates?
 
 % Would you like each function to print messages to the command terminal on
 % the status of the computation?
-print_status_updates = true;
+print_status_updates = false;
 
 % Would you like to print long libRadtran error messages?
-print_libRadtran_err = true;
-
+print_libRadtran_err = false;
 
 
 %% Define the HySICS folders for data and storage
@@ -116,7 +114,9 @@ for nn = 1:size(filenames, 1)
 
     if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
-        disp([newline, 'Using measurements with added uncertianty...', newline])
+        if print_status_updates==true
+            disp([newline, 'Using measurements with added uncertianty...', newline])
+        end
 
         % Then we're using measurements with noise and we set this to be the
         % Reflectance measurements
@@ -157,61 +157,71 @@ for nn = 1:size(filenames, 1)
 
     %% Compute the Two-Band Look-up Table retrieval of effective radius and optical depth
 
+    if print_status_updates==true
+        disp([newline, 'Computing the TBLUT retrieval...', newline])
+    end
 
-    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths);
 
-    disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
 
 
-    % %% CREATE GAUSS-NEWTON INPUTS
-    % 
-    % % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    % GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
-    % 
-    % 
-    % disp('Dont forget to check the inputs and change if needed!!')
-    % 
-    % GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
-    % 
-    % % what was the assumed above cloud column water vapor path?
-    % 
-    % %% We're retrieving above cloud column water vapor. Make sure input settings are correct
-    % 
-    % GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-    % GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
-    % 
-    % %
-    % 
-    % %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
-    % 
-    % % I don't need anything but the covariance matrix and the expected values
-    % %inputs = create_model_prior(inputs,data_inputs);
-    % 
-    % % -------------------------------------------------------
-    % % do you want to use your estimates or the MODIS estimate?
-    % % -------------------------------------------------------
-    % 
-    % use_TBLUT_estimates = true;
-    % 
-    % % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    % GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
-    % 
-    % 
-    % GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
-    % 
-    % 
-    % %% CALCULATE RETRIEVAL PARAMETERS
-    % 
-    % tic
-    % 
-    % % --------------------------------------------------------------
-    % % ---------------- Retrieve Vertical Profile! ------------------
-    % % --------------------------------------------------------------
-    % [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths);
-    % % --------------------------------------------------------------
-    % % --------------------------------------------------------------
-    % 
-    % disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+    if print_status_updates==true
+        disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    end
+
+
+    %% CREATE GAUSS-NEWTON INPUTS
+
+    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+
+    if print_status_updates==true
+        disp('Dont forget to check the inputs and change if needed!!')
+    end
+
+    GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
+
+    % what was the assumed above cloud column water vapor path?
+
+    %% We're retrieving above cloud column water vapor. Make sure input settings are correct
+
+    GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+    GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
+
+
+
+    %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
+
+    % I don't need anything but the covariance matrix and the expected values
+    %inputs = create_model_prior(inputs,data_inputs);
+
+    % -------------------------------------------------------
+    % do you want to use your estimates or the MODIS estimate?
+    % -------------------------------------------------------
+
+    use_TBLUT_estimates = true;
+
+    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+
+
+    GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
+
+
+    %% CALCULATE RETRIEVAL PARAMETERS
+
+    tic
+
+    % --------------------------------------------------------------
+    % ---------------- Retrieve Vertical Profile! ------------------
+    % --------------------------------------------------------------
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths, print_status_updates);
+    % --------------------------------------------------------------
+    % --------------------------------------------------------------
+
+    if print_status_updates==true
+        disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+    end
 
 
     %%
@@ -230,39 +240,42 @@ for nn = 1:size(filenames, 1)
 
     end
 
-    % if exist(folder_paths.saveOutput_filename, 'file')==true
-    %     % append
-    %     save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
-    % 
-    % else
-    %     save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
-    % 
-    % end
-
-
     if exist(folder_paths.saveOutput_filename, 'file')==true
         % append
-        save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval", '-append');
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
 
     else
-        save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval");
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
 
     end
+
+
+    % if exist(folder_paths.saveOutput_filename, 'file')==true
+    %     % append
+    %     save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval", '-append');
+    %
+    % else
+    %     save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval");
+    %
+    % end
 
 
 
 
     %% Clear variables and start again!
 
-    % if nn~=size(filenames,1)
-    % 
-    %     clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
-    % 
-    % end
+    if nn~=size(filenames,1)
+
+        clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+
+    end
 
 
 end
 
-disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+
+if print_status_updates==true
+    disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+end
 
 
