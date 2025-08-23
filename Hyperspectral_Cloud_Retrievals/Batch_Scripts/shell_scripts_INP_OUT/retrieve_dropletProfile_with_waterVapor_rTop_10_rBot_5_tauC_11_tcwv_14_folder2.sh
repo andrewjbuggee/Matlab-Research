@@ -9,7 +9,7 @@
 #SBATCH --partition=amem
 #SBATCH --qos=mem
 #SBATCH --mem=250G
-#SBATCH --ntasks=20
+#SBATCH --ntasks=25
 #SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL
 #SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL.out
 #SBATCH --mail-user=anbu8374@colorado.edu
@@ -39,6 +39,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test2_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_noOutput_folder_2; exit"
 
 echo "Finished MATLAB job at $(date)"
