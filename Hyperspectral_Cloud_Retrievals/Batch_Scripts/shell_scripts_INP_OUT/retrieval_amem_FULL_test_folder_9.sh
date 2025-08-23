@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# The amem partition ran the TBLUT retrieval in 246 seconds using 25 tasks and 250G of memory.
-# The amem partition ran the TBLUT retrieval in 266 seconds using 20 tasks and 250G of memory.
-# The amem partition ran the TBLUT retrieval in 320 seconds using 15 tasks and 250G of memory.
+# The amilan partition ran the TBLUT retrieval in XX seconds using 25 tasks and 250G of memory.
+
 
 #SBATCH --nodes=1
 #SBATCH --time=01:30:00
@@ -11,8 +10,8 @@
 #SBATCH --mem=250G
 #SBATCH --ntasks=25
 #SBATCH --cpus-per-task=1
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder2_FULL.out
+#SBATCH --job-name=test_retrieval_amem_25Tasks_FULL_folder_9
+#SBATCH --output=test_retrieval_amem_25Tasks_FULL_folder_9.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -40,6 +39,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_noOutput_folder_2; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; [folder_paths, which_computer] = define_folderPaths_for_HySICS(9); test_retrieval_HySICS; exit"
 
 echo "Finished MATLAB job at $(date)"
