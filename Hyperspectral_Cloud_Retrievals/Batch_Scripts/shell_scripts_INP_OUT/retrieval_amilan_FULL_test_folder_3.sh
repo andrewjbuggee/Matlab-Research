@@ -4,13 +4,14 @@
 
 
 #SBATCH --nodes=1
-#SBATCH --time=01:00:00
+#SBATCH --time=01:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=100G
 #SBATCH --ntasks=20
-#SBATCH --job-name=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder1_TBLUT
-#SBATCH --output=test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7_folder1_TBLUT.out
+#SBATCH --cpus-per-task=1
+#SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_folder_3
+#SBATCH --output=test_retrieval_amilan_20Tasks_FULL_folder_3.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -38,6 +39,6 @@ module load matlab
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_rTop_10_rBot_5_tauC_11_tcwv_14; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); test_retrieval_HySICS_noOutput_folder_3; exit"
 
 echo "Finished MATLAB job at $(date)"
