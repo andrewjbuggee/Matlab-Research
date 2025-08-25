@@ -7,8 +7,8 @@
 #SBATCH --time=01:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=100G
-#SBATCH --ntasks=20
+#SBATCH --mem=50G
+#SBATCH --ntasks=10
 #SBATCH --cpus-per-task=1
 #SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_folder_3
 #SBATCH --output=test_retrieval_amilan_20Tasks_FULL_folder_3.out
