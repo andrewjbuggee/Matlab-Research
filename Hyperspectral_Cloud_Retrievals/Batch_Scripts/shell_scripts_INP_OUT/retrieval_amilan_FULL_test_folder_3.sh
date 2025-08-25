@@ -7,11 +7,11 @@
 #SBATCH --time=01:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=50G
+#SBATCH --mem=35G
 #SBATCH --ntasks=10
 #SBATCH --cpus-per-task=1
-#SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_folder_3
-#SBATCH --output=test_retrieval_amilan_20Tasks_FULL_folder_3.out
+#SBATCH --job-name=test_retrieval_amilan_10Tasks_FULL_folder_3
+#SBATCH --output=test_retrieval_amilan_10Tasks_FULL_folder_3.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
