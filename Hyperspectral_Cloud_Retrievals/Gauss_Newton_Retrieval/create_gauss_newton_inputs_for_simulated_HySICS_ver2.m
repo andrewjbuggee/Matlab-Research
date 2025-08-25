@@ -133,7 +133,7 @@ load_parameters_from_measurement = true;
 
 simulated_measurements_likeness = 'exact';
 
-[GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
+[GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement,...
     simulated_measurements, simulated_measurements_likeness, print_libRadtran_err);
 
 % Are you simulating a measurement, or making forward model calculations

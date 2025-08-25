@@ -29,9 +29,11 @@ wv_col_aboveCloud = state_vector(4);
 % We want to avoid large broadcast variables!
 wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
-libRadtran_data_path = GN_inputs.libRadtran_data_path;
+libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+mie_folder_path = folder_paths.libRadtran_mie_folder;
 atm_folder_path = folder_paths.atm_folder_path;
+
 which_computer = GN_inputs.which_computer;
 
 
@@ -114,22 +116,22 @@ re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),.
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 1, 2, wc_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 1, 2, wc_folder_path, mie_folder_path);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 2, 2, wc_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 2, 2, wc_folder_path, mie_folder_path);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 3, 2, wc_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 3, 2, wc_folder_path, mie_folder_path);
 
 wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, which_computer, 4, 2, wc_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 4, 2, wc_folder_path, mie_folder_path);
 
 % -----------------------------------------------------------
 % create water vapor density profiles - there are only two!
@@ -200,7 +202,7 @@ parfor nn = 1:num_INP_files
 
 
     % ----- Write an INP file --------
-    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
+    write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         changing_variables(nn, 5:6), wc_filename{1}, [], [], waterVaporProfile_filename);
 
 

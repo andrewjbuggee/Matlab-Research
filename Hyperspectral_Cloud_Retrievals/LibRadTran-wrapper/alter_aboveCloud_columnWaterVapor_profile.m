@@ -27,7 +27,18 @@ fileName = [inputs.RT.atm_file(1:end-4), '_H2O_prof_', num2str(aboveCloudTotal),
 
 %% Read in the standard atmosphere profile
 
-atm = read_libRadtran_atm_dat_profiles([atm_folder_path, inputs.RT.atm_file]);
+% these files are always stored in the BASE folder
+position = strfind(atm_folder_path, 'atmmod');
+if isnumeric(position)==true
+    % then the substring exists. Good! It should
+    % stop at the end of atmmod, the base folder
+    atm = read_libRadtran_atm_dat_profiles([atm_folder_path(1:position+5),'/', inputs.RT.atm_file]);
+
+elseif isempty(position)
+
+    error([newline, 'I cant find the base atmmod folder where the unaltered atmosphere .DAT files are stored.', newline])
+
+end
 
 % altitude values are listed in the 1st column (km)
 z = atm(:,1);

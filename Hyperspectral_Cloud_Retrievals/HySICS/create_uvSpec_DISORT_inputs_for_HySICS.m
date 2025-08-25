@@ -25,7 +25,7 @@
 
 %%
 
-function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas, ...
+function [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, load_parameters_from_measurement, sim_meas,...
     sim_meas_likeness, print_libRadtran_err)
 
 
