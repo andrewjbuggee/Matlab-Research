@@ -27,6 +27,7 @@ wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+mie_folder_path = folder_paths.libRadtran_mie_folder;
 atm_folder_path = folder_paths.atm_folder_path;
 which_computer = GN_inputs.which_computer;
 
@@ -81,7 +82,7 @@ loop_var = 0;
 wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.lambda_forTau,...
     GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var, GN_inputs.RT.vert_homogeneous_str,...
     GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer, loop_var, 2,...
-    wc_folder_path);
+    wc_folder_path, mie_folder_path);
 wc_filename = wc_filename{1};
 
 % ------------------------------------------------------
@@ -106,7 +107,7 @@ parfor ww = 1:size(wavelengths2run,1)
 
 
     % ----- Write an INP file --------
-    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
+    write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         wavelengths2run(ww,:), wc_filename, [], [], aboveCloud_waterVaporColumn_fileName);
 
 
