@@ -62,20 +62,6 @@ else
 
 end
 
-%% Define the reflectance measurements used for the retrieval
-
-
-% The window channel where water vapor absorption is negligible
-R_window_872 = simulated_measurements.Refl_model(8);        % 1/sr - HySICS channel centered around 881 nm
-
-% The weakly absorbing water vapor absorption channel
-R_waterVap_900 = simulated_measurements.Refl_model(10);     % 1/sr - HySICS channel centered around 900 nm
-
-% The strongly absorbing water vapor absorption channel
-R_waterVap_1127 = simulated_measurements.Refl_model(21);     % 1/sr - HySICS channel centered around 1127 nm
-
-R_measured = [R_window_872; R_waterVap_900; R_waterVap_1127];
-
 
 
 
@@ -87,7 +73,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
 
 
-    inputs_acpw.acpw_sim = 3:0.25:30;    % mm
+    inputs_acpw.acpw_sim = 3:30;    % mm
 
     % num wavelengths
     num_wl = length(inputs_acpw.bands2run);
@@ -286,9 +272,6 @@ if inputs_acpw.flags.runUVSPEC == true
 
 
 
-
-
-
     % save the calculated reflectances and the inputs
     if isfile(folder_paths.saveOutput_filename)==true
 
@@ -311,7 +294,17 @@ end
 
 
 
+%% Find the minimum RMS difference between the measurements and the calculations
 
+
+
+R_measurement = simulated_measurements.Refl_model(inputs_acpw.bands2run_from_set_of_measurements)';
+
+RMS = sqrt( mean( (repmat(R_measurement, 1, num_tcpw) - reshape(Refl_model_acpw, num_wl, [])).^2, 1) );
+
+[~, idx_min] = min(RMS);
+
+min_acpw = acpw_sim(idx_min);
 
 
 end
