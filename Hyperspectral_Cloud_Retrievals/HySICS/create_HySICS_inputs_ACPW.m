@@ -135,7 +135,7 @@ inputs.RT.atm_file = inputs_measurement.RT.atm_file;
 inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 
 % day of the year
-%inputs.RT.day_of_year = simulated_measurements.day_of_year;
+inputs.RT.day_of_year = simulated_measurements.day_of_year;
 
 
 
@@ -151,11 +151,11 @@ inputs.RT.tau_c = tblut_retrieval.minTau;
 
 
 % define the cloud geometric depth
-inputs.RT.cloud_depth = simulated_measurements.inputs.RT.cloud_depth;                % meters
+inputs.RT.cloud_depth = inputs_measurement.RT.cloud_depth;                % meters
 
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = simulated_measurements.inputs.RT.z_topBottom;          % km above surface
+inputs.RT.z_topBottom = inputs_measurement.RT.z_topBottom;          % km above surface
 
 
 % Water Cloud depth
