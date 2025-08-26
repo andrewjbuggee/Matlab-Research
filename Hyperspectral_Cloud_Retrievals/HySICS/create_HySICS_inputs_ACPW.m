@@ -9,7 +9,7 @@
 %   retrieval to be the same as those defined by the inputs of the
 %   measurement. When we have true measurements, all we know is the
 %   geometry of the sun and sensor. So this is the only information that
-%   should be passed along. 
+%   should be passed along.
 
 % (3) print_libRadtran_err - true or false that tells the function to
 % write and save the libRadtran error message file
@@ -135,8 +135,11 @@ inputs.RT.atm_file = inputs_measurement.RT.atm_file;
 inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 
 % day of the year
-inputs.RT.day_of_year = simulated_measurements.day_of_year;
+if isfield(inputs_measurement.RT, 'day_of_year')
+    % day of the year
+    inputs.RT.day_of_year = inputs_measurement.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
 
+end
 
 
 
@@ -199,6 +202,11 @@ inputs.RT.distribution_str = 'gamma';
 inputs.RT.distribution_var = 7;
 % define whether this is a vertically homogenous cloud or not
 inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+
+% We're modeling a homoegenous cloud layer using the TBLUT retrieval, so
+% the number of free re parameters is 1
+inputs.RT.num_re_parameters = 1;
+
 % define how liquid water content will be computed
 % can either be 'mie' or '2limit'
 inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
@@ -362,7 +370,7 @@ inputs.RT.specify_cross_section_model = false;
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
 % inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
 
-% ------------------------------------------------------------------------ 
+% ------------------------------------------------------------------------
 
 
 % --------------------------------------------------------------
@@ -383,7 +391,7 @@ if print_libRadtran_err==true
 
 else
 
-   inputs.RT.errMsg = 'quiet';
+    inputs.RT.errMsg = 'quiet';
 
 end
 

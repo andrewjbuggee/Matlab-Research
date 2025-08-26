@@ -11,10 +11,19 @@ function [acpw_retrieval] = ACPW_retrieval_for_HySICS(simulated_measurements, tb
 %% Unpack folder_paths
 
 % define the INP folder location
-inp_folder_path = folder_paths.libRadtran_inp;
+libRadtran_inp = folder_paths.libRadtran_inp;
 
 % define the libRadtran data path
 libRadtran_data_path = folder_paths.libRadtran_data;
+
+% define the water cloud directory
+libRadtran_water_cloud_files = folder_paths.libRadtran_water_cloud_files;
+
+% define the mie calculations directory
+libRadtran_mie_folder = folder_paths.libRadtran_mie_folder;
+
+% define the atmmod folder where the custom profiles are stored
+atm_folder_path = folder_paths.atm_folder_path;
 
 which_computer = folder_paths.which_computer;
 
@@ -22,7 +31,7 @@ which_computer = folder_paths.which_computer;
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_acpw = create_HySICS_inputs_ACPW(folder_paths, simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
+inputs_acpw = create_HySICS_inputs_ACPW(simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
 
 
 %% Find the measurements closest to the bands to run
@@ -79,7 +88,7 @@ if inputs_acpw.flags.writeINPfiles == true
     num_wl = length(inputs_acpw.bands2run);
 
     % length of each independent variable
-    num_tcpw = length(acpw_sim);
+    num_tcpw = length(inputs_acpw.acpw_sim);
 
 
     num_INP_files = num_tcpw * num_wl;
@@ -92,13 +101,14 @@ if inputs_acpw.flags.writeINPfiles == true
     % in for loop speak, it would be:
     % for pw = 1:num_tcpw
     %   for ww = 1:num_wl
-    changing_variables_allStateVectors = [reshape(repmat(acpw_sim, num_wl,1), [],1),...
+    changing_variables = [reshape(repmat(inputs_acpw.acpw_sim, num_wl,1), [],1),...
         repmat(inputs_acpw.RT.wavelengths2run, num_tcpw, 1)];
 
 
     % Add a final column that includes the index for the spectral response
     % function. These always increase chronologically
-    changing_variables_allStateVectors = [changing_variables_allStateVectors, repmat((1:num_wl)',  num_tcpw, 1)];
+    changing_variables = [changing_variables, repmat((1:3)',  num_tcpw, 1)];
+    % changing_variables = [changing_variables, repmat(inputs_acpw.bands2run_from_set_of_measurements',  num_tcpw, 1)];
 
     % Write the water cloud file
 
@@ -106,9 +116,9 @@ if inputs_acpw.flags.writeINPfiles == true
     wc_filename = write_wc_file(tblut_retrieval.minRe, tblut_retrieval.minTau,...
         inputs_acpw.RT.z_topBottom,inputs_acpw.RT.lambda_forTau, inputs_acpw.RT.distribution_str,...
         inputs_acpw.RT.distribution_var, inputs_acpw.RT.vert_homogeneous_str, inputs_acpw.RT.parameterization_str,...
-        inputs_acpw.RT.indVar, inputs_acpw.compute_weighting_functions, folder_paths.which_computer,...
-        1, inputs_acpw.RT.num_re_parameters, folder_paths.libRadtran_water_cloud_files,...
-        folder_paths.libRadtran_mie_folder);
+        inputs_acpw.RT.indVar, inputs_acpw.compute_weighting_functions, which_computer,...
+        1, inputs_acpw.RT.num_re_parameters, libRadtran_water_cloud_files,...
+        libRadtran_mie_folder);
 
     wc_filename = wc_filename{1};
 
@@ -123,11 +133,11 @@ if inputs_acpw.flags.writeINPfiles == true
 
 
         % set the wavelengths for each file
-        wavelengths = changing_variables_allStateVectors(nn, end-2:end-1);
+        wavelengths = changing_variables(nn, end-2:end-1);
 
         % create a custom water vapor profile
-        custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs, changing_variables_allStateVectors(nn,1),...
-            folder_paths.atm_folder_path);
+        custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs_acpw, changing_variables(nn,1),...
+            atm_folder_path);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -136,8 +146,9 @@ if inputs_acpw.flags.writeINPfiles == true
         % they can be traced, and are writen over in memory
 
 
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_re_', num2str(tblut_retrieval.minRe),...
-            '_tauC_', num2str(tblut_retrieval.minTau), '_acpw_',num2str(changing_variables_allStateVectors(nn,1)),'mm.INP'];
+        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_re_', num2str(round(tblut_retrieval.minRe, 3)),...
+            '_tauC_', num2str(round(tblut_retrieval.minTau, 3)), '_acpw_',...
+            num2str(round(changing_variables(nn,1), 3)),'mm.INP'];
 
 
 
@@ -145,8 +156,8 @@ if inputs_acpw.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folder_paths.libRadtran_inp, folder_paths.libRadtran_data, folder_paths.libRadtran_water_cloud_files,...
-            inputFileName{nn}, inputs, wavelengths, wc_filename, [], [], custom_waterVapor_profile, []);
+        write_INP_file(libRadtran_inp, libRadtran_data_path, libRadtran_water_cloud_files,...
+            inputFileName{nn}, inputs_acpw, wavelengths, wc_filename, [], [], custom_waterVapor_profile, []);
 
 
     end
@@ -185,6 +196,9 @@ if inputs_acpw.flags.runUVSPEC == true
 
     spec_response = simulated_measurements.spec_response.value;
 
+    % Let's only keep values we need
+    spec_response = spec_response(inputs_acpw.bands2run_from_set_of_measurements, :);
+
 
     % store the reflectances
     Refl_model_acpw = zeros(num_INP_files, 1);
@@ -206,19 +220,19 @@ if inputs_acpw.flags.runUVSPEC == true
 
 
             % compute INP file
-            runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
+            runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
                 which_computer);
 
 
             % read .OUT file
             % radiance is in units of mW/nm/m^2/sr
-            [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_acpw,...
+            [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs_acpw,...
                 inputs_acpw.RT.compute_reflectivity_uvSpec);
 
 
             % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
 
             [Refl_model_acpw(nn), ~] = reflectanceFunction_ver2(inputs_acpw, ds,...
                 source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
@@ -242,19 +256,19 @@ if inputs_acpw.flags.runUVSPEC == true
 
 
             % compute INP file
-            runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
+            runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
                 which_computer);
 
 
             % read .OUT file
             % radiance is in units of mW/nm/m^2/sr
-            [ds,~,~] = readUVSPEC_ver2(inp_folder_path, outputFileName{nn}, inputs_acpw,...
+            [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs_acpw,...
                 inputs_acpw.RT.compute_reflectivity_uvSpec);
 
 
             % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
 
             [Refl_model_acpw(nn), ~] = reflectanceFunction_ver2(inputs_acpw, ds,...
                 source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
@@ -304,7 +318,7 @@ RMS = sqrt( mean( (repmat(R_measurement, 1, num_tcpw) - reshape(Refl_model_acpw,
 
 [~, idx_min] = min(RMS);
 
-min_acpw = acpw_sim(idx_min);
+min_acpw = inputs_acpw.acpw_sim(idx_min);
 
 
 end
