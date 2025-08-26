@@ -211,9 +211,15 @@ if inputs_tblut.flags.runUVSPEC == true
     wl_perturb = inputs_tblut.RT.source_file_resolution/3;   % nm
 
 
+    % Let's only keep the source flux values needed for the parfor loop
+
+
 
 
     spec_response = simulated_measurements.spec_response.value;
+
+    % Only keep the spectral response functions needed in the parfor loop
+    spec_response = spec_response(inputs_tblut.bands2run_from_set_of_measurements, :);
 
 
     % store the reflectances
@@ -247,8 +253,8 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
             % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
 
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
                 source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
@@ -283,8 +289,8 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
             % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
 
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
                 source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
