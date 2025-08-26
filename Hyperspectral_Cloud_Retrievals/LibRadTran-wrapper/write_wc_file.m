@@ -993,11 +993,11 @@ for nn = 1:num_files_2write
 
         % create the water cloud file name
         if index==0
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 3)),'_T',num2str(round(tau_c(nn), 3)),'_', distribution_type,...
                 '_nn',num2str(nn), '.DAT'];
         elseif index>0
 
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 3)),'_T',num2str(round(tau_c(nn), 3)),'_', distribution_type,...
                 '_nn',num2str(index), '.DAT'];
         end
 

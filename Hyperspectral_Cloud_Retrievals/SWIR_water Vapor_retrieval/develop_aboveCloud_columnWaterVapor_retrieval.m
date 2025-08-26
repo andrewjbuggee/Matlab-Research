@@ -248,6 +248,8 @@ R_waterVap_900 = simulated_measurements.Refl_model(10);     % 1/sr - HySICS chan
 % The strongly absorbing water vapor absorption channel
 R_waterVap_1127 = simulated_measurements.Refl_model(21);     % 1/sr - HySICS channel centered around 1127 nm
 
+R_measured = [R_window_872; R_waterVap_900; R_waterVap_1127];
+
 %% Load simulated measurements
 
 % define whether this is a vertically homogenous cloud or not
@@ -284,6 +286,15 @@ inputs.RT.modify_total_columnWaterVapor = false;             % modify the full c
 inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % don't modify the column above the cloud
 
 
+%% Store the values used to generate the measurements
+
+% Store the simulated state vector used to create the measurements
+inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
+inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
+inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth
+inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
+
+
 %% Load the tblut retrieval and set the effective radius and optical depth accordingly
 
 % Load tblut_retrieval
@@ -295,7 +306,7 @@ inputs.RT.tau_c = tblut_retrieval.minTau;
 
 %% Run simulated calculations using the same geometry and TBLUT estimates across many above cloud column water vapor amounts
 
-acpw_sim = 3:30;    % mm
+acpw_sim = 3:0.25:30;    % mm
 % num wavelengths
 num_wl = length(inputs.bands2run);
 
@@ -402,6 +413,7 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
 
     % ----------------------------------------------------
@@ -409,12 +421,12 @@ parfor nn = 1:num_INP_files
     % ----------------------------------------------------
 
     % compute INP file
-    runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},which_computer);
+    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},which_computer);
 
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
+    [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
 
 
@@ -433,3 +445,11 @@ end
 
 
 toc
+
+%% Which value is associated with the minimum RMS?
+
+RMS = sqrt( mean( (repmat(R_measured, 1, num_tcpw) - reshape(Refl_model_allStateVectors, num_wl, [])).^2, 1) );
+
+[~, idx_min] = min(RMS);
+
+min_acpw = acpw_sim(idx_min)
