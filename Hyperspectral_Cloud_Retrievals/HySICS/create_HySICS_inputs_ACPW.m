@@ -23,7 +23,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_ACPW(folder_paths, inputs_measurement, print_libRadtran_err)
+function inputs = create_HySICS_inputs_ACPW(inputs_measurement, tblut_retrieval, print_libRadtran_err)
 
 
 
@@ -52,14 +52,6 @@ inputs.RT.monochromatic_calc = false;
 % rows, and 10 columns will be interpolated to be 100 columns
 inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase the grid size for interpolation.
 
-
-% --------------------------------------------
-% Create a new folder to save all calculations
-% --------------------------------------------
-
-
-% Store the file name for the libRadTran INP and OUT files
-inputs.save_inp_files = [folder_paths.libRadtran_inp, 'TBLUT_retrieval_',char(datetime("today")),'/'];
 
 
 
@@ -152,18 +144,18 @@ inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-inputs.RT.re = 3:2:24;      % microns
-inputs.RT.tau_c = [1:10, 12:2:20, 25:5:50, 60];
+% *** Use the TBLUT retreival estimates ***
+inputs.RT.re = tblut_retrieval.minRe;     % microns
+inputs.RT.tau_c = tblut_retrieval.minTau;
 
-% inputs.RT.re = 3:2:11;      % microns
-% inputs.RT.tau_c = [1:10];
+
 
 % define the cloud geometric depth
-inputs.RT.cloud_depth = 500;                % meters
+inputs.RT.cloud_depth = simulated_measurements.inputs.RT.cloud_depth;                % meters
 
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+inputs.RT.z_topBottom = simulated_measurements.inputs.RT.z_topBottom;          % km above surface
 
 
 % Water Cloud depth
@@ -262,6 +254,15 @@ inputs.RT.modify_waterVapor = false;
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column
 % ------------------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+% -----------------------------------------------------------------------
 
 
 
@@ -394,27 +395,7 @@ end
 
 
 
-% --------------------------------------------------------------
-% --- Create a file name for the droplet profile retrieval -----
-% --------------------------------------------------------------
 
-rev = 1;
-
-
-
-inputs.save_mat_filename = folder_paths.saveOutput_filename;
-
-
-
-
-while isfile(inputs.save_mat_filename)
-    rev = rev+1;
-    inputs.save_mat_filename = [folder_paths.HySICS_retrievals,'droplet_profile_retrieval_',...
-        'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-end
-
-% --------------------------------------------------------------
-% --------------------------------------------------------------
 
 
 

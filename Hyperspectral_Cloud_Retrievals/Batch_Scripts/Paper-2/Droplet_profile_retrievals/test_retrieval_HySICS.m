@@ -179,7 +179,7 @@ for nn = 1:size(filenames, 1)
     end
 
 
-    acpw_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
+    acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
 
 
     if print_status_updates==true
