@@ -444,12 +444,11 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
 
 
+
+    
     % ------------------------------------------------------------------------
     % -------------------- Cloud optical properties --------------------------
     % ------------------------------------------------------------------------
-
-    % define whether this is a vertically homogenous cloud or not
-    inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
     if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
@@ -462,10 +461,13 @@ if strcmp(sim_meas_likeness, 'exact')==true
         % *** To match the optical
         %   properties mie table precomputed by libRadtran, use a gamma
         %   distribution alpha parameter of 7 ***
-        inputs.RT.distribution_var = 7;              % distribution variance
+        inputs.RT.distribution_var = 10;              % distribution variance
 
         % define the type of droplet distribution
         inputs.RT.distribution_str = 'gamma';
+
+        inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
+
 
         inputs.RT.re = 5:2:9;      % microns
         inputs.RT.tau_c = 5:3:20;
