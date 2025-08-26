@@ -146,7 +146,7 @@ if inputs_acpw.flags.writeINPfiles == true
         % they can be traced, and are writen over in memory
 
 
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_','nm_re_', num2str(round(tblut_retrieval.minRe, 3)),...
+        inputFileName{nn} = ['ACPW_retrieval_', num2str(mean(wavelengths)), '_','nm_re_', num2str(round(tblut_retrieval.minRe, 3)),...
             '_tauC_', num2str(round(tblut_retrieval.minTau, 3)), '_acpw_',...
             num2str(round(changing_variables(nn,1), 3)),'mm.INP'];
 
@@ -283,22 +283,6 @@ if inputs_acpw.flags.runUVSPEC == true
 
 
 
-
-
-
-    % save the calculated reflectances and the inputs
-    if isfile(folder_paths.saveOutput_filename)==true
-
-        save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw", '-append'); % save inputSettings to the same folder as the input and output file
-
-    else
-
-        save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw"); % save inputSettings to the same folder as the input and output file
-
-    end
-
-
-
 elseif inputs_acpw.flags.runUVSPEC == false
 
     load([inputs_acpw.savedCalculations_folderName,inputs_acpw.saveCalculations_fileName] ,'inputs_acpw','Refl_model_acpw');
@@ -320,5 +304,17 @@ RMS = sqrt( mean( (repmat(R_measurement, 1, num_tcpw) - reshape(Refl_model_acpw,
 
 min_acpw = inputs_acpw.acpw_sim(idx_min);
 
+
+
+%% save the calculated reflectances and the inputs
+if isfile(folder_paths.saveOutput_filename)==true
+
+    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw", '-append'); % save inputSettings to the same folder as the input and output file
+
+else
+
+    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw"); % save inputSettings to the same folder as the input and output file
+
+end
 
 end
