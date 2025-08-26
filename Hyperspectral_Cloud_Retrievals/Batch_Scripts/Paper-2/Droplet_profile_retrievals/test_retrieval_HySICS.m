@@ -175,7 +175,7 @@ for nn = 1:size(filenames, 1)
     %% Compute the multispectral estimate of the above cloud column water vapor
 
     if print_status_updates==true
-        disp([newline, 'Computing the acpw retrieval...', newline])
+        disp([newline, 'Computing the ACPW retrieval...', newline])
     end
 
 
@@ -183,7 +183,7 @@ for nn = 1:size(filenames, 1)
 
 
     if print_status_updates==true
-        disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+        disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
     end
 
 

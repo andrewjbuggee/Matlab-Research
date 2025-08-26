@@ -296,24 +296,42 @@ end
 
 
 
-R_measurement = simulated_measurements.Refl_model(inputs_acpw.bands2run_from_set_of_measurements)';
+R_measurement = simulated_measurements.Refl_model(inputs_acpw.bands2run_from_set_of_measurements);
 
 RMS = sqrt( mean( (repmat(R_measurement, 1, num_tcpw) - reshape(Refl_model_acpw, num_wl, [])).^2, 1) );
 
 [~, idx_min] = min(RMS);
 
-min_acpw = inputs_acpw.acpw_sim(idx_min);
+acpw_retrieval.min_nonInterpolated = inputs_acpw.acpw_sim(idx_min);
+
+
+%% Calculations show that reflectance decreases monotonically with increasing above cloud column water vapor
+% Therefore, we can linearly inertoplate to get a more accurate number
+
+inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.1:max(inputs_acpw.acpw_sim));
+
+Refl_model_acpw_interp1 = [interp1(inputs_acpw.acpw_sim, Refl_model_acpw(1:3:end)', inputs_acpw.acpw_interp1);...
+                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
+                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(3:3:end)', inputs_acpw.acpw_interp1)];
+
+% Find the new minimum RMS
+
+RMS_interp = sqrt( mean( (repmat(R_measurement, 1, numel(inputs_acpw.acpw_interp1)) - Refl_model_acpw_interp1).^2, 1) );
+
+[~, idx_min_interp] = min(RMS_interp);
+
+acpw_retrieval.min_interpolated = inputs_acpw.acpw_interp1(idx_min_interp);
 
 
 
 %% save the calculated reflectances and the inputs
 if isfile(folder_paths.saveOutput_filename)==true
 
-    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw", '-append'); % save inputSettings to the same folder as the input and output file
+    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw", "acpw_retrieval", '-append'); % save inputSettings to the same folder as the input and output file
 
 else
 
-    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw"); % save inputSettings to the same folder as the input and output file
+    save(folder_paths.saveOutput_filename, "inputs_acpw", "Refl_model_acpw", "acpw_retrieval"); % save inputSettings to the same folder as the input and output file
 
 end
 
