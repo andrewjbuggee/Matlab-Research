@@ -10,6 +10,20 @@
 
 
 
+%% Load paths
+
+clear variables
+% add libRadTran libraries to the matlab path
+addLibRadTran_paths;
+scriptPlotting_wht;
+
+
+%% Define the HySICS folders for data and storage
+
+
+folder_paths = define_folderPaths_for_HySICS(0);
+
+which_computer = folder_paths.which_computer;
 %% print status updates?
 
 % Would you like each function to print messages to the command terminal on
@@ -151,6 +165,21 @@ for nn = 1:size(filenames, 1)
 
 
     tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
+
+
+    if print_status_updates==true
+        disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    end
+
+
+    %% Compute the multispectral estimate of the above cloud column water vapor
+
+    if print_status_updates==true
+        disp([newline, 'Computing the acpw retrieval...', newline])
+    end
+
+
+    acpw_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
 
 
     if print_status_updates==true

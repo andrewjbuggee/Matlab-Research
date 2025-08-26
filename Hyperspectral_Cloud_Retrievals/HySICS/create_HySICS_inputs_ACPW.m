@@ -1,4 +1,4 @@
-%% ----- CREATE INPUTS NEEDED TO COMPUTE TBLUT METHOD ON EMIT DATA -----
+%% ----- CREATE INPUTS NEEDED TO COMPUTE ACPW RETRIEVAL ON HySICS DATA -----
 
 
 % INPUTS:
@@ -23,8 +23,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement, print_libRadtran_err)
-
+function inputs = create_HySICS_inputs_ACPW(folder_paths, inputs_measurement, print_libRadtran_err)
 
 
 
@@ -40,11 +39,10 @@ inputs.compute_weighting_functions = false;
 
 % Define which HySICS bands to run
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% band 50 has a center wavelength of 502 nm
-% band 89 has a center wavelength of 621 nm
-% band 98 has a center wavelength of 649 nm
-% band 582 has a center wavelength of 2131 nm
-inputs.bands2run = [50, 582]; % these are the bands that we will run uvspec with
+% band 171 has a center wavelength of 872.65 nm
+% band 180 has a center wavelength of 900.25 nm
+% band 254 has a center wavelength of 1127 nm
+inputs.bands2run = [171, 180, 254]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands
@@ -61,7 +59,7 @@ inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase 
 
 
 % Store the file name for the libRadTran INP and OUT files
-% inputs.save_inp_files = [folder_paths.libRadtran_inp, 'TBLUT_retrieval_',char(datetime("today")),'/'];
+inputs.save_inp_files = [folder_paths.libRadtran_inp, 'TBLUT_retrieval_',char(datetime("today")),'/'];
 
 
 

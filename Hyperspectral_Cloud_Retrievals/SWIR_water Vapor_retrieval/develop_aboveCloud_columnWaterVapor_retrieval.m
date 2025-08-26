@@ -25,13 +25,13 @@ print_libRadtran_err = true;
 
 %% Define the HySICS folders for data and storage
 
-[folder_paths, which_computer] = define_folderPaths_for_HySICS(0);
+folder_paths = define_folderPaths_for_HySICS(0);
 
 
-
+which_computer = folder_paths.which_computer;
 %% -- Start Parallel pool
 
-start_parallel_pool(which_computer)
+start_parallel_pool(folder_paths.which_computer)
 
 
 %%   Delete old files?
@@ -54,7 +54,7 @@ delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 %% LOAD SIMULATED HYSICS DATA
 
 % Load simulated measurements
-if strcmp(which_computer,'anbu8374')==true
+if strcmp(folder_paths.which_computer,'anbu8374')==true
 
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
@@ -74,7 +74,7 @@ if strcmp(which_computer,'anbu8374')==true
 
 
 
-elseif strcmp(which_computer,'andrewbuggee')==true
+elseif strcmp(folder_paths.which_computer,'andrewbuggee')==true
 
     % -------------------------------------
     % ------ Folders on my Macbook --------
@@ -146,7 +146,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
 
-elseif strcmp(which_computer,'curc')==true
+elseif strcmp(folder_paths.which_computer,'curc')==true
 
 
     % ------------------------------------------------
@@ -338,7 +338,7 @@ changing_variables_allStateVectors = [changing_variables_allStateVectors, repmat
 wc_filename = write_wc_file(tblut_retrieval.minRe, tblut_retrieval.minTau,...
     inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
     inputs.RT.distribution_var, inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-    inputs.RT.indVar, inputs.compute_weighting_functions, which_computer,...
+    inputs.RT.indVar, inputs.compute_weighting_functions, folder_paths.which_computer,...
     1, inputs.RT.num_re_parameters, folder_paths.libRadtran_water_cloud_files,...
     folder_paths.libRadtran_mie_folder);
 
@@ -421,7 +421,7 @@ parfor nn = 1:num_INP_files
     % ----------------------------------------------------
 
     % compute INP file
-    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},which_computer);
+    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},folder_paths.which_computer);
 
 
     % read .OUT file

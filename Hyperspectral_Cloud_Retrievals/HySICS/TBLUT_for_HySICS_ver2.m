@@ -25,6 +25,9 @@
 function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err)
 
 
+%% unpack folder_paths
+
+which_computer = folder_paths.which_computer;
 
 
 %% Create an input structure that helps write the INP files
@@ -121,7 +124,7 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, which_computer, nn+(nn-1), 1,...
             wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
@@ -234,7 +237,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
             % compute INP file
             runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+                which_computer);
 
 
             % read .OUT file
@@ -270,7 +273,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
             % compute INP file
             runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+                which_computer);
 
 
             % read .OUT file
