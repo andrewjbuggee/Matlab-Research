@@ -12,7 +12,7 @@ function [acpw_retrieval] = ACPW_retrieval_for_HySICS(simulated_measurements, tb
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_acpw = create_HySICS_inputs_ACPW(folder_paths, simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
+inputs_acpw = create_HySICS_inputs_ACPW(simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
 
 
 %% Find the measurements closest to the bands to run
