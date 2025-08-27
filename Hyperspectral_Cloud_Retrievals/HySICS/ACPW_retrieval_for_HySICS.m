@@ -44,18 +44,18 @@ inputs_acpw = create_HySICS_inputs_ACPW(simulated_measurements.inputs, tblut_ret
 
 
 % error if the values found are at least 15nm from the intended wavlengths
-if abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_1,:)) - 872)>15
-
-    error([newline, 'The measurements provided dont have a reflectance measurement close to 872 nm', newline])
-
-elseif abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_2,:)) - 900)>15
+if abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_1,:)) - 900)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 900 nm', newline])
+
+elseif abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_2,:)) - 955)>15
+
+    error([newline, 'The measurements provided dont have a reflectance measurement close to 955 nm', newline])
 
 
 elseif abs(mean(simulated_measurements.inputs.RT.wavelengths2run(idx_3,:)) - 1127)>15
 
-    error([newline, 'The measurements provided dont have a reflectance measurement close to 900 nm', newline])
+    error([newline, 'The measurements provided dont have a reflectance measurement close to 1127 nm', newline])
 
 else
 
@@ -308,7 +308,7 @@ acpw_retrieval.min_nonInterpolated = inputs_acpw.acpw_sim(idx_min);
 %% Calculations show that reflectance decreases monotonically with increasing above cloud column water vapor
 % Therefore, we can linearly inertoplate to get a more accurate number
 
-inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.1:max(inputs_acpw.acpw_sim));
+inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.05:max(inputs_acpw.acpw_sim));
 
 Refl_model_acpw_interp1 = [interp1(inputs_acpw.acpw_sim, Refl_model_acpw(1:3:end)', inputs_acpw.acpw_interp1);...
                          interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...

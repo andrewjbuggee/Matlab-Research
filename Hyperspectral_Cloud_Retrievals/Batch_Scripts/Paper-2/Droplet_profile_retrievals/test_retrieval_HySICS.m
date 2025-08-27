@@ -28,7 +28,7 @@ which_computer = folder_paths.which_computer;
 
 % Would you like each function to print messages to the command terminal on
 % the status of the computation?
-print_status_updates = false;
+print_status_updates = true;
 
 % Would you like to print long libRadtran error messages?
 print_libRadtran_err = false;
@@ -80,7 +80,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % load all filenames in the folder defined above.
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
-
+    % filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
 
 
 
@@ -192,7 +192,7 @@ for nn = 1:size(filenames, 1)
     %% CREATE GAUSS-NEWTON INPUTS
 
     % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements);
+    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements, print_libRadtran_err);
 
     % if print_status_updates==true
     %     disp('Dont forget to check the inputs and change if needed!!')

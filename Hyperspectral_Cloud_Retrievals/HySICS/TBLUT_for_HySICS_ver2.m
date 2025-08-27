@@ -212,7 +212,15 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
     % Let's only keep the source flux values needed for the parfor loop
+    % for the first channel
+    idx_wl_1 = source_wavelength>=(changing_variables(1,end-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables(1,end-1) + wl_perturb);
 
+    % for the second channel
+    idx_wl_2 = source_wavelength>=(changing_variables(2,end-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables(2,end-1) + wl_perturb);
+
+    source_flux_for_parForloop = [source_flux(idx_wl_1), source_flux(idx_wl_2)]; % the only source flux values needed for the loop
 
 
 
@@ -252,12 +260,9 @@ if inputs_tblut.flags.runUVSPEC == true
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
-
+            % compute the reflectance
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+                source_flux_for_parForloop(:,changing_variables(nn,end)), spec_response(changing_variables(nn,end),:)');
 
 
 
@@ -288,12 +293,9 @@ if inputs_tblut.flags.runUVSPEC == true
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,end-2) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,end-1) + wl_perturb);
-
+            % compute the reflectance
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+                source_flux_for_parForloop(:,changing_variables(nn,end)), spec_response(changing_variables(nn,end),:)');
 
 
 
