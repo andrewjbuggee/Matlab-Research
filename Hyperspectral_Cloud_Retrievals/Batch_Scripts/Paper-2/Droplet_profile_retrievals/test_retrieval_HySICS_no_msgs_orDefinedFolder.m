@@ -117,7 +117,7 @@ for nn = 1:size(filenames, 1)
         '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
         '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
         '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
-        '_sim-ran-on-',char(datetime("today")),'.mat'];
+        '_sim-ran-on-',char(datetime("today")),'_1.mat'];
 
 
 
@@ -136,14 +136,31 @@ for nn = 1:size(filenames, 1)
 
     if print_status_updates==true
         disp([newline, 'Computing the TBLUT retrieval...', newline])
+        tic
     end
 
 
-    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths,print_status_updates, print_libRadtran_err);
+    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err);
 
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+    end
+
+
+    %% Compute the multispectral estimate of the above cloud column water vapor
+
+    if print_status_updates==true
+        disp([newline, 'Computing the ACPW retrieval...', newline])
+        tic
+    end
+
+
+    acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
+
+
+    if print_status_updates==true
+        disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
     end
 
 
@@ -178,8 +195,8 @@ for nn = 1:size(filenames, 1)
 
     use_TBLUT_estimates = true;
 
-    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates);
+    % Create inputs to retrieve r_top, r_bot, tau_c, acpw
+    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
 
     GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
@@ -211,20 +228,24 @@ for nn = 1:size(filenames, 1)
 
 
     % If the folder path doesn't exit, create a new directory
-    if ~exist(folder_paths.HySICS_retrievals, 'dir')
+    % 7 means a directory exists with the name defined below
+    if exist(folder_paths.HySICS_retrievals, 'dir')~=7
 
         mkdir(folder_paths.HySICS_retrievals)
 
     end
 
-    if exist(folder_paths.saveOutput_filename, 'file')==true
+    % 2 means the file exists with a .mat extension
+    if exist(folder_paths.saveOutput_filename, 'file')==2
         % append
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", '-append');
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
 
     else
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval");
+
+        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", "acpw_retrieval");
 
     end
+
 
 
     % if exist(folder_paths.saveOutput_filename, 'file')==true

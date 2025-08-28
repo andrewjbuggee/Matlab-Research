@@ -237,7 +237,7 @@ if inputs_tblut.flags.runUVSPEC == true
     if print_status_updates==true
 
         parfor nn = 1:num_INP_files
-            % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+            % for ww = 1:num_INP_files
 
 
             disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -273,7 +273,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
         parfor nn = 1:num_INP_files
-            % for ww = 1:size(inputs.RT.wavelengths2run, 1)
+            % for ww = 1:num_INP_files
 
 
             % ----------------------------------------------------
