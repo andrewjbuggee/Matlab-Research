@@ -1,4 +1,4 @@
-%% ----- CREATE INPUTS NEEDED TO COMPUTE TBLUT METHOD ON EMIT DATA -----
+%% ----- CREATE INPUTS NEEDED TO COMPUTE ACPW RETRIEVAL ON HySICS DATA -----
 
 
 % INPUTS:
@@ -9,7 +9,7 @@
 %   retrieval to be the same as those defined by the inputs of the
 %   measurement. When we have true measurements, all we know is the
 %   geometry of the sun and sensor. So this is the only information that
-%   should be passed along. 
+%   should be passed along.
 
 % (3) print_libRadtran_err - true or false that tells the function to
 % write and save the libRadtran error message file
@@ -23,8 +23,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(folder_paths, inputs_measurement, print_libRadtran_err)
-
+function inputs = create_HySICS_inputs_ACPW(inputs_measurement, tblut_retrieval, print_libRadtran_err)
 
 
 
@@ -40,11 +39,14 @@ inputs.compute_weighting_functions = false;
 
 % Define which HySICS bands to run
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% band 50 has a center wavelength of 502 nm
-% band 89 has a center wavelength of 621 nm
-% band 98 has a center wavelength of 649 nm
-% band 582 has a center wavelength of 2131 nm
-inputs.bands2run = [50, 582]; % these are the bands that we will run uvspec with
+% band 125 has a center wavelength of 731.75 nm
+% band 154 has a center wavelength of 820.55 nm
+% band 171 has a center wavelength of 872.65 nm
+% band 180 has a center wavelength of 900.25 nm
+% band 198 has a center wavelength of 955.35 nm
+% band 254 has a center wavelength of 1127 nm
+% inputs.bands2run = [171, 180, 254]; % these are the bands that we will run uvspec with
+inputs.bands2run = [180, 198, 254]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands
@@ -54,14 +56,6 @@ inputs.RT.monochromatic_calc = false;
 % rows, and 10 columns will be interpolated to be 100 columns
 inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase the grid size for interpolation.
 
-
-% --------------------------------------------
-% Create a new folder to save all calculations
-% --------------------------------------------
-
-
-% Store the file name for the libRadTran INP and OUT files
-% inputs.save_inp_files = [folder_paths.libRadtran_inp, 'TBLUT_retrieval_',char(datetime("today")),'/'];
 
 
 
@@ -145,8 +139,11 @@ inputs.RT.atm_file = inputs_measurement.RT.atm_file;
 inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 
 % day of the year
-%inputs.RT.day_of_year = simulated_measurements.day_of_year;
+if isfield(inputs_measurement.RT, 'day_of_year')
+    % day of the year
+    inputs.RT.day_of_year = inputs_measurement.RT.day_of_year;       % value for pixel used in Figure 3.a from paper 1
 
+end
 
 
 
@@ -154,18 +151,18 @@ inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-inputs.RT.re = 3:2:24;      % microns
-inputs.RT.tau_c = [1:10, 12:2:20, 25:5:50, 60];
+% *** Use the TBLUT retreival estimates ***
+inputs.RT.re = tblut_retrieval.minRe;     % microns
+inputs.RT.tau_c = tblut_retrieval.minTau;
 
-% inputs.RT.re = 3:2:11;      % microns
-% inputs.RT.tau_c = [1:10];
+
 
 % define the cloud geometric depth
-inputs.RT.cloud_depth = 500;                % meters
+inputs.RT.cloud_depth = inputs_measurement.RT.cloud_depth;                % meters
 
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+inputs.RT.z_topBottom = inputs_measurement.RT.z_topBottom;          % km above surface
 
 
 % Water Cloud depth
@@ -209,6 +206,11 @@ inputs.RT.distribution_str = 'gamma';
 inputs.RT.distribution_var = 7;
 % define whether this is a vertically homogenous cloud or not
 inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+
+% We're modeling a homoegenous cloud layer using the TBLUT retrieval, so
+% the number of free re parameters is 1
+inputs.RT.num_re_parameters = 1;
+
 % define how liquid water content will be computed
 % can either be 'mie' or '2limit'
 inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
@@ -264,6 +266,15 @@ inputs.RT.modify_waterVapor = false;
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column
 % ------------------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+% -----------------------------------------------------------------------
 
 
 
@@ -363,7 +374,7 @@ inputs.RT.specify_cross_section_model = false;
 inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
 % inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
 
-% ------------------------------------------------------------------------ 
+% ------------------------------------------------------------------------
 
 
 % --------------------------------------------------------------
@@ -384,7 +395,7 @@ if print_libRadtran_err==true
 
 else
 
-   inputs.RT.errMsg = 'quiet';
+    inputs.RT.errMsg = 'quiet';
 
 end
 
@@ -393,27 +404,10 @@ end
 % --------------------------------------------------------------
 
 
-% % --------------------------------------------------------------
-% % --- Create a file name for the droplet profile retrieval -----
-% % --------------------------------------------------------------
-% 
-% rev = 1;
-% 
-% 
-% 
-% inputs.save_mat_filename = folder_paths.saveOutput_filename;
-% 
-% 
-% 
-% 
-% while isfile(inputs.save_mat_filename)
-%     rev = rev+1;
-%     inputs.save_mat_filename = [folder_paths.HySICS_retrievals,'droplet_profile_retrieval_',...
-%         'sim-ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-% end
-% 
-% % --------------------------------------------------------------
-% % --------------------------------------------------------------
+
+
+
+
 
 
 

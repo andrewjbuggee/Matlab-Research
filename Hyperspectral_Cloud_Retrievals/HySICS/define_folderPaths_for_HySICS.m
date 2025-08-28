@@ -12,12 +12,12 @@
 
 %%
 
-function [folder_paths, which_computer] = define_folderPaths_for_HySICS(folder_extension_number)
+function [folder_paths] = define_folderPaths_for_HySICS(folder_extension_number)
 
 
 
 % Determine which computer you're using
-which_computer = whatComputer();
+folder_paths.which_computer = whatComputer();
 
 % Find the folder where the mie calculations are stored
 % find the folder where the water cloud files are stored.
@@ -30,7 +30,7 @@ if folder_extension_number==0
     % ---- Just use the base folder name ----
     % ---------------------------------------
 
-    if strcmp(which_computer,'anbu8374')==true
+    if strcmp(folder_paths.which_computer,'anbu8374')==true
 
         % -----------------------------------------
         % ------ Folders on my Mac Desktop --------
@@ -65,7 +65,7 @@ if folder_extension_number==0
 
 
 
-    elseif strcmp(which_computer,'andrewbuggee')==true
+    elseif strcmp(folder_paths.which_computer,'andrewbuggee')==true
 
 
 
@@ -113,7 +113,7 @@ if folder_extension_number==0
 
 
 
-    elseif strcmp(which_computer,'curc')==true
+    elseif strcmp(folder_paths.which_computer,'curc')==true
 
 
         % ------------------------------------------------
@@ -170,7 +170,7 @@ else
     % ----------------------------------------------------------------------
 
 
-    if strcmp(which_computer,'anbu8374')==true
+    if strcmp(folder_paths.which_computer,'anbu8374')==true
 
         % -----------------------------------------
         % ------ Folders on my Mac Desktop --------
@@ -213,7 +213,7 @@ else
 
 
 
-    elseif strcmp(which_computer,'andrewbuggee')==true
+    elseif strcmp(folder_paths.which_computer,'andrewbuggee')==true
 
 
 
@@ -268,7 +268,7 @@ else
 
 
 
-    elseif strcmp(which_computer,'curc')==true
+    elseif strcmp(folder_paths.which_computer,'curc')==true
 
 
         % ------------------------------------------------

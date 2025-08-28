@@ -25,6 +25,9 @@
 function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err)
 
 
+%% unpack folder_paths
+
+which_computer = folder_paths.which_computer;
 
 
 %% Create an input structure that helps write the INP files
@@ -121,7 +124,7 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, which_computer, nn+(nn-1), 1,...
             wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
@@ -156,7 +159,7 @@ if inputs_tblut.flags.writeINPfiles == true
         % they can be traced, and are writen over in memory
 
 
-        inputFileName{nn} = [num2str(mean(wavelengths)), '_',...
+        inputFileName{nn} = ['TBLUT_retrieval_', num2str(mean(wavelengths)), '_',...
             'nm_rEff_', num2str(changing_variables(nn,1)), '_tauC_', num2str(changing_variables(nn,2)), '_',...
             inputs_tblut.RT.atm_file(1:end-4),'.INP'];
 
@@ -208,9 +211,23 @@ if inputs_tblut.flags.runUVSPEC == true
     wl_perturb = inputs_tblut.RT.source_file_resolution/3;   % nm
 
 
+    % Let's only keep the source flux values needed for the parfor loop
+    % for the first channel
+    idx_wl_1 = source_wavelength>=(changing_variables(1,end-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables(1,end-1) + wl_perturb);
+
+    % for the second channel
+    idx_wl_2 = source_wavelength>=(changing_variables(2,end-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables(2,end-1) + wl_perturb);
+
+    source_flux_for_parForloop = [source_flux(idx_wl_1), source_flux(idx_wl_2)]; % the only source flux values needed for the loop
+
 
 
     spec_response = simulated_measurements.spec_response.value;
+
+    % Only keep the spectral response functions needed in the parfor loop
+    spec_response = spec_response(inputs_tblut.bands2run_from_set_of_measurements, :);
 
 
     % store the reflectances
@@ -234,7 +251,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
             % compute INP file
             runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+                which_computer);
 
 
             % read .OUT file
@@ -243,12 +260,9 @@ if inputs_tblut.flags.runUVSPEC == true
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
-
+            % compute the reflectance
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+                source_flux_for_parForloop(:,changing_variables(nn,end)), spec_response(changing_variables(nn,end),:)');
 
 
 
@@ -270,7 +284,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
             % compute INP file
             runUVSPEC_ver2(inp_folder_path, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+                which_computer);
 
 
             % read .OUT file
@@ -279,12 +293,9 @@ if inputs_tblut.flags.runUVSPEC == true
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
-
+            % compute the reflectance
             [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-                source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+                source_flux_for_parForloop(:,changing_variables(nn,end)), spec_response(changing_variables(nn,end),:)');
 
 
 

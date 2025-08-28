@@ -75,6 +75,8 @@ GN_inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------
 
+GN_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+
 % we model two free parameters, r_top and r_bot
 GN_inputs.RT.num_re_parameters = 2;
 

@@ -1,28 +1,30 @@
 #!/bin/bash
 
-# The amilan partition ran the TBLUT retrieval in XX seconds using 25 tasks and 250G of memory.
+# Testing job_array
 
 
 #SBATCH --nodes=1
-#SBATCH --time=02:00:00
+#SBATCH --time=01:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=40G
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=30
-#SBATCH --job-name=test_retrieval_amilan_30Tasks_FULL_folder_4
-#SBATCH --output=test_retrieval_amilan_30Tasks_FULL_folder_4.out
+#SBATCH --array=1-2
+#SBATCH --mem=35G
+#SBATCH --ntasks=10
+#SBATCH --cpus-per-task=1
+#SBATCH --job-name=test_retrieval_array_amilan_10Tasks_%A_%a
+#SBATCH --output=test_retrieval_array_amilan_10Tasks_%A_%a.out
+#SBATCH --error=test_retrieval_array_amilan_10Tasks_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
-
+# Load modules
 ml purge
 ml gcc/11.2.0
 ml netcdf/4.8.1
 ml perl/5.36.0
 ml texlive/2021
 
-
+# Set up environment paths
 export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH
 export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH
 export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH
@@ -39,6 +41,6 @@ module load matlab/R2024b
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; [folder_paths, which_computer] = define_folderPaths_for_HySICS(4); print_status_updates = true; print_libRadtran_err = true; test_retrieval_HySICS_no_msgs_orDefinedFolder; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; [folder_paths, which_computer] = define_folderPaths_for_HySICS(3); print_status_updates = true; print_libRadtran_err = true; test_retrieval_HySICS_no_msgs_orDefinedFolder; exit"
 
 echo "Finished MATLAB job at $(date)"
