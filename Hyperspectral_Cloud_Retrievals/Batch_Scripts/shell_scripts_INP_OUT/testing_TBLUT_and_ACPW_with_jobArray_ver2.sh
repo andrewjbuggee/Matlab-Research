@@ -48,6 +48,7 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Start of the job
+echo " "
 echo "Starting MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
 echo "Job ID: ${SLURM_ARRAY_JOB_ID}, Task ID: ${SLURM_ARRAY_TASK_ID}"
 
@@ -64,6 +65,8 @@ mapfile -t FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -prin
 CURRENT_FILE=${FILES[$((SLURM_ARRAY_TASK_ID-1))]}
 CURRENT_FILE_PATH="${INPUT_DIR}/${CURRENT_FILE}"
 
+# Print the current file being processed
+echo " "
 echo "Processing file: ${CURRENT_FILE}"
 echo "Full path: ${CURRENT_FILE_PATH}"
 
