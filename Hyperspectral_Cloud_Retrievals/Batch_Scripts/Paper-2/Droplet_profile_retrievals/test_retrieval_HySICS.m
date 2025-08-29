@@ -31,7 +31,7 @@ which_computer = folder_paths.which_computer;
 print_status_updates = true;
 
 % Would you like to print long libRadtran error messages?
-print_libRadtran_err = false;
+print_libRadtran_err = true;
 
 
 
