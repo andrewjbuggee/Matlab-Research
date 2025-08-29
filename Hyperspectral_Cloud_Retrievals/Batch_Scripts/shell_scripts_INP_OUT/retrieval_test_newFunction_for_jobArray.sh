@@ -10,8 +10,8 @@
 #SBATCH --mem=30G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_folder_3
-#SBATCH --output=test_retrieval_amilan_20Tasks_FULL_folder_3.out
+#SBATCH --job-name=test_retrieval_amilan_20Tasks_FULL_newFunction_folder_1
+#SBATCH --output=test_retrieval_amilan_20Tasks_FULL_newFunction_folder_1.out
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 
@@ -43,6 +43,6 @@ time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab
 clear variables; addLibRadTran_paths; 
 folder_paths = define_folderPaths_for_HySICS(3); which_computer = folder_paths.which_computer; 
 print_status_updates = true; print_libRadtran_err = true; 
-test_retrieval_HySICS_no_msgs_orDefinedFolder; exit"
+run_retrieval_dropletProfile_HySICS_ver2(FILENAME); exit"
 
 echo "Finished MATLAB job at $(date)"

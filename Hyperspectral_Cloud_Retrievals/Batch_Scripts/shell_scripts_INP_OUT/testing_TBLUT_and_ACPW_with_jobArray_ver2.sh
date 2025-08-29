@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# SLURM Job Array for TBLUT retrieval analysis
+# SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
 
-# Becayse this is a job array, each job will request resources independently
+# Because this is a job array, each job will request resources independently
 # This means each job will request N ntasks, on N nodes with N cpus-per-task
+
+# %A: Job ID
+# %a: Array Task ID
 
 #SBATCH --nodes=1
 #SBATCH --time=02:00:00
@@ -74,8 +77,9 @@ fi
 # Each task processes a different file based on the array index
 time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); 
 clear variables; addLibRadTran_paths; 
-current_file='${CURRENT_FILE}';
-folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); which_computer = folder_paths.which_computer; 
-print_status_updates = true; print_libRadtran_err = true; test_retrieval_HySICS_jobArray('${CURRENT_FILE}'); exit"
+folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); 
+print_status_updates = true; print_libRadtran_err = true; 
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2('${CURRENT_FILE}', folder_paths, print_status_updates, print_libRadtran_err);
+exit"
 
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
