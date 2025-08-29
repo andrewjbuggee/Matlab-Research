@@ -233,7 +233,7 @@ end
 
 
 if print_status_updates==true
-    disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+    disp([newline, 'Total time to run retrieval was ', num2str(toc), ' seconds', newline])
 end
 
 
