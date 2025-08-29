@@ -98,7 +98,7 @@ idx_cloudTop = find(new_z==(inputs.RT.z_topBottom(1)*1e3));
 % integrate from cloud top to sensor location and convert the density
 % profile from molecules/m^3 to kg/m^2
 
-above_cloud_cwv = -(con.Mol_mass_h20_vap/con.N_A) *...
+above_cloud_cwv = -(con.Mol_mass_h2o_vap/con.N_A) *...
     trapz(new_z(idx_sensor:idx_cloudTop), waterVapor_column_interp(idx_sensor:idx_cloudTop));  % kg/m^2
 
 
