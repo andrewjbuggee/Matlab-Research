@@ -13,7 +13,7 @@
 
 %%
 
-function [GN_inputs] = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut, use_TBLUT_estimates)
+function [GN_inputs] = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut, use_TBLUT_estimates, acpw)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -62,7 +62,7 @@ if use_TBLUT_estimates==true
     % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, 0.75*GN_inputs.measurement.actpw];
+    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, acpw.min_interpolated];
 
 
     % The first two values are the standard deviation of the effective

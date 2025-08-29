@@ -22,11 +22,20 @@ constant.R_uni = 8.31446262;                % J/K/mol
 constant.Mol_mass_air = 0.2897;                % kg/mol
 
 % molar mass of water vapor
-constant.Mol_mass_h20_vap = 0.018015;                % kg/mol
+constant.Mol_mass_h2o_vap = 0.018015;                % kg/mol
 
 % heat capacity of air at constant pressure
-
 constant.cp_air = 1005;                 % J/kg/K
+
+% heat capacity of liquid water at constant pressure - doesn't change much from 0
+% to 100 C (engineering toolbox)
+constant.cp_h2o = 4220;                 % J/kg/K
+
+% heat of vaporization of water at 100 C (Engineering toolbox)
+constant.H_h2o = 2256400;                 % J/kg
+
+% Density of liquid water at 0 C (engineering toolbox)
+constant.density_h2o_liquid = 999.87;             % kg/m^3
 
 % adiabatic lapse rate
 % constant.L_a = constant.g0/constant.cp_air;                % J/K/mol
