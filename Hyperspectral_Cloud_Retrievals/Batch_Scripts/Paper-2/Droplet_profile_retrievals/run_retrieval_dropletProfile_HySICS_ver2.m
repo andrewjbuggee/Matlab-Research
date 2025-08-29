@@ -9,15 +9,24 @@
 
 % (1) filename - .mat file that containts the simulated HySICS measurements
 
+% (2) folder_paths - structure containing all directories needed for
+% writing and reading libRadtran INP/OUT
+
+% (3) print_status_updates - a true or false variable that tells the
+% function to print status messages into the command window, if true
+
+% (4) print_libRadtran_err - a true or false that tells the function to
+% write libRadtran error messages, if true
+
 
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2(filename)
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2(filename, folder_paths, print_status_updates, print_libRadtran_err)
 
 %% -- Start Parallel pool
 
-start_parallel_pool(which_computer)
+start_parallel_pool(folder_paths.which_computer)
 
 
 
