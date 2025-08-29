@@ -38,7 +38,7 @@ if strcmp(which_computer,'anbu8374')==true
 
     % load all filenames in the folder defined above.
 %     filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
-  filename = dir([folder_paths.HySICS_simulated_spectra,...
+  filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
  
 
@@ -74,6 +74,6 @@ end
 %% Run the droplet profile retrieval
 
 
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2(filename.name, folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2(filenames.name, folder_paths, print_status_updates, print_libRadtran_err);
 
 
