@@ -10,12 +10,12 @@
 # %a: Array Task ID
 
 #SBATCH --nodes=1
-#SBATCH --time=02:00:00
+#SBATCH --time=02:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=28G
-#SBATCH --ntasks=20
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=16
 #SBATCH --job-name=test_retrieval_array_%A_%a
 #SBATCH --output=test_retrieval_array_%A_%a.out
 #SBATCH --error=test_retrieval_array_%A_%a.err
