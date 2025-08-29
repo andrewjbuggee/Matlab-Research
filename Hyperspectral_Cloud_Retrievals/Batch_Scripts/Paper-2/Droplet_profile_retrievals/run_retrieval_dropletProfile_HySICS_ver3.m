@@ -34,7 +34,7 @@ for ff = 1:length(filenames)
 
 
     if print_status_updates==true
-            disp([newline, 'Processing file: ', filenames{ii}, '...', newline])
+            disp([newline, 'Processing file: ', filenames{ff}, '...', newline])
     end
 
 
@@ -60,7 +60,7 @@ for ff = 1:length(filenames)
 
 
     % Load the simulated measurement
-    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, filenames{nn}]);
+    simulated_measurements = load([folder_paths.HySICS_simulated_spectra, filenames{ff}]);
 
 
 
@@ -69,7 +69,7 @@ for ff = 1:length(filenames)
     if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
         if print_status_updates==true
-            disp([newline, 'Processing file: ', filenames{ii}, '...', newline])
+            disp([newline, 'Processing file: ', filenames{ff}, '...', newline])
             disp([newline, 'Using measurements with added uncertianty...', newline])
         end
 
@@ -243,7 +243,7 @@ for ff = 1:length(filenames)
 
 
     if print_status_updates==true
-        disp([newline, 'Total time to run retrieval on ', num2str(size(filenames,1)), ' files was ', num2str(toc), ' seconds', newline])
+        disp([newline, 'Total time to run retrieval on was ', num2str(toc), ' seconds', newline])
     end
 
 
