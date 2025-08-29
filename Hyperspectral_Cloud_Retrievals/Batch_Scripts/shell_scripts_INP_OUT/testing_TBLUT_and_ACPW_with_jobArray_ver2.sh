@@ -78,11 +78,6 @@ fi
 
 # Run your MATLAB script with the current file as an argument
 # Each task processes a different file based on the array index
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); 
-clear variables; addLibRadTran_paths; 
-folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); 
-print_status_updates = true; print_libRadtran_err = true; 
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2('${CURRENT_FILE}', folder_paths, print_status_updates, print_libRadtran_err);
-exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); print_status_updates = true; print_libRadtran_err = true; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver2('${CURRENT_FILE}', folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
