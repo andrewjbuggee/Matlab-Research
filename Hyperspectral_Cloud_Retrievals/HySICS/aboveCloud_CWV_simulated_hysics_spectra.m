@@ -59,7 +59,7 @@ if isfield(inputs.RT, 'modify_total_columnWaterVapor')==true && inputs.RT.modify
         isfield(inputs.RT, 'modify_total_columnWaterVapor') && inputs.RT.modify_total_columnWaterVapor==true
     
     % if true, then we must scale the profile accordingly
-    c = inputs.RT.waterVapor_column / (-(con.Mol_mass_h20_vap/con.N_A) *trapz(z, waterVapor_column));
+    c = inputs.RT.waterVapor_column / (-(con.Mol_mass_h2o_vap/con.N_A) *trapz(z, waterVapor_column));
 
     % the new water vapor column is scaled 
     waterVapor_column = c.* waterVapor_column;
