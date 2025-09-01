@@ -2,7 +2,7 @@
 
 # Hybrid approach: Process multiple files per job to maximize node utilization
 # In the directory below, there are 792 files
-# With 36 jobs and 792 files, each job will process 22 files
+# With 40 jobs and 880 files, each job will process 22 files
 
 # SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
@@ -20,9 +20,9 @@
 #SBATCH --time=23:59:59     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_rTop_7_%A_%a
+#SBATCH --output=full_retrieval_hysics_rTop_7_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_rTop_7_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 #SBATCH --array=1-36        # 36 jobs × 22 files each = 792 files
@@ -51,9 +51,9 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Define the directory containing your input files
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_7/vza_7_vaz_210_sza_10_saz_91"
 
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_rev2/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_7/vza_7_vaz_210_sza_10_saz_91/"
 
 
 # Get list of all files
