@@ -25,7 +25,7 @@
 #SBATCH --error=full_retrieval_hysics_rTop_7_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-36        # 36 jobs × 22 files each = 792 files
+#SBATCH --array=1-40        # 40 jobs × 22 files each = 880 files
 
 # Load modules
 ml purge
