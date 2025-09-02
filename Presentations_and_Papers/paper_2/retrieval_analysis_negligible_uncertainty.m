@@ -9,7 +9,8 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir('/Users/andrewbuggee/MATLAB-Drive/vza_7_vaz_210_sza_10_saz_91/*.mat');
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
 
 % what are the free parameters?
 r_top = 10;
