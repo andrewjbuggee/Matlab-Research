@@ -75,6 +75,10 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
+    % load measurements from curc storage
+    folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/'];
+
     % add folders to the path
     addpath(genpath('/projects/anbu8374/Matlab-Research'));
     addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
@@ -83,8 +87,15 @@ elseif strcmp(which_computer,'curc')==true
 
     % load all filenames in the folder defined above that start with a
     % specific block of text
+
+
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_20_vza_7*.mat']);
+
+
+
+%     filenames = dir([folder_paths.HySICS_simulated_spectra,...
+%         'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
 
 
 end
