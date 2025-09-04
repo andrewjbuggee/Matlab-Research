@@ -20,9 +20,9 @@
 #SBATCH --time=3:59:59     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_subset_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_subset_%A_%a.err
+#SBATCH --job-name=noACPW_assumed25_retrieval_hysics_rTop_10_subset_%A_%a
+#SBATCH --output=noACPW_assumed25_retrieval_hysics_rTop_10_subset_%A_%a.out
+#SBATCH --error=noACPW_assumed25_retrieval_hysics_rTop_10_subset_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 #SBATCH --array=49-60       # 12 jobs × 1 file each = 12 files
@@ -55,7 +55,7 @@ module load matlab/R2024b
 # Define the directory containing your input files
 INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset"
 
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/"
 
 # Get list of all files
 mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
