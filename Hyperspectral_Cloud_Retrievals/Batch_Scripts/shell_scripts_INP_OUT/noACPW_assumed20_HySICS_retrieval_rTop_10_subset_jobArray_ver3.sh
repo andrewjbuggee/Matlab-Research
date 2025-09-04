@@ -13,6 +13,11 @@
 # %A: Job ID
 # %a: Array Task ID
 
+
+# ----------------------------------------------------------
+# *** UPDATE JOB NAME, OUTPUT, AND ERROR FILE BASED ON SIM ***
+# *** UPDATE JOB ARRAY RANGE BASED ON NUMBER OF FILES  ***
+# ----------------------------------------------------------
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
@@ -53,17 +58,30 @@ module load matlab/R2024b
 
 
 # Define the directory containing your input files
+# ----------------------------------------------------------
+# *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
+# *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
 INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset"
 
+# ----------------------------------------------------------
+# *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
+# *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
 RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/"
+# ----------------------------------------------------------
 
 # Get list of all files
 mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
 
 # Calculate which files this job should process
+# ----------------------------------------------------------
+# *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
 FILES_PER_JOB=1
-START_IDX=$(( (SLURM_ARRAY_TASK_ID - 1) * FILES_PER_JOB ))
+# *** THE NEGATIVE NUMBER MUST EQUAL THE FIRST JOB ARRAY NUMBER ***
+START_IDX=$(( (SLURM_ARRAY_TASK_ID - 37) * FILES_PER_JOB ))
+# ----------------------------------------------------------
 END_IDX=$(( START_IDX + FILES_PER_JOB - 1 ))
+
+
 
 # Start of the job
 echo " "
