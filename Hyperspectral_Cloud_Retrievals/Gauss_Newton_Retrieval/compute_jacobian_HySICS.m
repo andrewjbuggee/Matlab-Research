@@ -9,9 +9,6 @@ function jacobian = compute_jacobian_HySICS(state_vector, measurement_estimate, 
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
-disp([newline, 'Computing the Jacobian...', newline])
-
-
 
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;
@@ -22,6 +19,16 @@ r_top = state_vector(1);
 r_bottom = state_vector(2);
 tau_c = state_vector(3);
 
+
+% ----- unpack parallel for loop variables ------
+% We want to avoid large broadcast variables!
+wavelengths2run = GN_inputs.RT.wavelengths2run;
+libRadtran_inp = folder_paths.libRadtran_inp;
+libRadtran_data_path = folder_paths.libRadtran_data;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+mie_folder_path = folder_paths.libRadtran_mie_folder;
+
+which_computer = GN_inputs.which_computer;
 
 
 % Read the solar flux file over the wavelength range specified
@@ -74,9 +81,7 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_state_variable
 num_INP_files = size(changing_variables, 1);
 
 
-% Lets step through each model variable and compute the derivative
-jacobian = zeros(num_wl, num_state_variables);
-change_in_measurement = zeros(num_wl, num_state_variables);
+
 
 
 % ----------------------------------------------------------
@@ -100,17 +105,17 @@ re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), 
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1, 2);
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1, 2, wc_folder_path, mie_folder_path);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2, 2);
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2, 2, wc_folder_path, mie_folder_path);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3, 2);
+    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3, 2, wc_folder_path, mie_folder_path);
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
@@ -140,7 +145,7 @@ parfor nn = 1:num_INP_files
 
     
     % ----- Write an INP file --------
-    write_INP_file(folder_paths.libRadtran_inp, GN_inputs.libRadtran_data_path, inputFileName, GN_inputs,...
+    write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         changing_variables(nn, 4:5), wc_filename{1});
 
     
@@ -151,13 +156,13 @@ parfor nn = 1:num_INP_files
 
 
      % compute INP file
-    runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName, outputFileName,...
+    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName,...
         GN_inputs.which_computer);
 
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName, GN_inputs,...
+    [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName, GN_inputs,...
         GN_inputs.RT.compute_reflectivity_uvSpec);
 
 

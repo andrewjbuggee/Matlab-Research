@@ -3,7 +3,7 @@
 
 % By Andrew John Buggee
 
-%% Plot a curve of r-top versus r-bot for each wavelength
+%% Plot the retrieved optical depth versus the true optical depth for all measurements
 
 clear variables
 
@@ -104,6 +104,214 @@ xlabel('$\tau_c$ true', 'Interpreter','latex', 'FontSize',30)
 set(gcf,'Position',[0 0 950 750])
 
 
+
+%% Plot the retrieved radius and cloud bottom versus the true value for all measurements
+
+clear variables
+
+
+% Access specific file or folder
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 3:10;
+tau_c = 5:3:29;
+tcpw = 5:3:35;
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_rTop = length(r_top);
+num_rBot = length(r_bot);
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+num_files = num_rTop * num_rBot * num_tauC * num_tcpw;
+
+% Step through each file
+
+% For some simulated above cloud total column precipitable water amount,
+% let's show the retrieval of r-top and r-bot for different optical depths.
+% But somehow I want to show a comparison between the simulated values and
+% the retrieved values for each independent variable.
+
+% But that isn't how my data is arranged. I have a retrieval set where
+% every profile has a radius at clod top of 10 microns. So I will have to
+% step through the other variables for now.
+
+% How do I look at the difference between the retrieved values and the true
+% value for 4 different variables? Could I have panels for different values
+% of the above cloud precipitable water?
+
+% The y axis is the percent difference between the true r-top value and the
+% retrieved
+
+% The x axis is the percent difference between the true r-bot value and the
+% retrieved
+
+% Each curve represents a different optical depth
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+num_tauC-1), 'fixed');
+
+% lgnd_str = cell(1, length(filenames) + 2);
+
+
+
+figure;
+
+
+for nn = 1:length(filenames)
+
+    if nn==1
+
+        % make a 1-to-1 line
+        plot(r_bot, r_bot, 'k-', 'LineWidth',1)
+
+        grid on; grid minor
+        hold on
+
+    end
+
+
+    % Load a data set
+    ds = load([filenames(nn).folder, '/', filenames(nn).name]);
+
+    if isfield(ds, 'GN_outputs')
+
+        % acpw_true = [acpw_true, ds.GN_inputs.measurement.actpw];
+
+        [~, idx_tauC] = min(abs(ds.GN_inputs.measurement.tau_c - tau_c));
+
+        plot(ds.GN_inputs.measurement.r_bot, ds.GN_outputs.retrieval(2,end), '.', 'MarkerSize', 20,...
+            'Color', C(idx_tauC, :))
+
+        hold on
+
+    end
+
+
+end
+
+legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+title('$r_{top} = 10$ simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
+ylabel('$r_{bot}$ retrieved', 'Interpreter','latex', 'FontSize',30)
+xlabel('$r_{bot}$ true', 'Interpreter','latex', 'FontSize',30)
+
+set(gcf,'Position',[0 0 950 750])
+
+
+
+%% Plot the retrieved above cloud precipitable water versus the true value for all measurements
+
+clear variables
+
+
+% Access specific file or folder
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 3:10;
+tau_c = 5:3:29;
+tcpw = 5:3:35;
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_rTop = length(r_top);
+num_rBot = length(r_bot);
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+num_files = num_rTop * num_rBot * num_tauC * num_tcpw;
+
+% Step through each file
+
+% For some simulated above cloud total column precipitable water amount,
+% let's show the retrieval of r-top and r-bot for different optical depths.
+% But somehow I want to show a comparison between the simulated values and
+% the retrieved values for each independent variable.
+
+% But that isn't how my data is arranged. I have a retrieval set where
+% every profile has a radius at clod top of 10 microns. So I will have to
+% step through the other variables for now.
+
+% How do I look at the difference between the retrieved values and the true
+% value for 4 different variables? Could I have panels for different values
+% of the above cloud precipitable water?
+
+% The y axis is the percent difference between the true r-top value and the
+% retrieved
+
+% The x axis is the percent difference between the true r-bot value and the
+% retrieved
+
+% Each curve represents a different optical depth
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+num_tauC-1), 'fixed');
+
+% lgnd_str = cell(1, length(filenames) + 2);
+
+
+
+figure;
+
+
+for nn = 1:length(filenames)
+
+    if nn==1
+
+        % make a 1-to-1 line
+        plot(acpw_true, acpw_true, 'k-', 'LineWidth',1)
+
+        grid on; grid minor
+        hold on
+
+    end
+
+
+    % Load a data set
+    ds = load([filenames(nn).folder, '/', filenames(nn).name]);
+
+    if isfield(ds, 'GN_outputs')
+
+        % acpw_true = [acpw_true, ds.GN_inputs.measurement.actpw];
+
+        [~, idx_tauC] = min(abs(ds.GN_inputs.measurement.tau_c - tau_c));
+
+        plot(ds.GN_inputs.measurement.actpw, ds.GN_outputs.retrieval(4,end), '.', 'MarkerSize', 20,...
+            'Color', C(idx_tauC, :))
+
+        hold on
+
+    end
+
+
+end
+
+legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+title('$r_{top} = 10$ simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
+ylabel('$acpw$ retrieved', 'Interpreter','latex', 'FontSize',30)
+xlabel('$acpw$ true', 'Interpreter','latex', 'FontSize',30)
+
+set(gcf,'Position',[0 0 950 750])
+
+
+
+
+
+
 %% Plot 11 panels for each acpw amount and show the percent difference between the true and retrieved radius at cloud top and bottom
 
 
@@ -111,7 +319,8 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir('/Users/andrewbuggee/MATLAB-Drive/vza_7_vaz_210_sza_10_saz_91/*.mat');
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -239,8 +448,130 @@ set(gcf,'Position',[0 0 1500 875])
 
 
 
+%% Plot 9 panels for each cloud optical depth and show the percent difference between the true and retrieved radius at cloud top and bottom
 
-%% Let's look at the true acpw and the retrieved acpw as a function of cloud optical depth
+
+clear variables
+
+
+% Access specific file or folder
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 3:10;
+tau_c = 5:3:29;
+tcpw = 5:3:35;
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_rTop = length(r_top);
+num_rBot = length(r_bot);
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+
+
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+num_tcpw-1), 'fixed');
+
+% lgnd_str = cell(1, length(filenames) + 2);
+
+
+
+figure;
+for nn = 1:num_tauC
+
+    subplot(3,3,nn)
+    grid on; grid minor
+    hold on
+    title(['$\tau_c = $', num2str(tau_c(nn))], 'Interpreter','latex', 'FontSize',20)
+
+
+    if nn==4
+
+        ylabel('$r_{top}^{true}$ - $r_{top}^{retrieved}$', 'Interpreter','latex', 'FontSize',35)
+
+    elseif nn==8
+
+        xlabel('$r_{bot}^{true}$ - $r_{bot}^{retrieved}$', 'Interpreter','latex', 'FontSize',35)
+
+    end
+
+
+end
+
+
+for nn = 1:length(filenames)
+
+
+    % Load a data set
+    ds = load([filenames(nn).folder, '/', filenames(nn).name]);
+
+    if isfield(ds, 'GN_outputs')
+
+        idx_tau_c = find(ds.GN_inputs.measurement.tau_c==tau_c);
+
+        [~, idx_actpw] = min(abs(ds.GN_inputs.measurement.actpw - acpw_true));
+
+        subplot(3,3,idx_tau_c)
+
+        hold on
+
+        diff_rTop = ds.GN_inputs.measurement.r_top - ds.GN_outputs.retrieval(1,end);  % microns
+        diff_rBot = ds.GN_inputs.measurement.r_bot - ds.GN_outputs.retrieval(2,end);  % microns
+
+        plot(diff_rBot, diff_rTop, '.', 'MarkerSize', 20,...
+            'Color', C(idx_actpw, :))
+
+        hold on
+
+    end
+
+
+end
+
+for nn = 1:num_tauC
+
+    subplot(3,3,nn)
+    grid on; grid minor
+    hold on
+    title(['$\tau_c = $', num2str(tau_c(nn))], 'Interpreter','latex', 'FontSize',20)
+
+
+    if nn==4
+
+        ylabel('$r_{top}^{true}$ - $r_{top}^{retrieved}$', 'Interpreter','latex', 'FontSize',35)
+
+    elseif nn==8
+
+        xlabel('$r_{bot}^{true}$ - $r_{bot}^{retrieved}$', 'Interpreter','latex', 'FontSize',35)
+
+    end
+
+
+end
+
+legend("$acpw = $"+string((round(tau_c, 2)))+" $mm$", 'Position',...
+    [0.78153780173431 0.0609496949905001 0.057275146484375 0.257175660160735],...
+    'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+%title('$r_{top} = 10$ simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
+
+
+set(gcf,'Position',[0 0 1500 875])
+
+
+
+
+
+
+%% Let's compare the two multispectral a prioris as a function of optical depth
 
 
 
@@ -249,7 +580,8 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir('/Users/andrewbuggee/MATLAB-Drive/vza_7_vaz_210_sza_10_saz_91/*.mat');
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -394,7 +726,8 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir('/Users/andrewbuggee/MATLAB-Drive/vza_7_vaz_210_sza_10_saz_91/*.mat');
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -526,7 +859,8 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir('/Users/andrewbuggee/MATLAB-Drive/vza_7_vaz_210_sza_10_saz_91/*.mat');
+filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -626,7 +960,7 @@ for nn = 1:num_rBot
 
 end
 
-legend("$acpw = $"+string((round(acpw_true, 2))), 'Position',...
+legend("$acpw = $"+string((round(acpw_true, 2)))+" $mm$", 'Position',...
     [0.78153780173431 0.0609496949905001 0.057275146484375 0.257175660160735],...
     'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
 
