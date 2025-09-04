@@ -154,8 +154,19 @@ inputs.RT.yesCloud = true;
 
 % inputs.RT.re = 3:2:24;      % microns
 % inputs.RT.re = [3:1:9, 11:2:24];      % microns
-inputs.RT.re = [3:0.5:9, 11:2:24];      % microns
-inputs.RT.tau_c = [1:10, 12:2:20, 25:5:35, 45:10:55];
+
+% *** most accurate and complete description of the space ***
+% inputs.RT.re = [3:0.5:9, 11:2:24];      % microns
+% inputs.RT.tau_c = [1:10, 12:2:20, 25:5:35, 45:10:55];
+
+% *** subset of above  ***
+inputs.RT.re = [3:0.5:9, 11:2:17];      % microns
+inputs.RT.tau_c = [1:10, 12:2:20, 25:5:35];
+
+
+
+
+
 
 % inputs.RT.re = 3:2:11;      % microns
 % inputs.RT.tau_c = [1:10];
