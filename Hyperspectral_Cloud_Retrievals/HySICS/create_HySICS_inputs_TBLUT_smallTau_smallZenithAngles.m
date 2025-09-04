@@ -21,7 +21,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_HySICS_inputs_TBLUT(inputs_measurement, print_libRadtran_err)
+function inputs = create_HySICS_inputs_TBLUT_smallTau_smallZenithAngles(inputs_measurement, tblut_retrieval_1, print_libRadtran_err)
 
 
 
@@ -37,12 +37,14 @@ inputs.compute_weighting_functions = false;
 
 
 % Define which HySICS bands to run
+
+% ** compute reflectance at two additional shortwave infrared channels **
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
 % band 50 has a center wavelength of 502 nm
-% band 89 has a center wavelength of 621 nm
-% band 98 has a center wavelength of 649 nm
+% band 435 has a center wavelength of 1680 nm
 % band 582 has a center wavelength of 2131 nm
-inputs.bands2run = [50, 582]; % these are the bands that we will run uvspec with
+% band 607 has a center wavelength of 2220 nm
+inputs.bands2run = [50, 435, 582, 607]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands
@@ -152,13 +154,11 @@ inputs.RT.surface_albedo = inputs_measurement.RT.surface_albedo;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% inputs.RT.re = 3:2:24;      % microns
-% inputs.RT.re = [3:1:9, 11:2:24];      % microns
-inputs.RT.re = [3:0.5:9, 11:2:24];      % microns
-inputs.RT.tau_c = [1:10, 12:2:20, 25:5:35, 45:10:55];
+% use the results from the first retrieval to set the range for computing
+% new relfectances
+inputs.RT.re = [tblut_retrieval_1.minRe, tblut_retrieval_1.minRe_2_5];
+inputs.RT.tau_c = [tblut_retrieval_1.minTau, tblut_retrieval_1.minTau_2_5];
 
-% inputs.RT.re = 3:2:11;      % microns
-% inputs.RT.tau_c = [1:10];
 
 % define the cloud geometric depth
 inputs.RT.cloud_depth = 500;                % meters

@@ -197,13 +197,25 @@ if print_status_updates==true
 
             disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
                 'Trying a different inital guess...', newline])
+            
+            % Check to see if both guesses are 3.5, the lower limit of our
+            % lookup table
+            if current_guess(1)==3.5 && current_guess(2)==3.5
 
-            new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3)];
+                new_guess = [9, 5, current_guess(3), current_guess(4)];
 
+            else
+
+                new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3), current_guess(4)];
+
+            end
+    
             disp([newline, 'Initial guess was: r_t = ', num2str(current_guess(1)),...
-                '  r_b = ', num2str(current_guess(2)), '  Tau_c = ', num2str(current_guess(3)), newline])
+                '  r_b = ', num2str(current_guess(2)), '  Tau_c = ', num2str(current_guess(3)),...
+                '  acpw = ', num2str(current_guess(4)), newline])
             disp(['New guess is : r_t = ', num2str(new_guess(1)),...
-                '  r_b = ', num2str(new_guess(2)), '  Tau_c = ', num2str(new_guess(3)), newline])
+                '  r_b = ', num2str(new_guess(2)), '  Tau_c = ', num2str(new_guess(3)),...
+                '  acpw = ', num2str(new_guess(4)), newline])
 
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
@@ -534,7 +546,18 @@ else
 
 
 
-            new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3)];
+            
+            % Check to see if both guesses are 3.5, the lower limit of our
+            % lookup table
+            if current_guess(1)==3.5 && current_guess(2)==3.5
+
+                new_guess = [9, 5, current_guess(3), current_guess(4)];
+
+            else
+
+                new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3), current_guess(4)];
+
+            end
 
 
 

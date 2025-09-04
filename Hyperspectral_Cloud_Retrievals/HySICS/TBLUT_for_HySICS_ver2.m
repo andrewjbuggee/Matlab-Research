@@ -33,7 +33,7 @@ which_computer = folder_paths.which_computer;
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_HySICS_inputs_TBLUT(folder_paths, simulated_measurements.inputs, print_libRadtran_err);
+inputs_tblut = create_HySICS_inputs_TBLUT(simulated_measurements.inputs, print_libRadtran_err);
 
 
 
@@ -333,7 +333,12 @@ end
 % if interpGridScalFactor is 10, then 9 rows will be interpolated to be 90
 % rows, and 10 columns will be interpolated to be 100 columns
 
-if isfield(simulated_measurements, 'Refl_model')==true
+
+if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+
+    tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_measurements.Refl_model_with_noise, Refl_model_tblut, inputs_tblut, folder_paths);
+
+elseif isfield(simulated_measurements, 'Refl_model')==true
 
     tblut_retrieval = leastSquaresGridSearch_HySICS(simulated_measurements.Refl_model, Refl_model_tblut, inputs_tblut, folder_paths);
 
@@ -347,6 +352,45 @@ else
 
 end
 
+
+
+
+   
+%% We need to check a common failure mode - small optical depths have large non-unique solution regions
+% These non-unique solution regions grow larger as the solar and viewing
+% zenith angle approach 0 (at zenith).
+
+% *** If the minimum solution effective radius is less than 5 microns, and
+% the optical depth is less than 10, we need to double check the retrieval
+
+if tblut_retrieval.minRe<=5 && tblut_retrieval.minTau<=10
+
+    % start with checking if both the solar and viewing zenith angles are less
+    % that 10 degrees - this results in large non-unique regions in the look-up
+    % table
+
+
+    % Lets compute reflectance at two additional weakly absorbing
+    % channels using the minimum solution and see how it compares
+    tblut_retrieval_2 = TBLUT_for_HySICS_smallDrops_smallTau(simulated_measurements, folder_paths,...
+        tblut_retrieval, print_status_updates, print_libRadtran_err);
+
+    % replace the minimum solution from the first tblut retrieval with the
+    % new one
+    [new_min_val, idx_min] = min(tblut_retrieval_2.minRMS);
+    tblut_retrieval.minRe = tblut_retrieval_2.states_2check(idx_min, 1);
+    tblut_retrieval.minTau = tblut_retrieval_2.states_2check(idx_min, 2);
+    tblut_retrieval.minLSD = new_min_val;
+
+
+     % save the new retrieval
+     save(folder_paths.saveOutput_filename, "tblut_retrieval_2", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
+
+    
+
+
+
+end
 
 
 end
