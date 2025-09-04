@@ -1,5 +1,7 @@
 % simulated measurements is an input used to define certain parameters
 
+% ** Retrieving variables: r_top, r_bot, tau_c
+
 
 function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements)
 
@@ -101,6 +103,12 @@ GN_inputs.measurement.prior = 'gaussian';
 %   (2) 'computed' - uses measured data to compute covaraince
 GN_inputs.measurement.covariance_type = 'independent';
 
+% Store the simulated state vector used to create the measurements
+GN_inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
+GN_inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
+GN_inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth
+GN_inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
+
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------
@@ -132,11 +140,6 @@ GN_inputs.model.profile.r_bottom = 5; % microns - value for our model
 
 
 
-% -----------------------------------------------
-% ------------- Folder Locations  ---------------
-% -----------------------------------------------
-GN_inputs.save_calcs_fileName = ['uvspec_GaussNewton_calcs_',date,'.mat'];
-
 
 
 
@@ -157,6 +160,7 @@ GN_inputs.save_calcs_fileName = ['uvspec_GaussNewton_calcs_',date,'.mat'];
 % ----- Define Radiative Transfer Model Parameters -----
 % ------------------------------------------------------
 
+
 % Define the parameters of the INP file
 
 % Use geometry inputs from the simulated measurements
@@ -167,8 +171,12 @@ load_parameters_from_measurement = true;
 
 simulated_measurements_likeness = 'exact';
 
-[GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement, ...
-    simulated_measurements, simulated_measurements_likeness);
+[GN_inputs, ~] = create_uvSpec_DISORT_inputs_for_HySICS(GN_inputs, load_parameters_from_measurement,...
+    simulated_measurements, simulated_measurements_likeness, print_libRadtran_err);
+
+% Are you simulating a measurement, or making forward model calculations
+% for the retrieval?
+GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
 
 
