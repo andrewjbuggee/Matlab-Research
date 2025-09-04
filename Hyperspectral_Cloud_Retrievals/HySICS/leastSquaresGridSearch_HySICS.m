@@ -94,16 +94,49 @@ leastSquaresGrid = sqrt(mean((cat(3, interp_modelRefl_band1, interp_modelRefl_ba
 % using the minimum function. If we have more complicated scenario we need
 % to use the optimization tools to search for global and local minima
 
-[tblut_retrieval.minLSD,index] = min(leastSquaresGrid,[],'all','linear');
-[row,col] = ind2sub(size(leastSquaresGrid),index);
+% **** find the 5 smallest values and the associated grid points ****
 
-% Save the effective radius and optical depth associated with the
-% minimum RMS difference
-tblut_retrieval.minRe = Re(row,col);
-tblut_retrieval.minTau = T(row,col);
+for nn = 1:5
 
-% Save the reflectance associated with the minimum RMS difference
-tblut_retrieval.reflectance = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
+    if nn==1
+
+        [tblut_retrieval.minLSD, index] = min(leastSquaresGrid,[],'all','linear');
+        [row,col] = ind2sub(size(leastSquaresGrid),index);
+        
+        % Save the effective radius and optical depth associated with the
+        % minimum RMS difference
+        tblut_retrieval.minRe = Re(row,col);
+        tblut_retrieval.minTau = T(row,col);
+
+        % Save the reflectance associated with the minimum RMS difference
+        tblut_retrieval.reflectance = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
+
+    else
+
+        % set the previous minimum value to nan
+        leastSquaresGrid(index) = nan;
+
+        [tblut_retrieval.minLSD_2_5(nn-1), index] = min(leastSquaresGrid,[],'all','linear');
+        [row,col] = ind2sub(size(leastSquaresGrid),index);
+        
+        % Save the effective radius and optical depth associated with the
+        % minimum RMS difference
+        tblut_retrieval.minRe_2_5(nn-1) = Re(row,col);
+        tblut_retrieval.minTau_2_5(nn-1) = T(row,col);
+
+        % Save the reflectance associated with the minimum RMS difference
+        tblut_retrieval.reflectance_2_5(:,nn-1) = [interp_modelRefl_band1(row, col); interp_modelRefl_band2(row, col)];
+
+    end
+
+end
+
+
+
+
+
+
+%%
 
 
 % lets look at the least squares grid
