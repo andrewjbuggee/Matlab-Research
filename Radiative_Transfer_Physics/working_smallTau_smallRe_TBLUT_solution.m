@@ -1,4 +1,47 @@
 
+
+clear variables
+
+% ---------------------------------------------
+% ---------------- MAC DESKTOP ---------------
+% ---------------------------------------------
+
+folderName = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/testing_mie/';
+
+
+inputName = 'Mie_calc_refrac_water_distribution_gamma_rClouds.INP';
+
+outputName = inputName(1:end-4);
+
+% run mie file
+tic
+[drop_settings] = runMIE(folderName,inputName,outputName, whatComputer);
+toc
+
+
+% read mie file
+if iscell(outputName)==true
+
+    ds = cell(1,length(outputName));
+
+    for jj = 1:length(outputName)
+
+        [ds{jj},headers,num_radii] = readMIE(folderName,outputName{jj}); % headers don't change per iteration
+
+    end
+
+else
+
+    [ds,headers,num_radii] = readMIE(folderName,outputName);
+
+end
+
+
+
+%%
+
+
+
 lgnd_str = cell(1,25);
 
 figure;

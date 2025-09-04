@@ -5,6 +5,8 @@
 % profile over any number spectral channels
 
 
+% For the retrieval of r_top, r_bot, tau_c
+
 % By Andrew J. Buggee
 %%
 function measurement_estimate = compute_forward_model_HySICS(current_guess, GN_inputs, spec_response, folder_paths)
@@ -22,7 +24,9 @@ tau_c = current_guess(3);
 % We want to avoid large broadcast variables!
 wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
-libRadtran_data_path = GN_inputs.libRadtran_data_path;
+libRadtran_data_path = folder_paths.libRadtran_data;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+mie_folder_path = folder_paths.libRadtran_mie_folder;
 which_computer = GN_inputs.which_computer;
 
 
@@ -77,8 +81,8 @@ loop_var = 0;
 wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.lambda_forTau,...
     GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var, GN_inputs.RT.vert_homogeneous_str,...
     GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer,...
-    loop_var, 2);
-
+    loop_var, 2, wc_folder_path, mie_folder_path);
+wc_filename = wc_filename{1};
 
 % ------------------------------------------------------
 % ------------------------------------------------------
@@ -95,8 +99,8 @@ parfor ww = 1:size(wavelengths2run,1)
 
 
     % ----- Write an INP file --------
-    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
-        wavelengths2run(ww,:), wc_filename{1});
+    write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
+        wavelengths2run(ww,:), wc_filename);
 
 
     % ----------------------------------------------------

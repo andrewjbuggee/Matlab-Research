@@ -59,7 +59,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % ***** Define the HySICS Folder with the simulated measurements *****
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
 
     % ---- Define where the retrievals will be stored ---
     folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
@@ -150,7 +150,13 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % r_top = 9.5, r_bot = 4, tau_c = 6, 35 bands from first paper with 1%
     % uncertainty
     % simulated calcs for MODIS obs on fig 3.a for paper 1
-    filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+    % filename = 'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat';
+
+
+    % r_top = 10, r_bot = 5, tau_c = 8, tcwv = 14 66 bands for second paper
+    % with negligible uncertinty
+    filename = ['simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_8',...
+        '_tcwv_14_vza_0_vaz_210_sza_0_saz_0_sim-ran-on-12-Aug-2025'];
 
 
     % test file with just 5 wavelengths
