@@ -101,6 +101,9 @@ for ff = 1:length(filenames)
     simulated_measurements.spec_response.value = simulated_measurements.spec_response.value(idx_35, :);
     simulated_measurements.spec_response.wavelength = simulated_measurements.spec_response.wavelength(idx_35, :);
 
+    simulated_measurements.inputs.bands2run = simulated_measurements.inputs.bands2run(idx_35);
+    simulated_measurements.inputs.RT.wavelengths2run = simulated_measurements.inputs.RT.wavelengths2run(idx_35, :);
+
     %% Check to see if there is uncertainty
 
 
