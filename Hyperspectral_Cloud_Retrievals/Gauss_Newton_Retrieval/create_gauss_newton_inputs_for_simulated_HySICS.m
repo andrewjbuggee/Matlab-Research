@@ -3,7 +3,7 @@
 % ** Retrieving variables: r_top, r_bot, tau_c
 
 
-function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements)
+function GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements, print_libRadtran_err)
 
 
 % Which computer are you using?
@@ -112,6 +112,9 @@ GN_inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
 % -----------------------------------------------
+
+GN_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+
 
 % we model two free parameters, r_top and r_bot
 GN_inputs.RT.num_re_parameters = 2;
