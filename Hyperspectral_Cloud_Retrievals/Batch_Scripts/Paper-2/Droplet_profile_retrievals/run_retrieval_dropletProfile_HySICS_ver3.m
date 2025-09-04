@@ -34,7 +34,7 @@ for ff = 1:length(filenames)
 
 
     if print_status_updates==true
-            disp([newline, 'Processing file: ', filenames{ff}, '...', newline])
+        disp([newline, 'Processing file: ', filenames{ff}, '...', newline])
     end
 
 
@@ -251,7 +251,11 @@ for ff = 1:length(filenames)
     %% Clear variables and start again!
 
 
-    clear simulated_measurements tblut_retrieval acpw_retrieval GN_inputs GN_outputs
+    if length(filenames)>1 && ff~=length(filenames)
+
+        clear simulated_measurements tblut_retrieval acpw_retrieval GN_inputs GN_outputs
+
+    end
 
 
 end

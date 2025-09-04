@@ -21,7 +21,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW(filenames, folder_paths, print_status_updates, print_libRadtran_err)
+function [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_15(filenames, folder_paths, print_status_updates, print_libRadtran_err)
 
 
 %% -- Start Parallel pool
@@ -284,7 +284,12 @@ for ff = 1:length(filenames)
     %% Clear variables and start again!
 
 
-    clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+    if length(filenames)>1 && ff~=length(filenames)
+
+        clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+
+    end
+
 
 
 end
