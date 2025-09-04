@@ -284,7 +284,12 @@ for ff = 1:length(filenames)
     %% Clear variables and start again!
 
 
-    clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+    if length(filenames)>1 && ff~=length(filenames)
+
+        clear simulated_measurements tblut_retrieval GN_inputs GN_outputs
+
+    end
+
 
 
 end
