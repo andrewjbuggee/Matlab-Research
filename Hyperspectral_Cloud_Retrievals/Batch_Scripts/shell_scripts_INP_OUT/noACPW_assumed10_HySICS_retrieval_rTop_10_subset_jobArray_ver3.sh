@@ -114,6 +114,35 @@ done
 echo " "
 echo "Total files to process in this job: $(echo $FILE_ARRAY | tr ',' '\n' | wc -l)"
 
+
+
+# Add this debug section before running MATLAB:
+echo "=== DEBUG INFO ==="
+echo "SLURM_ARRAY_TASK_MIN: ${SLURM_ARRAY_TASK_MIN}"
+echo "SLURM_ARRAY_TASK_MAX: ${SLURM_ARRAY_TASK_MAX}"
+echo "SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID}"
+echo "Total files found: ${#ALL_FILES[@]}"
+echo "START_IDX: ${START_IDX}"
+echo "END_IDX: ${END_IDX}"
+echo "FILE_ARRAY contents: [${FILE_ARRAY}]"
+
+# List the first few files found:
+echo "First few files found:"
+for (( j=0; j<5 && j<${#ALL_FILES[@]}; j++ )); do
+    echo "  [$j]: ${ALL_FILES[$j]}"
+done
+echo "=================="
+
+# Check if FILE_ARRAY is empty before running MATLAB
+if [ -z "$FILE_ARRAY" ]; then
+    echo "ERROR: No files assigned to this job!"
+    echo "This usually means the array indexing is wrong."
+    exit 1
+fi
+
+
+
+
 # Run MATLAB once with all files for this job
 echo " "
 echo "Starting MATLAB at $(date)"
