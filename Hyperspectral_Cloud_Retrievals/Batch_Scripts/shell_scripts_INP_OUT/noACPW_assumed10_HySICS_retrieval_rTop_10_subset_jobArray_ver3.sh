@@ -115,8 +115,9 @@ echo " "
 echo "Total files to process in this job: $(echo $FILE_ARRAY | tr ',' '\n' | wc -l)"
 
 
-
-# Add this debug section before running MATLAB:
+# -------------------------------------------------------------
+# Debugging section to check is file array is defined correctly
+echo " "
 echo "=== DEBUG INFO ==="
 echo "SLURM_ARRAY_TASK_MIN: ${SLURM_ARRAY_TASK_MIN}"
 echo "SLURM_ARRAY_TASK_MAX: ${SLURM_ARRAY_TASK_MAX}"
@@ -139,7 +140,7 @@ if [ -z "$FILE_ARRAY" ]; then
     echo "This usually means the array indexing is wrong."
     exit 1
 fi
-
+# ----------------------------------------------
 
 
 
