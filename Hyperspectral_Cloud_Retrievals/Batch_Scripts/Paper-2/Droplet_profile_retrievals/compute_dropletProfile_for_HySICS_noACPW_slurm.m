@@ -53,12 +53,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % Use folder on MATLAB Drive
-    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Simulated_spectra/',...
-        'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/'];
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Simulated_spectra/',...
+    %     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/'];
 
 
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_20_vza_7*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14_vza_7*.mat']);
 
 
 
