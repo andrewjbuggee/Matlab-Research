@@ -113,7 +113,6 @@ for ff = 1:length(filenames)
     if isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
         if print_status_updates==true
-            disp([newline, 'Processing file: ', filenames{ff}, '...', newline])
             disp([newline, 'Using measurements with added uncertianty...', newline])
         end
 
