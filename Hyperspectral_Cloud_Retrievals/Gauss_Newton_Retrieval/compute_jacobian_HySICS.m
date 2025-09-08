@@ -31,6 +31,8 @@ mie_folder_path = folder_paths.libRadtran_mie_folder;
 which_computer = GN_inputs.which_computer;
 
 
+
+
 % Read the solar flux file over the wavelength range specified
 wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
 
@@ -105,17 +107,17 @@ re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), 
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 1, 2, wc_folder_path, mie_folder_path);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 2, 2, wc_folder_path, mie_folder_path);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 3, 2, wc_folder_path, mie_folder_path);
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
@@ -156,8 +158,7 @@ parfor nn = 1:num_INP_files
 
 
      % compute INP file
-    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName,...
-        GN_inputs.which_computer);
+    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName, which_computer);
 
 
     % read .OUT file
