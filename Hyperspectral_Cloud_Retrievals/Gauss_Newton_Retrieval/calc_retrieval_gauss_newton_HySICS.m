@@ -139,6 +139,10 @@ if print_status_updates==true
         % **** compute the jacobian ****
         % For the retrieval of r_top, r_bot, tau_c
         disp([newline, 'Computing the Jacobian...', newline])
+
+        % **** For debugging ****
+        disp([newline, 'Current state vector guess: ', num2str(current_guess), newline])
+        disp([newline, 'Current measurement estimate: ', num2str(measurement_estimate), newline])
         Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
