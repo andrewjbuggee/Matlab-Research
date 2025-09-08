@@ -10,6 +10,16 @@ function [] = start_parallel_pool(which_computer)
 % Is parpool running?
 p = gcp('nocreate');
 
+% Clean up any existing parallel pool and its associated job files
+if ~isempty(p)
+    delete(p);
+end
+
+% Clean up any stray job files
+localJobStorageLocation = fullfile(getenv('HOME'), '.matlab', 'local_cluster_jobs');
+if exist(localJobStorageLocation, 'dir')==7
+    rmdir(localJobStorageLocation, 's');
+end
 
 % *** Start parallel pool ***
 
