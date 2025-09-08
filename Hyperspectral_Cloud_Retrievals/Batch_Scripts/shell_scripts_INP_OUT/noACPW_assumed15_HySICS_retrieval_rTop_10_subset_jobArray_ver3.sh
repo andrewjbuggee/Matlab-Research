@@ -113,11 +113,42 @@ done
 echo " "
 echo "Total files to process in this job: $(echo $FILE_ARRAY | tr ',' '\n' | wc -l)"
 
+
+# -------------------------------------------------------------
+# Debugging section to check is file array is defined correctly
+echo " "
+echo "=== DEBUG INFO ==="
+echo "SLURM_ARRAY_TASK_MIN: ${SLURM_ARRAY_TASK_MIN}"
+echo "SLURM_ARRAY_TASK_MAX: ${SLURM_ARRAY_TASK_MAX}"
+echo "SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID}"
+echo "Total files found: ${#ALL_FILES[@]}"
+echo "START_IDX: ${START_IDX}"
+echo "END_IDX: ${END_IDX}"
+echo "FILE_ARRAY contents: [${FILE_ARRAY}]"
+
+# List the first few files found:
+echo "First few files found:"
+for (( j=0; j<5 && j<${#ALL_FILES[@]}; j++ )); do
+    echo "  [$j]: ${ALL_FILES[$j]}"
+done
+echo "=================="
+
+# Check if FILE_ARRAY is empty before running MATLAB
+if [ -z "$FILE_ARRAY" ]; then
+    echo "ERROR: No files assigned to this job!"
+    echo "This usually means the array indexing is wrong."
+    exit 1
+fi
+# ----------------------------------------------
+
+
+
+
 # Run MATLAB once with all files for this job
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_15(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = true; print_libRadtran_err = true; file_list = {${FILE_ARRAY}}; [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_15(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
