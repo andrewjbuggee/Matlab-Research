@@ -110,8 +110,8 @@ files{1} = filenames.name;
 % --- Assume 10mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-% [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(files,...
-%     folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(files,...
+    folder_paths, print_status_updates, print_libRadtran_err);
 
 
 % --------------------------------------------
@@ -136,6 +136,6 @@ files{1} = filenames.name;
 % --- Assume 25mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-[tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_25(files,...
-    folder_paths, print_status_updates, print_libRadtran_err);
+% [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_25(files,...
+%     folder_paths, print_status_updates, print_libRadtran_err);
 
