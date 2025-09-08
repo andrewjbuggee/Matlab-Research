@@ -15,11 +15,30 @@ p = gcp('nocreate');
 
 if isempty(p)==true
 
+
+    % Clean up any stale job files before starting (especially for CURC)
+    if strcmp(which_computer,'curc')==true
+        try
+            % Clear parallel preferences to remove stale job references
+            parallel.Settings.clearAll();
+
+            % Optional: Clean up job files directory
+            job_dir = fullfile(prefdir, 'local_cluster_jobs');
+            if exist(job_dir, 'dir')
+                fprintf('Cleaning up old job files...\n');
+                rmdir(job_dir, 's');
+            end
+        catch ME
+            % If cleanup fails, just warn and continue
+            warning([newline, 'Could not clean up old job files: %s', ME.message, newline]);
+        end
+    end
+
+
+
+
     % first read the local number of workers avilabile.
     p = parcluster('local');
-
-
-
 
 
     % Find the folder where the mie calculations are stored
@@ -96,22 +115,6 @@ if isempty(p)==true
         % ----------------------------------------------
 
 
-        % Clean up any stale job files before starting
-        try
-            % Clear parallel preferences to remove stale job references
-            parallel.Settings.clearAll();
-
-            % Optional: Clean up job files directory
-            job_dir = fullfile(prefdir, 'local_cluster_jobs');
-            if exist(job_dir, 'dir')
-                fprintf('Cleaning up old job files...\n');
-                rmdir(job_dir, 's');
-            end
-        catch ME
-            % If cleanup fails, just warn and continue
-            warning([newline,'Could not clean up old job files: %s', ME.message, newline]);
-        end
-
 
         % Add a small delay to let file system sync (cluster-specific)
         pause(1);
@@ -143,10 +146,16 @@ if isempty(p)==true
             warning([newline,'First parpool attempt failed: %s', ME.message, newline]);
             fprintf('Attempting cleanup and retry...\n');
 
-            % Force cleanup
-            parallel.Settings.clearAll();
+            % Force cleanup - use alternative methods
+            delete(gcp('nocreate'));  % Delete any existing pool
+            
+            % Clear job files directory
+            job_dir = fullfile(prefdir, 'local_cluster_jobs');
+            if exist(job_dir, 'dir')
+                rmdir(job_dir, 's');
+            end
             pause(2);
-
+            
             % Retry parpool
             if p.NumWorkers>64
                 parpool(p.NumWorkers - 8);
