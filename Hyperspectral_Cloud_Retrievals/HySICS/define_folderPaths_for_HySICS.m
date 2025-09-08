@@ -308,7 +308,7 @@ else
 
 
         % mie folder location
-        folder_paths.libRadtran_mie_folder = ['/scratch/alpine/anbu8374/Mie_Calculations_', num2str(folder_extension_number), '/'];
+        folder_paths.libRadtran_mie_folder = ['/scratch/alpine/anbu8374/Mie_Calculations/Mie_Calculations_', num2str(folder_extension_number), '/'];
 
 
 
