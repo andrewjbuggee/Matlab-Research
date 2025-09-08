@@ -151,7 +151,7 @@ if print_status_updates==true
         end
 
         Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
-            hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+            spec_response, jacobian_barPlot_flag, folder_paths);
 
 
 
@@ -496,7 +496,7 @@ else
         % **** compute the jacobian ****
         % For the retrieval of r_top, r_bot, tau_c
         Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
-            hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+            spec_response, jacobian_barPlot_flag, folder_paths);
 
 
 
@@ -779,7 +779,7 @@ end
 
 % we need to compute the jacobian using the solution state
 Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+    spec_response, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
 

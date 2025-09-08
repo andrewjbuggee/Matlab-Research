@@ -125,7 +125,12 @@ if strcmp(rte_solver, 'disort')==true
 
         % new way of readng the data. cuts the time in half
         data_char = fileread([path,fileName,'.OUT']);
-        data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
+        if isempty(data_char)==true
+            error([newline, 'The output file is empty! No data to read. Check file: ',...
+                path,fileName,'.OUT', newline])
+        else
+            data = cell2mat(textscan(data_char, '%f %f %f %f %f %f %f'));
+        end
 
 
         col1 = data(:,1);
