@@ -12,7 +12,7 @@ clear variables;
 
 %% Define the folders for libRadtran calculation and define the computer in use
 
-folder_paths = define_folderPaths_for_HySICS(3);
+folder_paths = define_folderPaths_for_HySICS(1);
 which_computer = folder_paths.which_computer;
 
 
@@ -78,7 +78,7 @@ elseif strcmp(which_computer,'curc')==true
 
     % load measurements from curc storage
     folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
 
     % add folders to the path
     addpath(genpath('/projects/anbu8374/Matlab-Research'));
@@ -91,7 +91,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_20_vza_7*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_8_vza_7*.mat']);
 
 
 
