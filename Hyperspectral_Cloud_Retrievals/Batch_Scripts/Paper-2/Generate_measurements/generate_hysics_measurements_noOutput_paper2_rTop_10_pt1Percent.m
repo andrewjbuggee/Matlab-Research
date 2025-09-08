@@ -20,6 +20,10 @@ delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
 delete([folder_paths.libRadtran_mie_folder, '*.INP'])
 delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
+%% Start parallel pool
+
+start_parallel_pool(folder_paths.which_computer)
+
 %%
 
 % define the range of independent parameters
