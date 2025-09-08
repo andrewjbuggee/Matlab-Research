@@ -1,159 +1,28 @@
 %% Generate many measurements with different optical depths, cloud droplet size at top and bottom, and different total column water vapor amounts
 
 
-clear variables
 
-
-%% Define the path location where INP files will be stored, and where Reflectances will be stored
-
-clear inputs
-
-% Determine which computer this is being run on
-inputs.which_computer = whatComputer;
-
-% Find the folder where the mie calculations are stored
-% find the folder where the water cloud files are stored.
-if strcmp(inputs.which_computer,'anbu8374')==true
-
-    % ------ Folders on my Mac Desktop --------
-
-    % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
-
-
-    % Define the folder path where all .INP files will be saved
-    inputs.libRadtran_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/'];
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
-
-
-    % water cloud file location
-    inputs.water_cloud_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
-
-
-
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
-
-    % ------ Folders on my Macbook --------
-
-    % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
-
-
-    % Define the folder path where all .INP files will be saved
-    inputs.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/HySICS/'];
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/data/'];
-
-
-    % water cloud file location
-    inputs.water_cloud_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
-
-    % mie folder location
-    inputs.libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
-        'libRadtran-2.0.4/Mie_Calculations/'];
-
-
-
-
-
-elseif strcmp(inputs.which_computer,'curc')==true
-
-    % ------ Folders on the CU Supercomputer /projects folder --------
-
-    % Define the folder path where .mat files of relfectance will be stored
-    inputs.folderpath_reflectance = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
-        'Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
-
-
-
-    % Define the folder path where all .INP files will be saved
-    inputs.libRadtran_inp = '/scratch/alpine/anbu8374/hyperspectral_retrieval/HySICS/INP-OUT/';
-
-    % Define the libRadtran data files path. All paths must be absolute in
-    % the INP files for libRadtran
-    inputs.libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
-
-    % water cloud file location
-    inputs.water_cloud_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/';
-
-    % mie folder location
-    inputs.libRadtran_mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/';
-
-
-    % *** Start parallel pool ***
-    % Is parpool running?
-    p = gcp('nocreate');
-    if isempty(p)==true
-
-        % first read the local number of workers avilabile.
-        p = parcluster('local');
-        % start the cluster with the number of workers available
-        if p.NumWorkers>64
-            % Likely the amilan128c partition with 2.1 GB per core
-            % Leave some cores for overhead
-            parpool(p.NumWorkers - 8);
-
-        elseif p.NumWorkers<=64 && p.NumWorkers>10
-
-            % Leave a core for overhead
-            parpool(p.NumWorkers -1);
-
-        elseif p.NumWorkers<=10
-
-            % Leave a core for overhead
-            parpool(p.NumWorkers -1);
-
-
-        end
-
-    end
-
-
-
-end
-
-
-% If the INP folder path doesn't exist, create a new directory
-if ~exist(inputs.libRadtran_inp, 'dir')
-
-    mkdir(inputs.libRadtran_inp)
-
-end
-
-
-% If the reflectances folder path doesn't exist, create a new directory
-if ~exist(inputs.folderpath_reflectance, 'dir')
-
-    mkdir(inputs.folderpath_reflectance)
-
-end
-
-
-% If the water cloud folder path doesn't exist, create a new directory
-if ~exist(inputs.water_cloud_folder_path, 'dir')
-
-    mkdir(inputs.water_cloud_folder_path)
-
-end
 
 
 %%  Delete old files?
-% First, delete files in the HySICS folder
-% delete([inputs.libRadtran_inp, '*.INP'])
-% delete([inputs.libRadtran_inp, '*.OUT'])
+
+% First, delete files in the HySICS INP folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
 
 % delete old wc files
-% delete([inputs.water_cloud_folder_path, '*.DAT'])
+delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
+
+% delete old water vapor profiles
+delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
+
+% delete old MIE files
+delete([folder_paths.libRadtran_mie_folder, '*.INP'])
+delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
+
+%% Start parallel pool
+
+start_parallel_pool(folder_paths.which_computer)
 
 %%
 
@@ -172,10 +41,13 @@ tcpw = [8, 14, 20];
 
 % ----- unpack parallel for loop variables ------
 % We want to avoid large broadcast variables!
-libRadtran_inp = inputs.libRadtran_inp;
-libRadtran_data_path = inputs.libRadtran_data_path;
-wc_folder_path = inputs.water_cloud_folder_path;
-which_computer = inputs.which_computer;
+libRadtran_inp = folder_paths.libRadtran_inp;
+libRadtran_data_path = folder_paths.libRadtran_data;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+libRadtran_mie_folder = folder_paths.libRadtran_mie_folder;
+which_computer = folder_paths.which_computer;
+% store which_computer in inputs structure
+inputs.which_computer = which_computer;
 
 
 
@@ -291,9 +163,9 @@ parfor nn = 1:length(idx_unique_wcFiles_idx)
     temp = write_wc_file(re, changing_variables_allStateVectors(idx_unique_wcFiles_idx(nn), 3),...
         inputs.RT.z_topBottom,inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
         inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-        inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+        inputs.RT.indVar, inputs.compute_weighting_functions, which_computer,...
         idx_unique_wcFiles_idx(nn), inputs.RT.num_re_parameters, wc_folder_path,...
-        inputs.libRadtran_mie_folder);
+        libRadtran_mie_folder);
 
     temp_names{nn} = temp{1};
 
@@ -473,7 +345,7 @@ end
 % Save the version without an measurement uncertainty. Then we can add
 % uncertainty and save the new file
 
-if strcmp(inputs.which_computer,'anbu8374')==true
+if strcmp(which_computer,'anbu8374')==true
 
     % -----------------------------------------
     % ------ Folders on my Mac Desktop --------
@@ -484,7 +356,7 @@ if strcmp(inputs.which_computer,'anbu8374')==true
 
 
 
-elseif strcmp(inputs.which_computer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
     % -------------------------------------
     % ------ Folders on my Macbook --------
@@ -494,7 +366,7 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
         'HySICS/Simulated_spectra/paper2_variableSweep/'];
 
 
-elseif strcmp(inputs.which_computer,'curc')==true
+elseif strcmp(which_computer,'curc')==true
 
     % ------------------------------------------------
     % ------ Folders on the CU Super Computer --------

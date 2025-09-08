@@ -69,7 +69,7 @@ changing_variables = [];
 for xx = 1:num_state_variables
 
 changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
-    GN_inputs.RT.wavelengths2run];
+    wavelengths2run];
 
 end
 
