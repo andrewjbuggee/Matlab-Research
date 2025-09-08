@@ -12,7 +12,7 @@ clear variables;
 
 %% Define the folders for libRadtran calculation and define the computer in use
 
-folder_paths = define_folderPaths_for_HySICS(1);
+folder_paths = define_folderPaths_for_HySICS(3);
 which_computer = folder_paths.which_computer;
 
 
