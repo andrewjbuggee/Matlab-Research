@@ -96,23 +96,65 @@ if isempty(p)==true
         % ----------------------------------------------
 
 
+        % Clean up any stale job files before starting
+        try
+            % Clear parallel preferences to remove stale job references
+            parallel.Settings.clearAll();
+
+            % Optional: Clean up job files directory
+            job_dir = fullfile(prefdir, 'local_cluster_jobs');
+            if exist(job_dir, 'dir')
+                fprintf('Cleaning up old job files...\n');
+                rmdir(job_dir, 's');
+            end
+        catch ME
+            % If cleanup fails, just warn and continue
+            warning([newline,'Could not clean up old job files: %s', ME.message, newline]);
+        end
+
+
+        % Add a small delay to let file system sync (cluster-specific)
+        pause(1);
+
+
         % *** Start parallel pool ***
 
 
-        % start the cluster with the number of workers available
-        if p.NumWorkers>64
-            % Likely the amilan128c partition with 2.1 GB per core
-            % Leave some cores for overhead
-            parpool(p.NumWorkers - 8);
+        try
+            % start the cluster with the number of workers available
+            if p.NumWorkers>64
+                % Likely the amilan128c partition with 2.1 GB per core
+                % Leave some cores for overhead
+                fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers - 8);
+                parpool(p.NumWorkers - 8);
 
-        elseif p.NumWorkers<=64 && p.NumWorkers>10
+            elseif p.NumWorkers<=64 && p.NumWorkers>10
+                fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
+                parpool(p.NumWorkers);
 
-            parpool(p.NumWorkers);
+            elseif p.NumWorkers<=10
+                fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
+                parpool(p.NumWorkers);
 
-        elseif p.NumWorkers<=10
+            end
 
-            parpool(p.NumWorkers);
+        catch ME
+            % If parpool fails, try once more after cleanup
+            warning([newline,'First parpool attempt failed: %s', ME.message, newline]);
+            fprintf('Attempting cleanup and retry...\n');
 
+            % Force cleanup
+            parallel.Settings.clearAll();
+            pause(2);
+
+            % Retry parpool
+            if p.NumWorkers>64
+                parpool(p.NumWorkers - 8);
+            elseif p.NumWorkers<=64 && p.NumWorkers>10
+                parpool(p.NumWorkers);
+            elseif p.NumWorkers<=10
+                parpool(p.NumWorkers);
+            end
         end
 
 
