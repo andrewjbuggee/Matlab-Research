@@ -16,16 +16,16 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=28G
-#SBATCH --time=3:59:59     # Longer time for multiple files
+#SBATCH --mem=36G
+#SBATCH --time=3:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_subset_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_subset_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_1Percent_%A_%a
+#SBATCH --output=full_retrieval_hysics_rTop_10_subset_1Percent_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_rTop_10_subset_1Percent_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-12       # 12 jobs × 1 file each = 12 files
+#SBATCH --array=13-24       # 12 jobs × 1 file each = 12 files
 
 # Load modules
 ml purge
@@ -57,8 +57,8 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 
 RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/"
 
-# Get list of all files
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
+# Get list of all files that have 1% measurement uncertainty
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_1%*.mat" -type f -printf "%f\n" | sort)
 
 # Calculate which files this job should process
 FILES_PER_JOB=1
