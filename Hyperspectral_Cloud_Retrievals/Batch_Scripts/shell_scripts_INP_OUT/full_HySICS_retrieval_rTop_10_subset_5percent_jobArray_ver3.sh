@@ -57,7 +57,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 
 RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/"
 
-# Get list of all files that have 0.1% measurement uncertainty
+# Get list of all files that have 5% measurement uncertainty
 mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_5%*.mat" -type f -printf "%f\n" | sort)
 
 # Calculate which files this job should process
