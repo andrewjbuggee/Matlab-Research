@@ -957,7 +957,7 @@ for nn = 1:num_files_2write
 
                 % print top and bottom
 
-            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),3)),'_rbot',num2str(round(re(1,nn),3)),'_T',num2str(round(tau_c(nn),3)),...
+            fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),4)),'_rbot',num2str(round(re(1,nn),4)),'_T',num2str(round(tau_c(nn),4)),...
                 '_', distribution_type,'_nn',num2str(index), '.DAT'];
 
             elseif num_re_parameters==3
@@ -993,11 +993,11 @@ for nn = 1:num_files_2write
 
         % create the water cloud file name
         if index==0
-            fileName{nn} = ['WC_r',num2str(round(re(nn), 3)),'_T',num2str(round(tau_c(nn), 3)),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
                 '_nn',num2str(nn), '.DAT'];
         elseif index>0
 
-            fileName{nn} = ['WC_r',num2str(round(re(nn), 3)),'_T',num2str(round(tau_c(nn), 3)),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
                 '_nn',num2str(index), '.DAT'];
         end
 
@@ -1021,11 +1021,11 @@ for nn = 1:num_files_2write
 
         % create the water cloud file name
         if index==0
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
                 '_nn',num2str(nn), '.DAT'];
         elseif index>0
 
-            fileName{nn} = ['WC_r',num2str(round(re(nn))),'_T',num2str(round(tau_c(nn))),'_', distribution_type,...
+            fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
                 '_nn',num2str(index), '.DAT'];
         end
 

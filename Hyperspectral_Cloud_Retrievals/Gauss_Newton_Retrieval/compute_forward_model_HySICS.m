@@ -90,9 +90,10 @@ measurement_estimate = zeros(size(GN_inputs.RT.wavelengths2run,1), 1);
 parfor ww = 1:size(wavelengths2run,1)
 % for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
 
+
     % define the input file name
-    inputFileName = [num2str(mean(wavelengths2run(ww,:))), '_','nm_rTop_', num2str(r_top),...
-        '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '.INP'];
+    inputFileName = [num2str(round(mean(wavelengths2run(ww,:)))), '_','nm_rTop_', num2str(round(r_top, 4)),...
+        '_rBot_', num2str(round(r_bottom, 4)),'_tauC_', num2str(round(tau_c, 4)), '.INP'];
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
