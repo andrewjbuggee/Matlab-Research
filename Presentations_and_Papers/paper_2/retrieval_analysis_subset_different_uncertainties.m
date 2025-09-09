@@ -4,12 +4,25 @@
 
 %% Create panneled figure showing retrieval of droplet profile and optical depth for different ACPW
 
+% *** 1% uncertainty ***
+
 clear variables
 
 
-% Access specific file or folder
-filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+% load 1% uncertainty files
+filenames_startWith = 'dropletRetrieval_noACPW_HySICS_35bands_1%_uncert_rTop_10_rBot_5';
+
+folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+% % Access specific file or folder
+% filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/', filenames_startWith,...
+%     '*.mat']);
+
+% filenames_full_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/',...
+%     'dropletRetrieval_HySICS_66bands_1%*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -22,195 +35,563 @@ acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
     18.5165, 20.2525];
 
 % length of each independent variable
-num_rTop = length(r_top);
-num_rBot = length(r_bot);
 num_tauC = length(tau_c);
 num_tcpw = length(tcpw);
 
 
 
-% *** Using HySICS data ***
 
-clear variables
+% Step through each file
 
+% define the colors for each curve plotted
+C = mySavedColors(61:65, 'fixed');
 
-% Determine which computer you're using
-which_computer = whatComputer();
-
-% Find the folder where the mie calculations are stored
-% find the folder where the water cloud files are stored.
-if strcmp(which_computer,'anbu8374')==true
-
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
-
-    % ---- Define where the retrievals are stored ---
-    folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Droplet_profile_retrievals/'];
+lgnd_str = cell(1, 7);
 
 
-elseif strcmp(which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    % ---- Define where the retrievals are stored ---
-    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/'];
+for pw = 1:length(tcpw)
 
 
+    for tc = 1:length(tau_c)
+
+        figure;
 
 
-elseif strcmp(which_computer,'curc')==true
+        % Load a data set
+        fileNames = dir([folder_path, filenames_startWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat' ]);
+
+        for nn = 1:length(fileNames)
 
 
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
+            % Load a data set
+            ds = load([fileNames(nn).folder, '/', fileNames(nn).name]);
+
+
+            if nn==1
+
+
+                % first, plot the simulated profile values as two lines
+                xline(ds.GN_inputs.RT.r_bot, ':', ['Simulated $r_{bot}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
+                    'LabelVerticalAlignment','bottom');
+
+                hold on
+
+                yline(ds.GN_inputs.RT.r_top, ':', ['Simulated $r_{top}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
+                    'LabelVerticalAlignment','top');
+                hold on
+
+
+                % what was the assumed above cloud column water vapor path?
+                title(['Simulated profile - $acpw$ = ',num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
+                    'Fontsize', 25, 'Interpreter', 'latex');
+
+                % Skip the first two legend entries
+                lgnd_str{1} = '';
+                lgnd_str{2} = '';
+
+            end
+
+
+
+            % plot the retrieved droplet profile
+            if nn<length(fileNames)
+
+                hold on
+
+
+                % Plot the retrieval uncertainty of the radius at cloud top and
+                % bottom
+                e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:));
+
+                e1.Bar.LineStyle = 'dotted';
+
+                hold on
+
+
+
+            else
+
+                % give a different marker type for the retrieval using 66 bands
+                % that also retrieved above cloud column water vapor
+
+
+                errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:))
+
+                hold on
+
+
+            end
+
+
+
+            % create the legend string
+            if nn<length(fileNames)
+
+                % what was the assumed above cloud column water vapor path?
+                assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
+                    num2str(round(assumed_CWV,2)), ' $mm$'];
+
+
+
+
+
+            else
+
+                % create the string for the retrieval using CWV
+
+                % what was the retrieved above cloud column water vapor path above
+                % cloud?
+                retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
+                    num2str(round(retrieved_CWV, 2)), ' $mm$'];
+
+            end
+
+
+
+
+
+        end
+
+
+
+        % Create a Legend with only the two black curves
+        legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+        grid on; grid minor
+        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+        set(gcf,'Position',[0 0 950 750])
+
+
+
+
+    end
 
 end
 
 
-% define the mat files for each retreival to plot
-% filenames = {'dropletRetrieval_HySICS_35bands_withNoise_10mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
-%     'dropletRetrieval_HySICS_35bands_withNoise_15mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
-%     'dropletRetrieval_HySICS_35bands_withNoise_20mm-totalCWV_sim-ran-on-13-Jul-2025_rev1.mat',...
-%     'dropletRetrieval_HySICS_35bands_withNoise_25mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
-%     'dropletRetrieval_HySICS_66bands_withNoise_cwvRetrieval_sim-ran-on-12-Jul-2025_rev1.mat'};
 
-% define the mat files for each retreival to plot
-filenames = {'dropletRetrieval_HySICS_35bands_withNoise_10mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
-    'dropletRetrieval_HySICS_35bands_withNoise_15mm-totalCWV_sim-ran-on-12-Jul-2025_rev1.mat',...
-    'dropletRetrieval_HySICS_35bands_withNoise_20mm-totalCWV_sim-ran-on-13-Jul-2025_rev1.mat',...
-    'dropletRetrieval_HySICS_66bands_withNoise_cwvRetrieval_sim-ran-on-12-Jul-2025_rev1.mat'};
+
+
+
+
+
+
+%% Plot every optical-depth and total-column-water-vapor pair as a unique figure. Compare the 4 retrievals
+% that assume a total column water vapor amount with the retrieval for
+% above cloud column water vapor
+
+% *** 5% uncertainty ***
+
+clear variables
+
+
+% load 5% uncertainty files
+filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_5%_uncert_rTop_10_rBot_5';
+filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_5%_uncert_rTop_10_rBot_5';
+
+folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+% % Access specific file or folder
+% filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/', filenames_startWith,...
+%     '*.mat']);
+
+% filenames_full_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/',...
+%     'dropletRetrieval_HySICS_66bands_1%*.mat']);
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 5;
+tau_c = [5,11,17,23];
+tcpw = [8, 14, 20];
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+
 
 
 % Step through each file
 
 % define the colors for each curve plotted
-C = mySavedColors(61:(61+length(filenames)+1), 'fixed');
+C = mySavedColors(61:66, 'fixed');
 
-lgnd_str = cell(1, length(filenames) + 2);
-
-
-figure;
+lgnd_str = cell(1, 7);
 
 
-for nn = 1:length(filenames)
+for pw = 1:length(tcpw)
 
 
-    % Load a data set
-    ds = load([folder_paths.HySICS_retrievals, filenames{nn}]);
+    for tc = 1:length(tau_c)
 
-    if nn==1
-
-
-        % first, plot the simulated profile values as two lines
-        xline(ds.GN_inputs.RT.r_bot, ':', ['Simulated $r_{bot}$'],...
-            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
-            'LabelVerticalAlignment','bottom');
-
-        hold on
-
-        yline(ds.GN_inputs.RT.r_top, ':', ['Simulated $r_{top}$'],...
-            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
-            'LabelVerticalAlignment','top');
-        hold on
+        figure;
 
 
-        % what was the assumed above cloud column water vapor path?
-        simulated_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.simulated_measurements.inputs); % kg/m^2
+        % Load all 5 retrievals
+        fileNames = [dir([folder_path, filenames_noACPW_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);...
+            dir([folder_path, filenames_full_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);];
 
-        title(['Simulated profile - $acpw$ = ',num2str(round(simulated_CWV, 2)), ' $mm$'],...
-            'Fontsize', 25, 'Interpreter', 'latex');
-
-        % Skip the first two legend entries
-        lgnd_str{1} = '';
-        lgnd_str{2} = '';
-
-    end
+        for nn = 1:length(fileNames)
 
 
-
-    % plot the retrieved droplet profile
-    if nn<length(filenames)
-
-        hold on
+            % Load a data set
+            ds = load([fileNames(nn).folder, '/', fileNames(nn).name]);
 
 
-        % Plot the retrieval uncertainty of the radius at cloud top and
-        % bottom
-        e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
-            'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
-            'Color', C(nn+1,:));
+            if nn==1
 
-        e1.Bar.LineStyle = 'dotted';
 
-        hold on
+                % first, plot the simulated profile values as two lines
+                xline(ds.GN_inputs.RT.r_bot, ':', ['Simulated $r_{bot}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
+                    'LabelVerticalAlignment','bottom');
+
+                hold on
+
+                yline(ds.GN_inputs.RT.r_top, ':', ['Simulated $r_{top}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
+                    'LabelVerticalAlignment','top');
+                hold on
+
+
+                % what was the assumed above cloud column water vapor path?
+                title(['Simulated profile - $acpw$ = ',num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
+                    'Fontsize', 25, 'Interpreter', 'latex');
+
+                % Skip the first two legend entries
+                lgnd_str{1} = '';
+                lgnd_str{2} = '';
+
+            end
 
 
 
-    else
+            % plot the retrieved droplet profile
+            if nn<length(fileNames)
 
-        % give a different marker type for the retrieval using 66 bands
-        % that also retrieved above cloud column water vapor
-
-
-        errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
-            'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
-            'Color', C(nn+1,:))
-
-        hold on
+                hold on
 
 
-    end
+                % Plot the retrieval uncertainty of the radius at cloud top and
+                % bottom
+                e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:));
 
+                e1.Bar.LineStyle = 'dotted';
 
-
-    % create the legend string
-    if nn<length(filenames)
-
-        % what was the assumed above cloud column water vapor path?
-        assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
-
-        lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
-            num2str(round(assumed_CWV,2)), ' $mm$'];
+                hold on
 
 
 
+            else
+
+                % give a different marker type for the retrieval using 66 bands
+                % that also retrieved above cloud column water vapor
 
 
-    else
+                errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:))
 
-        % create the string for the retrieval using CWV
+                hold on
 
-        % what was the retrieved above cloud column water vapor path above
-        % cloud?
-        retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
-        lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
-            num2str(round(retrieved_CWV, 2)), ' $mm$'];
+            end
+
+
+
+            % create the legend string
+            if nn<length(fileNames)
+
+                % what was the assumed above cloud column water vapor path?
+                assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
+                    num2str(round(assumed_CWV,2)), ' $mm$'];
+
+
+
+
+
+            else
+
+                % create the string for the retrieval using CWV
+
+                % what was the retrieved above cloud column water vapor path above
+                % cloud?
+                retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
+                    num2str(round(retrieved_CWV, 2)), ' $mm$'];
+
+            end
+
+
+
+
+
+        end
+
+
+
+        % Create a Legend with only the two black curves
+        legend(lgnd_str, 'Interpreter','latex', 'Location','best', 'FontSize', 20)
+
+        grid on; grid minor
+        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+        set(gcf,'Position',[0 0 950 850])
+
+
+
 
     end
 
 end
 
 
-% Create a Legend with only the two black curves
-legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
-
-grid on; grid minor
-ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
-xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
-
-set(gcf,'Position',[0 0 950 750])
 
 
 
-%%
+
+
+
+
+
+
+
+
+%% Make paneled figure with each optical-depth for a single total-column-water-vapor pair
+% Compare the 4 retrievals that assume a total column water vapor amount with the retrieval for
+% above cloud column water vapor
+
+% *** 5% uncertainty ***
+
+clear variables
+
+
+% load 5% uncertainty files
+filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_5%_uncert_rTop_10_rBot_5';
+filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_5%_uncert_rTop_10_rBot_5';
+
+folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+% % Access specific file or folder
+% filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/', filenames_startWith,...
+%     '*.mat']);
+
+% filenames_full_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/',...
+%     'dropletRetrieval_HySICS_66bands_1%*.mat']);
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 5;
+tau_c = [5,11,17,23];
+tcpw = [8, 14, 20];
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+
+
+
+% Step through each file
+
+% define the colors for each curve plotted
+C = mySavedColors(61:66, 'fixed');
+
+lgnd_str = cell(1, 7);
+
+
+for pw = 1:length(tcpw)
+
+    figure;
+
+
+    for tc = 1:length(tau_c)
+
+        subplot(2,2,tc)
+
+
+
+        % Load all 5 retrievals
+        fileNames = [dir([folder_path, filenames_noACPW_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);...
+            dir([folder_path, filenames_full_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);];
+
+        for nn = 1:length(fileNames)
+
+
+            % Load a data set
+            ds = load([fileNames(nn).folder, '/', fileNames(nn).name]);
+
+
+            if nn==1
+
+
+                % first, plot the simulated profile values as two lines
+                xline(ds.GN_inputs.measurement.r_bot, ':', ['Simulated $r_{bot}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
+                    'LabelVerticalAlignment','bottom');
+
+                hold on
+
+                yline(ds.GN_inputs.measurement.r_top, ':', ['Simulated $r_{top}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
+                    'LabelVerticalAlignment','top');
+                hold on
+
+
+
+
+                % Skip the first two legend entries
+                lgnd_str{1} = '';
+                lgnd_str{2} = '';
+
+                % write titles and subtitles
+                if tc==1
+
+                    % what was the assumed above cloud column water vapor path?
+                    title(['Simulated measurements with $5\%$ uncertainty - $acpw$ = ',num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
+                        'Fontsize', 25, 'Interpreter', 'latex');
+
+                end
+
+                subtitle(['$\tau_c = $ ', num2str(tau_c(tc))], 'Fontsize', 20, 'Interpreter', 'latex')
+
+
+
+            end
+
+
+
+            % plot the retrieved droplet profile
+            if nn<length(fileNames)
+
+                hold on
+
+
+                % Plot the retrieval uncertainty of the radius at cloud top and
+                % bottom
+                e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:));
+
+                e1.Bar.LineStyle = 'dotted';
+
+                hold on
+
+
+
+            else
+
+                % give a different marker type for the retrieval using 66 bands
+                % that also retrieved above cloud column water vapor
+
+
+                errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:))
+
+                hold on
+
+
+            end
+
+
+
+            % create the legend string
+            if nn<length(fileNames)
+
+                % what was the assumed above cloud column water vapor path?
+                assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
+                    num2str(round(assumed_CWV,2)), ' $mm$'];
+
+
+
+
+
+            else
+
+                % create the string for the retrieval using CWV
+
+                % what was the retrieved above cloud column water vapor path above
+                % cloud?
+                retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
+                    num2str(round(retrieved_CWV, 2)), ' $mm$'];
+
+            end
+
+
+
+
+
+        end
+
+
+
+        % Create a Legend with only the two black curves
+        legend(lgnd_str, 'Interpreter','latex', 'Location','best', 'FontSize', 20)
+
+        grid on; grid minor
+        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+
+
+    end
+
+    set(gcf,'Position',[0 0 1700 1300])
+
+end
+
+

@@ -155,10 +155,10 @@ parfor nn = 1:num_INP_files
         wc_filename = wc_re_top_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
+%         % define the input file name
+%         inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(state_vectors_with_change(1,1)),...
+%             '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+%             '.INP'];
 
 
     elseif nn>=(num_wl+1) && nn<=(2*num_wl)
@@ -166,10 +166,10 @@ parfor nn = 1:num_INP_files
         wc_filename = wc_re_bot_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-            '_rBot_', num2str(state_vectors_with_change(2,2)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
+%         % define the input file name
+%         inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+%             '_rBot_', num2str(state_vectors_with_change(2,2)),'_tauC_', num2str(tau_c), '_CWV_', num2str(wv_col_aboveCloud),...
+%             '.INP'];
 
 
     elseif nn>=(2*num_wl+1) && nn<=(3*num_wl)
@@ -177,10 +177,10 @@ parfor nn = 1:num_INP_files
         wc_filename = wc_tau_change;
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_noChange;
 
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(3,3)), '_CWV_', num2str(wv_col_aboveCloud),...
-            '.INP'];
+%         % define the input file name
+%         inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+%             '_rBot_', num2str(r_bottom),'_tauC_', num2str(state_vectors_with_change(3,3)), '_CWV_', num2str(wv_col_aboveCloud),...
+%             '.INP'];
 
     elseif nn>=(3*num_wl+1)
 
@@ -188,14 +188,20 @@ parfor nn = 1:num_INP_files
         waterVaporProfile_filename = aboveCloud_waterVaporColumn_fileName_withChange;
 
 
-        % define the input file name
-        inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
-            '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(state_vectors_with_change(end,end)),...
-            '.INP'];
+%         % define the input file name
+%         inputFileName = [num2str(mean(changing_variables(nn, 5:6))), '_','nm_rTop_', num2str(r_top),...
+%             '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '_CWV_', num2str(state_vectors_with_change(end,end)),...
+%             '.INP'];
 
     end
 
 
+    % define the input file name
+    inputFileName = [num2str(mean(changing_variables(nn, end-2:end-1))), '_','nm',...
+        '_rTop_', num2str(round(changing_variables(nn,1), 4)),...
+        '_rBot_', num2str(round(changing_variables(nn,2), 4)),...
+        '_tauC_', num2str(round(changing_variables(nn,3), 4)),...
+        '_CWV_', num2str(round(changing_variables(nn,4), 4)), '.INP'];
 
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
