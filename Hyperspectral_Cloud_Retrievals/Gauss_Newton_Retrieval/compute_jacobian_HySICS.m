@@ -31,6 +31,8 @@ mie_folder_path = folder_paths.libRadtran_mie_folder;
 which_computer = GN_inputs.which_computer;
 
 
+
+
 % Read the solar flux file over the wavelength range specified
 wavelength_vec = [min(GN_inputs.RT.wavelengths2run,[],"all"), max(GN_inputs.RT.wavelengths2run, [], "all")];
 
@@ -52,7 +54,7 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c]; 
+change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c];
 
 % ----------------------------------------------------------------
 
@@ -68,8 +70,8 @@ state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(
 changing_variables = [];
 for xx = 1:num_state_variables
 
-changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
-    wavelengths2run];
+    changing_variables = [changing_variables; repmat(state_vectors_with_change(:,xx)', num_wl,1),...
+        wavelengths2run];
 
 end
 
@@ -105,22 +107,22 @@ re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), 
 wc_re_top_change = write_wc_file(re_with_topChange, changing_variables(1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 1, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 1, 2, wc_folder_path, mie_folder_path);
 
 wc_re_bot_change = write_wc_file(re_with_botChange, changing_variables(num_wl+1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 2, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 2, 2, wc_folder_path, mie_folder_path);
 
 wc_tau_change = write_wc_file(re_with_tauChange, changing_variables(2*num_wl +1,3), GN_inputs.RT.z_topBottom,...
     GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
     GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
-    GN_inputs.compute_weighting_functions, GN_inputs.which_computer, 3, 2, wc_folder_path, mie_folder_path);
+    GN_inputs.compute_weighting_functions, which_computer, 3, 2, wc_folder_path, mie_folder_path);
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
 parfor nn = 1:num_INP_files
-    
+
 
     if nn>=1 && nn<=(num_wl)
 
@@ -137,27 +139,29 @@ parfor nn = 1:num_INP_files
     end
 
 
+
     % define the input file name
-    inputFileName = [num2str(mean(changing_variables(nn, 4:5))), '_','nm_rTop_', num2str(r_top),...
-        '_rBot_', num2str(r_bottom),'_tauC_', num2str(tau_c), '.INP'];
+    inputFileName = [num2str(mean(changing_variables(nn, end-2:end-1))), '_','nm',...
+        '_rTop_', num2str(changing_variables(nn,1)),...
+        '_rBot_', num2str(changing_variables(nn,2)),...
+        '_tauC_', num2str(changing_variables(nn,3)), '.INP'];
 
     outputFileName = ['OUTPUT_',inputFileName(1:end-4)];
 
-    
+
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         changing_variables(nn, 4:5), wc_filename{1});
 
-    
-    
+
+
     % ----------------------------------------------------
     % --------------- RUN RADIATIVE TRANSFER -------------
     % ----------------------------------------------------
 
 
-     % compute INP file
-    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName,...
-        GN_inputs.which_computer);
+    % compute INP file
+    runUVSPEC_ver2(libRadtran_inp, inputFileName, outputFileName, which_computer);
 
 
     % read .OUT file
@@ -174,7 +178,7 @@ parfor nn = 1:num_INP_files
         source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
 
 
-    
+
 end
 
 
@@ -197,7 +201,7 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
-    
+
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)
 
