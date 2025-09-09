@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Hybrid approach: Process multiple files per job to maximize node utilization
-# In the directory below, there are 48 files
-# With 24 jobs and 48 files, each job will process 2 files
+# Run the three files from the directory below!
+# With 3 jobs and 3 files, each job will process 1 file
 
 # SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
@@ -21,15 +21,15 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=36G
-#SBATCH --time=2:45:00     # Longer time for multiple files
+#SBATCH --time=1:45:00     # Don't need much time for a single file
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a
-#SBATCH --output=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a.out
-#SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a.err
+#SBATCH --job-name=noACPW_assumed10_retrieval_hysics_rTop_10_subset_remaining_%A_%a
+#SBATCH --output=noACPW_assumed10_retrieval_hysics_rTop_10_subset_remaining_%A_%a.out
+#SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_10_subset_remaining_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-24       # 24 jobs × 2 files each = 48 files
+#SBATCH --array=1-3       # 3 jobs × 1 file each = 3 files
 
 # Load modules
 ml purge
@@ -60,7 +60,7 @@ module load matlab/R2024b
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset_remaining"
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------
@@ -76,7 +76,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=2
+FILES_PER_JOB=1
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
@@ -148,7 +148,7 @@ fi
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = true; print_libRadtran_err = true; file_list = {${FILE_ARRAY}}; [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
