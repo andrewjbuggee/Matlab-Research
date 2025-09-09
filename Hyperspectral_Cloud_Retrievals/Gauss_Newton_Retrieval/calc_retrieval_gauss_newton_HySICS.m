@@ -141,14 +141,14 @@ if print_status_updates==true
         disp([newline, 'Computing the Jacobian...', newline])
 
         % **** For debugging ****
-        disp([newline, 'Current state vector guess: '])
-        disp(['     r_top: ', num2str(current_guess(1)), ' nm'])
-        disp(['     r_bot: ', num2str(current_guess(2)), ' nm'])
-        disp(['     tau_c: ', num2str(current_guess(3)), newline])
-        disp('Current measurement estimate: ')
-        for ww = 1:length(measurement_estimate)
-            disp(['     R_band_', num2str(ww), ': ', num2str(measurement_estimate(ww)), ' 1/sr'])
-        end
+%         disp([newline, 'Current state vector guess: '])
+%         disp(['     r_top: ', num2str(current_guess(1)), ' nm'])
+%         disp(['     r_bot: ', num2str(current_guess(2)), ' nm'])
+%         disp(['     tau_c: ', num2str(current_guess(3)), newline])
+%         disp('Current measurement estimate: ')
+%         for ww = 1:length(measurement_estimate)
+%             disp(['     R_band_', num2str(ww), ': ', num2str(measurement_estimate(ww)), ' 1/sr'])
+%         end
 
         Jacobian = compute_jacobian_HySICS(current_guess, measurement_estimate, GN_inputs,...
             spec_response, jacobian_barPlot_flag, folder_paths);
