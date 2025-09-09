@@ -29,7 +29,7 @@
 #SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_10_subset_remaining_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-3       # 3 jobs × 1 file each = 3 files
+#SBATCH --array=100-102       # 3 jobs × 1 file each = 3 files
 
 # Load modules
 ml purge
