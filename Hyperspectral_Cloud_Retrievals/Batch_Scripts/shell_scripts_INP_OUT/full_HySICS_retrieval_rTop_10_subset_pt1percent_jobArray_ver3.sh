@@ -60,10 +60,16 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # Get list of all files that have 0.1% measurement uncertainty
 mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.1%*.mat" -type f -printf "%f\n" | sort)
 
+
 # Calculate which files this job should process
+# ----------------------------------------------------------
+# *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
 FILES_PER_JOB=1
-START_IDX=$(( (SLURM_ARRAY_TASK_ID - 1) * FILES_PER_JOB ))
+# ----------------------------------------------------------
+
+START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
 END_IDX=$(( START_IDX + FILES_PER_JOB - 1 ))
+
 
 # Start of the job
 echo " "
