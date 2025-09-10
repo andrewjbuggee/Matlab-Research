@@ -18,9 +18,9 @@ which_computer = folder_paths.which_computer;
 
 %% Would you like to print status updates and/or the libRadtran error file?
 
-print_status_updates = true;
+print_status_updates = false;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 
 %% LOAD SIMULATED HYSICS DATA
@@ -46,6 +46,10 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
+
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_pt1percent/'];
+
     % load all filenames in the folder defined above.
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
@@ -57,9 +61,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/'];
 
 
-    filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14_vza_7*.mat']);
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14_vza_7*.mat']);
 
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+        'simulated_spectra_HySICS_reflectance_66bands_0.1%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14*.mat']);
 
 
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -110,7 +116,7 @@ files{1} = filenames.name;
 % --- Assume 10mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-[tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(files,...
+[tblut_retrieval_10, GN_inputs_10, GN_outputs_10] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_10(files,...
     folder_paths, print_status_updates, print_libRadtran_err);
 
 
@@ -118,8 +124,8 @@ files{1} = filenames.name;
 % --- Assume 15mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-% [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_15(files,...
-%     folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval_15, GN_inputs_15, GN_outputs_15] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_15(files,...
+    folder_paths, print_status_updates, print_libRadtran_err);
 
 
 
@@ -127,8 +133,8 @@ files{1} = filenames.name;
 % --- Assume 20mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-% [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_20(files,...
-%     folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval_20, GN_inputs_20, GN_outputs_20] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_20(files,...
+    folder_paths, print_status_updates, print_libRadtran_err);
 
 
 
@@ -136,6 +142,6 @@ files{1} = filenames.name;
 % --- Assume 25mm total column water vapor ---
 % --------------------------------------------
 % *** Retrieve r_top, r_bot, tau_c ***
-% [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_25(files,...
-%     folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval_25, GN_inputs_25, GN_outputs_25] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_25(files,...
+    folder_paths, print_status_updates, print_libRadtran_err);
 

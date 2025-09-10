@@ -363,7 +363,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
 
 
 elseif strcmp(which_computer,'curc')==true
