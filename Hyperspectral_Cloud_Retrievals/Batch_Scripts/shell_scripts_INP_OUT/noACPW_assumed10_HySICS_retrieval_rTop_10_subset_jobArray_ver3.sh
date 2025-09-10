@@ -2,7 +2,7 @@
 
 # Hybrid approach: Process multiple files per job to maximize node utilization
 # In the directory below, there are 48 files
-# With 24 jobs and 48 files, each job will process 2 files
+# With 48 jobs and 48 files, each job will process 1 file
 
 # SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
@@ -20,8 +20,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=36G
-#SBATCH --time=2:45:00     # Longer time for multiple files
+#SBATCH --mem=32G
+#SBATCH --time=2:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a
@@ -29,7 +29,7 @@
 #SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-24       # 24 jobs × 2 files each = 48 files
+#SBATCH --array=1-48       # 48 jobs × 1 file each = 48 files
 
 # Load modules
 ml purge
@@ -76,7 +76,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=2
+FILES_PER_JOB=1
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
