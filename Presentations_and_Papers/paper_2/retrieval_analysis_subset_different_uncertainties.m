@@ -942,8 +942,18 @@ clear variables
 filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.1%_uncert_rTop_10_rBot_5';
 filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.1%_uncert_rTop_10_rBot_5';
 
+if strcmp(whatComputer, 'anbu8374')==true
+
 folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset2/'];
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset2/'];
+
+end
+
 
 % % Access specific file or folder
 % filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
@@ -1187,7 +1197,16 @@ for pw = 1:length(tcpw)
 
     end
 
-    set(gcf,'Position',[0 0 2450 600])
+
+    if strcmp(whatComputer, 'anbu8374')==true
+
+        set(gcf,'Position',[0 0 2450 600])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+        set(gcf,'Position',[0 0 1200 600])
+
+    end
 
 end
 
