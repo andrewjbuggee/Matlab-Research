@@ -13,7 +13,7 @@
 
 %%
 
-function [GN_inputs] = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut, use_TBLUT_estimates, acpw)
+function [GN_inputs] = create_model_prior_covariance_HySICS_ver2_highUncertainty1(GN_inputs, tblut, use_TBLUT_estimates, acpw)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -91,7 +91,7 @@ if use_TBLUT_estimates==true
     % 10%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    effRad_uncert = 0.1;
+    effRad_uncert = 0.15;
 
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for

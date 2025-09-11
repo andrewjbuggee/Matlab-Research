@@ -13,7 +13,7 @@
 
 %%
 
-function [GN_inputs] = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut, use_TBLUT_estimates, acpw)
+function [GN_inputs] = create_model_prior_covariance_HySICS_ver2_lowUncertainty1(GN_inputs, tblut, use_TBLUT_estimates, acpw)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
