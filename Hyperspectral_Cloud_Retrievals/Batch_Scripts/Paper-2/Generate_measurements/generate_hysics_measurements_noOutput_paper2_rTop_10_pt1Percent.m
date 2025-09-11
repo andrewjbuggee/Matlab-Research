@@ -81,11 +81,17 @@ inputs.RT.errMsg = 'quiet';
 %% Define the geometry
 
 % Numbers based off NOAA solar calculator (27 Jan 2024 off coast of Chile)
-inputs.RT.sza = 10;         % degrees - Solar Zenith Angle
-inputs.RT.phi0 = 91.45;        % degrees - Solar Azimuth Angle
-inputs.RT.vza = 7;        % degrees - Viewing Zenith Angle
-inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
+% inputs.RT.sza = 10;         % degrees - Solar Zenith Angle
+% inputs.RT.phi0 = 91.45;        % degrees - Solar Azimuth Angle
+% inputs.RT.vza = 7;        % degrees - Viewing Zenith Angle
+% inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
 
+
+% Replicating EMIT values from paper 1
+inputs.RT.sza = 31;         % degrees - Solar Zenith Angle
+inputs.RT.phi0 = 96;        % degrees - Solar Azimuth Angle
+inputs.RT.vza = 4.29;        % degrees - Viewing Zenith Angle
+inputs.RT.vaz = 257.21;       % degrees - Viewing Azimuth Angle
 
 
 
@@ -372,8 +378,12 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
+    % inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
+    %     'Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
-        'Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+        'Simulated_spectra/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/'];
 
 
 
