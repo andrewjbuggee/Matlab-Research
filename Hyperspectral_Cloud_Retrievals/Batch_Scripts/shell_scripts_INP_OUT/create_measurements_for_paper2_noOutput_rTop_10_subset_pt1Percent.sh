@@ -3,10 +3,10 @@
 #
 
 #SBATCH --nodes=1
-#SBATCH --time=06:00:00
+#SBATCH --time=01:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=17G
+#SBATCH --mem=30G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --job-name=create_measurements_for_paper2_noOutput_rTop_10_subset_pt1Percent
@@ -39,6 +39,6 @@ module load matlab/R2024b
 
 echo "Starting MATLAB job at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(100); generate_hysics_measurements_noOutput_paper2_rTop_10_pt1Percent; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(101);generate_hysics_measurements_noOutput_paper2_rTop_10_pt1Percent; exit"
 
 echo "Finished MATLAB job at $(date)"

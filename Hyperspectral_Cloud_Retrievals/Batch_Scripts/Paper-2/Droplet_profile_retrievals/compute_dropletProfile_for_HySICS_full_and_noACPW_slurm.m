@@ -47,8 +47,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
 
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_pt1percent/'];
+
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_pt1percent/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
 
     % load all filenames in the folder defined above.
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -65,7 +68,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14_vza_7*.mat']);
 
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.1%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_1%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14*.mat']);
 
 
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
