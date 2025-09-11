@@ -146,3 +146,8 @@ files{1} = filenames.name;
     folder_paths, print_status_updates, print_libRadtran_err);
 
 
+%% Run the full retrieval!
+
+% *** Retrieve r_top, r_bot, tau_c, and cwvs ***
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3(files,...
+    folder_paths, print_status_updates, print_libRadtran_err);
