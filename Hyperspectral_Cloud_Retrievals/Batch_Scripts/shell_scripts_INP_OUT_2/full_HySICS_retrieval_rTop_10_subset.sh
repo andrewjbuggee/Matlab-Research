@@ -19,7 +19,7 @@
 # ----------------------------------------------------------
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=12
 #SBATCH --mem=38G
 #SBATCH --time=3:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
