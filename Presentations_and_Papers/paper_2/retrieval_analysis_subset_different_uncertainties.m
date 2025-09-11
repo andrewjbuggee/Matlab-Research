@@ -1230,17 +1230,21 @@ end
 % Compare the 4 retrievals that assume a total column water vapor amount with the retrieval for
 % above cloud column water vapor
 
-% *** 0.001% uncertainty ***
+
 
 clear variables
 
+% define uncertainty
+plt_uncert = 1;            % percent
 
 % load 5% uncertainty files
-filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.001%_uncert_rTop_10_rBot_5';
-filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.001%_uncert_rTop_10_rBot_5';
+filenames_noACPW_startsWith = ['dropletRetrieval_noACPW_HySICS_35bands_',...
+    num2str(plt_uncert), '%_uncert_rTop_10_rBot_5'];
+filenames_full_startsWith = ['dropletRetrieval_HySICS_66bands_',...
+    num2str(plt_uncert), '%_uncert_rTop_10_rBot_5'];
 
 folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset2/'];
+    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/'];
 
 % % Access specific file or folder
 % filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
@@ -1328,7 +1332,8 @@ for pw = 1:length(tcpw)
                 if tc==1
 
                     % what was the assumed above cloud column water vapor path?
-                    title(['Simulated measurements with $0.001\%$ uncertainty - $acpw$ = ',num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
+                    title(['Simulated measurements with $', num2str(plt_uncert), '\%$ uncertainty - $acpw$ = ',...
+                        num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
                         'Fontsize', 25, 'Interpreter', 'latex');
 
                     % Create textbox
@@ -1389,7 +1394,7 @@ for pw = 1:length(tcpw)
 
 
             % plot the retrieved droplet profile
-            if nn<length(fileNames)
+            if strcmp(fileNames(nn).name(1:30), 'dropletRetrieval_noACPW_HySICS')==true
 
                 hold on
 
@@ -1408,7 +1413,7 @@ for pw = 1:length(tcpw)
 
 
 
-            else
+            elseif strcmp(fileNames(nn).name(1:23), 'dropletRetrieval_HySICS')==true
 
                 % give a different marker type for the retrieval using 66 bands
                 % that also retrieved above cloud column water vapor
