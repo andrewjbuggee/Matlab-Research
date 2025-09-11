@@ -60,11 +60,18 @@ clear variables
 
 
 % Access specific file or folder
+% meas_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Simulated_spectra/paper2_variableSweep/',...
+%     'rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+% 
+% retrieval_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+
 meas_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Simulated_spectra/paper2_variableSweep/',...
-    'rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+    'rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/'];
 
 retrieval_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/'];
 
 
 
@@ -79,7 +86,8 @@ r_bot = 5;
 tau_c = [5,11,17,23];
 tcpw = [8, 14, 20];
 
-meas_uncert = [0.001, 0.1, 1, 5];
+% meas_uncert = [0.001, 0.1, 1, 5];
+meas_uncert = [0.1, 1];
 tcpw_assumed = [10, 15, 20, 25];
 
 
@@ -102,7 +110,7 @@ for tt = 1:numel(tau_c)
             % the retrieval without column water vapor
             if meas_uncert(uu)==0.1 || meas_uncert(uu)==1 || meas_uncert(uu)==5
 
-                if length(matchingFiles)==4
+                if length(matchingFiles)==5
 
                     % Check to see if each one has a retrieval
                     for nn = 1:length(matchingFiles)
@@ -124,8 +132,28 @@ for tt = 1:numel(tau_c)
 
                 elseif length(matchingFiles)<=4
 
+%                     for nn = 1:length(matchingFiles)
+% 
+%                         % lkoad each data file and check to see which file
+%                         % was run
+%                         ds = load([matchingFiles(nn).folder, '/', matchingFiles(nn).name]);
+% 
+%                         if isfield(ds, 'GN_outputs')~=1
+% 
+%                             no_retrieval = [no_retrieval; matchingFiles(nn).name];
+% 
+%                         elseif isfield(ds.GN_outputs, 'retrieval')~=1
+% 
+%                             no_retrieval = [no_retrieval; matchingFiles(nn).name];
+% 
+% 
+%                         end
+% 
+%                     end
+                    for nn = 1:length(matchingFiles)
                     % check to see which file is missing
-                    missing_files = [missing_files, matchingFiles(:).name];
+                        missing_files{nn, 1} = matchingFiles(nn).name;
+                    end
 
                 end
 
