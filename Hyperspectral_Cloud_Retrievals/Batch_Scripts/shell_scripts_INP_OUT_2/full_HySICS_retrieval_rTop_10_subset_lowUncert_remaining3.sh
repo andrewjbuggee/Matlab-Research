@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_rTop_10_subset_lowUncert_remaining_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=4-7       # 4 jobs × 1 file each = 4 files
+#SBATCH --array=10-13       # 4 jobs × 1 file each = 4 files
 
 # Load modules
 ml purge
@@ -70,7 +70,7 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # ----------------------------------------------------------
 
 # Get list of only 3 specific files that failed in the general run
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.1%_uncert_rTop_10_rBot_5_tauC_17*.mat" -type f -printf "%f\n" | sort)
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
 
 
 # Calculate which files this job should process
