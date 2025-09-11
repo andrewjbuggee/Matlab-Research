@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Hybrid approach: Process multiple files per job to maximize node utilization
-# In the directory below, there are 48 files
-# With 48 jobs and 48 files, each job will process 1 file
+# In the directory below, there are 4 files
+# With 4 jobs and 4 files, each job will process 1 file
 
 # SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
@@ -20,8 +20,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --mem=30G
-#SBATCH --time=2:00:00     # shorter time for single files per job
+#SBATCH --mem=34G
+#SBATCH --time=3:00:00     # shorter time for single files per job
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_lowUncert_remaining_%A_%a
@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_rTop_10_subset_lowUncert_remaining_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=25-27       # 3 jobs × 1 file each = 3 files
+#SBATCH --array=4-7       # 4 jobs × 1 file each = 4 files
 
 # Load modules
 ml purge
@@ -66,7 +66,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_remaining_lowUncert/"
 # ----------------------------------------------------------
 
 # Get list of only 3 specific files that failed in the general run

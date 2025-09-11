@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Hybrid approach: Process multiple files per job to maximize node utilization
-# In the directory below, there are 48 files
-# With 48 jobs and 48 files, each job will process 1 file
+# In the directory below, there are 3 files
+# With 3 jobs and 3 files, each job will process 1 file
 
 # SLURM Job Array Script to run MATLAB retrievals on multiple files in parallel
 # This will run the same analysis on multiple files within a specified directory
@@ -20,16 +20,16 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
-#SBATCH --mem=38G
-#SBATCH --time=4:00:00     # Longer time for multiple files
+#SBATCH --mem=34G
+#SBATCH --time=3:45:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_highUncert_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_subset_highUncert_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_subset_highUncert_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_highUncert_remaining_%A_%a
+#SBATCH --output=full_retrieval_hysics_rTop_10_subset_highUncert_remaining_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_rTop_10_subset_highUncert_remaining_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=13-24       # 12 jobs × 2 file each = 24 files
+#SBATCH --array=1-3       # 3 jobs × 1 file each = 3 files
 
 # Load modules
 ml purge
@@ -66,7 +66,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_highUncert/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_remaining_highUncert/"
 # ----------------------------------------------------------
 
 # Get list of all files
@@ -76,7 +76,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=2
+FILES_PER_JOB=1
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
