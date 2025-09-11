@@ -24,12 +24,12 @@
 #SBATCH --time=3:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_rev3_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_subset_rev3_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_subset_rev3_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_lowUncert_%A_%a
+#SBATCH --output=full_retrieval_hysics_rTop_10_subset_lowUncert_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_rTop_10_subset_lowUncert_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=49-60       # 12 jobs × 2 file each = 24 files
+#SBATCH --array=1-12       # 12 jobs × 2 file each = 24 files
 
 # Load modules
 ml purge
@@ -66,7 +66,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/"
 # ----------------------------------------------------------
 
 # Get list of all files
@@ -144,7 +144,7 @@ fi
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = true; print_libRadtran_err = true; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"

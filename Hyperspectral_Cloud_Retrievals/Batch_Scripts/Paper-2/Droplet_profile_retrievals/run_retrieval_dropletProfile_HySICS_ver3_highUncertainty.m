@@ -22,7 +22,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3(filenames, folder_paths, print_status_updates, print_libRadtran_err)
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_highUncertainty(filenames, folder_paths, print_status_updates, print_libRadtran_err)
 
 
 %% -- Start Parallel pool
@@ -175,7 +175,9 @@ for ff = 1:length(filenames)
     use_TBLUT_estimates = true;
 
     % Create inputs to retrieve r_top, r_bot, tau_c, acpw
-    GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+%     GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+%     GN_inputs = create_model_prior_covariance_HySICS_ver2_lowUncertainty1(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+    GN_inputs = create_model_prior_covariance_HySICS_ver2_highUncertainty1(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
 
     GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);

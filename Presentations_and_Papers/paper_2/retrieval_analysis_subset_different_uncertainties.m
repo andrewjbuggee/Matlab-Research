@@ -901,6 +901,7 @@ for pw = 1:length(tcpw)
         % Create a Legend with only the two black curves
         legend(lgnd_str, 'Interpreter','latex', 'FontSize', 18,...
             'Position',[0.166173414792696 0.16735419938909 0.142261290258291 0.153166666030884])
+        
 
         grid on; grid minor
         ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
@@ -918,7 +919,17 @@ for pw = 1:length(tcpw)
 
     end
 
-    set(gcf,'Position',[0 0 2450 600])
+    
+    if strcmp(whatComputer, 'anbu8374')==true
+
+        set(gcf,'Position',[0 0 2450 600])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+        set(gcf,'Position',[0 0 1200 600])
+
+    end
+
 
 end
 
