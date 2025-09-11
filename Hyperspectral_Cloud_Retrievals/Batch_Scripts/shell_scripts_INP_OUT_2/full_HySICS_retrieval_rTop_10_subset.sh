@@ -20,8 +20,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=32G
-#SBATCH --time=2:00:00     # Longer time for multiple files
+#SBATCH --mem=38G
+#SBATCH --time=3:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_rev3_%A_%a
