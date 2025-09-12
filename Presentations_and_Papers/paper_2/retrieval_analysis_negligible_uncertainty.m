@@ -111,8 +111,12 @@ clear variables
 
 
 % Access specific file or folder
+% filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
 filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/',...
+    'dropletRetrieval_HySICS*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -161,6 +165,9 @@ C = mySavedColors(61:(61+num_tauC-1), 'fixed');
 % lgnd_str = cell(1, length(filenames) + 2);
 
 
+% one-to-one line
+x = linspace(2,11,100);
+
 
 figure;
 
@@ -170,7 +177,7 @@ for nn = 1:length(filenames)
     if nn==1
 
         % make a 1-to-1 line
-        plot(r_bot, r_bot, 'k-', 'LineWidth',1)
+        plot(x, x, 'k-', 'LineWidth',1)
 
         grid on; grid minor
         hold on
@@ -197,13 +204,17 @@ for nn = 1:length(filenames)
 
 end
 
-legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+% legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+legend("one to one", 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
 
 title('$r_{top} = 10$ simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
 ylabel('$r_{bot}$ retrieved', 'Interpreter','latex', 'FontSize',30)
 xlabel('$r_{bot}$ true', 'Interpreter','latex', 'FontSize',30)
 
 set(gcf,'Position',[0 0 950 750])
+
+xlim([2, 11])
+ylim([2,11])
 
 
 
@@ -213,8 +224,12 @@ clear variables
 
 
 % Access specific file or folder
+% filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+%     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
 filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/',...
+    'dropletRetrieval_HySICS*.mat']);
 
 % what are the free parameters?
 r_top = 10;
@@ -263,6 +278,9 @@ C = mySavedColors(61:(61+num_tauC-1), 'fixed');
 % lgnd_str = cell(1, length(filenames) + 2);
 
 
+% one-to-one line
+x = linspace(3,13,100);
+
 
 figure;
 
@@ -272,7 +290,7 @@ for nn = 1:length(filenames)
     if nn==1
 
         % make a 1-to-1 line
-        plot(acpw_true, acpw_true, 'k-', 'LineWidth',1)
+        plot(x, x, 'k-', 'LineWidth',1)
 
         grid on; grid minor
         hold on
@@ -289,7 +307,7 @@ for nn = 1:length(filenames)
 
         [~, idx_tauC] = min(abs(ds.GN_inputs.measurement.tau_c - tau_c));
 
-        plot(ds.GN_inputs.measurement.actpw, ds.GN_outputs.retrieval(4,end), '.', 'MarkerSize', 20,...
+        plot(ds.GN_inputs.measurement.actpw, ds.GN_outputs.retrieval(4,end), '.', 'MarkerSize', 35,...
             'Color', C(idx_tauC, :))
 
         hold on
@@ -299,15 +317,17 @@ for nn = 1:length(filenames)
 
 end
 
-legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+% legend(["one to one", "$\tau_c = $"+string((round(tau_c, 2)))], 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+legend("one to one", 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
 
-title('$r_{top} = 10$ simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
-ylabel('$acpw$ retrieved', 'Interpreter','latex', 'FontSize',30)
-xlabel('$acpw$ true', 'Interpreter','latex', 'FontSize',30)
+title('Simulated HySICS measurements', 'Interpreter','latex', 'FontSize',30)
+ylabel('$acpw$ retrieved (mm)', 'Interpreter','latex', 'FontSize',30)
+xlabel('$acpw$ true (mm)', 'Interpreter','latex', 'FontSize',30)
 
-set(gcf,'Position',[0 0 950 750])
+set(gcf,'Position',[0 0 750 750])
 
-
+xlim([3,13])
+ylim([3,13])
 
 
 
