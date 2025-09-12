@@ -1773,10 +1773,11 @@ end
 clear variables
 
 % 66 HySICS bands
-% load('disort_HySICS_reflectance_for_weightingFunctions_inhomogeneous_droplet_profile_sim-ran-on-17-Jul-2025_rev1.mat')
+load('disort_HySICS_reflectance_for_weightingFunctions_inhomogeneous_droplet_profile_sim-ran-on-17-Jul-2025_rev1.mat')
+
 
 % 7 MODIS bands
-load('disort_HySICS_reflectance_for_weightingFunctions_inhomogeneous_droplet_profile_MODIS-7bands_sim-ran-on-17-Jul-2025_rev1.mat')
+% load('disort_HySICS_reflectance_for_weightingFunctions_inhomogeneous_droplet_profile_MODIS-7bands_sim-ran-on-17-Jul-2025_rev1.mat')
 
 % ********************************************
 % *** Vary The Optical Thickness Linearly! ***
