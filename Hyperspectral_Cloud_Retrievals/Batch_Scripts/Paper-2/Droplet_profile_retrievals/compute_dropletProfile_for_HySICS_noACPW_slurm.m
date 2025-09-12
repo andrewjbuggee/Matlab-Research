@@ -12,7 +12,7 @@ clear variables;
 
 %% Define the folders for libRadtran calculation and define the computer in use
 
-folder_paths = define_folderPaths_for_HySICS(3);
+folder_paths = define_folderPaths_for_HySICS(2);
 which_computer = folder_paths.which_computer;
 
 
@@ -46,9 +46,16 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
+    % define the folder where the spectra are located
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_pt1percent/'];
 
+    % define the folder where the spectra are located
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_pt1percent/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+         'simulated_HySICS_reflectance_35bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat']);
 
     % load all filenames in the folder defined above.
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -64,8 +71,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14_vza_7*.mat']);
 
-    filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.1%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14*.mat']);
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_66bands_0.1%_uncert_rTop_10_rBot_5_tauC_5_tcwv_14*.mat']);
 
 
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
