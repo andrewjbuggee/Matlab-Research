@@ -80,7 +80,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_HySICS
 FILES_PER_JOB=1
 # ----------------------------------------------------------
 
-START_IDX=$(( SLURM_ARRAY_TASK_ID * FILES_PER_JOB ))
+START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
 END_IDX=$(( START_IDX + FILES_PER_JOB - 1 ))
 
 # Start of the job
