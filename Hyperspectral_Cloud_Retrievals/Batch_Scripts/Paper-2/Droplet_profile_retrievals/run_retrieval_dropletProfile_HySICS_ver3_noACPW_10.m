@@ -70,39 +70,44 @@ for ff = 1:length(filenames)
     %     618, 620, 623, 625]';
 
 
-    paper1_wl_midBand = [498.95, 523.45, 560.25, 612.25, 664.35, 857.35, 866.55,...
-        872.656, 881.856, 1013.551,	1022.751, 1028.851, 1035.051, 1044.251, 1074.851,...
-        1231.051, 1237.151, 1246.351,	1537.35,	1543.55,	1552.65,	1653.75,...
-        1678.25,	1684.45,	2094.85,	2107.15,	2116.35,	2122.45,...
-        2131.65,	2226.55,	2235.75,	2241.95,	2248.05,	2257.25,	2263.35];
+    if size(simulated_measurements.spec_response.wavelength,1)>35
 
-    idx_35 = zeros(numel(paper1_wl_midBand), 1);
+        paper1_wl_midBand = [498.95, 523.45, 560.25, 612.25, 664.35, 857.35, 866.55,...
+            872.656, 881.856, 1013.551,	1022.751, 1028.851, 1035.051, 1044.251, 1074.851,...
+            1231.051, 1237.151, 1246.351,	1537.35,	1543.55,	1552.65,	1653.75,...
+            1678.25,	1684.45,	2094.85,	2107.15,	2116.35,	2122.45,...
+            2131.65,	2226.55,	2235.75,	2241.95,	2248.05,	2257.25,	2263.35];
 
-    % step through the measurements and select the 35 bands closest to
-    % these midPoints
-    % first, compute the mid points of the bands within the simualted
-    % measurement
-    sim_meas_midBand = mean(simulated_measurements.spec_response.wavelength, 2);
+        idx_35 = zeros(numel(paper1_wl_midBand), 1);
 
-    for nn = 1:length(paper1_wl_midBand)
+        % step through the measurements and select the 35 bands closest to
+        % these midPoints
+        % first, compute the mid points of the bands within the simualted
+        % measurement
+        sim_meas_midBand = mean(simulated_measurements.spec_response.wavelength, 2);
+
+        for nn = 1:length(paper1_wl_midBand)
 
 
-        [~, idx_35(nn)] = min(abs(sim_meas_midBand - paper1_wl_midBand(nn)));
+            [~, idx_35(nn)] = min(abs(sim_meas_midBand - paper1_wl_midBand(nn)));
+
+
+        end
+
+        % use the above index to grab the subset of measurements applicable
+        % for this retrieval
+        simulated_measurements.Refl_model = simulated_measurements.Refl_model(idx_35);
+        simulated_measurements.Refl_model_uncert = simulated_measurements.Refl_model_uncert(idx_35);
+        simulated_measurements.Refl_model_with_noise = simulated_measurements.Refl_model_with_noise(idx_35);
+        simulated_measurements.changing_variables = simulated_measurements.changing_variables(idx_35, :);
+        simulated_measurements.spec_response.value = simulated_measurements.spec_response.value(idx_35, :);
+        simulated_measurements.spec_response.wavelength = simulated_measurements.spec_response.wavelength(idx_35, :);
+
+        simulated_measurements.inputs.bands2run = simulated_measurements.inputs.bands2run(idx_35);
+        simulated_measurements.inputs.RT.wavelengths2run = simulated_measurements.inputs.RT.wavelengths2run(idx_35, :);
 
 
     end
-
-    % use the above index to grab the subset of measurements applicable
-    % for this retrieval
-    simulated_measurements.Refl_model = simulated_measurements.Refl_model(idx_35);
-    simulated_measurements.Refl_model_uncert = simulated_measurements.Refl_model_uncert(idx_35);
-    simulated_measurements.Refl_model_with_noise = simulated_measurements.Refl_model_with_noise(idx_35);
-    simulated_measurements.changing_variables = simulated_measurements.changing_variables(idx_35, :);
-    simulated_measurements.spec_response.value = simulated_measurements.spec_response.value(idx_35, :);
-    simulated_measurements.spec_response.wavelength = simulated_measurements.spec_response.wavelength(idx_35, :);
-
-    simulated_measurements.inputs.bands2run = simulated_measurements.inputs.bands2run(idx_35);
-    simulated_measurements.inputs.RT.wavelengths2run = simulated_measurements.inputs.RT.wavelengths2run(idx_35, :);
 
     %% Check to see if there is uncertainty
 
@@ -110,7 +115,7 @@ for ff = 1:length(filenames)
 
     % *** Check to see if these measure have added uncertainty or not ***
 
-    if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+    if isfield(simulated_measurements, 'Refl_model')==true && isfield(simulated_measurements, 'Refl_model_with_noise')==true
 
         if print_status_updates==true
             disp([newline, 'Using measurements with added uncertianty...', newline])
@@ -120,6 +125,17 @@ for ff = 1:length(filenames)
         % Reflectance measurements
         simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
 
+    elseif isfield(simulated_measurements, 'Refl_model')==false && isfield(simulated_measurements, 'Refl_model_with_noise')==true
+
+        if print_status_updates==true
+            disp([newline, 'Using measurements with added uncertianty...', newline])
+        end
+
+        % Then we're using measurements with noise and we set this to be the
+        % Reflectance measurements
+        simulated_measurements.Refl_model = simulated_measurements.Refl_model_with_noise;
+
+
     end
 
 
@@ -128,20 +144,39 @@ for ff = 1:length(filenames)
 
     rev = 1;
 
+    if size(simulated_measurements.changing_variables,2)>6
 
-    folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_noACPW_HySICS_',...
-        num2str(numel(simulated_measurements.inputs.bands2run)), 'bands_',...
-        num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
-        '_rTop_', num2str(simulated_measurements.changing_variables(1,1)),...
-        '_rBot_', num2str(simulated_measurements.changing_variables(1,2)),...
-        '_tauC_', num2str(simulated_measurements.changing_variables(1,3)),...
-        '_tcwv_', num2str(simulated_measurements.changing_variables(1,4)),...
-        '_tcwv-assumption_10',...
-        '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
-        '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
-        '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
-        '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
-        '_sim-ran-on-',char(datetime("today")),'_1.mat'];
+        folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_noACPW_HySICS_',...
+            num2str(numel(simulated_measurements.inputs.bands2run)), 'bands_',...
+            num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
+            '_rTop_', num2str(simulated_measurements.changing_variables(1,1)),...
+            '_rBot_', num2str(simulated_measurements.changing_variables(1,2)),...
+            '_tauC_', num2str(simulated_measurements.changing_variables(1,3)),...
+            '_tcwv_', num2str(simulated_measurements.changing_variables(1,4)),...
+            '_tcwv-assumption_10',...
+            '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
+            '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
+            '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
+            '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
+            '_sim-ran-on-',char(datetime("today")),'_1.mat'];
+
+    elseif size(simulated_measurements.changing_variables,2)<=6
+
+        folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_noACPW_HySICS_',...
+            num2str(numel(simulated_measurements.inputs.bands2run)), 'bands_',...
+            num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
+            '_rTop_', num2str(simulated_measurements.changing_variables(1,1)),...
+            '_rBot_', num2str(simulated_measurements.changing_variables(1,2)),...
+            '_tauC_', num2str(simulated_measurements.changing_variables(1,3)),...
+            '_tcwv_', num2str(simulated_measurements.inputs.RT.waterVapor_column),...
+            '_tcwv-assumption_10',...
+            '_vza_', num2str(round(simulated_measurements.inputs.RT.vza)),...
+            '_vaz_', num2str(round(simulated_measurements.inputs.RT.vaz)),...
+            '_sza_', num2str(round(simulated_measurements.inputs.RT.sza)),...
+            '_saz_', num2str(round(simulated_measurements.inputs.RT.phi0)),...
+            '_sim-ran-on-',char(datetime("today")),'_1.mat'];
+
+    end
 
 
 
