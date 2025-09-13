@@ -1,6 +1,6 @@
 %% ----- Algorithm to search for a suitable Pixel -----
 
-% This function looks through a modis data set to find a pixel that has a
+% This function looks through a modis data set to find pixels that have a
 % thermodynamic phase of liquid water, a certain optical depth threshold,
 % and is surrounded by many other pixels like it - thus it is not an edge case
 % For now, the pixel MUST be over ocean.
@@ -33,6 +33,13 @@ re_min_threshold = inputs.pixels.re_min_threshold;
 % find pixels below a certain effective radius
 re_max_threshold = inputs.pixels.re_max_threshold;
 
+% is there an H-index threshold?
+if isfield(inputs.pixels, 'H_index_max')==true
+
+    H_index_max = inputs.pixels.H_index_max;
+
+end
+
 
 % create logical mask for phase
 
@@ -56,9 +63,28 @@ tau_mask = modis.cloud.optThickness17 >= tau_min_threshold & modis.cloud.optThic
 uncertaintyLimit = 10;
 re_mask = modis.cloud.effRadius17>=re_min_threshold & modis.cloud.effRadius17<=re_max_threshold & modis.cloud.effRad_uncert_17<uncertaintyLimit;        % find values greater than 0
 
-% find where there is overlap
 
-combined_mask = logical(liquidWater_mask .* tau_mask.*re_mask);
+% find pixels that meet the H-index threshold, if applicable
+if exist("H_index_max", 'var')==1
+
+    % First dimension is the inhomogeneity index for band 1 (650 nm)
+    % Second dimension is the inhomogeneity index for band 2 (860 nm)
+    H_mask = modis.cloud.inhomogeneity_index(:,:,2)<=H_index_max;
+
+end
+
+
+% --------------------------------------------------------------
+% find where there is overlap
+if exist("H_index_max", 'var')==1
+
+    combined_mask = logical(liquidWater_mask .* tau_mask .* re_mask .* H_mask);
+
+else
+
+    combined_mask = logical(liquidWater_mask .* tau_mask .* re_mask);
+
+end
 % --------------------------------------------------------------
 
 
@@ -87,7 +113,7 @@ combined_mask = combined_mask .* border_mask;
 % ---- Only select pixels over ocean -----
 
 % test locations from combined_mask
-coastal_res = 20;    % 1 is low resolution, 10 is decently high resolution
+coastal_res = 30;    % 1 is low resolution, 10 is decently high resolution
 make_plot = 0;  %0 = no plot, 1 = plot
 isOcean = land_or_ocean(double(modis.geo.lat(:)),double(modis.geo.long(:)),...
     coastal_res,make_plot);

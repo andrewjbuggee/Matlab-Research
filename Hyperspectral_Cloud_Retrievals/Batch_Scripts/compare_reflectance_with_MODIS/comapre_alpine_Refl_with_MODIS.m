@@ -1,43 +1,307 @@
-%% Determine the avg difference between my estimate of reflectance the MODIS measurement
+%% Compare reflectances computed using DISORT on CU's Alpine cluster with MODIS observations
 
-%By Andrew John Buggee
+% By Andrew John Buggee
 
 %% Loop through 100 different MODIS Pixels
 
 clear variables
+% add libRadTran libraries to the matlab path
+addLibRadTran_paths;
+scriptPlotting_wht;
+
+
+% Determine which computer you're using
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(whatComputer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ***** Define the MODIS Folder *****
+
+    modisFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+    % ***** Define the VOCALS-REx File *****
+
+    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+
+    % ----- Define the MODIS folder name -----
+
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
+
+    % ***** Define the VOCALS-REx Folder *****
+
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+
+
+elseif strcmp(whatComputer,'curc')==true
+
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+    % Define the MODIS folder name
+
+    modisFolder = '/projects/anbu8374/MODIS_data/';
+
+
+    % ***** Define the VOCALS-REx Folder *****
+
+    vocalsRexFolder = '/projects/anbu8374/VOCALS_REx_data/';
+
+
+
+
+end
+
+
+
+
+%% LOAD MODIS DATA
+
+% Load modis data and create input structure
+
+
+% ----- November 9th at decimal time 0.611 (14:40) -----
+%modisData = '2008_11_09/';
+
+
+% ----- November 11th at decimal time 0.604 (14:30) -----
+%modisData = '2008_11_11_1430/';
+
+
+% ----- November 11th at decimal time 0.784 (18:50) -----
+modisData = '2008_11_11_1850/';
+
+
+
+[modis,L1B_fileName] = retrieveMODIS_data([modisFolder, modisData]);
+
+%%
+
+folder_paths = define_folderPaths_for_HySICS(1);
+
+
+%% Define the location of the data and the save reflectances
+
+which_computer = folder_paths.which_computer;
 
 % Load MODIS data set
 
-% modisFolder = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
-modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/';
+if strcmp(which_computer, 'curc')
+
+    modisFolder = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data/2024_01_27/'];
+
+elseif strcmp(which_computer, 'andrewbuggee')
+
+    % modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2024_01_27/'];
+
+    % No pixels meet all constraints with H<=0.3
+    % modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1850/'];
+
+    % No pixels meet all constraints with H<=0.3
+    % modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_11_1430/'];
+
+    % No pixels meet all constraints with H<=0.3
+    modisFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/2008_11_09/'];
+
+
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/compare_reflectance_with_MODIS/reflectance_calcs'];
+
+end
+
+
+%%  Delete old files?
+
+% First, delete files in the HySICS INP folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
+
+% delete old water vapor profiles
+delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
+
+% delete old MIE files
+delete([folder_paths.libRadtran_mie_folder, '*.INP'])
+delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
+
+
+%% Load MODIS data
 
 [modis,L1B_1km_fileName] = retrieveMODIS_data(modisFolder);
 
-% % Grab n random pixels from the suitablePixels mat file
-% load('/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/2023_04_13/suitablePixels.mat', 'pixels')
-% 
-% n_pixels = 300;
-%  
-% % --- We only want pixles with a droplet size less than 25 ---
-% index_25 = modis.cloud.effRadius17(pixels.res1km.index)<25 & modis.cloud.effRad_uncert_17(pixels.res1km.index)<=10;
-% % --- Let's only look at pixels within a narrow reflectance range ---
-% % modis_reflectance = modis.EV1km.reflectance(:, :, 1);
-% % index_refl = modis_reflectance(pixels.res1km.index)>=0.24 & modis_reflectance(pixels.res1km.index)<=0.26;
-% % define the sample population with the indexes just found
-% population = pixels.res1km.index(index_25);
-% % sample from the indexes above
-% idx = randsample(population, n_pixels, false);
+%% Print err and status messages?
+
+% Define the parameters of the INP file
+print_libRadtran_err = true;
 
 
-% SET CUSTOM INDEX
-idx = 110292;
-n_pixels = length(idx);
+%% Grab n random pixels from the suitablePixels set
 
-% determine the rows and columns
-[row, col] = ind2sub(size(modis.cloud.effRadius17), idx);
+n_pixels = 300;
 
-% clear the pixels strucutre, we don't need it anymore
-clear('pixels');
+% find pixels above a certain optical depth
+inputs.pixels.tau_min_threshold = 4;
+
+% find pixels below a certain optical depth
+inputs.pixels.tau_max_threshold = 30;
+
+% find pixels above a certain effective radius
+inputs.pixels.re_min_threshold = 3;
+
+% find pixels below a certain effective radius
+inputs.pixels.re_max_threshold = 23;
+
+% set the H-index threshold
+% Zhang and Platnick (2011) state that a value below 0.1 will have few 3D
+% effects
+inputs.pixels.H_index_max = 2;
+
+
+[pixels] = findSuitablePixel(modis,inputs);
+
+
+%% Start parallel pool
+
+start_parallel_pool(folder_paths.which_computer)
+
+
+
+%% Set up for loop here because each pixel will need a unique set of inputs?
+
+%% Define the INP parameters
+
+
+% -----------------------------------------------
+% --- Stuff for the Assumed Vertical Profile ---
+% -----------------------------------------------
+
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+
+% we model two free parameters, r_top and r_bot
+inputs.RT.num_re_parameters = 2;
+
+
+
+% Define some needed folder and file names
+saveCalculations_fileName = GN_inputs.save_calcs_fileName; % where to save the computed data
+INP_folderName = modisInputs.INP_folderName; % Where to save the INP files
+
+% --- compute the forward model at our current estimate ---
+r_top = current_guess(1);
+r_bottom = current_guess(2);
+tau_c = current_guess(3);
+
+profile_type = GN_inputs.model.profile.type; % type of water droplet profile
+
+% Using the same wavelength MODIS write_INP_file_4MODIS_2 uses to compute
+% the cloud properties
+wavelength_tau_c = modisBands(1);    % nm - Wavelength used for cloud optical depth calculation
+% ----------------------------------------------------------
+
+% --------------------------------------------
+% create water cloud file with droplet profile
+% --------------------------------------------
+
+% Set up a few constants for the water cloud
+H = GN_inputs.RT.cloudDepth;                                % km - geometric thickness of cloud
+n_layers = GN_inputs.RT.cloud_layers;                          % number of layers to model within cloud
+
+% Cloud top
+z_top = GN_inputs.RT.cloudTop_height(pp);        % km -  cloud top height
+
+z = linspace(z_top-H, z_top,n_layers);        % km - altitude above ground vector
+
+indVar = 'altitude';                    % string that tells the code which independent variable we used
+
+% constraint - the physical constraint (string) - there are four
+%       different string options for a physical constraint:
+%       (a) 'adiabatic' - this assumption forces the liquid water content to
+%       be proportionl to z, the altitude.
+%       (b) 'subadiabatic_aloft' - this assumption assumes there is
+%       increasing entrainment and drying towards the cloud top.
+%       (c) 'linear_with_z' - this constraint forces the effective droplet profile
+%       to behave linearly with z (re(z)~z). Physically we are forcing subadiabtatic
+%       behavior at mid-levels.
+%       (d) 'linear_with_tau' - this constraint forces the effective
+%       droplet radius to have linearly with optical depth (re(z)~tau).
+%       Physically, this too forces subadiabatic behavior at mid-levels.
+constraint = profile_type;              % string that tells the code which physical constraint to use
+
+
+
+re = create_droplet_profile2([r_top, r_bottom], z, indVar, constraint);     % microns - effective radius vector
+
+
+% Set the droplet distribution type
+dist_str = GN_inputs.RT.drop_distribution_str;                                 % droplet distribution
+
+% define the droplet distribution variance
+% This should be the same length as re
+% A distribution variance must be defined for each re value
+
+% -- For now, lets assume this is constant --
+dist_var = linspace(GN_inputs.RT.drop_distribution_var,GN_inputs.RT.drop_distribution_var, GN_inputs.RT.cloud_layers);              % distribution variance
+
+vert_homogeneous_str = GN_inputs.RT.vert_homogeneous_str;     % This tells the function to create a multi-layered cloud
+% define the boundaries of the cloud in Z-space
+z_topBottom = [z(end), z(1)];                    % km - boundaries of the altitude vector. 
+
+% Tell the code to use a pre-computed mie table for the extinction
+% efficiency, or to use the value of the extinction paradox -> Qe = 2
+parameterization_str = GN_inputs.RT.parameterization_str;
+
+
+% -----------------------------------
+% ---- Write a Water Cloud file! ----
+% -----------------------------------
+
+% ------------------------------------------------------
+% --------------------VERY IMPORTANT ------------------
+% ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
+% ------------------------------------------------------
+loop_var = 0;
+
+wc_filename = write_wc_file(re,tau_c,z_topBottom, wavelength_tau_c(1,1), dist_str,...
+    dist_var, vert_homogeneous_str, parameterization_str, loop_var);
+
+
+
+
+
+%%
+
 %% Define the parameters of the INP file
 
 
@@ -174,6 +438,7 @@ aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % --- Do you want to uvSpec to compute reflectivity for you? ---
 compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
+
 
 
 
