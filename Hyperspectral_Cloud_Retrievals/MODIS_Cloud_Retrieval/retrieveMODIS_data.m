@@ -95,6 +95,8 @@ for ii = 1:length(files)
         % save the filename
         L1B_fileNames{ii} = file_ii;
 
+        % First dimension is the inhomogeneity index for band 1 (650 nm)
+        % Second dimension is the inhomogeneity index for band 2 (860 nm)
         modis.cloud.inhomogeneity_index = read_inhomogeneity_index(file_ii);    % percent
 
 

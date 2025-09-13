@@ -6,22 +6,123 @@
 
 clear variables
 
-% Defien MODIS data folder
+which_computer = whatComputer;
 
-modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
+% Define MODIS data folder, water cloud folder, mie folder, inp folder
+
+if strcmp(which_computer, 'anbu8374')==true
+
+
+
+    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/comparing_modis_libRadTran/';
+
+
+elseif strcmp(which_computer, 'andrewbuggee')==true
+
+
+
+    modisFolder = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/';
+
+    libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/testing_MODIS_curc/'];
+
+    libRadtran_data = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/'];
+
+    libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/Mie_Calculations/'];
+
+    libRadtran_water_cloud_files = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+        'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+
+    atm_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/data/atmmod/'];
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/compare_reflectance_with_MODIS/reflectance_calcs/'];
+
+
+elseif strcmp(which_computer, 'curc')
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % define the location of the MODIS data
+    modisFolder = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'MODIS_Cloud_Retrieval/MODIS_data'];
+
+
+    libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT_1000/';
+
+    libRadtran_data = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+
+    libRadtran_mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/Mie_Calculations_1000/';
+
+    libRadtran_water_cloud_files = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc_1000/';
+
+    atm_folder_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod_1000/';
+
+    % Define the folder path where all .INP files will be saved
+    folder2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/compare_reflectance_with_MODIS'];
+
+
+end
+
+
+% If the libRadtran INP folder path doesn't exit, create a new directory
+if ~exist(libRadtran_inp, 'dir')
+
+    mkdir(libRadtran_inp)
+
+end
+
+
+% If the mie INP folder path doesn't exit, create a new directory
+if ~exist(libRadtran_mie_folder, 'dir')
+
+    mkdir(libRadtran_mie_folder)
+
+end
+
+
+
+% If the water cloud file path doesn't exit, create a new directory
+if ~exist(libRadtran_water_cloud_files, 'dir')
+
+    mkdir(libRadtran_water_cloud_files)
+
+end
+
+
+% If the atmosphere file path doesn't exit, create a new directory
+if ~exist(atm_folder_path, 'dir')
+
+    mkdir(atm_folder_path)
+
+end
+
+
+
+%% Which data sets do you want to analyze?
 
 % define the days to test in this analysis
-data2test = {'2008_10_18/', '2008_10_25/', '2008_11_02/', '2008_11_09/', '2008_11_13/'};
+% data2test = {'2008_10_18/', '2008_10_25/', '2008_11_02/', '2008_11_09/', '2008_11_13/'};
+data2test = {'2008_11_09/'};
+% data2test = {'2025_09_06/'};
 
 
-% Define the folder path where all .INP files will be saved
-folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/comparing_modis_libRadTran/';
 
 %% Define the constraints
 
 
 % define the number of pixels to use from each data set
-inputs.pixels.n_pixels = 100;
+inputs.pixels.n_pixels = 9;
 
 % --- Define the droplet radius constraint ---
 inputs.pixels.re_min_threshold = 3;               % microns
@@ -29,12 +130,17 @@ inputs.pixels.re_max_threshold = 25;                % microns
 
 % ----- Define the cloud optical thickness limits -----
 inputs.pixels.tau_min_threshold = 3;
-inputs.pixels.tau_max_threshold = 100;
+inputs.pixels.tau_max_threshold = 30;
 
 % ----- Define the uncertainty limits -----
 inputs.pixels.retrieval_uncertainty_re = 10;               % percentage
 inputs.pixels.retrieval_uncertainty_tau = 10;              % percentage
 inputs.pixels.reflectance_uncertainty = 5;                 % percentage
+
+% set the H-index threshold
+% Zhang and Platnick (2011) state that a value below 0.1 will have few 3D
+% effects
+inputs.pixels.H_index_max = 2;
 
 
 % ----- Define the MODIS bands to evaluate in this analysis -----
@@ -74,16 +180,18 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ---------------------------------------------------------
 % ------ Define the Solar Flux file and it's resolution ---
 % ---------------------------------------------------------
-% resolution should match the value listed in the file name
-inputs.RT.sourceFile_resolution = 1;                  % nm
+
+
 % Define the source file
-inputs.RT.source_file = '../data/solar_flux/kurudz_1.0nm.dat';
+inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+% resolution should match the value listed in the file name
+inputs.RT.source_file_resolution = 0.1;         % nm
 
 % define the atmospheric data file
 inputs.RT.atm_file = 'afglus.dat';
 
 % define the surface albedo
-inputs.RT.surface_albedo = 0.05;
+inputs.RT.surface_albedo = 0.04;
 
 
 
@@ -92,10 +200,7 @@ inputs.RT.surface_albedo = 0.05;
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
 
-% ---- Do you want a linear adjustment to the cloud pixel fraction? ------
-inputs.RT.linear_cloudFraction = false;
-% if false, define the cloud cover percentage
-inputs.RT.cloud_cover = 1;
+
 % ------------------------------------------------------------------------
 
 
@@ -107,7 +212,7 @@ inputs.RT.use_MODIS_cloudTopHeight = true;
 
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS above cloud water vapor? ---------
-inputs.RT.use_MODIS_aboveCloudWaterVapor = true;
+inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
 % ------------------------------------------------------------------------
 
 
@@ -129,6 +234,8 @@ inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
 % define how liquid water content will be computed
 % can either be 'mie' or '2limit'
 inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
+
+inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
 
 % define the wavelength used for the optical depth as the 650 nm
 inputs.RT.lambda_for_tau = modisBands(1);
@@ -154,6 +261,9 @@ inputs.RT.yesAerosols = true;
 inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
 inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
 % ------------------------------------------------------------------------
+
+% what should the CO2 values be set to?
+inputs.RT.CO2_mixing_ratio = 416;       % ppm
 
 
 % ----- Do you want a long error message? -----
@@ -200,12 +310,12 @@ for dd = 1:length(data2test)
     if strcmp(inputs.L1B_filename{1}(1:3), 'MOD')==true
 
         % Then read in the spectral response functions for the terra instrument
-        inputs.spec_response = modis_terra_specResponse_func(inputs.bands2run, inputs.RT.sourceFile_resolution);
+        inputs.spec_response = modis_terra_specResponse_func(inputs.bands2run, inputs.RT.source_file_resolution);
 
     elseif strcmp(inputs.L1B_filename{1}(1:3), 'MYD')==true
 
         % Then read in the spectral response functions for the Aqua instrument
-        inputs.spec_response = modis_aqua_specResponse_func(inputs.bands2run, inputs.RT.sourceFile_resolution);
+        inputs.spec_response = modis_aqua_specResponse_func(inputs.bands2run, inputs.RT.source_file_resolution);
 
     end
 
@@ -223,7 +333,9 @@ for dd = 1:length(data2test)
     % ----------------------------------
 
     % check to see if a suitable pixels file already exists
-    inputs.pixels_file_flag = isfile([modisFolder,data2test{dd},'suitablePixels.mat']);
+    % inputs.pixels_file_flag = isfile([modisFolder,data2test{dd},'suitablePixels.mat']);
+    inputs.pixels_file_flag = false;
+
 
     if inputs.pixels_file_flag == false
 
@@ -233,7 +345,7 @@ for dd = 1:length(data2test)
         pixels = findSuitablePixel(modis,inputs);
 
 
-        save([modisFolder,data2test{dd},'suitablePixels.mat'],'pixels','inputs');
+        % save([modisFolder,data2test{dd},'suitablePixels.mat'],'pixels','inputs');
 
         % save these pixels in a .mat file, along with the inputs
 
@@ -382,13 +494,19 @@ for dd = 1:length(data2test)
 
         end
 
+        % we model a homogeneous cloud
+        inputs.RT.num_re_parameters = 1;
+
         % ------------------------------------------------------
         % --------------------VERY IMPORTANT ------------------
         % ADD THE LOOP VARIABLE TO THE WC NAME TO MAKE IT UNIQUE
         % ------------------------------------------------------
         wc_filename{nn,dd} = write_wc_file(data2compare.modis_re{dd}(nn),data2compare.modis_opt_thickness{dd}(nn),...
             z_topBottom, inputs.RT.lambda_for_tau, inputs.RT.drop_distribution_str, inputs.RT.drop_distribution_var, ...
-            inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, dd*nn);
+            inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str, inputs.RT.indVar, false,...
+            which_computer, dd*nn, inputs.RT.num_re_parameters, libRadtran_water_cloud_files, libRadtran_mie_folder);
+
+
 
         wc_filename{nn,dd} = wc_filename{nn,dd}{1};
 
@@ -423,7 +541,7 @@ for dd = 1:length(data2test)
                 % ----------------- ******************** ---------------------
 
                 % Open the old file for writing
-                fileID = fopen([folder2save,inputName{nn, dd, ww}], 'w');
+                fileID = fopen([libRadtran_inp,inputName{nn, dd, ww}], 'w');
 
                 % Define which RTE solver to use
                 % ------------------------------------------------
@@ -487,17 +605,17 @@ for dd = 1:length(data2test)
 
                     % ----- TSETING COLUMN WATER VAPOR UNCERTAINTY -----
                     % Add +/- 75% uncertainty to the retrieved column water vapor amount
-%                     rand_sign = 0;
-%                     while rand_sign==0
-%                         rand_sign = randi([-1, 1]);
-%                     end
-%                     col_water_vapor = data2compare.modis_column_water_vapor{dd}(nn)*(1 + rand_sign*0.75);
-%                     
-% 
-%                     if isnan(col_water_vapor)==false
-%                         formatSpec = '%s %s %f %s %5s %s \n';
-%                         fprintf(fileID, formatSpec,'mol_modify','H2O', col_water_vapor,' MM', ' ', '# Total Precipitable Water');
-%                     end
+                    %                     rand_sign = 0;
+                    %                     while rand_sign==0
+                    %                         rand_sign = randi([-1, 1]);
+                    %                     end
+                    %                     col_water_vapor = data2compare.modis_column_water_vapor{dd}(nn)*(1 + rand_sign*0.75);
+                    %
+                    %
+                    %                     if isnan(col_water_vapor)==false
+                    %                         formatSpec = '%s %s %f %s %5s %s \n';
+                    %                         fprintf(fileID, formatSpec,'mol_modify','H2O', col_water_vapor,' MM', ' ', '# Total Precipitable Water');
+                    %                     end
                     % ------------------------------------------------------------------
 
                 end
@@ -518,12 +636,6 @@ for dd = 1:length(data2test)
                     formatSpec = '%s %s %5s %s \n';
                     fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{nn, dd}], ' ', '# Location of water cloud file');
 
-                    % Define the percentage of horizontal cloud cover
-                    % This is a number between 0 and 1
-                    % ------------------------------------------------
-
-                    formatSpec = '%s %f %5s %s \n';
-                    fprintf(fileID, formatSpec,'cloudcover wc', inputs.RT.cloud_cover, ' ', '# Cloud cover percentage');
 
 
                     % Define the technique or parameterization used to convert liquid cloud
@@ -582,6 +694,11 @@ for dd = 1:length(data2test)
 
                 end
 
+
+                % Define the sensor altitude
+                % ------------------------------------------------
+                formatSpec = '%s %f %5s %s \n\n';
+                fprintf(fileID, formatSpec,'mixing_ratio CO2 ', inputs.RT.CO2_mixing_ratio, ' ', '# ppm of CO2');
 
 
 
@@ -709,10 +826,10 @@ for dd = 1:length(data2test)
 
 
             % compute INP file
-            [inputSettings] = runUVSPEC(folder2save,inputName{nn, dd, ww}, outputName{nn, dd, ww});
+            [inputSettings] = runUVSPEC(libRadtran_inp, inputName{nn, dd, ww}, outputName{nn, dd, ww}, which_computer);
 
             % read .OUT file
-            [ds,~,~] = readUVSPEC(folder2save, outputName{nn, dd, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
+            [ds,~,~] = readUVSPEC(libRadtran_inp, outputName{nn, dd, ww},inputSettings(2,:), compute_reflectivity_uvSpec);
 
             if compute_reflectivity_uvSpec==false
                 % save reflectance
@@ -736,195 +853,200 @@ toc
 
 
 % Save all the calculations!
-save(['/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/Fixing_Reflectance_Estimate/',...
-    'modis_libRadTran_reflectance_comparison_', char(datetime('today')),'.mat'], "inputs", "data2test", "data2compare", "R_model")
+save([folder2save,'modis_libRadTran_reflectance_comparison_', char(datetime('today')),'.mat'],...
+    "inputs", "data2test", "data2compare", "R_model")
 
 
 
 %% Make a subplot of comparing LibRadTran reflectance to MODIS for each wavelength
 
-% set the font label size
-label_fontSize = 20;
 
-% set the order of wavelengths from small to large
-index_sort = [3, 4, 1, 2, 5, 6, 7];
-
-% create 1 to 1 line
-% find the minimum and maximum values to create a y=x line
-
-one2one_line = linspace(0.1, 0.85, 150);
-
-% define the subplot height and width
-w = 0.35;
-h = 0.35;
-
-% define the x and y position of the first subplot
-x0 = -0.01;
-y0 = 0.6;
-
-% define the x and y spacing between each plot
-dx = 0.225;
-dy = 0.45;
-
-
-
-figure1 = figure;
-set(figure1, 'Position', [0 0 2200 1200])
-
-
-% compute the total average of all data points for each wavelength
-avg_ratio_perWavelength = zeros(1, length(index_sort));
-
-% compute the variance of all data points for each wavelength
-var_ratio_perWavelength = zeros(1, length(index_sort));
-
-for ww = 1:length(index_sort)
-    
-    %clear ax
-    
-    subplot(2,4,ww)
-    ax(ww) = plot(one2one_line, one2one_line, 'k', 'LineWidth',1);
-
-
-    hold on
-
-    % Compute the average ratio for each day at each wavelength
-    avg_ratio_perDay = zeros(1, length(data2compare));
-
-    % Compute the varianve of the ratio for each day at each wavelength
-    var_ratio_perDay = zeros(1, length(data2compare));
-
-
-
-    % create an empty cell array for the legend string
-    legend_str = cell(1, length(data2test)+1);
-    % set the first legend entry to be the one-to-one line
-    legend_str{1} = '$1:1$';
+if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbuggee')==true
 
     
-    % at each wavelength, we want to compute the avg ratio of the modis
-    % reflectance and the libRadTran computed reflectacne
-    modis_data2avg_total = [];
-    model_data2avg_total = [];
+
+    % set the font label size
+    label_fontSize = 20;
+
+    % set the order of wavelengths from small to large
+    index_sort = [3, 4, 1, 2, 5, 6, 7];
+
+    % create 1 to 1 line
+    % find the minimum and maximum values to create a y=x line
+
+    one2one_line = linspace(0.1, 0.85, 150);
+
+    % define the subplot height and width
+    w = 0.35;
+    h = 0.35;
+
+    % define the x and y position of the first subplot
+    x0 = -0.01;
+    y0 = 0.6;
+
+    % define the x and y spacing between each plot
+    dx = 0.225;
+    dy = 0.45;
 
 
-    for dd = 1:length(data2test)
+
+    figure1 = figure;
+    set(figure1, 'Position', [0 0 2200 1200])
+
+
+    % compute the total average of all data points for each wavelength
+    avg_ratio_perWavelength = zeros(1, length(index_sort));
+
+    % compute the variance of all data points for each wavelength
+    var_ratio_perWavelength = zeros(1, length(index_sort));
+
+    for ww = 1:length(index_sort)
+
+        %clear ax
+
+        subplot(2,4,ww)
+        ax(ww) = plot(one2one_line, one2one_line, 'k', 'LineWidth',1);
+
+
+        hold on
+
+        % Compute the average ratio for each day at each wavelength
+        avg_ratio_perDay = zeros(1, length(data2compare));
+
+        % Compute the varianve of the ratio for each day at each wavelength
+        var_ratio_perDay = zeros(1, length(data2compare));
 
 
 
-        % somtimes, the retrievials will meet all the requirements, but
-        % some wavelengths will have high uncertainty. Create an index that
-        % keeps that measurments which are less than the reflectance
-        % uncertainty threshold defined above
-        index_R_high_uncertainty = data2compare.modis_refl_uncert{dd}(:,index_sort(ww))<=(inputs.pixels.reflectance_uncertainty*0.01);
+        % create an empty cell array for the legend string
+        legend_str = cell(1, length(data2test)+1);
+        % set the first legend entry to be the one-to-one line
+        legend_str{1} = '$1:1$';
 
 
-        % store all the data across different days for a single wavelength
-        % in an array
-        modis_data2avg_total = [modis_data2avg_total; data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))];
-        model_data2avg_total = [model_data2avg_total; R_model(index_R_high_uncertainty,dd, index_sort(ww))];
+        % at each wavelength, we want to compute the avg ratio of the modis
+        % reflectance and the libRadTran computed reflectacne
+        modis_data2avg_total = [];
+        model_data2avg_total = [];
 
-        if sum(index_R_high_uncertainty)<inputs.pixels.n_pixels
 
-            warning([newline, 'Data from ', data2test{dd}(6:7), '/', data2test{dd}(9:10), ' at wavelength: ',...
-                num2str(round(median(inputs.spec_response{ww}(:,1)))), ' nm was found to have ',...
-                num2str(inputs.pixels.n_pixels - sum(index_R_high_uncertainty)),...
-                ' measurements with an uncertainty greater than ', num2str(inputs.pixels.reflectance_uncertainty), '%', newline])
+        for dd = 1:length(data2test)
+
+
+
+            % somtimes, the retrievials will meet all the requirements, but
+            % some wavelengths will have high uncertainty. Create an index that
+            % keeps that measurments which are less than the reflectance
+            % uncertainty threshold defined above
+            index_R_high_uncertainty = data2compare.modis_refl_uncert{dd}(:,index_sort(ww))<=(inputs.pixels.reflectance_uncertainty*0.01);
+
+
+            % store all the data across different days for a single wavelength
+            % in an array
+            modis_data2avg_total = [modis_data2avg_total; data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))];
+            model_data2avg_total = [model_data2avg_total; R_model(index_R_high_uncertainty,dd, index_sort(ww))];
+
+            if sum(index_R_high_uncertainty)<inputs.pixels.n_pixels
+
+                warning([newline, 'Data from ', data2test{dd}(6:7), '/', data2test{dd}(9:10), ' at wavelength: ',...
+                    num2str(round(median(inputs.spec_response{ww}(:,1)))), ' nm was found to have ',...
+                    num2str(inputs.pixels.n_pixels - sum(index_R_high_uncertainty)),...
+                    ' measurements with an uncertainty greater than ', num2str(inputs.pixels.reflectance_uncertainty), '%', newline])
+            end
+
+
+            % compute the average ratio for each day at each wavelength
+            avg_ratio_perDay(dd) = mean(data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))./R_model(index_R_high_uncertainty,dd, index_sort(ww)));
+
+            % comptue the variance of the ratio for each day and each
+            % wavelength
+            var_ratio_perDay(dd) = var(data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))./R_model(index_R_high_uncertainty,dd, index_sort(ww)));
+
+            % --- Legend displays mean and Varaince (but it's very small) ---
+            % define the legend string for each day
+            %         legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2)), ...
+            %                             ' $\sigma^{2}$ = ', num2str(round(var_ratio_perDay(dd), 2))];
+
+            % --- Legend displays mean  ---
+            % define the legend string for each day
+            legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2))];
+
+            errorbar(R_model(index_R_high_uncertainty,dd, index_sort(ww)), data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww)),...
+                data2compare.modis_refl_uncert{dd}(index_R_high_uncertainty, index_sort(ww)), 'vertical','.',...
+                'Color', mySavedColors(dd, 'fixed'), 'MarkerSize',25)
+
+            hold on
+
         end
 
 
-        % compute the average ratio for each day at each wavelength
-        avg_ratio_perDay(dd) = mean(data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))./R_model(index_R_high_uncertainty,dd, index_sort(ww)));
-        
-        % comptue the variance of the ratio for each day and each
-        % wavelength
-        var_ratio_perDay(dd) = var(data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww))./R_model(index_R_high_uncertainty,dd, index_sort(ww)));
-        
-        % --- Legend displays mean and Varaince (but it's very small) ---
-        % define the legend string for each day
-%         legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2)), ...
-%                             ' $\sigma^{2}$ = ', num2str(round(var_ratio_perDay(dd), 2))];
+        % Next, calculate the average over every day for each wavelength
+        avg_ratio_perWavelength(ww) = mean(modis_data2avg_total./model_data2avg_total, 'all');
 
-        % --- Legend displays mean  ---
-        % define the legend string for each day
-        legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2))];
-        
-       errorbar(R_model(index_R_high_uncertainty,dd, index_sort(ww)), data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww)),...
-           data2compare.modis_refl_uncert{dd}(index_R_high_uncertainty, index_sort(ww)), 'vertical','.',...
-           'Color', mySavedColors(dd, 'fixed'), 'MarkerSize',25)
-    
-       hold on
-    
+        % now compute the variance of all the data for each wavelength
+        var_ratio_perWavelength(ww) = var(modis_data2avg_total./model_data2avg_total, 1, 'all');
+
+
+        % we should print the legend with the corresponding coefficient value,
+        % the average value for each data set
+        legend(legend_str, 'Interpreter','latex', 'Location', 'northwest')
+
+        hold on; grid on; grid minor
+        xlim([one2one_line(1), one2one_line(end)])
+        ylim([one2one_line(1), one2one_line(end)])
+
+        if ww == 1 || ww == 5
+            xlabel('LibRadTran Reflectance $(1/sr)$','Interpreter','latex', 'FontSize',label_fontSize)
+            ylabel('MODIS Measured Reflectance $(1/sr)$','Interpreter','latex', 'FontSize',label_fontSize)
+        end
+        title([num2str(round(median(inputs.spec_response{index_sort(ww)}(:,1)))), ' nm'])
+        axis square
+
+
+
+
+
     end
 
 
-    % Next, calculate the average over every day for each wavelength
-    avg_ratio_perWavelength(ww) = mean(modis_data2avg_total./model_data2avg_total, 'all');
-    
-    % now compute the variance of all the data for each wavelength
-    var_ratio_perWavelength(ww) = var(modis_data2avg_total./model_data2avg_total, 1, 'all');
 
+    % ---- Change the size and position of each subplot! ----
 
-    % we should print the legend with the corresponding coefficient value,
-    % the average value for each data set
-    legend(legend_str, 'Interpreter','latex', 'Location', 'northwest')
+    for ww = 1:length(ax)
 
-    hold on; grid on; grid minor
-    xlim([one2one_line(1), one2one_line(end)])
-    ylim([one2one_line(1), one2one_line(end)])
+        % SET SUBPLOT POSITION
+        if ww<5
+            %         ax(ww).Parent.Position = [(x0 + (ww-1)*dx), y0, w, h];
+            ax(ww).Parent.Position = [(x0 + (ww-1)*dx), y0, w, h];
 
-    if ww == 1 || ww == 5
-        xlabel('LibRadTran Reflectance $(1/sr)$','Interpreter','latex', 'FontSize',label_fontSize)
-        ylabel('MODIS Measured Reflectance $(1/sr)$','Interpreter','latex', 'FontSize',label_fontSize)
+            % insert a text box with the total average and the variance for all
+            % days at each wavelength
+            dim = [0.19+(ww-1)*dx, 0.635, 0.065, 0.046];
+            str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
+                '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
+            annotation('textbox',dim,'String',str,...
+                'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
+
+        else
+            ax(ww).Parent.Position = [(x0 + (ww-5)*dx), y0 - dy, w, h];
+
+            % insert a text box with the total average and the variance for all
+            % days at each wavelength
+            dim = [0.19+(ww-5)*dx, 0.635-dy, 0.065, 0.046];
+            str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
+                '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
+            annotation('textbox',dim,'String',str,...
+                'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
+
+        end
+
     end
-    title([num2str(round(median(inputs.spec_response{index_sort(ww)}(:,1)))), ' nm'])
-    axis square
 
 
+
+    % ---------------------------------------------------------------------
+    % ---------------------------------------------------------------------
 
 
 
 end
-
-
-
-% ---- Change the size and position of each subplot! ----
-
-for ww = 1:length(ax)
-
-    % SET SUBPLOT POSITION
-    if ww<5
-        %         ax(ww).Parent.Position = [(x0 + (ww-1)*dx), y0, w, h];
-        ax(ww).Parent.Position = [(x0 + (ww-1)*dx), y0, w, h];
-
-        % insert a text box with the total average and the variance for all
-        % days at each wavelength
-        dim = [0.19+(ww-1)*dx, 0.635, 0.065, 0.046];
-        str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
-            '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
-        annotation('textbox',dim,'String',str,...
-            'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
-
-    else
-        ax(ww).Parent.Position = [(x0 + (ww-5)*dx), y0 - dy, w, h];
-
-        % insert a text box with the total average and the variance for all
-        % days at each wavelength
-        dim = [0.19+(ww-5)*dx, 0.635-dy, 0.065, 0.046];
-        str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
-            '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
-        annotation('textbox',dim,'String',str,...
-            'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
-
-    end
-
-end
-
-
-
-% ---------------------------------------------------------------------
-% ---------------------------------------------------------------------
-
-
-
-

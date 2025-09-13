@@ -52,10 +52,7 @@ inputs.which_computer = which_computer;
 
 
 
-% Do you want to model 2 parameters for the droplet profile (r_top and r_bot)
-% or 3 (r_top, r_middle, r_bot)
 
-inputs.RT.num_re_parameters = 2;
 
 % ---- First, let's simulate water clouds ----
 
