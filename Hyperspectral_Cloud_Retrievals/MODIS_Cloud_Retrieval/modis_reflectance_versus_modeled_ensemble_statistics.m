@@ -852,8 +852,26 @@ end
 toc
 
 
-% Save all the calculations!
-save([folder2save,'modis_libRadTran_reflectance_comparison_', char(datetime('today')),'.mat'],...
+
+%% Save all the calculations!
+
+rev = 1;
+
+
+folder_name = ['modis_libRadTran_reflectance_comparison_', char(datetime('today')),...
+    'rev_', num2str(rev),'.mat'];
+
+while isfile(folder_name)
+    rev = rev+1;
+    if rev<10
+        folder_name = [folder_name(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        folder_name = [folder_name(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+save([folder2save,folder_name],...
     "inputs", "data2test", "data2compare", "R_model")
 
 
