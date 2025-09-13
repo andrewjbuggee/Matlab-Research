@@ -83,13 +83,20 @@ if use_TBLUT_estimates==true
     % 10%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    effRad_uncert = 0.15;
+    % higher uncertainty
+    % effRad_uncert = 0.15;
+    % lower uncertainty used for GRC
+    effRad_uncert = 0.1;
+
 
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
     % atleast 3
-    optThick_uncert = 0.1;
+    % higher uncertainty
+    % optThick_uncert = 0.1;
+    % lower uncertainty used for GRC
+    optThick_uncert = 0.05;
 
     % stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
     %     GN_inputs.model.apriori(2) * 6*effRad_uncert,...
