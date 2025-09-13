@@ -140,7 +140,7 @@ inputs.pixels.reflectance_uncertainty = 5;                 % percentage
 % set the H-index threshold
 % Zhang and Platnick (2011) state that a value below 0.1 will have few 3D
 % effects
-inputs.pixels.H_index_max = 2;
+inputs.pixels.H_index_max = 4;
 
 
 % ----- Define the MODIS bands to evaluate in this analysis -----
@@ -852,8 +852,26 @@ end
 toc
 
 
-% Save all the calculations!
-save([folder2save,'modis_libRadTran_reflectance_comparison_', char(datetime('today')),'.mat'],...
+
+%% Save all the calculations!
+
+rev = 1;
+
+
+folder_name = ['modis_libRadTran_reflectance_comparison_', char(datetime('today')),...
+    'rev_', num2str(rev),'.mat'];
+
+while isfile(folder_name)
+    rev = rev+1;
+    if rev<10
+        folder_name = [folder_name(1:end-5), num2str(rev),'.mat'];
+    elseif rev>10
+        folder_name = [folder_name(1:end-6), num2str(rev),'.mat'];
+    end
+end
+
+
+save([folder2save,folder_name],...
     "inputs", "data2test", "data2compare", "R_model")
 
 
@@ -863,7 +881,7 @@ save([folder2save,'modis_libRadTran_reflectance_comparison_', char(datetime('tod
 
 if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbuggee')==true
 
-    
+
 
     % set the font label size
     label_fontSize = 20;
