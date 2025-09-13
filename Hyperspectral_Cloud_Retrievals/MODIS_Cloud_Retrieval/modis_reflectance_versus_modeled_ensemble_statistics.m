@@ -113,8 +113,8 @@ end
 
 % define the days to test in this analysis
 % data2test = {'2008_10_18/', '2008_10_25/', '2008_11_02/', '2008_11_09/', '2008_11_13/'};
-data2test = {'2008_11_09/'};
-% data2test = {'2025_09_06/'};
+% data2test = {'2008_11_09/'};
+data2test = {'2025_09_06/'};
 
 
 
@@ -859,7 +859,7 @@ rev = 1;
 
 
 folder_name = ['modis_libRadTran_reflectance_comparison_', char(datetime('today')),...
-    'rev_', num2str(rev),'.mat'];
+    '_rev_', num2str(rev),'.mat'];
 
 while isfile(folder_name)
     rev = rev+1;
