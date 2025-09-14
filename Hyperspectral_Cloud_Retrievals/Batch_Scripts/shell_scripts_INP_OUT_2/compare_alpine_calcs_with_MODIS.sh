@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=30G
-#SBATCH --time=1:00:00     # Longer time for multiple files
+#SBATCH --time=12:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=compare_alpine_calcs_with_MODIS
