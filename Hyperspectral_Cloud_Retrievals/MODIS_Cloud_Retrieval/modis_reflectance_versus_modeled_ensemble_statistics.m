@@ -54,7 +54,8 @@ elseif strcmp(which_computer, 'curc')
 
     % define the location of the MODIS data
     modisFolder = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'MODIS_Cloud_Retrieval/MODIS_data'];
+        'MODIS_Cloud_Retrieval/MODIS_data/'];
+
 
 
     libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT_1000/';
