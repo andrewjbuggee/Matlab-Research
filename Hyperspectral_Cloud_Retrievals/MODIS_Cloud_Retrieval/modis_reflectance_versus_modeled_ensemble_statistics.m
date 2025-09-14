@@ -141,7 +141,7 @@ inputs.pixels.reflectance_uncertainty = 5;                 % percentage
 % set the H-index threshold
 % Zhang and Platnick (2011) state that a value below 0.1 will have few 3D
 % effects
-inputs.pixels.H_index_max = 4;
+inputs.pixels.H_index_max = 3;
 
 
 % ----- Define the MODIS bands to evaluate in this analysis -----
@@ -270,7 +270,7 @@ inputs.RT.CO2_mixing_ratio = 416;       % ppm
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.err_msg = 'quiet';
+inputs.RT.err_msg = 'verbose';
 
 
 
@@ -574,10 +574,16 @@ for dd = 1:length(data2test)
                 fprintf(fileID, formatSpec,'mol_abs_param', inputs.RT.band_parameterization,' ', '# Band model');
 
 
+                % Define location of the data files
+                % ------------------------------------------------
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'data_files_path', libRadtran_data, ' ', '# Location of libRadtran data files');
+
+
                 % Define the location and filename of the atmopsheric profile to use
                 % ------------------------------------------------
                 formatSpec = '%s %5s %s \n';
-                fprintf(fileID, formatSpec,['atmosphere_file ','../data/atmmod/', inputs.RT.atm_file],' ', '# Location of atmospheric profile');
+                fprintf(fileID, formatSpec,['atmosphere_file ', atm_folder_path, inputs.RT.atm_file],' ', '# Location of atmospheric profile');
 
                 % Define the location and filename of the extraterrestrial solar source
                 % ---------------------------------------------------------------------
@@ -635,7 +641,7 @@ for dd = 1:length(data2test)
                     % Define the water cloud file
                     % ------------------------------------------------
                     formatSpec = '%s %s %5s %s \n';
-                    fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename{nn, dd}], ' ', '# Location of water cloud file');
+                    fprintf(fileID, formatSpec,'wc_file 1D', [libRadtran_water_cloud_files,wc_filename{nn, dd}], ' ', '# Location of water cloud file');
 
 
 
@@ -751,10 +757,10 @@ for dd = 1:length(data2test)
 
 
 
-                % Set the error message to quiet of verbose
+                % Set the error message to quiet or verbose
                 % ------------------------------------------------
                 formatSpec = '%s';
-                fprintf(fileID, formatSpec,'verbose');
+                fprintf(fileID, formatSpec, inputs.RT.err_msg);
 
 
                 % Close the file!
@@ -774,8 +780,10 @@ for dd = 1:length(data2test)
         else
 
             inputName{nn, dd, ww} = [num2str(floor((inputs.spec_response{ww}(end,1)-inputs.spec_response{ww}(1,1))/2 + inputs.spec_response{ww}(1,1))),...
-                'nm_',num2str(dd*nn),'nn_',num2str(modis.solar.zenith(pixels2use{dd}.row(nn), pixels2use{dd}.col(nn))),...
-                'sza_',num2str(round(double(modis.sensor.zenith(pixels2use{dd}.row(nn), pixels2use{dd}.col(nn))))),'vza_', inputs.RT.atm_file(1:end-4),'.INP'];
+                'nm_dataSet_',num2str(dd),'_pixel_',num2str(nn),num2str(modis.solar.zenith(pixels2use{dd}.row(nn),...
+                pixels2use{dd}.col(nn))),...
+                'sza_',num2str(round(double(modis.sensor.zenith(pixels2use{dd}.row(nn), pixels2use{dd}.col(nn))))),...
+                'vza_', inputs.RT.atm_file(1:end-4),'.INP'];
 
             outputName{nn, dd, ww} = ['OUTPUT_',inputName{nn, dd, ww}(1:end-4)];
 
