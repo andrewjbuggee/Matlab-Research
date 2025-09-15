@@ -29,7 +29,7 @@ elseif strcmp(which_computer, 'andrewbuggee')==true
     libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
         'LibRadTran/libRadtran-2.0.4/testing_MODIS_curc/'];
 
-    libRadtran_data = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
+    libRadtran_data_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
         'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/'];
 
     libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
@@ -60,7 +60,7 @@ elseif strcmp(which_computer, 'curc')
 
     libRadtran_inp = '/scratch/alpine/anbu8374/HySICS/INP_OUT_1000/';
 
-    libRadtran_data = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
+    libRadtran_data_path = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
     libRadtran_mie_folder = '/scratch/alpine/anbu8374/Mie_Calculations/Mie_Calculations_1000/';
 
@@ -107,6 +107,23 @@ if ~exist(atm_folder_path, 'dir')
     mkdir(atm_folder_path)
 
 end
+
+
+%%  Delete old files?
+
+% First, delete files in the HySICS INP folder
+delete([folder_paths.libRadtran_inp, '*.INP'])
+delete([folder_paths.libRadtran_inp, '*.OUT'])
+
+% delete old wc files
+delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
+
+% delete old water vapor profiles
+delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
+
+% delete old MIE files
+delete([folder_paths.libRadtran_mie_folder, '*.INP'])
+delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 
 
@@ -577,13 +594,14 @@ for dd = 1:length(data2test)
                 % Define location of the data files
                 % ------------------------------------------------
                 formatSpec = '%s %s %5s %s \n\n';
-                fprintf(fileID, formatSpec,'data_files_path', libRadtran_data, ' ', '# Location of libRadtran data files');
+                fprintf(fileID, formatSpec,'data_files_path', libRadtran_data_path, ' ', '# Location of libRadtran data files');
 
 
                 % Define the location and filename of the atmopsheric profile to use
                 % ------------------------------------------------
-                formatSpec = '%s %5s %s \n';
-                fprintf(fileID, formatSpec,['atmosphere_file ', atm_folder_path, inputs.RT.atm_file],' ', '# Location of atmospheric profile');
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'atmosphere_file ', [libRadtran_data_path, 'atmmod/', inputs.RT.atm_file],...
+                    ' ', '# Location of atmospheric profile');
 
                 % Define the location and filename of the extraterrestrial solar source
                 % ---------------------------------------------------------------------
