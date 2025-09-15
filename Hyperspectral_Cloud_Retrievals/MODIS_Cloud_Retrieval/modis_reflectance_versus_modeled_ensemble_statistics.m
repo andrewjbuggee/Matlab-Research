@@ -14,10 +14,22 @@ if strcmp(which_computer, 'anbu8374')==true
 
 
 
-    modisFolder = '/Users/anbu8374/Documents/MATLAB/HyperSpectral_Cloud_Retrieval/MODIS_Cloud_Retrieval/MODIS_data/';
+    modisFolder = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/MODIS_Cloud_Retrieval/MODIS_data/';
+
+
+    libRadtran_inp = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/testing_MODIS_curc/';
+
+    libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+    libRadtran_mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+
+    libRadtran_water_cloud_files = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
+
+    atm_folder_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
 
     % Define the folder path where all .INP files will be saved
-    folder2save = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/comparing_modis_libRadTran/';
+    folder2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/compare_reflectance_with_MODIS/reflectance_calcs'];
 
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
@@ -131,8 +143,20 @@ delete([libRadtran_mie_folder, '*.OUT'])
 
 % define the days to test in this analysis
 % data2test = {'2008_10_18/', '2008_10_25/', '2008_11_02/', '2008_11_09/', '2008_11_13/'};
-% data2test = {'2008_11_09/'};
-data2test = {'2025_09_06/'};
+% data2test = {'2008_11_09/', '2008_11_11_1430/', '2008_11_11_1850/'};
+
+data2test = {'2008_11_09/'};
+% data2test = {'2008_11_11_1430/'};
+% data2test = {'2008_11_11_1850/'};
+
+% data2test = {'2025_09_06/'};
+% data2test = {'2025_08_14_1310/'};
+% data2test = {'2025_08_14_1315/'};
+% data2test = {'2025_08_14_1320/'};
+% data2test = {'2025_08_25_1145/'};
+% data2test = {'2025_08_25_1315/'};
+% data2test = {'2025_08_25_1320/'};
+% data2test = {'2025_08_25_1325/'};
 
 
 
@@ -140,7 +164,7 @@ data2test = {'2025_09_06/'};
 
 
 % define the number of pixels to use from each data set
-inputs.pixels.n_pixels = 80;
+inputs.pixels.n_pixels = 511;
 
 % --- Define the droplet radius constraint ---
 inputs.pixels.re_min_threshold = 3;               % microns
@@ -148,7 +172,7 @@ inputs.pixels.re_max_threshold = 25;                % microns
 
 % ----- Define the cloud optical thickness limits -----
 inputs.pixels.tau_min_threshold = 3;
-inputs.pixels.tau_max_threshold = 30;
+inputs.pixels.tau_max_threshold = 100;
 
 % ----- Define the uncertainty limits -----
 inputs.pixels.retrieval_uncertainty_re = 10;               % percentage
@@ -158,7 +182,7 @@ inputs.pixels.reflectance_uncertainty = 5;                 % percentage
 % set the H-index threshold
 % Zhang and Platnick (2011) state that a value below 0.1 will have few 3D
 % effects
-inputs.pixels.H_index_max = 3;
+inputs.pixels.H_index_max = 2;
 
 
 % ----- Define the MODIS bands to evaluate in this analysis -----
@@ -258,10 +282,10 @@ inputs.RT.indVar = 'altitude';                    % string that tells the code w
 
 
 % define the wavelength used for the optical depth as the 650 nm
-% inputs.RT.lambda_for_tau = modisBands(1);
-% inputs.RT.lambda_for_tau = inputs.RT.lambda_for_tau(1);            % nm
+inputs.RT.lambda_for_tau = modisBands(1);
+inputs.RT.lambda_for_tau = inputs.RT.lambda_for_tau(1);            % nm
 % set it as 500nm
-inputs.RT.lambda_for_tau = 500;    % nm
+% inputs.RT.lambda_for_tau = 500;    % nm
 
 
 % --------------------------------------------------------------
@@ -383,7 +407,7 @@ for dd = 1:length(data2test)
 
 
     % sample from the indexes above
-    pixels2use{dd}.idx = randsample(pixels.res1km.index, inputs.pixels.n_pixels, false);
+    pixels2use{dd}.idx = randsample(pixels.res1km.index, length(pixels.res1km.index), false);
 
     % determine the rows and columns
     [pixels2use{dd}.row, pixels2use{dd}.col] = ind2sub(size(modis.cloud.effRadius17), pixels2use{dd}.idx);
