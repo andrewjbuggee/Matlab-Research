@@ -92,7 +92,8 @@ end
 % set up a distance threshold, which is the number of pixels from a boundry
 % where the phase changes
 
-dist_threshold = 2; % this defines the closest possible distance to a 0 pixel in the combined mask
+% dist_threshold = 2; % this defines the closest possible distance to a 0 pixel in the combined mask
+dist_threshold = 1; % this defines the closest possible distance to a 0 pixel in the combined mask
 
 
 % ----- Remove edge pixels (WHY?!) -----
