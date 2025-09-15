@@ -70,7 +70,7 @@ elseif strcmp(which_computer, 'curc')
 
     % Define the folder path where all .INP files will be saved
     folder2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/compare_reflectance_with_MODIS'];
+        'Batch_Scripts/compare_reflectance_with_MODIS/reflectance_calcs/'];
 
 
 end
@@ -140,7 +140,7 @@ data2test = {'2025_09_06/'};
 
 
 % define the number of pixels to use from each data set
-inputs.pixels.n_pixels = 9;
+inputs.pixels.n_pixels = 80;
 
 % --- Define the droplet radius constraint ---
 inputs.pixels.re_min_threshold = 3;               % microns
@@ -885,20 +885,20 @@ toc
 rev = 1;
 
 
-folder_name = ['modis_libRadTran_reflectance_comparison_', char(datetime('today')),...
+mat_file_name = ['modis_libRadTran_reflectance_comparison_', char(datetime('today')),...
     '_rev_', num2str(rev),'.mat'];
 
-while isfile(folder_name)
+while isfile(mat_file_name)
     rev = rev+1;
     if rev<10
-        folder_name = [folder_name(1:end-5), num2str(rev),'.mat'];
+        mat_file_name = [mat_file_name(1:end-5), num2str(rev),'.mat'];
     elseif rev>10
-        folder_name = [folder_name(1:end-6), num2str(rev),'.mat'];
+        mat_file_name = [mat_file_name(1:end-6), num2str(rev),'.mat'];
     end
 end
 
 
-save([folder2save,folder_name],...
+save([folder2save,mat_file_name],...
     "inputs", "data2test", "data2compare", "R_model")
 
 
