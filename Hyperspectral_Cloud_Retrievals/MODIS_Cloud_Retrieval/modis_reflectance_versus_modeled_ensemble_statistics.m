@@ -255,9 +255,13 @@ inputs.RT.parameterization_str = 'mie';     % This string is used to compute the
 
 inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
 
+
+
 % define the wavelength used for the optical depth as the 650 nm
-inputs.RT.lambda_for_tau = modisBands(1);
-inputs.RT.lambda_for_tau = inputs.RT.lambda_for_tau(1);            % nm
+% inputs.RT.lambda_for_tau = modisBands(1);
+% inputs.RT.lambda_for_tau = inputs.RT.lambda_for_tau(1);            % nm
+% set it as 500nm
+inputs.RT.lambda_for_tau = 500;    % nm
 
 
 % --------------------------------------------------------------
@@ -544,7 +548,8 @@ for dd = 1:length(data2test)
             for ww = 1:length(inputs.bands2run)
 
                 inputName{nn,dd,ww} = [num2str(floor((inputs.spec_response{ww}(end,1)-inputs.spec_response{ww}(1,1))/2 + inputs.spec_response{ww}(1,1))),...
-                    'nm_withCloudLayer_',num2str(dd*nn),'nn_row',num2str(pixels2use{dd}.row(nn)), '_col', num2str(pixels2use{dd}.col(nn)), '_',...
+                    'nm_dataSet_',num2str(dd),'_pixelNum_', num2str(nn),'_row',num2str(pixels2use{dd}.row(nn)),...
+                    '_col', num2str(pixels2use{dd}.col(nn)), '_',...
                     inputs.RT.atm_file(1:end-4),'.INP'];
 
                 outputName{nn, dd, ww} = ['OUTPUT_',inputName{nn,dd,ww}(1:end-4)];
@@ -668,6 +673,12 @@ for dd = 1:length(data2test)
                     % ----------------------------------------------------------------------
                     formatSpec = '%s %s %5s %s \n\n';
                     fprintf(fileID, formatSpec,'wc_properties', inputs.RT.wc_parameterization, ' ', '# optical properties parameterization technique');
+
+
+                    % Manually set the water cloud optical depth
+                    % ----------------------------------------------------------------------
+                    formatSpec = '%s %f %5s %s \n\n';
+                    fprintf(fileID, formatSpec,'wc_modify tau set', data2compare.modis_opt_thickness{dd}(nn), ' ', '# optical properties parameterization technique');
 
                 end
 

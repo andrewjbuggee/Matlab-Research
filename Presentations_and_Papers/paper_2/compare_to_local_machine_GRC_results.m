@@ -5,7 +5,8 @@
 
 % *** DO THESE MATCH THE CALCULATIONS I MADE FOR GRC???? ******
 
-
+% The files below were computed using the retrieval algorithm on 9-14-2025
+% on the alpine cluster
 
 clear variables
 
@@ -38,7 +39,7 @@ for nn = 1:length(filenames)
 
 
     % Load a data set
-    ds = load([folder_path, filenames(1).name]);
+    ds = load([folder_path, filenames(nn).name]);
 
     if nn==1
 
