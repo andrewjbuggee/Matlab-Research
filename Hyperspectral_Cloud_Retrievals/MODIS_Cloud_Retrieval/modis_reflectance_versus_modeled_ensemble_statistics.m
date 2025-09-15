@@ -112,18 +112,18 @@ end
 %%  Delete old files?
 
 % First, delete files in the HySICS INP folder
-delete([folder_paths.libRadtran_inp, '*.INP'])
-delete([folder_paths.libRadtran_inp, '*.OUT'])
+delete([libRadtran_inp, '*.INP'])
+delete([libRadtran_inp, '*.OUT'])
 
 % delete old wc files
-delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
+delete([libRadtran_water_cloud_files, '*.DAT'])
 
 % delete old water vapor profiles
-delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
+delete([atm_folder_path, '*-aboveCloud.DAT'])
 
 % delete old MIE files
-delete([folder_paths.libRadtran_mie_folder, '*.INP'])
-delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
+delete([libRadtran_mie_folder, '*.INP'])
+delete([libRadtran_mie_folder, '*.OUT'])
 
 
 
