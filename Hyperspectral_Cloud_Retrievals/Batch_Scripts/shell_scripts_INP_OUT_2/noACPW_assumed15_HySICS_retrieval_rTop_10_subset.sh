@@ -20,16 +20,16 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
-#SBATCH --mem=32G
-#SBATCH --time=2:30:00     # Longer time for multiple files
+#SBATCH --mem=36G
+#SBATCH --time=4:30:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=noACPW_assumed10_retrieval_hysics_rTop_15_subset_%A_%a
-#SBATCH --output=noACPW_assumed10_retrieval_hysics_rTop_15_subset_%A_%a.out
-#SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_15_subset_%A_%a.err
+#SBATCH --job-name=noACPW_assumed15_retrieval_hysics_rTop_15_subset_%A_%a
+#SBATCH --output=noACPW_assumed15_retrieval_hysics_rTop_15_subset_%A_%a.out
+#SBATCH --error=noACPW_assumed15_retrieval_hysics_rTop_15_subset_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=25-36       # 12 jobs × 2 file each = 24 files
+#SBATCH --array=8-10       # 3 jobs × 1 file each = 3 files
 
 # Load modules
 ml purge
@@ -70,13 +70,13 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # ----------------------------------------------------------
 
 # Get list of all files
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_rTop_10_rBot_5_tauC_5*.mat" -type f -printf "%f\n" | sort)
 
 
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=2
+FILES_PER_JOB=1
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
