@@ -157,7 +157,8 @@ if inputs_acpw.flags.writeINPfiles == true
 
         % ------------------ Write the INP File --------------------
         write_INP_file(libRadtran_inp, libRadtran_data_path, libRadtran_water_cloud_files,...
-            inputFileName{nn}, inputs_acpw, wavelengths, wc_filename, [], [], custom_waterVapor_profile, []);
+            inputFileName{nn}, inputs_acpw, wavelengths, wc_filename, [], tblut_retrieval.minTau,...
+            custom_waterVapor_profile, []);
 
 
     end

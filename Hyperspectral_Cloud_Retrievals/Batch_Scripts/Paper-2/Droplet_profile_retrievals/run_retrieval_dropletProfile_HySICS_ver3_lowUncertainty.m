@@ -191,6 +191,10 @@ for ff = 1:length(filenames)
     GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
     GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
+    %% override optical depth
+
+    % Do you want to manually set the optical depth?
+    GN_inputs.RT.modify_wc_opticalDepth = true;
 
 
     %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE

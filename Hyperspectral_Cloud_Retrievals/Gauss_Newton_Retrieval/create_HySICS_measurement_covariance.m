@@ -53,7 +53,7 @@ elseif strcmp(covariance_type,'independent') == true
             isfield(simulated_measurements.inputs.measurement, 'uncert')==true
 
         % use the definine measurement uncertainty. Convert to a percent
-        measurement_uncertainty_percent = simulated_measurements.inputs.measurement.uncert * 100;
+        measurement_uncertainty_percent = simulated_measurements.inputs.measurement.uncert * 100;  % percent
 
     else
 
@@ -64,10 +64,10 @@ elseif strcmp(covariance_type,'independent') == true
     end
 
     % Define the forward model uncertainty
-    forward_model_uncertainty = 0.01;               % percent
+    forward_model_uncertainty_percent = 0.01;               % percent
 
-    GN_inputs.measurement.uncertainty = linspace((measurement_uncertainty_percent + forward_model_uncertainty)/100,...
-        (measurement_uncertainty_percent + forward_model_uncertainty)/100,...
+    GN_inputs.measurement.uncertainty = linspace((measurement_uncertainty_percent + forward_model_uncertainty_percent)/100,...
+        (measurement_uncertainty_percent + forward_model_uncertainty_percent)/100,...
         length(GN_inputs.bands2run))';        % fraction
 
 

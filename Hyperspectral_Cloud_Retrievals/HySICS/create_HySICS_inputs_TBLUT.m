@@ -229,6 +229,10 @@ inputs.RT.parameterization_str = 'mie';     % This string is used to compute the
 % lambda_forTau = band1(1);            % nm
 inputs.RT.lambda_forTau = 500;            % nm
 
+
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = true;
+
 % --------------------------------------------------------------
 % --------------------------------------------------------------
 

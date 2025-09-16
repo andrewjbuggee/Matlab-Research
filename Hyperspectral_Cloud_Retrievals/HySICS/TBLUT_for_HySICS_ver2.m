@@ -169,8 +169,9 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
+        % force the optical depth
         write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn},...
-            inputs_tblut, wavelengths, wc_filename{nn});
+            inputs_tblut, wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
 
 
     end
