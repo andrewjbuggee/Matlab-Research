@@ -30,15 +30,15 @@ start_parallel_pool(folder_paths.which_computer)
 
 
 
-% r_top = 10;
-% r_bot = 5;
-% tau_c = [5,11,17,23];
-% tcpw = [8, 14, 20];
+r_top = 10;
+r_bot = 5;
+tau_c = [5,11,17,23];
+tcpw = [8, 14, 20];
 
-r_top = 9.2516;
-r_bot = 5.3192;
-tau_c = 6.1312;
-tcpw = 14;
+% r_top = 9.2516;
+% r_bot = 5.3192;
+% tau_c = 6.1312;
+% tcpw = 14;
 
 
 
