@@ -35,9 +35,9 @@ start_parallel_pool(folder_paths.which_computer)
 % tau_c = [5,11,17,23];
 % tcpw = [8, 14, 20];
 
-r_top = 10;
-r_bot = 5;
-tau_c = [5,11,17,23];
+r_top = 9.2516;
+r_bot = 5.3192;
+tau_c = 6.1312;
 tcpw = 14;
 
 
@@ -78,7 +78,12 @@ inputs.RT.num_re_parameters = 2;
 
 %% NO ERROR FILES!
 
-inputs.RT.errMsg = 'quiet';
+inputs.RT.errMsg = 'verbose';
+
+%% Fix the optical depth
+
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = true;
 
 %% Define the geometry
 
@@ -214,8 +219,13 @@ parfor nn = 1:num_INP_files
 
 
     % ------------------ Write the INP File --------------------
+    % write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
+    %     wavelengths, wc_filename{nn}, [], [], [], changing_variables_allStateVectors(nn, 4));
+
+    % force modify tau
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
-        wavelengths, wc_filename{nn}, [], [], [], changing_variables_allStateVectors(nn, 4));
+        wavelengths, wc_filename{nn}, [], changing_variables_allStateVectors(nn, 3),...
+        [], changing_variables_allStateVectors(nn, 4));
 
 
 end
@@ -300,7 +310,7 @@ Refl_model_allStateVectors = reshape(Refl_model_allStateVectors, num_wl, []);
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
 % inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
-inputs.measurement.uncert = 0.01;
+inputs.measurement.uncert = 0.003;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and

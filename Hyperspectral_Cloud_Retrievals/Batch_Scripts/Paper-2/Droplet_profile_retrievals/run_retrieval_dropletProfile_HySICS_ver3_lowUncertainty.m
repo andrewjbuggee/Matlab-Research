@@ -113,7 +113,7 @@ for ff = 1:length(filenames)
 
     elseif size(simulated_measurements.changing_variables,2)<=6
 
-        folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_noACPW_HySICS_',...
+        folder_paths.saveOutput_filename = [folder_paths.HySICS_retrievals,'dropletRetrieval_HySICS_',...
             num2str(numel(simulated_measurements.inputs.bands2run)), 'bands_',...
             num2str(100*simulated_measurements.inputs.measurement.uncert), '%_uncert',...
             '_rTop_', num2str(simulated_measurements.changing_variables(1,1)),...
@@ -191,6 +191,10 @@ for ff = 1:length(filenames)
     GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
     GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
+    %% override optical depth
+
+    % Do you want to manually set the optical depth?
+    GN_inputs.RT.modify_wc_opticalDepth = true;
 
 
     %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE

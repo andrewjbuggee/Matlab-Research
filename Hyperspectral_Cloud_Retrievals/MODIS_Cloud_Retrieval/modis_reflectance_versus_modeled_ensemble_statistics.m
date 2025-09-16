@@ -954,7 +954,7 @@ if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbugg
     % create 1 to 1 line
     % find the minimum and maximum values to create a y=x line
 
-    one2one_line = linspace(0.1, 0.85, 150);
+    one2one_line = linspace(0, 1, 150);
 
     % define the subplot height and width
     w = 0.35;
@@ -999,7 +999,7 @@ if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbugg
 
 
         % create an empty cell array for the legend string
-        legend_str = cell(1, length(data2test)+1);
+        legend_str = cell(1, length(data2test)+2);
         % set the first legend entry to be the one-to-one line
         legend_str{1} = '$1:1$';
 
@@ -1047,9 +1047,9 @@ if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbugg
             %         legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2)), ...
             %                             ' $\sigma^{2}$ = ', num2str(round(var_ratio_perDay(dd), 2))];
 
-            % --- Legend displays mean  ---
-            % define the legend string for each day
-            legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $\mu$ = ', num2str(round(avg_ratio_perDay(dd), 2))];
+            % % --- Legend displays mean  ---
+            % % define the legend string for each day
+            % legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10), ': $H_{\sigma} \leq $', num2str(inputs.pixels.H_index_max)];
 
             errorbar(R_model(index_R_high_uncertainty,dd, index_sort(ww)), data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww)),...
                 data2compare.modis_refl_uncert{dd}(index_R_high_uncertainty, index_sort(ww)), 'vertical','.',...
@@ -1058,6 +1058,22 @@ if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbugg
             hold on
 
         end
+
+        % plot the linear fit
+        [f, gof]=fit(R_model(index_R_high_uncertainty, dd, index_sort(ww)),...
+            data2compare.modis_refl{dd}(index_R_high_uncertainty, index_sort(ww)),'poly1');
+
+        % plot the fit
+        hold on
+        plot(linspace(0,1,100), f(linspace(0,1,100)), ':k',...
+            'Linewidth', 1)
+
+        % --- Legend displays mean  ---
+        % define the legend string for each day
+        legend_str{dd+1} = [data2test{dd}(6:7), '/', data2test{dd}(9:10),...
+            ': $H_{\sigma} \leq $', num2str(inputs.pixels.H_index_max)];
+        legend_str{dd+2} = ['$R^2 = $', num2str(round(gof.rsquare, 3))];
+
 
 
         % Next, calculate the average over every day for each wavelength
@@ -1101,22 +1117,22 @@ if strcmp(which_computer,'anbu8374')==true || strcmp(which_computer, 'andrewbugg
 
             % insert a text box with the total average and the variance for all
             % days at each wavelength
-            dim = [0.19+(ww-1)*dx, 0.635, 0.065, 0.046];
-            str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
-                '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
-            annotation('textbox',dim,'String',str,...
-                'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
+            % dim = [0.19+(ww-1)*dx, 0.635, 0.065, 0.046];
+            % str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
+            %     '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
+            % annotation('textbox',dim,'String',str,...
+            %     'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
 
         else
             ax(ww).Parent.Position = [(x0 + (ww-5)*dx), y0 - dy, w, h];
 
             % insert a text box with the total average and the variance for all
             % days at each wavelength
-            dim = [0.19+(ww-5)*dx, 0.635-dy, 0.065, 0.046];
-            str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
-                '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
-            annotation('textbox',dim,'String',str,...
-                'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
+            % dim = [0.19+(ww-5)*dx, 0.635-dy, 0.065, 0.046];
+            % str = ['$\mu_{tot}$ = ', num2str(round(avg_ratio_perWavelength(ww),2)), newline,...
+            %     '$\sigma^{2}_{tot}$ = ', num2str(round(var_ratio_perWavelength(ww),5))];
+            % annotation('textbox',dim,'String',str,...
+            %     'FontSize', 20, 'FontWeight', 'Bold', 'Interpreter', 'latex')
 
         end
 

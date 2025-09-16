@@ -217,7 +217,7 @@ parfor nn = 1:num_INP_files
 
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
-        changing_variables(nn, 5:6), wc_filename{1}, [], [], waterVaporProfile_filename);
+        changing_variables(nn, 5:6), wc_filename{1}, [], tau_c, waterVaporProfile_filename);
 
 
 
