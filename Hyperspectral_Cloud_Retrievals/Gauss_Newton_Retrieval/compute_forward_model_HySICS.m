@@ -99,8 +99,10 @@ parfor ww = 1:size(wavelengths2run,1)
 
 
     % ----- Write an INP file --------
+%     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
+%         wavelengths2run(ww,:), wc_filename);
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
-        wavelengths2run(ww,:), wc_filename);
+        wavelengths2run(ww,:), wc_filename, [], tau_c);
 
 
     % ----------------------------------------------------
