@@ -206,13 +206,13 @@ for nn = 1:length(filenames)
 
 
         % first, plot the simulated profile values as two lines
-        xline(ds.GN_inputs.RT.r_bot, ':', ['Simulated $r_{bot}$'],...
+        xline(ds.GN_inputs.measurement.r_bot, ':', ['Simulated $r_{bot}$'],...
             'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
             'LabelVerticalAlignment','bottom');
 
         hold on
 
-        yline(ds.GN_inputs.RT.r_top, ':', ['Simulated $r_{top}$'],...
+        yline(ds.GN_inputs.measurement.r_top, ':', ['Simulated $r_{top}$'],...
             'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
             'LabelVerticalAlignment','top');
         hold on
@@ -272,7 +272,7 @@ for nn = 1:length(filenames)
 
 
     % create the legend string
-    if nn<=length(filenames)
+    if nn<length(filenames)
 
         % what was the assumed above cloud column water vapor path?
         assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
@@ -308,6 +308,9 @@ ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
 xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
 
 set(gcf,'Position',[0 0 950 750])
+
+
+
 
 
 
