@@ -29,7 +29,7 @@
 #SBATCH --error=noACPW_assumed10_retrieval_hysics_rTop_10_subset_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=11-13       # 3 jobs × 1 file each = 3 files
+#SBATCH --array=1-6       # 6 jobs × 2 files each = 12 files
 
 # Load modules
 ml purge
@@ -70,13 +70,13 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # ----------------------------------------------------------
 
 # Get list of all files
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_rTop_10_rBot_5_tauC_5*.mat" -type f -printf "%f\n" | sort)
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.3%*.mat" -type f -printf "%f\n" | sort)
 
 
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=1
+FILES_PER_JOB=2
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
