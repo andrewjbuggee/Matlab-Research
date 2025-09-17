@@ -153,7 +153,7 @@ parfor nn = 1:num_INP_files
 %     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
 %         changing_variables(nn, 4:5), wc_filename{1});
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
-        wavelengths2run(ww,:), wc_filename, [], changing_variables(nn,3));
+        changing_variables(nn, 4:5), wc_filename, [], changing_variables(nn,3));
 
 
 
