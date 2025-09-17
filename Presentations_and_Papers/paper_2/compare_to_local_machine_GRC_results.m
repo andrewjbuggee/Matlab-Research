@@ -369,14 +369,14 @@ for nn = 1:length(filenames)
 
 
         % first, plot the simulated profile values as two lines
-        xline(ds.GN_inputs.measurement.r_bot, ':', ['Simulated $r_{bot}$'],...
-            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','left',...
+        xline(ds.GN_inputs.measurement.r_bot, ':', ['True $r_{bot}$'],...
+            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [87/255, 90/255, 91/255], 'LabelHorizontalAlignment','left',...
             'LabelVerticalAlignment','bottom');
 
         hold on
 
-        yline(ds.GN_inputs.measurement.r_top, ':', ['Simulated $r_{top}$'],...
-            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255], 'LabelHorizontalAlignment','right',...
+        yline(ds.GN_inputs.measurement.r_top, ':', ['True $r_{top}$'],...
+            'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [87/255, 90/255, 91/255], 'LabelHorizontalAlignment','right',...
             'LabelVerticalAlignment','top');
         hold on
 
@@ -384,7 +384,7 @@ for nn = 1:length(filenames)
         % what was the assumed above cloud column water vapor path?
         simulated_CWV = ds.GN_inputs.measurement.actpw; % kg/m^2
 
-        title(['Simulated profile - $acpw$ = ',num2str(round(simulated_CWV, 2)), ' $mm$'],...
+        title(['True $acpw$ = ',num2str(round(simulated_CWV, 1)), ' $mm$'],...
             'Fontsize', 25, 'Interpreter', 'latex');
 
         % Skip the first two legend entries
@@ -441,7 +441,7 @@ for nn = 1:length(filenames)
         assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
 
         lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
-            num2str(round(assumed_CWV,2)), ' $mm$'];
+            num2str(round(assumed_CWV,1)), ' $mm$'];
 
 
 
@@ -456,7 +456,7 @@ for nn = 1:length(filenames)
         retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
         lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
-            num2str(round(retrieved_CWV, 2)), ' $mm$'];
+            num2str(round(retrieved_CWV, 1)), ' $mm$'];
 
     end
 
@@ -464,7 +464,7 @@ end
 
 
 % Create a Legend with only the two black curves
-legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+legend(lgnd_str, 'Interpreter','latex', 'Location','best', 'FontSize', 20)
 
 grid on; grid minor
 ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
