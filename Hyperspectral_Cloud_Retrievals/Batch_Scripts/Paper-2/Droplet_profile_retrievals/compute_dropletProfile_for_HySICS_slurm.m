@@ -18,9 +18,9 @@ which_computer = folder_paths.which_computer;
 
 %% Would you like to print status updates and/or the libRadtran error file?
 
-print_status_updates = true;
+print_status_updates = false;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 
 %% LOAD SIMULATED HYSICS DATA
@@ -64,18 +64,19 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % define the folder where the spectra are located
-    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
-
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
 
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_HySICS_reflectance_66bands_with_1%_uncertainty_sim-ran-on-12-Jul-2025_rev1.mat']);
 
 
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.3%*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_rTop_9.2516_rBot_5.3192_tauC_6.1312_tcwv_14',...
+        '_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-16-Sep-2025.mat']);
 
 
 
