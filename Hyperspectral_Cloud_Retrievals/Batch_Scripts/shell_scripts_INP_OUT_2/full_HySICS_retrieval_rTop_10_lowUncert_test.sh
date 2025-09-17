@@ -71,7 +71,7 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # ----------------------------------------------------------
 
 # Get list of all files
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_HySICS_reflectance_66bands*.mat" -type f -printf "%f\n" | sort)
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.3%*.mat" -type f -printf "%f\n" | sort)
 
 
 # Calculate which files this job should process
