@@ -21,7 +21,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --mem=32G
-#SBATCH --time=4:00:00     # Longer time for multiple files
+#SBATCH --time=3:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=noACPW_assumed15_retrieval_hysics_rTop_10_test_%A_%a
@@ -70,7 +70,7 @@ RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retr
 # ----------------------------------------------------------
 
 # Get list of all files
-mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_HySICS_reflectance_35bands*.mat" -type f -printf "%f\n" | sort)
+mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "simulated_spectra_HySICS_reflectance_66bands_0.3%*.mat" -type f -printf "%f\n" | sort)
 
 
 # Calculate which files this job should process
