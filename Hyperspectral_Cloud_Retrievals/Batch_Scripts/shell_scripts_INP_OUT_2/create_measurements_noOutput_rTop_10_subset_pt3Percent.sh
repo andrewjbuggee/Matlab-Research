@@ -3,7 +3,7 @@
 #
 
 #SBATCH --nodes=1
-#SBATCH --time=01:30:00
+#SBATCH --time=04:30:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=30G

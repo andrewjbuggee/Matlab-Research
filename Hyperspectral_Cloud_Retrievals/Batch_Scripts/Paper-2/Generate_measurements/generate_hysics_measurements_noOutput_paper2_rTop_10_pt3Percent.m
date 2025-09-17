@@ -30,15 +30,15 @@ start_parallel_pool(folder_paths.which_computer)
 
 
 
-r_top = 10;
-r_bot = 5;
-tau_c = [5,11,17,23];
-tcpw = [8, 14, 20];
+% r_top = 10;
+% r_bot = 5;
+% tau_c = [5,11,17,23];
+% tcpw = [8, 14, 20];
 
-% r_top = 9.2516;
-% r_bot = 5.3192;
-% tau_c = 6.1312;
-% tcpw = 14;
+r_top = 9.2516;
+r_bot = 5.3192;
+tau_c = [6.1312, 9.9317, 12.4356, 15.3172];
+tcpw = [8.123, 10.6422, 13.6234, 15.8543, 18.9824];
 
 
 
@@ -78,7 +78,7 @@ inputs.RT.num_re_parameters = 2;
 
 %% NO ERROR FILES!
 
-inputs.RT.errMsg = 'verbose';
+inputs.RT.errMsg = 'quiet';
 
 %% Fix the optical depth
 
@@ -394,7 +394,7 @@ elseif strcmp(which_computer,'curc')==true
     %     'Simulated_spectra/paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
-        'Simulated_spectra/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/'];
+        'Simulated_spectra/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval/'];
 
 
 
