@@ -12,27 +12,46 @@ clear variables
 
 
 % load 5% uncertainty files
-filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.3%_uncert_rTop_10_rBot_5';
-filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.3%_uncert_rTop_10_rBot_5';
+filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.3%_uncert_';
+filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.3%_uncert_';
 
+if strcmp(whatComputer, 'anbu8374')==true
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval/'];
+    folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval/'];
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval2/'];
+
+end
+
 
 
 % what are the free parameters?
-r_top = 10;
-r_bot = 5;
+% r_top = 10;
+% r_bot = 5;
 % tau_c = [5,11,17,23];
-tau_c = 5;
-tcpw = [8, 14, 20];
+% tau_c = 5;
+% tcpw = [8, 14, 20];
+
+r_top = 9.2516;
+r_bot = 5.3192;
+tau_c = [6.1312, 9.9317, 12.4356, 15.3172];
+tcpw = [8.123, 10.6422, 13.6234, 15.8543, 18.9824];
+
+tau_idx = 4;
+tcpw_idx = 2;
 
 % define the mat files for each retreival to plot
 % Load all 5 retrievals
-filenames = [dir([folder_path, filenames_noACPW_startsWith, '_tauC_', num2str(tau_c(1)),...
-    '_tcwv_',  num2str(tcpw(1)), '*.mat']);...
-    dir([folder_path, filenames_full_startsWith, '_tauC_', num2str(tau_c(1)),...
-    '_tcwv_',  num2str(tcpw(1)), '*.mat']);];
+filenames = [dir([folder_path, filenames_noACPW_startsWith, 'rTop_', num2str(r_top),...
+    '_rBot_', num2str(r_bot), '_tauC_', num2str(tau_c(tau_idx)),...
+    '_tcwv_',  num2str(tcpw(tcpw_idx)), '*.mat']);...
+    dir([folder_path, filenames_full_startsWith, 'rTop_', num2str(r_top),...
+    '_rBot_', num2str(r_bot), '_tauC_', num2str(tau_c(tau_idx)),...
+    '_tcwv_',  num2str(tcpw(tcpw_idx)), '*.mat']);];
 
 
 
@@ -181,27 +200,45 @@ clear variables
 
 
 % load 5% uncertainty files
-filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.3%_uncert_rTop_10_rBot_5';
-filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.3%_uncert_rTop_10_rBot_5';
+filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.3%_uncert_';
+filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.3%_uncert_';
 
+if strcmp(whatComputer, 'anbu8374')==true
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-    'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval/'];
+    folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval/'];
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_newRetrieval2/'];
+
+end
 
 
 % what are the free parameters?
-r_top = 10;
-r_bot = 5;
-% tau_c = [5,11,17,23];
-tau_c = 5;
-tcpw = [8, 14, 20];
+% r_top = 10;
+% r_bot = 5;
+% % tau_c = [5,11,17,23];
+% tau_c = 5;
+% tcpw = [8, 14, 20];
+
+r_top = 9.2516;
+r_bot = 5.3192;
+tau_c = [6.1312, 9.9317, 12.4356, 15.3172];
+tcpw = [8.123, 10.6422, 13.6234, 15.8543, 18.9824];
+
+tau_idx = 1;
+tcpw_idx = 3;
 
 % define the mat files for each retreival to plot
 % Load all 5 retrievals
-filenames = [dir([folder_path, filenames_noACPW_startsWith, '_tauC_', num2str(tau_c(1)),...
-    '_tcwv_',  num2str(tcpw(3)), '*.mat']);...
-    dir([folder_path, filenames_full_startsWith, '_tauC_', num2str(tau_c(1)),...
-    '_tcwv_',  num2str(tcpw(3)), '*.mat']);];
+filenames = [dir([folder_path, filenames_noACPW_startsWith, 'rTop_', num2str(r_top),...
+    '_rBot_', num2str(r_bot), '_tauC_', num2str(tau_c(tau_idx)),...
+    '_tcwv_',  num2str(tcpw(tcpw_idx)), '*.mat']);...
+    dir([folder_path, filenames_full_startsWith, 'rTop_', num2str(r_top),...
+    '_rBot_', num2str(r_bot), '_tauC_', num2str(tau_c(tau_idx)),...
+    '_tcwv_',  num2str(tcpw(tcpw_idx)), '*.mat']);];
 
 
 
