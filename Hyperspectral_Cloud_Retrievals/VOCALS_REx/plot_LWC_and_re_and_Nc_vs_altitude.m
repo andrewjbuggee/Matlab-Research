@@ -34,49 +34,49 @@ for nn = 1:N_cuvres
 
     if normalize_altitude==true
 
-        norm_alt = (vert_profiles.altitude{indices(nn)} - min(vert_profiles.altitude{indices(nn)}))./...
-            (max(vert_profiles.altitude{indices(nn)}) - min(vert_profiles.altitude{indices(nn)}));
+        norm_alt = (vert_profiles(indices(nn)).altitude - min(vert_profiles(indices(nn)).altitude))./...
+            (max(vert_profiles(indices(nn)).altitude) - min(vert_profiles(indices(nn)).altitude));
 
         % First plot the LWC
-        ax1 = subplot(1,3,1); plot(vert_profiles.lwc{indices(nn)}, norm_alt);
+        ax1 = subplot(1,3,1); plot(vert_profiles(indices(nn)).lwc, norm_alt);
         hold on
 
         % next plot the effective radius
         % if the 2DC data is compliant, plot the effective radius computed
         % using both instruments
-        if vert_profiles.flag_2DC_data_is_conforming==true
-            ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, norm_alt);
+        if vert_profiles(indices(nn)).flag_2DC_data_is_conforming==true
+            ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, norm_alt);
         else
             % if the 2DC data is non-conforming, use only the CDP data and
             % make a note of it
-            ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, norm_alt);
+            ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, norm_alt);
         end
         hold on
 
         % Lastly, plot the total droplet number concentration
-        ax3 = subplot(1,3,3); plot(vert_profiles.Nc{indices(nn)}, norm_alt);
+        ax3 = subplot(1,3,3); plot(vert_profiles(indices(nn)).total_Nc, norm_alt);
         hold on
 
     else
 
         % First plot the LWC
-        ax1 = subplot(1,3,1); plot(vert_profiles.lwc{indices(nn)}, vert_profiles.altitude{indices(nn)});
+        ax1 = subplot(1,3,1); plot(vert_profiles(indices(nn)).lwc, vert_profiles(indices(nn)).altitude);
         hold on
 
         % next plot the effective radius
         % if the 2DC data is compliant, plot the effective radius computed
         % using both instruments
-        if vert_profiles.flag_2DC_data_is_conforming==true
-            ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, vert_profiles.altitude{indices(nn)});
+        if vert_profiles(indices(nn)).flag_2DC_data_is_conforming==true
+            ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, vert_profiles(indices(nn)).altitude);
         else
             % if the 2DC data is non-conforming, use only the CDP data and
             % make a note of it
-            ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, vert_profiles.altitude{indices(nn)});
+            ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, vert_profiles(indices(nn)).altitude);
         end
         hold on
 
         % Lastly, plot the total droplet number concentration
-        ax3 = subplot(1,3,3); plot(vert_profiles.Nc{indices(nn)}, vert_profiles.altitude{indices(nn)});
+        ax3 = subplot(1,3,3); plot(vert_profiles(indices(nn)).total_Nc, vert_profiles(indices(nn)).altitude);
         hold on
 
     end
@@ -98,7 +98,7 @@ subplot(1,3,2)
 grid on; grid minor;
 % if the 2DC data is compliant, plot the effective radius computed
         % using both instruments
-if vert_profiles.flag_2DC_data_is_conforming==true
+if vert_profiles(indices(nn)).flag_2DC_data_is_conforming==true
     xlabel('$r_e$ ($\mu m$)', 'Interpreter','latex')
 else
     % if the 2DC data is non-conforming, use only the CDP data and
@@ -108,12 +108,12 @@ end
 
 % include a title in the middle plot
 if isfield(vert_profiles, 'LWC_threshold')==true
-    title(['$LWC \geq$ ', num2str(vert_profiles.LWC_threshold),' $g/m^{3}$',...
-        '   $N_c \geq$ ', num2str(vert_profiles.Nc_threshold), ' $cm^{-3}$'], 'interpreter', 'latex')
+    title(['$LWC \geq$ ', num2str(vert_profiles(indices(nn)).LWC_threshold),' $g/m^{3}$',...
+        '   $N_c \geq$ ', num2str(vert_profiles(indices(nn)).Nc_threshold), ' $cm^{-3}$'], 'interpreter', 'latex')
 
-elseif isfield(vert_profiles.inputs, 'LWC_threshold')==true
-    title(['$LWC \geq$ ', num2str(vert_profiles.inputs.LWC_threshold),' $g/m^{3}$',...
-        '   $N_c \geq$ ', num2str(vert_profiles.inputs.Nc_threshold), ' $cm^{-3}$'], 'interpreter', 'latex')
+elseif isfield(vert_profiles(indices(nn)).inputs, 'LWC_threshold')==true
+    title(['$LWC \geq$ ', num2str(vert_profiles(indices(nn)).inputs.LWC_threshold),' $g/m^{3}$',...
+        '   $N_c \geq$ ', num2str(vert_profiles(indices(nn)).inputs.Nc_threshold), ' $cm^{-3}$'], 'interpreter', 'latex')
 
 end
 

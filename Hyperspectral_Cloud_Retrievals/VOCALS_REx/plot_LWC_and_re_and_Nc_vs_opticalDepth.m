@@ -33,23 +33,23 @@ if N_curves<4
         % Profiles measured while the plane was descending will start with values
         % at the cloud top
 
-        if (vert_profiles.altitude{indices(nn)}(end)-vert_profiles.altitude{indices(nn)}(1))>0
+        if (vert_profiles(indices(nn)).altitude(end)-vert_profiles(indices(nn)).altitude(1))>0
             % This profile is ascending, meaning the first data points are at
             % the cloud bottom, when tau is largest, since tau is defined from
             % top to bottom
 
             % all stored tau vectors start from 0. So if the plane is
             % ascending, we need to flip the tau vector
-            tau = flipud(reshape(vert_profiles.tau{indices(nn)}, [], 1));
+            tau = flipud(reshape(vert_profiles(indices(nn)).tau, [], 1));
 
 
 
-        elseif (vert_profiles.altitude{indices(nn)}(end)-vert_profiles.altitude{indices(nn)}(1))<0
+        elseif (vert_profiles(indices(nn)).altitude(end)-vert_profiles(indices(nn)).altitude(1))<0
             % This profile is descending, meaning the first data points are
             % measured at cloud top
 
             % in this case we don't flip the tau vector
-            tau = reshape(vert_profiles.tau{indices(nn)}, [], 1);
+            tau = reshape(vert_profiles(indices(nn)).tau, [], 1);
 
         end
 
@@ -66,23 +66,23 @@ if N_curves<4
 
             norm_tau = tau./max(tau);
 
-            ax1 = subplot(1,3,1); plot(vert_profiles.lwc{indices(nn)}, norm_tau)
+            ax1 = subplot(1,3,1); plot(vert_profiles(indices(nn)).lwc, norm_tau)
             hold on
 
             % next plot the effective radius
             % if the 2DC data is compliant, plot the effective radius computed
             % using both instruments
             if vert_profiles.flag_2DC_data_is_conforming==true
-                ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, norm_tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, norm_tau);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
-                ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, norm_tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, norm_tau);
             end
             hold on
 
             % Finally, plot the total droplet number concentration
-            ax3 = subplot(1,3,3); plot(vert_profiles.Nc{indices(nn)}, norm_tau);
+            ax3 = subplot(1,3,3); plot(vert_profiles(indices(nn)).Nc, norm_tau);
             hold on
 
 
@@ -90,23 +90,23 @@ if N_curves<4
 
 
 
-            ax1 = subplot(1,3,1); plot(vert_profiles.lwc{indices(nn)}, tau)
+            ax1 = subplot(1,3,1); plot(vert_profiles(indices(nn)).lwc, tau)
             hold on
 
             % next plot the effective radius
             % if the 2DC data is compliant, plot the effective radius computed
             % using both instruments
             if vert_profiles.flag_2DC_data_is_conforming==true
-                ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, tau);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
-                ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, tau);
             end
             hold on
 
             % Finally, plot the total droplet number concentration
-            ax3 = subplot(1,3,3); plot(vert_profiles.Nc{indices(nn)}, tau);
+            ax3 = subplot(1,3,3); plot(vert_profiles(indices(nn)).Nc, tau);
             hold on
 
         end
@@ -121,27 +121,27 @@ else
     % Make all of the curves semi transparent
     for nn = 1:N_curves
 
-        tau = zeros(1, length(vert_profiles.altitude{indices(nn)}));
+        tau = zeros(1, length(vert_profiles(indices(nn)).altitude));
 
         legend_str{nn} = ['idx = ', num2str(indices(nn))];
 
         % Profiles measured while the plane was descending will start with values
         % at the cloud top
 
-        if (vert_profiles.altitude{indices(nn)}(end)-vert_profiles.altitude{indices(nn)}(1))>0
+        if (vert_profiles(indices(nn)).altitude(end)-vert_profiles(indices(nn)).altitude(1))>0
             % This profile is ascending, meaning the first data points are at
             % the cloud bottom, when tau is largest, since tau is defined from
             % top to bottom
             % all stored tau vectors start from 0. So if the plane is
             % ascending, we need to flip the tau vector
-            tau = flipud(reshape(vert_profiles.tau{nn}, [], 1));
+            tau = flipud(reshape(vert_profiles(indices(nn)).tau, [], 1));
 
-        elseif (vert_profiles.altitude{indices(nn)}(end)-vert_profiles.altitude{indices(nn)}(1))<0
+        elseif (vert_profiles(indices(nn)).altitude(end)-vert_profiles(indices(nn)).altitude(1))<0
             % This profile is descending, meaning the first data points are
             % measured at cloud top
 
             % in this case we don't flip the tau vector
-            tau = reshape(vert_profiles.tau{nn}, [], 1);
+            tau = reshape(vert_profiles(indices(nn)).tau, [], 1);
         end
 
 
@@ -155,7 +155,7 @@ else
 
             norm_tau = tau./tau(1);
 
-            ax1 = subplot(1,3,1); l = plot(vert_profiles.lwc{indices(nn)}, norm_tau);
+            ax1 = subplot(1,3,1); l = plot(vert_profiles(indices(nn)).lwc, norm_tau);
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
@@ -164,18 +164,18 @@ else
             % if the 2DC data is compliant, plot the effective radius computed
             % using both instruments
             if vert_profiles.flag_2DC_data_is_conforming==true
-                ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, norm_tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, norm_tau);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
-                ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, norm_tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, norm_tau);
             end
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
 
             % Finally, plot the total droplet number concentration
-            ax3 = subplot(1,3,3); l = plot(vert_profiles.Nc{indices(nn)}, norm_tau);
+            ax3 = subplot(1,3,3); l = plot(vert_profiles(indices(nn)).Nc, norm_tau);
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
@@ -185,7 +185,7 @@ else
         else
 
 
-            ax1 = subplot(1,3,1); l = plot(vert_profiles.lwc{indices(nn)}, tau);
+            ax1 = subplot(1,3,1); l = plot(vert_profiles(indices(nn)).lwc, tau);
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
@@ -194,18 +194,18 @@ else
             % if the 2DC data is compliant, plot the effective radius computed
             % using both instruments
             if vert_profiles.flag_2DC_data_is_conforming==true
-                ax2 = subplot(1,3,2); plot(vert_profiles.re{indices(nn)}, tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re, tau);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
-                ax2 = subplot(1,3,2); plot(vert_profiles.re_CDP{indices(nn)}, tau);
+                ax2 = subplot(1,3,2); plot(vert_profiles(indices(nn)).re_CDP, tau);
             end
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
 
             % Finally, plot the total droplet number concentration
-            ax3 = subplot(1,3,3); l = plot(vert_profiles.Nc{indices(nn)}, tau);
+            ax3 = subplot(1,3,3); l = plot(vert_profiles(indices(nn)).Nc, tau);
             % Set the transparency to 50%
             %l.Color(4) = 0.5;
             hold on
@@ -232,7 +232,7 @@ grid on; grid minor;
 xlabel('$r_e$ ($\mu m$)', 'Interpreter','latex')
 % include a title in the middle plot
 if isfield(vert_profiles, 'LWC_threshold')==true
-    title(['LWC $\geq$ ', num2str(vert_profiles.LWC_threshold),' $g/m^{3}$'], 'interpreter', 'latex')
+    title(['LWC $\geq$ ', num2str(vert_profiles(indices(nn)).LWC_threshold),' $g/m^{3}$'], 'interpreter', 'latex')
 
 elseif isfield(vert_profiles.inputs, 'LWC_threshold')==true
     title(['LWC $\geq$ ', num2str(vert_profiles.inputs.LWC_threshold),' $g/m^{3}$'], 'interpreter', 'latex')

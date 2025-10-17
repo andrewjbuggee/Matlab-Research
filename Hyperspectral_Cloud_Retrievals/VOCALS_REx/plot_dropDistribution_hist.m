@@ -38,28 +38,37 @@ for nn = 1:length(indexes2plot)
 
     f1 = figure;
 
-    % define the index for cloud top and cloud bottom
-    time2plot = index_altitude(nn);
+    lgnd_str = cell(1, 2*length(index_altitude));
 
-    % Compute the effective radius for the two distributions and plot it as a solid vertical line
-    re = vert_profs.re{indexes2plot(nn)}(time2plot);
+    for ll = 1:length(index_altitude)
 
-    % Plot the distribution at cloud bottom first
-    h1 = histogram('BinEdges',vert_profs.drop_radius_bin_edges ,'BinCounts',...
-        vert_profs.nr{indexes2plot(nn)}(:,(time2plot)));
-    h1.FaceColor = mySavedColors(1, 'fixed');
-    h1.FaceAlpha = 0.7;
-    h1.EdgeAlpha = 1;
-    hold on
-    xline(re,':', 'LineWidth',4, 'Color',mySavedColors(1, 'fixed'))
+        hold on
+
+        % define the index for cloud top and cloud bottom
+        time2plot = index_altitude(ll);
+
+        % Compute the effective radius for the two distributions and plot it as a solid vertical line
+        re = vert_profs(indexes2plot(nn)).re(time2plot);
+
+        % Plot the distribution at cloud bottom first
+        h = histogram('BinEdges',vert_profs(indexes2plot(nn)).drop_radius_bin_edges ,'BinCounts',...
+            vert_profs(indexes2plot(nn)).Nc(:,(time2plot))');
+        h.FaceColor = mySavedColors(61+(ll-1), 'fixed');
+        h.FaceAlpha = 0.7;
+        h.EdgeAlpha = 1;
+        hold on
+        xline(re,':', 'LineWidth',4, 'Color',mySavedColors(61+(ll-1), 'fixed'))
+
+        lgnd_str{2*ll -1} = ['$r_e(z(', num2str(round(vert_profs(indexes2plot(nn)).altitude(time2plot))/1e3),...
+            ')=$ ',num2str(round(re,1)), ' $\mu m$'];
+        lgnd_str{2*ll} = '';
 
 
+    end
 
 
     % what profile are we plotting?
-    title(['Vertical Profile ', num2str(indexes2plot(nn)), ...
-        '  Altitude ', num2str(round(vert_profs.altitude{indexes2plot(nn)}(index_altitude(nn)))),...
-        ' m'], 'Interpreter','latex')
+    title(['Vertical Profile ', num2str(indexes2plot(nn))], 'Interpreter','latex')
 
     % set axes limits and labels
     xlabel('Droplet Radius ($\mu m$)', 'Interpreter','latex', 'FontSize',32);
@@ -71,7 +80,9 @@ for nn = 1:length(indexes2plot)
     set(gcf, 'Position',[0 0 1000, 600])
 
 
-    legend('', ['$r_e$ = ',num2str(round(re(1),2)), ' $\mu m$'],'Location','best', 'Interpreter','latex')
+    legend(lgnd_str,'Location','best', 'Interpreter','latex')
+
+
 
 
 
