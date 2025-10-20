@@ -30,10 +30,10 @@
 %   of size distribution to integrate over. The options are:
 %       (a) 'gamma' - gamma droplet distribution
 
-%   (7) computer_name - a string with the name of the computer this code on
+%   (6) computer_name - a string with the name of the computer this code on
 %   which this code is running
 
-%   (6) index - the number associated with the file that is being written.
+%   (7) index - the number associated with the file that is being written.
 %   This is for naming purposes so that there are unique files written, but
 %   only just enough.
 

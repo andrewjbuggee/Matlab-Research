@@ -10,13 +10,15 @@ clear variables
 
 % Read all the file names
 
-if strcmp(whatComputer,'anbu8374')==true
+which_computer = whatComputer;
+
+if strcmp(which_computer,'anbu8374')==true
 
 
     foldername = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/'];
 
-elseif strcmp(whatComputer,'andrewbuggee')==true
+elseif strcmp(which_computer,'andrewbuggee')==true
 
     % Macbook folder name
     foldername = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
@@ -77,14 +79,14 @@ inputs.LWC_threshold = 0.03;       % g/m^3
 inputs.stop_at_max_LWC = false;
 
 % define the total number concentration threshold
-inputs.Nc_threshold = 25;       %  #-droplets/cm^3
+inputs.Nc_threshold = 1;       %  #-droplets/cm^3
 
 % if sorting for precipitation, provide a drizzle/precip threshold.
 inputs.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-inputs.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
+inputs.keep_precip_drizzle_profiles = true;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
 inputs.precip_driz_threshold = 5;         % g/m^2
@@ -103,7 +105,7 @@ for nn = 1:length(filename)
 
     % find the vertical profiles
     vert_profs = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, inputs.LWC_threshold,...
-        inputs.stop_at_max_LWC, inputs.Nc_threshold);
+        inputs.stop_at_max_LWC, inputs.Nc_threshold, which_computer);
 
     if inputs.sort_for_precip_driz == true
         % sort profiles into those with drizzle/precipitaiton and those without

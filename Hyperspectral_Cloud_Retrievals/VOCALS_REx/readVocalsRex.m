@@ -137,6 +137,7 @@ for nn = 1:length(info.Variables)
 end
 
 
+%%
 % ------------------------- IMPORTANT ----------------------------------
 
 % if after the entire for loop this variable is not found, we will look for
@@ -336,6 +337,7 @@ end
 
 
 
+%%
 % -------------------------------------------------------------------------
 % ------- Grab Wind speed, direction and sensor lat,long, altititude ------
 % -------------------------------------------------------------------------
@@ -392,7 +394,7 @@ longwave_bot = ncread(filename, 'IRBC');
 
 
 
-
+%%
 % -------------------------------------------------------------------
 % ----------------- ***** IMPORTANT STEP ***** ----------------------
 % -------------------------------------------------------------------
@@ -762,7 +764,7 @@ end
 con = physical_constants;
 
 % compute number concentration from absolute humidity
-vocalsRex.Nc_vapor = absolute_humidity .* (con.N_A/(con.Mol_mass_h20_vap*1e3));             % # of molecules/m^3
+vocalsRex.Nc_vapor = absolute_humidity .* (con.N_A/(con.Mol_mass_h2o_vap*1e3));             % # of molecules/m^3
 
 % convert units to inverse cubic cm
 vocalsRex.Nc_vapor = vocalsRex.Nc_vapor ./ 1e6;                                             % # of molecules/cm^3
