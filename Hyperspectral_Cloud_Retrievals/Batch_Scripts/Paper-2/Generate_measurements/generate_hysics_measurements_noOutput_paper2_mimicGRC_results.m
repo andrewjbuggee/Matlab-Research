@@ -313,8 +313,9 @@ Refl_model_allStateVectors = reshape(Refl_model_allStateVectors, num_wl, []);
 % --- meausrement uncertainty ---
 % define this as a fraction of the measurement
 % inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
-% inputs.measurement.uncert = 0;
-inputs.measurement.uncert = 0.01;
+inputs.measurement.uncert = 0;
+% inputs.measurement.uncert = 0.003;
+% inputs.measurement.uncert = 0.01;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -385,7 +386,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
+        'HySICS/Simulated_spectra/testGRC_results/'];
 
 
 elseif strcmp(which_computer,'curc')==true
