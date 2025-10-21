@@ -1,0 +1,34 @@
+rte_solver disort       # Radiative transfer equation solver 
+number_of_streams 16       # Number of streams 
+
+disort_intcor phase       # Apply the Nakajima and Tanka radiance correction 
+
+mol_abs_param reptran coarse       # Band model 
+
+atmosphere_file ../data/atmmod/afglus.dat       # Location of atmospheric profile 
+source solar ../data/solar_flux/kurudz_1.0nm.dat       # Bounds between 250 and 10000 nm 
+
+day_of_year 314       # accounts for changing Earth-Sun distance 
+
+mol_modify H2O 4.900000  MM       # Total Precipitable Water 
+albedo 5.000000e-02       # Surface albedo of the ocean 
+
+wc_file 1D ../data/wc/WC_r11.19_T15.08_gamma_nn12.DAT       # Location of water cloud file 
+cloudcover wc 1.000000       # Cloud cover percentage 
+wc_properties mie interpolate       # optical properties parameterization technique 
+
+wavelength 1214.000000 1271.000000       # Wavelength range 
+
+brdf_cam u10 3.000000       # (m/s) Ocean Surface wind speed 
+
+aerosol_default       # turn on Shettle (1989) boundary layer aerosols 
+aerosol_haze 4       # Aerosol type 
+aerosol_modify tau set 0.100000       # Optical Depth of aerosol layer 
+
+zout toa       # Sensor Altitude 
+sza 29.000000       # Solar zenith angle 
+phi0 257.000000       # Solar azimuth angle 
+umu 0.659300       # Cosine of the zenith viewing angle 
+phi 102.580000       # Azimuthal viewing angle 
+
+verbose
