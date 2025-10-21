@@ -240,7 +240,9 @@ xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
 set(gcf,'Position',[0 0 950 750])
 
 
-%% Compare three retrievals with different uncertinaty
+
+
+
 
 
 %% Plot the GRC results and overlay the three retrievals with measurement uncertainty of 0%, 0.3% and 1% using the EuroVisit algorithm
@@ -398,6 +400,109 @@ end
 
 
 % ----------------------------------------------
+
+
+% Create a Legend with only the two black curves
+legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20)
+
+grid on; grid minor
+ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+set(gcf,'Position',[0 0 950 750])
+
+
+%% Plot the 3 spectrum to view differences - should be different since there is added noise
+
+
+
+% *** Using HySICS data ***
+
+clear variables
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths.drive = '/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/testGRC_results/';
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % ---- Define where the retrievals are stored ---
+    folder_paths.drive = '/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/testGRC_results/';
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+end
+
+
+
+% Grab filenames in drive
+filenames = dir(folder_paths.drive);
+idx_2delete = [];
+for nn = 1:length(filenames)
+
+    if strcmp(filenames(nn).name(1), 'd')~=true
+
+        idx_2delete = [idx_2delete, nn];
+
+    end
+
+end
+
+% delete rows that don't have retrieval filenames
+filenames(idx_2delete) = [];
+
+
+% Step through each file
+
+% define the colors for each curve plotted
+C = mySavedColors(61:(61+length(filenames) +1), 'fixed');
+
+lgnd_str = cell(1, length(filenames));
+
+
+figure;
+
+
+for nn = 1:length(filenames)
+
+
+    % Load a data set
+    ds = load([filenames(nn).folder, '/', filenames(nn).name]);
+
+
+    plot(mean(ds.GN_inputs.RT.wavelengths2run,2), ds.)
+
+
+    hold on
+
+        lgnd_str{nn} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - ',...
+        num2str(round(ds.GN_inputs.measurement.uncertainty(1)*100,1)), '$\%$ uncert'];
+        
+
+
+end
 
 
 % Create a Legend with only the two black curves
