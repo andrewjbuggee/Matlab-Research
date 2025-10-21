@@ -433,7 +433,7 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     % ---- Define where the retrievals are stored ---
-    folder_paths.drive = '/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/testGRC_results/';
+    folder_paths.simulated_measurements = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/';
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
