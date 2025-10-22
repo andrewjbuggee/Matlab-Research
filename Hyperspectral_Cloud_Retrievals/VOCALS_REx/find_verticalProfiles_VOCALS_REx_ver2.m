@@ -835,6 +835,10 @@ for nn = 1:length(vert_profs)
             total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
             altitude = vert_profs(nn).altitude(1) -  vert_profs(nn).altitude(1:ii+1);   % meters
 
+            % Find the distribution best fit and the distribution width
+            [goodness_of_fits] = find_bestFitDist_dropDist_2(vert_profs(nn).Nc,...
+                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center);
+
 
             % We assume the droplet size is appreciably larger than the
             % incident wavelength (something in the visible, like 550 nm)

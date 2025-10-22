@@ -433,7 +433,8 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     % ---- Define where the retrievals are stored ---
-    folder_paths.simulated_measurements = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/';
+    folder_paths.simulated_measurements = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/'];
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -443,7 +444,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % ---- Define where the retrievals are stored ---
-    folder_paths.drive = '/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/testGRC_results/';
+    folder_paths.simulated_measurements = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results'];
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -456,13 +458,12 @@ elseif strcmp(which_computer,'curc')==true
 end
 
 
-
 % Grab filenames in drive
-filenames = dir(folder_paths.drive);
+filenames = dir(folder_paths.simulated_measurements);
 idx_2delete = [];
 for nn = 1:length(filenames)
 
-    if strcmp(filenames(nn).name(1), 'd')~=true
+    if strcmp(filenames(nn).name(1), 's')~=true
 
         idx_2delete = [idx_2delete, nn];
 
@@ -474,10 +475,11 @@ end
 filenames(idx_2delete) = [];
 
 
+
 % Step through each file
 
 % define the colors for each curve plotted
-C = mySavedColors(61:(61+length(filenames) +1), 'fixed');
+C = mySavedColors(61:(61+length(filenames) -1), 'fixed');
 
 lgnd_str = cell(1, length(filenames));
 
@@ -491,14 +493,20 @@ for nn = 1:length(filenames)
     % Load a data set
     ds = load([filenames(nn).folder, '/', filenames(nn).name]);
 
+    if isfield(ds, "Refl_model_with_noise")==true
 
-    plot(mean(ds.GN_inputs.RT.wavelengths2run,2), ds.)
+        plot(mean(ds.inputs.RT.wavelengths2run,2), ds.Refl_model_with_noise, 'Color', C(nn,:))
 
+    else
+
+        plot(mean(ds.inputs.RT.wavelengths2run,2), ds.Refl_model, 'Color', C(nn,:))
+
+    end
 
     hold on
 
-        lgnd_str{nn} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - ',...
-        num2str(round(ds.GN_inputs.measurement.uncertainty(1)*100,1)), '$\%$ uncert'];
+    lgnd_str{nn} = [num2str(numel(ds.inputs.bands2run)), ' bands - ',...
+        num2str(round(ds.inputs.measurement.uncert*100,1)), '$\%$ uncert'];
         
 
 
