@@ -62,7 +62,7 @@ if use_TBLUT_estimates==true
     % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = [tblut.minRe, 0.5*tblut.minRe, tblut.minTau, acpw.min_interpolated];
+    GN_inputs.model.apriori = [1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau, acpw.min_interpolated];
 
 
     % The first two values are the standard deviation of the effective
@@ -109,7 +109,7 @@ if use_TBLUT_estimates==true
 
     % *** TESTING NEW UNCERTAINTY ***
     stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-        GN_inputs.model.apriori(2) * 3*effRad_uncert,...
+        GN_inputs.model.apriori(2) * 0.25*effRad_uncert,...
         GN_inputs.model.apriori(3) * optThick_uncert,...
         GN_inputs.model.apriori(4) * colWaterVapor_uncert];
 
