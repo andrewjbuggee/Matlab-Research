@@ -29,7 +29,7 @@
 #SBATCH --error=noACPW_assumed20_hysicsRetrieval_GRC_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=10-12       # 10 jobs × 2 files each = 20 files
+#SBATCH --array=10-12       # 3 jobs × 1 file each = 3 files
 
 # Load modules
 ml purge
@@ -66,7 +66,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # --------------------------------------------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION OF THE DROPLET PROFILE RETRIEVALS***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/testGRC_results2/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/testGRC_results3/"
 # ----------------------------------------------------------
 
 # Get list of all files
