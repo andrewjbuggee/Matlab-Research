@@ -17,6 +17,8 @@ function jacobian = compute_jacobian_HySICS_ver2(state_vector, measurement_estim
 % Define the measurement variance for the current pixel
 measurement_variance = GN_inputs.measurement.variance;
 
+% define the measurement uncertainty
+measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
 
 
 % --- compute the Jacobian at out current estimate ---
@@ -61,10 +63,14 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
+% Define the fractional change the represents the partial derivative based
+% on the measurement uncertainty. Define the change for each variable.
+partial_diff_change = measurement_uncert.*[1/20, 1/5.7143, 1/20, 1/20];
 % below better for computing information content?
 % change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.2*wv_col_aboveCloud];
 % below better for retrieval
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.1*wv_col_aboveCloud];
+
+change_in_state = partial_diff_change.* [r_top, r_bottom, tau_c, wv_col_aboveCloud];
 
 
 % ----------------------------------------------------------------
