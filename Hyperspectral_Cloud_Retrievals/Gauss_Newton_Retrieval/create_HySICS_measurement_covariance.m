@@ -49,8 +49,7 @@ elseif strcmp(covariance_type,'independent') == true
     % multiply these percentages with the modis reflectance values to
     % get the uncertainty in reflectance.
 
-    if isfield(simulated_measurements.inputs, 'measurement')==true &&...
-            isfield(simulated_measurements.inputs.measurement, 'uncert')==true
+    if isfield(simulated_measurements, 'Refl_model_with_noise')==true 
 
         % use the definine measurement uncertainty. Convert to a percent
         measurement_uncertainty_percent = simulated_measurements.inputs.measurement.uncert * 100;  % percent
@@ -59,7 +58,7 @@ elseif strcmp(covariance_type,'independent') == true
 
         % If you're not modeling measurement uncertainty, assume a near zero value for all
         % HySICS spectral bands
-        measurement_uncertainty_percent = 0.01;      % percent!
+        measurement_uncertainty_percent = 0.0001;      % percent!
 
     end
 

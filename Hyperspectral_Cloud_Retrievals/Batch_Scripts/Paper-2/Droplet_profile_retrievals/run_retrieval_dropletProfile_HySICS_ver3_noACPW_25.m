@@ -97,8 +97,12 @@ for ff = 1:length(filenames)
         % use the above index to grab the subset of measurements applicable
         % for this retrieval
         simulated_measurements.Refl_model = simulated_measurements.Refl_model(idx_35);
-        simulated_measurements.Refl_model_uncert = simulated_measurements.Refl_model_uncert(idx_35);
-        simulated_measurements.Refl_model_with_noise = simulated_measurements.Refl_model_with_noise(idx_35);
+        if isfield(simulated_measurements, 'Refl_model_uncert')==true
+            simulated_measurements.Refl_model_uncert = simulated_measurements.Refl_model_uncert(idx_35);
+        end
+        if isfield(simulated_measurements, 'Refl_model_with_noise')==true
+            simulated_measurements.Refl_model_with_noise = simulated_measurements.Refl_model_with_noise(idx_35);
+        end
         simulated_measurements.changing_variables = simulated_measurements.changing_variables(idx_35, :);
         simulated_measurements.spec_response.value = simulated_measurements.spec_response.value(idx_35, :);
         simulated_measurements.spec_response.wavelength = simulated_measurements.spec_response.wavelength(idx_35, :);

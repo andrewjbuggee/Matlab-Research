@@ -34,6 +34,14 @@ function [h_norm, p_norm, h_logNorm, p_logNorm, h_gamma, p_gamma] = find_bestFit
     binEdges, binCenters, significance_lvl)
 
 
+%% Make double
+
+binCenters = double(binCenters);
+
+binEdges = double(binEdges);
+
+%%
+
 % length of the profile - number of distribution measurements
 data_length = size(droplet_dist,2);
 
@@ -52,6 +60,9 @@ droplet_dist(droplet_dist==0) = 1e-10;
 
 for zz = 1:data_length
 
+
+    % normalize distribution
+    
     % The chi-squared method checks the differences between the observed
     % counts in each bin with the expected counts in each bin. The p-value
     % is the probability of getting the chi-squared value we got by chance.

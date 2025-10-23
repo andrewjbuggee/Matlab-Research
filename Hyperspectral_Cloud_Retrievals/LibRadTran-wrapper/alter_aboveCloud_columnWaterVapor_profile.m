@@ -6,7 +6,7 @@
 % (1) inputs - the input structure for creating the input files
 
 % (2) aboveCloudTotal - This is the total column water vapor amount above
-% cloud in kg/m^2
+% cloud used to alter the profile - kg/m^2
 
 % (3) atm_folder_path - the location of libRadtrans atmosphere files and
 % where to save the water vapor file
@@ -57,7 +57,12 @@ waterVapor_column = waterVapor_column * 1e6;  % molecules/m^3
 % sensor altitude are included
 if ischar(inputs.RT.sensor_altitude) && strcmp(inputs.RT.sensor_altitude, 'toa')==true
 
-    new_z = sort([z; inputs.RT.z_topBottom(1)*1e3], 'descend');  % m
+    % In addition, add another data z value 1 meter above cloud top. This
+    % is the height where the scaling will begin so that, if libRadtran
+    % interpolates within the cloud to get the value of water vapor density
+    % within cloud, there isn't a difference between the original profile
+    % and the new one. 
+    new_z = sort([z; inputs.RT.z_topBottom(1)*1e3; (inputs.RT.z_topBottom(1)*1e3)+1], 'descend');  % m
 
     waterVapor_column_interp = interp1(z, waterVapor_column, new_z, "linear");    % moleules/m^3
 
@@ -66,7 +71,13 @@ if ischar(inputs.RT.sensor_altitude) && strcmp(inputs.RT.sensor_altitude, 'toa')
 
 elseif isdouble(inputs.RT.sensor_altitude)
 
-    new_z = sort([z; inputs.RT.z_topBottom(1); inputs.RT.sensor_altitude], 'descending');
+    % In addition, add another data z value 1 meter above cloud top. This
+    % is the height where the scaling will begin so that, if libRadtran
+    % interpolates within the cloud to get the value of water vapor density
+    % within cloud, there isn't a difference between the original profile
+    % and the new one. 
+    new_z = sort([z; inputs.RT.z_topBottom(1)*1e3; (inputs.RT.z_topBottom(1)*1e3)+1;...
+        inputs.RT.sensor_altitude], 'descending');
 
     waterVapor_column_interp = interp1(z, waterVapor_column, new_z, "linear");    % moleules/m^3
 
@@ -74,16 +85,18 @@ elseif isdouble(inputs.RT.sensor_altitude)
     idx_sensor = find(new_z==inputs.RT.sensor_altitude);
 
 end
-% Solve for the scalar value by integrating column water vapor from cloud
+
+
+% Solve for the scalar value by integrating column water vapor from JUST above cloud
 % top to sensor location
 
-idx_cloudTop = find(new_z==(inputs.RT.z_topBottom(1)*1e3));
+idx_justAboveCloudTop = find(new_z==((inputs.RT.z_topBottom(1)*1e3)+1));
 
 % integrate from cloud top to sensor location and convert the density
 % profile from molecules/m^3 to kg/m^2
 con = physical_constants;
 aboveCloud_columnAmount = -(con.Mol_mass_h2o_vap/con.N_A) *...
-    trapz(new_z(idx_sensor:idx_cloudTop), waterVapor_column_interp(idx_sensor:idx_cloudTop));  % kg/m^2
+    trapz(new_z(idx_sensor:idx_justAboveCloudTop), waterVapor_column_interp(idx_sensor:idx_justAboveCloudTop));  % kg/m^2
 
 % solve for the scalar constant
 a = aboveCloudTotal / aboveCloud_columnAmount;
@@ -93,7 +106,7 @@ a = aboveCloudTotal / aboveCloud_columnAmount;
 
 waterVapor_column_2Write = waterVapor_column_interp;      % moleules/m^3
 
-waterVapor_column_2Write(idx_sensor:idx_cloudTop) = a.*waterVapor_column_interp(idx_sensor:idx_cloudTop);  % moleules/m^3
+waterVapor_column_2Write(idx_sensor:idx_justAboveCloudTop) = a.*waterVapor_column_interp(idx_sensor:idx_justAboveCloudTop);  % moleules/m^3
 
 % convert this back to molcules per cubic centimeter
 waterVapor_column_2Write = waterVapor_column_2Write ./ 1e6;  % moleules/cm^3
