@@ -93,6 +93,16 @@ if use_TBLUT_estimates==true
     % atleast 3
     effRad_uncert = 0.1;
 
+
+    % Define the uncertainty of the a priori value for the radius at cloud
+    % top
+    rTop_uncert = 0.1;
+
+
+    % Define the uncertainty of the a priori value for the radius at cloud
+    % bottom
+    rBot_uncert = 0.25;
+
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for
     % liquid water clouds over ocean with an optical thickness of
@@ -102,14 +112,11 @@ if use_TBLUT_estimates==true
     % let's define the uncertainty of the above cloud column water vapor
     colWaterVapor_uncert = 0.05;
 
-    % stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-    %     GN_inputs.model.apriori(2) * 6*effRad_uncert,...
-    %     GN_inputs.model.apriori(3) * optThick_uncert];
 
 
     % *** TESTING NEW UNCERTAINTY ***
-    stdev_variables = [GN_inputs.model.apriori(1) * effRad_uncert ...
-        GN_inputs.model.apriori(2) * 0.25*effRad_uncert,...
+    stdev_variables = [GN_inputs.model.apriori(1) * rTop_uncert ...
+        GN_inputs.model.apriori(2) * rBot_uncert,...
         GN_inputs.model.apriori(3) * optThick_uncert,...
         GN_inputs.model.apriori(4) * colWaterVapor_uncert];
 
