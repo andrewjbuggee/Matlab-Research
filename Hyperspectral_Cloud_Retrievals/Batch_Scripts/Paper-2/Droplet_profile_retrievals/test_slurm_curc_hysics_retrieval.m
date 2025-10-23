@@ -65,7 +65,11 @@ for nn = 1:length(filenames)
     file_list{nn} = filenames(nn).name;
 end
 
-%%
+%% Full Retrieval
 
 
 [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
+
+%% Assumed ACPW of 25 mm
+
+ [tblut_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_noACPW_25(file_list, folder_paths, print_status_updates, print_libRadtran_err);
