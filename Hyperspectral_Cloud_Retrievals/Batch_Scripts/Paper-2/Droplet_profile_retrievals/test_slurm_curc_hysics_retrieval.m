@@ -10,23 +10,35 @@
 
 %% Load paths
 
-% addpath(genpath('/projects/anbu8374/Matlab-Research')); 
-% addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); 
-% addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); 
+% addpath(genpath('/projects/anbu8374/Matlab-Research'));
+% addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
+% addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
 
-clear variables; 
-addLibRadTran_paths; 
+clear variables;
+addLibRadTran_paths;
 
 folder_paths = define_folderPaths_for_HySICS(1);
 
-folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-    'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/']; 
+if strcmp(whatComputer, 'anbu8374')==true
+    folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/'];
 
-folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-    'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/testGRC_results/'];
+    folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/testGRC_results/'];
 
-print_status_updates = false; 
-print_libRadtran_err = false; 
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/testGRC_results/'];
+
+    folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/testGRC_results/'];
+
+end
+
+
+print_status_updates = false;
+print_libRadtran_err = false;
 
 %% Determine the names of the files
 

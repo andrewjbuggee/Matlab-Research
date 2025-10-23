@@ -309,7 +309,7 @@ acpw_retrieval.min_nonInterpolated = inputs_acpw.acpw_sim(idx_min);
 %% Calculations show that reflectance decreases monotonically with increasing above cloud column water vapor
 % Therefore, we can linearly inertoplate to get a more accurate number
 
-inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.05:max(inputs_acpw.acpw_sim));
+inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.01:max(inputs_acpw.acpw_sim));
 
 Refl_model_acpw_interp1 = [interp1(inputs_acpw.acpw_sim, Refl_model_acpw(1:3:end)', inputs_acpw.acpw_interp1);...
                          interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
