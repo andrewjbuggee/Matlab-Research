@@ -96,12 +96,13 @@ if use_TBLUT_estimates==true
 
     % Define the uncertainty of the a priori value for the radius at cloud
     % top
-    rTop_uncert = 0.05;
-
+    % rTop_uncert = 0.05;
+    rTop_uncert = 0.1;
 
     % Define the uncertainty of the a priori value for the radius at cloud
     % bottom
-    rBot_uncert = 0.2;
+    % rBot_uncert = 0.2;
+    rBot_uncert = 0.3;
 
     % let's define the uncertainty of the optical depth retrieval as
     % 5%. This is simular to the modis retireval uncertanties for
