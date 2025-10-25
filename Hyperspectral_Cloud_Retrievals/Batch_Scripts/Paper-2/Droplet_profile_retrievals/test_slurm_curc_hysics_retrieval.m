@@ -37,8 +37,8 @@ elseif strcmp(whatComputer, 'andrewbuggee')==true
 end
 
 
-print_status_updates = false;
-print_libRadtran_err = false;
+print_status_updates = true;
+print_libRadtran_err = true;
 
 %% Determine the names of the files
 
@@ -68,7 +68,9 @@ end
 %% Full Retrieval
 
 
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
+% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
+
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list{3}, folder_paths, print_status_updates, print_libRadtran_err);
 
 %% Assumed ACPW of 25 mm
 

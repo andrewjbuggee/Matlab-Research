@@ -164,7 +164,8 @@ if print_status_updates==true
         % where the variable is bounded: l<x1<u
         % we want to compute the maximum non-negative feasible step within
         % our bounds
-        a = linspace(0, 20, 2000);
+        % a = linspace(0, 20, 2000);
+        a = linspace(0, 5, 2000);
         constrained_guesses = current_guess + new_direction*a;
 
         % let's find the new guesses that satisfy the following
