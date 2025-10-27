@@ -65,12 +65,15 @@ for nn = 1:length(filenames)
     file_list{nn} = filenames(nn).name;
 end
 
-%% Full Retrieval
+%% Compute retrieval using just one file?
+
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list(3), folder_paths, print_status_updates, print_libRadtran_err);
 
 
-% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
+%% Full Retrieval from all files
 
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list{3}, folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
+
 
 %% Assumed ACPW of 25 mm
 

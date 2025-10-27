@@ -24,6 +24,28 @@ measurements = hysics.Refl_model; % column vector of the reflectance measurement
 
 
 
+% --------------------------------------------
+% ---- set direction of change parameters ----
+% --------------------------------------------
+
+% set the maximum scalar value used to create a set of scalar values that
+% will be multiplied along the direction of greatest change
+a_largestVal = 3;
+
+% define length of initial array used to check which state vectors meet the
+% defined constraints
+array_length_initialConstraints = 2000;
+
+% define the array of values between 0 and the maximum scalar value
+array_length_newMax = 10;
+
+% We want to make sure the new step is within the feasible
+% range, not at the boundaries. So we only accept a values that
+% are less than the max a value.
+percent_of_maxA = 0.95;
+% --------------------------------------------
+
+
 
 % -----------------------------------------------------------------------
 % --------------------- PLOT JACOBIAN BAR PLOT?!?! ----------------------
@@ -165,7 +187,7 @@ if print_status_updates==true
         % we want to compute the maximum non-negative feasible step within
         % our bounds
         % a = linspace(0, 20, 2000);
-        a = linspace(0, 5, 2000);
+        a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
         % let's find the new guesses that satisfy the following
@@ -251,12 +273,9 @@ if print_status_updates==true
 
             disp([newline, 'Computing new direction using predefined constraints...', newline])
 
-            % We want to make sure the new step is within the feasible
-            % range, not at the boundaries. So we only accept a values that
-            % are less than the max a value.
-            percent_of_maxA = 0.95;
+            
             % Set the a vector to values between 0 and some fraction of the max a
-            a = linspace(0, percent_of_maxA * max_a, 10);
+            a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
@@ -298,7 +317,7 @@ if print_status_updates==true
             [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
 
             % Check to see if all rss_residuals are greater than the
-            % previous iterate
+            % previous iteration
             if isempty(min_val_lessThanPrevious)
 
                 % If no rss_residual is less than the previous iterate,
@@ -514,7 +533,7 @@ else
         % where the variable is bounded: l<x1<u
         % we want to compute the maximum non-negative feasible step within
         % our bounds
-        a = linspace(0, 20, 2000);
+        a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
         % let's find the new guesses that satisfy the following
@@ -592,12 +611,9 @@ else
         else
 
 
-            % We want to make sure the new step is within the feasible
-            % range, not at the boundaries. So we only accept a values that
-            % are less than the max a value.
-            percent_of_maxA = 0.95;
+
             % Set the a vector to values between 0 and some fraction of the max a
-            a = linspace(0, percent_of_maxA * max_a, 10);
+            a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
