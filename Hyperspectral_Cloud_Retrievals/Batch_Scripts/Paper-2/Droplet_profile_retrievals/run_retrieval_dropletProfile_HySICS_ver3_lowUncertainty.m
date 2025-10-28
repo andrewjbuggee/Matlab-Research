@@ -2,7 +2,7 @@
 % This is a function that retrieves a vertical droplet profile and the
 % integrated column water vapor amount above cloud
 
-% This script retrieves 4 variables: r_top, r_bot, tau_c, and cwvs
+% This script retrieves 4 variables: r_top, r_bot, tau_c, and acpw
 
 
 % INPUTS

@@ -824,6 +824,9 @@ posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))
 
 
 
+
+
+
 % ---------------- COMPUTE LIQUID WATER PATH ------------------
 % Compute the retireved Liquid water path with the final profile
 
@@ -869,6 +872,37 @@ else
 end
 % -------------------------------------------------------------------
 
+
+
+
+
+
+
+% -------------------------------------------------------------
+% ----------- Determine the degree of non-linearity -----------
+% -------------------------------------------------------------
+% Rodgers (2000) pg. 83
+% Define the state vector used to evaluate the non linearity of our problem
+% by defining a state vector with values 1 standard deviation away from the
+% retrieved state
+state_vec_plus_1sigma = retrieval(:,end) + sqrt(diag(posterior_cov));
+state_vec_minus_1sigma = retrieval(:,end) - sqrt(diag(posterior_cov));
+
+% compute the measurement estimate for this state vector
+meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,...
+                        GN_inputs, spec_response, folder_paths);
+
+% lastly, we need the Jacobian of the difference between the retrieved
+% state vector and the state vector 1 standard deviation away
+
+Jacobian_plus_1sigma = compute_jacobian_HySICS_ver2(sqrt(diag(posterior_cov)),...
+    meas_est_plus_1sigma, GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
+
+
+% -------------------------------------------------------------
 
 
 % -------------------------------------------------------------
