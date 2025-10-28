@@ -32,6 +32,9 @@ measurements = hysics.Refl_model; % column vector of the reflectance measurement
 % will be multiplied along the direction of greatest change
 a_largestVal = 3;
 
+% if trying to have specific values, like a=1, use a step size
+a_stepSize = 0.333;
+
 % define length of initial array used to check which state vectors meet the
 % defined constraints
 array_length_initialConstraints = 2000;
@@ -276,6 +279,11 @@ if print_status_updates==true
             
             % Set the a vector to values between 0 and some fraction of the max a
             a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
+            if max_a>1
+                % include a=1
+                a = sort([a, 1]);
+            end
+            % a = 0:a_stepSize:max_a;
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
@@ -614,6 +622,11 @@ else
 
             % Set the a vector to values between 0 and some fraction of the max a
             a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
+            if max_a>1
+                % include a=1
+                a = sort([a, 1]);
+            end
+            % a = 0:a_stepSize:max_a;
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
