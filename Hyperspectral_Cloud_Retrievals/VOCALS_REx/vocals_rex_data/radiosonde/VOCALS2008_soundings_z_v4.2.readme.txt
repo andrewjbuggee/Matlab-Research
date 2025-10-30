@@ -1,0 +1,164 @@
+VOCALS2008_soundings_z_V4.2.readme.txt :: 2010 September 15 :: Simon de Szoeke
+README metadata for VOCALS2008_soundings_z_v4.2.nc
+
+Title: Rawinsonde data for VOCALS 2008
+Version: 4.2
+Creation date: 2010-09-15
+Authors: Simon de Szoeke <sdeszoek@coas.oregonstate.edu> and Daniel Wolfe <daniel.wolfe@noaa.gov>
+Data are provided by Simon de Szoeke (Oregon State University), Daniel Wolfe (NOAA/ESRL/PSD), Sandra Yuter (North Carolina State University), and Chris Fairall (NOAA/ESRL/PSD) with funding from the NOAA Climate Program Office.
+Find this metadata at ftp://ftp.coas.oregonstate.edu/dist/sdeszoek/vocals/VOCALS2008_soundings_z_v4.2.readme.txt
+
+1a. Data Dimensions
+
+1   launch      rawinsonde launch number    (216, record dimension)
+2   altitude    altitude in 10-m increments (2501)
+
+1b. Data Set Variables
+    Name    [units]     Description
+
+TIME(launch) vectors
+ 1  year    [Gregorian year] always 2008
+ 2  yday    [day]       Decimal year day of sonde launch, since 2008 January 1 00:00 UTC
+ 3  month   [month]     month of year
+ 4  day     [day]       day of month
+ 5  hour    [hour]      hour of day
+ 6  minute  [minute]    minute of hour
+ 7  lat     [degrees]   north latitude
+ 8  lon     [degrees]   east longitude
+20  tqflag              8-bit quality control flag
+
+VERTICAL(altitude) vector
+ 9  height  [meters]    bottom of 10-m vertical averaging interval
+
+DATA(launch, altitude)
+10  pres    [hPa]       pressure
+11  T       [degree C]  temperature
+12  RH      [percent]   relative humidity
+13  Td      [degree C]  dew point temperature (*)
+14  wnddir  [degree]    meteorological convention (out-of) wind direction; degrees heading clockwise from north
+15  wndspd  [m/s]       wind speed
+16  u       [m/s]       zonal eastward wind velocity
+17  v       [m/s]       meridional northward wind velocity
+18  theta   [K]         potential temperature (+)
+19  q       [g/kg]      specific humidity (*+)
+
+(*) derived from RH
+(+) derived from temperature
+
+In the netcdf(.nc) file, IEEE not-a-number (NaN) values denote missing values.
+
+
+2. Preprocessing
+
+Preprocessing of the raw digital rawinsonde signals is performed by three generations of the Vaisala DigiCora software. Most data is processed by DigiCora version 3.62. Three soundings could not be processed with DigiCora 3.62 and were processed with DigiCora 3.51 instead. The processed files eliminate glitches, but often interpolate across true observations in the vicinity of the sharp trade inversion. These interpolated layers were identified by a human operator and reverted to DigiCora Research-mode data, which does not interpolate.
+
+
+3. Interpolation to Standard Levels and Derived Variables
+
+Data provided here are vertically interpolated to standard 10-m height increments. For a nominal ascent rate of 5 m/s the 10 m height interval corresponds roughly to the 2 s time interval to which the data are interpolated by the Vaisala DigiCORA sonde processing software. The data decorrelation time scale is estimated at about 5 s from the sonde ascent rate and response time of the sensors, so the 10 m and 2 s intervals slightly over-sample the data.
+
+Thermodynamic variables pressure, temperature, and relative humidity are measured by sensors on the sonde boom. Other thermodynamic variables Td, theta, and q are computed from these in-situ measurements. Td is computed by the Vaisala software. Variables theta and q are computed in post-processing from T and RH.
+
+Winds are calculated from horizontal displacements of the rawinsonde measured by the GPS receiver on the sonde. Wind direction and speed are output at 2 s increments by the Vaisala sounding processing software. These are converted to vector eastward zonal and northward meridional components (u, v) and interpolated to standard 10-m intervals. Wind direction and speed (wnddir, wndspd) are computed from the interpolated wind components.
+
+
+4. Quality Control
+
+Hugely negative relative humidity was found for two sondes. All humidity variables (RH, Td, q) for these sondes are set to NaN, and the launch is flagged (tqflag bit 6) to indicate a humidity issue has been masked out.
+
+Three sondes had alternating cycles of RH values resembling a square wave. This is probably due to a mismatch between the two hygrometers on the sonde, which are alternately sampled and heated to remove icing and liquid water contamination. The humidity variables for these sondes are set to NaN (and tqflag bit 7 set), and they are flagged for humidity cycling (tqflag bit 8).
+
+Five sondes had RH cycles resembling a sawtooth. These sondes were flagged for their RH cycling (tqflag bit 8). These sondes had slow ascent rates. Sudden dry RH anomalies are thought to be from switching to an inadequately cooled RH sensor following heating in the normal de-icing cycle.
+
+Sonde observations from 20-40 m have been compared with observations from sensors on the ship's forward mast. The 20-40 m level average agrees best with the mast temperature (to within 0.1 C in the mean).
+
+The temperature from 15 sondes disagrees by more than 1C with the mast thermometer.  Their temperature is flagged (tqflag bit 2), and the temperature data (T, q, theta) are adjusted to agree with the mast at 20-40 m. The adjusted temperature agrees better with neighboring sondes in the marine boundary layer and lower troposphere, but often it does not in the upper troposphere and stratosphere. We also flag adjusted data with a temperature caution above 5000 m (tqflag bit 1). Use care in interpreting the adjusted temperature in the upper atmosphere. If the disagreement between sonde and mast is more than 3.5 C the data are replaced with NaNs.
+
+Sondes sit on the deck of the ship (~7 m) before being launched and the sonde processing software adjusts the first few data points to match data entered on a terminal during launch preparation. Since the source of these lower-altitude data is different from the sensors on the rawinsonde itself, data from levels below 30 m are expunged from the rawinsonde data set.
+
+Wetting of the thermistor results in brief cooling right above cloud top. Temperature lapse rates more than 15 C/km near the inversion are flagged to caution of possible wetting (tqflag bit 1).
+
+Wind data that are zero for both wind speed and direction are assumed to represent missing wind speeds and are replaced with NaNs before computing wind vector components or interpolating.
+
+
+Addenda
+
+A1. Quality Control Flags
+
+The variable 'tqflag' contains a single byte for each (launch,altitude) denoting data quality for that sounding and level. The bits of tqflag should be interpreted as follows:
+
+flag bit        description
+1               T caution
+2               T adjusted
+3               T replaced with NaN
+4               not used
+5               RH caution
+6               RH adjusted (not used in v.4.0 and above)
+7               RH replaced with NaN
+8               RH cycles
+
+Note bits are numbered in fortran notation, 8 is the highest order bit.
+
+
+A2. Summary of sondes that have flagged data at 50 m height
+
+yearday   yyyy-mm-dd  hh flags     QC notes
+298.6403  2008-10-24  15 00000010 T adj
+298.8167  2008-10-24  19 00000010 T adj
+299.1431  2008-10-25  03 00000010 T adj
+299.4695  2008-10-25  11 00000010 T adj
+299.6403  2008-10-25  15 00000010 T adj
+302.4889  2008-10-28  11 00000010 T adj
+308.4750  2008-11-03  11 00010010 T adj, note RH
+315.9951  2008-11-10  23 00000010 T adj
+316.6667  2008-11-11  16 00000010 T adj
+318.0160  2008-11-13  00 01010000 note & zap RH
+318.1660  2008-11-13  03 10000000 RH cycles
+319.8326  2008-11-14  19 11000000 RH cycles, zap RH
+321.5111  2008-11-16  12 11000010 RH cycles, zap RH, adj T
+323.1500  2008-11-18  03 10000000 RH cycles
+323.3430  2008-11-18  08 11000000 RH cycles, zap RH
+324.5014  2008-11-19  12 10000000 RH cycles
+325.1451  2008-11-20  03 10000000 RH cycles
+326.3535  2008-11-21  08 10000000 RH cycles
+327.6604  2008-11-22  15 00000010 T adj
+328.9972  2008-11-23  23 00000010 T adj
+329.8292  2008-11-24  19 00000010 T adj
+331.6597  2008-11-26  15 00000010 T adj
+332.3423  2008-11-27  08 00000010 T adj
+
+
+A3. Matlab code example using snctools to read netcdf sounding file
+
+qcfile='VOCALS2008_soundings_z_v4.2.nc';
+height   =nc_varget(qcfile,'height');
+yday     =nc_varget(qcfile,'yday');
+month    =nc_varget(qcfile,'month');
+day      =nc_varget(qcfile,'day');
+hour     =nc_varget(qcfile,'hour');
+lat      =nc_varget(qcfile,'lat');
+lon      =nc_varget(qcfile,'lon');
+pres     =nc_varget(qcfile,'pres');
+T        =nc_varget(qcfile,'T');
+theta    =nc_varget(qcfile,'theta');
+RH       =nc_varget(qcfile,'RH');
+q        =nc_varget(qcfile,'q');
+Td       =nc_varget(qcfile,'Td');
+u        =nc_varget(qcfile,'u');
+v        =nc_varget(qcfile,'v');
+wnddir   =nc_varget(qcfile,'wnddir');
+wndspd   =nc_varget(qcfile,'wndspd');
+tmp=int16(nc_varget(qcfile,'tqflag'));
+% convert tqflag to uint8 without losing data
+tqflag=uint8(tmp);
+tqflag(tmp<0)=uint8(tmp(tmp<0)+256);
+
+% interpret tqflag bits
+is_rhcycle=bitget(tqflag,8);
+is_rhzap=  bitget(tqflag,7);
+is_rhadj=  bitget(tqflag,6);
+is_rhnote= bitget(tqflag,5);
+% bit 4 not used
+is_tzap=   bitget(tqflag,3);
+is_tadj=   bitget(tqflag,2);
+is_tnote=  bitget(tqflag,1);

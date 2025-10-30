@@ -363,10 +363,10 @@ altitude = reshape(altitude, 1, length(altitude));
 
 
 % -------------------------------------------------------------------------
-% ------------------ Grab the ambient air temperature ---------------------
+% ------------Grab the ambient air temperature and pressure ---------------
 % -------------------------------------------------------------------------
 ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                                          % C - ambient air tempertaure
-
+ambient_static_pressure = reshape(ncread(filename, 'PSXC'), 1, []);                                  % hPa - ambient air tempertaure
 
 % -------------------------------------------------------------------------
 % --------------- Grab different water vapor measurements ---------------
@@ -374,7 +374,7 @@ ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                     
 water_vapor_pressure = reshape(ncread(filename, 'EDPUV'), 1, []);                                % hPa - ambient water vapor pressure
 mixing_ratio = reshape(ncread(filename, 'MR'), 1, []);                                           % g of water vapor/kg of dry air - water vapor mixing ratio
 absolute_humidity = reshape(ncread(filename, 'RHODT'), 1, []);                                   % g of water vapor/m^3 of air - absolute humidity
-
+relative_humidity = reshape(ncread(filename, 'RHUM'), 1, []);                                    % % - indication of how close the air is to being saturated
 
 
 
@@ -832,8 +832,10 @@ vocalsRex.horz_wind_direction = horz_wind_direction;
 vocalsRex.vapor_pressure = water_vapor_pressure;             % hPa - ambient water vapor pressure
 vocalsRex.mixing_ratio = mixing_ratio;                       % g of water vapor/kg of dry air - water vapor mixing ratio
 vocalsRex.absolute_humidity = absolute_humidity;             % g of water vapor/m^3 of air - absolute humidity
+vocalsRex.relative_humidity = relative_humidity;             % % - indication of how close the air is to being saturated
 
 vocalsRex.temp = ambient_air_temp;                           % degrees C
+vocalsRex.pres = ambient_static_pressure;                    % hPa
 
 
 % ------------ STUFF I'M CURERENTLY NOT USING -------------

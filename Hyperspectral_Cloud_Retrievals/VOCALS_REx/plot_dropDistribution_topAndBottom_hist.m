@@ -34,7 +34,7 @@ for nn = 1:length(indexes2plot)
     f1 = figure;
 
     % define the index for cloud top and cloud bottom
-    times2plot = [1, numel(vert_profs.Nc{indexes2plot(nn)})];
+    times2plot = [1, numel(vert_profs(indexes2plot(nn)).re)];
     
     % set the effective radius vector
     re = zeros(1, 2);
@@ -43,11 +43,11 @@ for nn = 1:length(indexes2plot)
 
 
         % Compute the effective radius for the two distributions and plot it as a solid vertical line
-        re(tt) = vert_profs.re{indexes2plot(nn)}(times2plot(tt));
+        re(tt) = vert_profs(indexes2plot(nn)).re(times2plot(tt));
 
         % Plot the distribution at cloud bottom first
-        h1 = histogram('BinEdges',vert_profs.drop_radius_bin_edges ,'BinCounts',...
-            vert_profs.nr{indexes2plot(nn)}(:,(times2plot(tt))));
+        h1 = histogram('BinEdges',vert_profs(indexes2plot(nn)).drop_radius_bin_edges ,'BinCounts',...
+            vert_profs(indexes2plot(nn)).Nc(:,(times2plot(tt))));
         h1.FaceColor = mySavedColors(tt, 'fixed');
         h1.FaceAlpha = 0.7;
         h1.EdgeAlpha = 1;
@@ -62,16 +62,17 @@ for nn = 1:length(indexes2plot)
 
     % set axes limits and labels
     xlabel('Droplet Radius ($\mu m$)', 'Interpreter','latex', 'FontSize',32);
-    ylabel('$n(r)$ ($cm^{-3} \, \mu m^{-1}$)', 'Interpreter','latex', 'FontSize',32);
+    ylabel('$N_c$ ($cm^{-3}$)', 'Interpreter','latex', 'FontSize',32);
     grid on; grid minor; hold on;
     xlim([r_min, r_max])
-    ylim([10^(-2) 10^2])
+    ylim([10^(-1) 10^2])
     set(gca, 'YScale', 'log')
     set(gcf, 'Position',[0 0 1000, 600])
     
     
     legend('Cloud Bottom', ['$r_e$ = ',num2str(round(re(1),2)), ' $\mu m$'], 'Cloud Top',...
             ['$r_e$ = ',num2str(round(re(2),2)), ' $\mu m$'], 'Location','best', 'Interpreter','latex')
+
 
 
 

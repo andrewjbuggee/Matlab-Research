@@ -59,6 +59,17 @@
 function [ssa_avg, Qe_avg, g_avg, Qs_avg] = average_mie_over_size_distribution(r_eff, distribution_var, wavelength,...
     index_of_refraction, distribution_type, which_computer, index)
 
+% define folders
+if strcmp(which_computer, 'anbu8374')==true
+
+    mie_folder = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/';
+
+elseif strcmp(which_computer, 'andrewbuggee')==true
+
+    error(['Where is the mie folder?'])
+
+end
+
 % ---------------------------
 % ----- CHECK INPUTS --------
 % ---------------------------
@@ -87,20 +98,26 @@ end
 % ================================================
 
 
-% ------------------------------------------------
-% ------------ for a gamma distribution ----------
-% ------------------------------------------------
+ssa_avg = zeros(1,length(r_eff));
+Qe_avg = zeros(1,length(r_eff));
+g_avg = zeros(1, length(r_eff));
+Qs_avg = zeros(1,length(r_eff));
+
+
+
+
+
 
 if strcmp(distribution_type, 'gamma')==true
+
+    % ------------------------------------------------
+    % ------------ for a gamma distribution ----------
+    % ------------------------------------------------
 
 
     % For some effective radius, we have defined a droplet size distribution
     % ----- for a gamma distribution -----
 
-    ssa_avg = zeros(1,length(r_eff));
-    Qe_avg = zeros(1,length(r_eff));
-    g_avg = zeros(1, length(r_eff));
-    Qs_avg = zeros(1,length(r_eff));
 
 
 
@@ -115,20 +132,20 @@ if strcmp(distribution_type, 'gamma')==true
     % ---------------     RUN MIE CALCULATIONS    -------------------
     % ---------------------------------------------------------------
 
-%     % define the wavelength
-%     % The wavelength input is defined as follows:
-%     % [wavelength_start, wavelength_end, wavelength_step].
-%     if length(wavelength)==1
-%         % monochromatic calculation
-%         wavelength = [wavelength, wavelength, 0];          % nanometers
-%         % define the wavelength vector
-%         wl_vector = wavelength(1);               % nanometers
-%     elseif length(wavelength)==3
-%         % broadband calculation
-%         wavelength = [wavelength(1), wavelength(2), wavelength(3)];          % nanometers
-%         % define the wavelength vector
-%         wl_vector = wavelength(1):wavelength(3):wavelength(2);               % nanometers
-%     end
+    %     % define the wavelength
+    %     % The wavelength input is defined as follows:
+    %     % [wavelength_start, wavelength_end, wavelength_step].
+    %     if length(wavelength)==1
+    %         % monochromatic calculation
+    %         wavelength = [wavelength, wavelength, 0];          % nanometers
+    %         % define the wavelength vector
+    %         wl_vector = wavelength(1);               % nanometers
+    %     elseif length(wavelength)==3
+    %         % broadband calculation
+    %         wavelength = [wavelength(1), wavelength(2), wavelength(3)];          % nanometers
+    %         % define the wavelength vector
+    %         wl_vector = wavelength(1):wavelength(3):wavelength(2);               % nanometers
+    %     end
 
 
     % The first entry belows describes the type of droplet distribution
@@ -148,17 +165,17 @@ if strcmp(distribution_type, 'gamma')==true
     % Do you want a long or short error file?
     err_msg_str = 'verbose';
 
-    
+
     % Lets define the radius vector the spans the full size distribution
     % By doing this outside the loop, we only have to write and run a
     % single mie calculation
     % set the total number concentration to be 1
     N0 = 1;
-    
+
     % Use the frsit value of r_eff, but make sure r_eff is non zero
     rr = 1;
     while r_eff(rr)==0
-            rr = rr+1;
+        rr = rr+1;
     end
     [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
 
@@ -192,8 +209,8 @@ if strcmp(distribution_type, 'gamma')==true
 
 
     % Create a mie file
-    [input_filename, output_filename, mie_folder] = write_mie_file(mie_program, index_of_refraction,...
-        mie_radius, wavelength, size_distribution, err_msg_str, which_computer, index);
+    [input_filename, output_filename] = write_mie_file(mie_program, index_of_refraction,...
+        mie_radius, wavelength, size_distribution, err_msg_str, index, randi([0,1000], 1), mie_folder);
 
     % run the mie file
     [~] = runMIE(mie_folder,input_filename,output_filename, which_computer);
@@ -210,13 +227,13 @@ if strcmp(distribution_type, 'gamma')==true
     for rr = 1:length(r_eff)
 
 
-%         % ---------------- IMPORTANT ASSUMPTION -------------------
-%         % the modal radius is usually less than the effective radius
-%         r_modal = 0.95*r_eff(rr);
-% 
-%         N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
-% 
-%         n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
+        %         % ---------------- IMPORTANT ASSUMPTION -------------------
+        %         % the modal radius is usually less than the effective radius
+        %         r_modal = 0.95*r_eff(rr);
+        %
+        %         N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
+        %
+        %         n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
 
 
         % Compute the size distribution according to the changing effective
@@ -269,7 +286,7 @@ if strcmp(distribution_type, 'gamma')==true
 
 
 
-            
+
             % Compute the average scattering efficiency over a droplet size
             % distribution
 
@@ -290,7 +307,164 @@ if strcmp(distribution_type, 'gamma')==true
 
 else
 
-    error([newline, 'I can only integrate over gamma distributions at the moment...',newline])
+
+    % -----------------------------------------------------
+    % ------------ for a log normal distribution ----------
+    % -----------------------------------------------------
+
+
+
+    % For now, we run mono-dispersed calculations, and manually integrate
+    % over the size distribution of choice
+    % *** the second entry is the width parameter, which isn't needed for a
+    % monodispersed distribution ***
+    size_distribution = {'mono', []};           % droplet distribution
+
+    % What mie code should we use to compute the scattering properties?
+    mie_program = 'MIEV0';               % type of mie algorithm to run
+
+    % Do you want a long or short error file?
+    err_msg_str = 'verbose';
+
+
+    % Lets define the radius vector the spans the full size distribution
+    % By doing this outside the loop, we only have to write and run a
+    % single mie calculation
+    % set the total number concentration to be 1
+    N0 = 1;
+
+    % Use the frsit value of r_eff, but make sure r_eff is non zero
+    rr = 1;
+    while r_eff(rr)==0
+        rr = rr+1;
+    end
+    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+
+
+
+    % Define the size of the scatterer and its scattering properties
+    % Assuming a pure homogenous medium composed of a single substance.
+    % The radius input is defined as [r_start, r_end, r_step].
+    % where r_step is the interval between radii values (used only for
+    % vectors of radii). A 0 tells the code there is no step. Finally, the
+    % radii values have to be in increasing order.
+
+    % **** The above r vector is often a different length than the vector created by libRadtran ****
+    % libRadtran creates a radius vector using three inputs. Sometimes the
+    % created vector is not the same length as the vector r.
+    % This happens due to rounding errors. Check to make sure this doesn't
+    % happen
+
+    radius_step = mean(diff(r));
+
+    % check the length
+    while numel(r(1):radius_step:r(end))~=numel(r)
+
+        radius_step = radius_step - 1e-15;
+
+    end
+
+    mie_radius = [r(1), r(end), radius_step];    % microns
+
+
+
+
+    % Create a mie file
+    [input_filename, output_filename] = write_mie_file(mie_program, index_of_refraction,...
+        mie_radius, wavelength, size_distribution, err_msg_str, index, randi([0,1000], 1), mie_folder);
+
+    % run the mie file
+    [~] = runMIE(mie_folder,input_filename,output_filename, which_computer);
+
+    % Read the output of the mie file
+    [ds,~,~] = readMIE(mie_folder,output_filename);
+
+    % -----------------------------------------------------------------
+
+
+
+    % Step through each modal radius and compute the average over the size
+    % distribution
+    for rr = 1:length(r_eff)
+
+
+        %         % ---------------- IMPORTANT ASSUMPTION -------------------
+        %         % the modal radius is usually less than the effective radius
+        %         r_modal = 0.95*r_eff(rr);
+        %
+        %         N = dist_var(rr)^(dist_var(rr)+1)/(gamma(dist_var(rr)+1) * r_modal^(dist_var(rr)+1));  % normalization constant
+        %
+        %         n_r = N0 * N * r.^dist_var(rr) .* exp(-dist_var(rr)*r/r_modal);                        % gamma droplet distribution
+
+
+        % Compute the size distribution according to the changing effective
+        % rdaius at each cloud layer
+        if rr~=1
+            [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+        end
+
+        % step through each wavelength. At each wavelength we integrate over
+        % the vector r, a range of droplet sizes
+
+        for ww = 1:length(wavelength)
+
+            % Average single scattering albedo over a droplet distribution
+
+            % ----- Old calculation below -----
+            %             ssa_avg(ww,rr) = trapz(r, ds.Qsca(ww,:) .* n_r)./...
+            %                 trapz(r, ds.Qext(ww,:) .* n_r);
+
+            % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
+            ssa_avg(ww,rr) = trapz(r, r.^2 .* ds.Qsca(ww,:) .* n_r)./...
+                trapz(r, r.^2 .* ds.Qext(ww,:) .* n_r);
+
+
+
+
+            % Compute the average asymmetry parameter over a size distribution
+
+            % ----- Old calculation below -----
+            %             g_avg(ww,rr) = trapz(r, ds.asymParam(ww,:) .* n_r)./...
+            %                 trapz(r, n_r);
+
+            % ----- calculation according to Kokhanovky (Cloud optics, pg 69) -----
+            g_avg(ww,rr) = trapz(r, ds.asymParam(ww,:) .* ds.Qsca(ww,:) .* r.^2 .* n_r)./...
+                trapz(r, ds.Qsca(ww,:) .* r.^2 .* n_r);
+
+
+
+
+            % Compute the average extinction efficiency over a droplet size
+            % distribution
+
+            % ----- Old calculation below -----
+            %             Qe_avg(ww,rr) = trapz(r, ds.Qext(ww,:) .* n_r)./...
+            %                 trapz(r, n_r);
+
+            % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
+            Qe_avg(ww,rr) = trapz(r, r.^2 .* ds.Qext(ww,:) .* n_r)./...
+                trapz(r, r.^2 .* n_r);
+
+
+
+
+            % Compute the average scattering efficiency over a droplet size
+            % distribution
+
+
+            % ----- calculation according to Hansen and Travis (1974, pg 547-549) -----
+            Qs_avg(ww,rr) = trapz(r, r.^2 .* ds.Qsca(ww,:) .* n_r)./...
+                trapz(r, r.^2 .* n_r);
+
+
+
+        end
+
+    end
+
+
+
+
 
 end
 

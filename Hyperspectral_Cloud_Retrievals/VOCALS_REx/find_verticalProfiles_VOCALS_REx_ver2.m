@@ -39,6 +39,15 @@
 function [vert_profs] = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, LWC_threshold, stop_at_max_lwc, Nc_threshold, which_computer)
 
 
+% define folders
+% if strcmp(which_computer, 'anbu8374')==true
+% 
+% 
+% 
+% elseif strcmp(which_computer, 'andrewbuggee')==true
+% 
+% end
+
 % Create an new structure for the vertical profiles
 % grab fieldnames from VocalsRex
 fields = fieldnames(vocalsRex);
@@ -108,6 +117,11 @@ num_ba_long = 30;
 
 % Start with zero profiles and add a 1 for each profile found
 profile_num = 0;
+
+% define the siginicance level used to test how likely a given sample came
+% from a distribution
+% significance_lvl = 0.05; % 5 percent significance (95% confidence)
+significance_lvl = 0.1; % 5 percent significance (90% confidence)
 
 
 
@@ -371,7 +385,7 @@ for nn = 1:length(idx_1)
         % over a longer segment of data after the start of the profile. Start
         % at the end of the first boundary found. Use the median for both
         % because the set of values can span two orders of magnitude
-        
+
         before_profile_below_thresholds_long = median(vocalsRex.total_Nc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < Nc_threshold & ...
             median(vocalsRex.lwc(idx_1(nn)-num_ba_long:idx_1(nn)-1)) < LWC_threshold;
 
@@ -537,7 +551,7 @@ vert_profs(idx2delete) = [];
 if stop_at_max_lwc == true
 
     error([newline, 'The code to cut profiles after max LWC hasnt been tested', newline])
-    
+
 
     for nn = 1:length(vert_profs)
 
@@ -547,27 +561,27 @@ if stop_at_max_lwc == true
 
         for ff = 1:length(fields)
 
-                % now remove all data points outside of the vertical profile
+            % now remove all data points outside of the vertical profile
 
-                if numel(vert_profs(nn).(fields{ff}))==length(idx_dz_dt)
+            if numel(vert_profs(nn).(fields{ff}))==length(idx_dz_dt)
 
-                    % all the time data will have be a vector with the same
-                    % length as our calculation of vertical velocity
+                % all the time data will have be a vector with the same
+                % length as our calculation of vertical velocity
 
-                    % reshape all fields so that time increases with increasing
-                    % column number (row vector)
-                    vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(1:idx_max_lwc);
-
-
-                elseif numel(vert_profs(nn).(fields{ff}))>length(idx_dz_dt)
-                    % only one field is a matrix with more values than the time
-                    % vector, and thats the matrix for the size distribution,
-                    % with rows representing different size bins and columns
-                    % are along the time dimension
-                    vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(:, 1:idx_max_lwc);
+                % reshape all fields so that time increases with increasing
+                % column number (row vector)
+                vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(1:idx_max_lwc);
 
 
-                end
+            elseif numel(vert_profs(nn).(fields{ff}))>length(idx_dz_dt)
+                % only one field is a matrix with more values than the time
+                % vector, and thats the matrix for the size distribution,
+                % with rows representing different size bins and columns
+                % are along the time dimension
+                vert_profs(nn).(fields{ff}) = vert_profs(nn).(fields{ff})(:, 1:idx_max_lwc);
+
+
+            end
 
 
         end
@@ -762,7 +776,7 @@ for nn = 1:length(vert_profs)
 
 
     if mean(dz_dt)>0
-        % then the plane is ascending!
+        % *** then the plane is ascending! ***
 
 
         % step through the altitude array
@@ -794,8 +808,68 @@ for nn = 1:length(vert_profs)
 
 
             % Find the distribution best fit and the distribution width
-            [goodness_of_fits] = find_bestFitDist_dropDist_2(vert_profs(nn).Nc,...
-                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center);
+            [vert_profs(nn).normFit, vert_profs(nn).logNormFit, vert_profs(nn).gammaFit] =...
+                find_bestFitDist_dropDist(vert_profs(nn).Nc,...
+                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center, significance_lvl);
+
+
+
+            if sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
+
+                dist_2model = 'gamma';
+
+                % take the average of the last third of data points. The
+                % plane is ascending, so we start at cloud bottom. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(round(2*vector_length/3):end), "omitnan");
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+
+
+            elseif sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
+
+                dist_2model = 'lognormal';
+
+                % take the average of the first third of data points. The
+                % plane is descending, so we start at cloud top. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                sigma_libRadtarn = mean(vert_profs(nn).logNormFit.std(round(2*vector_length/3):end), "omitnan");
+                distribution_dist = linspace(sigma_libRadtarn, sigma_libRadtarn, length(re_meters));
+
+
+
+            elseif sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan")
+
+                dist_2model = 'gamma';
+
+                % take the average of the first third of data points. The
+                % plane is descending, so we start at cloud top. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(round(2*vector_length/3):end), "omitnan");
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+
+            else
+
+                dist_2model = 'gamma';
+
+                alpha_libRadtarn = 10;
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+
+            end
+
+
+
 
             % We assume the droplet size is appreciably larger than the
             % incident wavelength (something in the visible, like 550 nm)
@@ -811,15 +885,15 @@ for nn = 1:length(vert_profs)
 
             % Or we could compute the average extinction efficiency
             % over a droplet size distrubution
-            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                550, 'water', 'gamma', which_computer, ii);
+            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, distribution_dist,...
+                550, 'water', dist_2model, which_computer, ii);
 
             vert_profs(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
 
         end
 
     elseif mean(dz_dt)<0
-        % then the plane is descending!
+        % *** then the plane is descending! ***
 
         % step through the altitude array
         for ii = 1:vector_length-1
@@ -840,8 +914,67 @@ for nn = 1:length(vert_profs)
             altitude = vert_profs(nn).altitude(1) -  vert_profs(nn).altitude(1:ii+1);   % meters
 
             % Find the distribution best fit and the distribution width
-            [goodness_of_fits] = find_bestFitDist_dropDist_2(vert_profs(nn).Nc,...
-                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center);
+            [vert_profs(nn).normFit, vert_profs(nn).logNormFit, vert_profs(nn).gammaFit] =...
+                find_bestFitDist_dropDist(vert_profs(nn).Nc,...
+                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center, significance_lvl);
+
+
+
+            if sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
+
+                dist_2model = 'gamma';
+
+                % take the average of the first third of data points. The
+                % plane is descending, so we start at cloud top. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(1:round(vector_length/3)), "omitnan");
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+
+
+            elseif sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
+
+                dist_2model = 'lognormal';
+
+                % take the average of the first third of data points. The
+                % plane is descending, so we start at cloud top. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                sigma_libRadtarn = mean(vert_profs(nn).logNormFit.std(1:round(vector_length/3)), "omitnan");
+                distribution_dist = linspace(sigma_libRadtarn, sigma_libRadtarn, length(re_meters));
+
+
+
+            elseif sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
+                    sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan")
+
+                dist_2model = 'gamma';
+
+                % take the average of the first third of data points. The
+                % plane is descending, so we start at cloud top. Most
+                % photons only penetrate as far as the the first optical
+                % depth, the upper region of the cloud. Let's use the
+                % average from this region.
+                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(1:round(vector_length/3)), "omitnan");
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+            else
+
+                dist_2model = 'gamma';
+
+                alpha_libRadtarn = 10;
+                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
+
+
+            end
+
+
+
 
 
             % We assume the droplet size is appreciably larger than the
@@ -860,8 +993,12 @@ for nn = 1:length(vert_profs)
 
             % Or we could compute the average extinction efficiency
             % over a droplet size distrubution
-            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, linspace(10,10,length(re_meters)),...
-                550, 'water', 'gamma', which_computer, ii);
+
+
+
+
+            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, distribution_dist,...
+                550, 'water', dist_2model, which_computer, ii);
 
 
             vert_profs(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
