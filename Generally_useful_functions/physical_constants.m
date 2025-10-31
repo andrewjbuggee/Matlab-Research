@@ -12,17 +12,30 @@ constant.G = 6.6743e-11;                % m^3/kg/s^2
 % acceleration of gravity at the surface of Earth
 constant.g0 = 9.80665;                % m/s^2
 
+
+
+% ---- Chemistry stuff ---
 % Avogadro's constant
 constant.N_A = 6.02214076e+23;                % molecules/mol
 
 % universal gas constant
 constant.R_uni = 8.31446262;                % J/K/mol
 
-% molar mass of air
-constant.Mol_mass_air = 0.2897;                % kg/mol
+% Dry air gas constant
+constant.R_air_dry = 287.052874;               % J/K/Kg
+
+% molar mass of dry air
+constant.Mol_mass_air_dry = 0.2897;                % kg/mol
 
 % molar mass of water vapor
 constant.Mol_mass_h2o_vap = 0.018015;                % kg/mol
+
+
+
+
+
+
+
 
 % heat capacity of air at constant pressure
 constant.cp_air = 1005;                 % J/kg/K
@@ -64,6 +77,10 @@ constant.sigma_sb = 5.67037442e-08;                % W/K^4/m^2
 % 1 Atomic Mass Unit
 constant.amu = 1.66053907e-27;                % kg/atom
 
+
+
+
+% ----- Planet Mass ----
 % Nominal Earth Mass
 constant.M_earth = 5.97216787e+24;                % kg
 
@@ -73,6 +90,8 @@ constant.M_jup = 1.8981246e+27;                % kg
 % Nominal Sun Mass
 constant.M_sun = 1.98840987e+30;                % kg
 
+
+% --- RADII ---
 % Nominal Earth Radius
 constant.R_earth = 6378100;                % m
 
@@ -84,6 +103,8 @@ constant.R_jup = 71492000;                % kg
 
 % Nominal Sun Radius
 constant.R_sun = 695700000;                % kg
+
+
 
 % 1 Astronomical unit - avg distance between the Earth and the Sun
 constant.au = 1.49597871e+11;             % m

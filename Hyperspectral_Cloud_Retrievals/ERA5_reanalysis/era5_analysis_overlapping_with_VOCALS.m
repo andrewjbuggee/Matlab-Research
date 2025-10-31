@@ -1,4 +1,4 @@
-%% Read in Vocals Rex Radiosonde data
+%% Read in ERA5 Reanalysis data and compare with VOCALS-REx in-situ microphsyics measurements
 
 
 % By Andrew John Buggee
@@ -13,13 +13,12 @@ which_computer = whatComputer;
 if strcmp(which_computer,'anbu8374')==true
 
 
-    foldername = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/'];
+    foldername = [];
 
     % ***** Define the VOCALS-REx File *****
 
-    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'VOCALS_REx/vocals_rex_data/SPS_1/'];
+    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/ERA5_reanalysis/ERA5_data/'];
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -27,7 +26,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 end
 
-filename = 'VOCALS2008_soundings_z_v4.2.nc';
+filename = '2008_11_Nov_VOCALS_region.nc';
 
 
 %%
@@ -36,27 +35,44 @@ filename = 'VOCALS2008_soundings_z_v4.2.nc';
 
 info = ncinfo([foldername, filename]);
 
-% read the month, day, hour and minute of each launch
-month = double(ncread(filename, 'month'));
-day = double(ncread(filename, 'day'));
-hour = double(ncread(filename, 'hour'));            % UTC hour of balloon launch
-minute = double(ncread(filename, 'minute'));
+% read the time
+time = double(ncread([foldername, filename], 'valid_time'));
 
 % read the lat, long
-lat = ncread(filename, 'lat');                                                        % Meausred in degrees North
-long = ncread(filename, 'lon');
+lat = ncread([foldername, filename], 'latitude');                                                        % Meausred in degrees North
+long = ncread([foldername, filename], 'longitude');
 
-% Extract temperature and pressure data from the netCDF file
-temperature = double(ncread(filename, 'T'));
-pressure = double(ncread(filename, 'pres'));
+% Extract temperature data from the netCDF file
+temperature = ncread([foldername, filename], 't');                               % K
 
-% extract altitude from the netCDF file
-altitude = double(ncread(filename, 'height'));
+% Extract cloud liquid water content data from the netCDF file
+clwc_specific = ncread([foldername, filename], 'clwc');                           % kg of water droplets / kg of total mass of moist air - The 'total mass of moist air' is the sum of the dry air, water vapour, cloud liquid, cloud ice, rain and falling snow.
+
+% Extract rain liquid water content data from the netCDF file
+rwc_specific = ncread([foldername, filename], 'crwc');
+
+% extract pressure level, the independent variable
+pressure = ncread([foldername, filename], 'pressure_level');                       % hPa
+
 
 % extract relative humidity
-RH = double(ncread(filename, 'RH'));
+RH = ncread([foldername, filename], 'r');
+
+% extract specific humidity
+q = ncread([foldername, filename], 'q');
 
 
+%% Compute cloud liquid water content from specific LWC
+
+clwc = clwc_specific .* repmat(reshape(pressure.*100, 1,1, [], 1), length(lat), length(long), 1, length(time)) ./...
+        (computeMoistAirGasConstant(q) .* temperature);        % kg of liquid water droplets/ m^3 of air
+
+% convert to grams per m^3
+clwc = clwc * 1000; % Convert to grams per m^3
+
+%% Convert temperature from Kelvin to Celcius
+
+temperature = temperature - 273.15; % Convert temperature to Celsius
 
 %% Plot just the radiosonde data
 
@@ -64,33 +80,54 @@ RH = double(ncread(filename, 'RH'));
 figure;
 hold on;
 
-plt_idx = 10;
+time_idx = 10;
+lat_idx = 10;
+long_idx = 10;
+
+fnt_sz = 20;
+
+
 
 % Plot temperature
 subplot(1,3,1)
-plot(temperature(:, plt_idx), altitude, 'Color', mySavedColors(61,'fixed'));
+semilogy(reshape(temperature(lat_idx, long_idx, :, time_idx), [], 1),...
+    pressure, 'Color', mySavedColors(61,'fixed'));
 xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 grid on; grid minor
 
+% flip y axis
+set(gca, 'YDir', 'reverse')
 
-% Plot pressure
+
+
+
+% Plot specific cloud liquid water content
 subplot(1,3,2)
-plot(pressure(:, plt_idx), altitude,'Color', mySavedColors(62,'fixed'));
-xlabel('Pressure ($mb$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+semilogy(reshape(clwc(lat_idx, long_idx, :, time_idx), [], 1),...
+    pressure, 'Color', mySavedColors(61,'fixed'));
+% plot(reshape(clwc_specific(lat_idx, long_idx, :, time_idx), [], 1),...
+%     pressure, 'Color', mySavedColors(61,'fixed'));
+xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+
 grid on; grid minor
-title(['Radiosonde - (', num2str(lat(plt_idx)), ',', num2str(long(plt_idx)),...
-    ') - ', num2str(month(plt_idx)), '/', num2str(day(plt_idx)), '/2008 - ',...
-    num2str(hour(plt_idx)), ':', num2str(minute(plt_idx)), ' UTC'], ...
-    'FontSize', 20, 'Interpreter', 'latex')
+% flip y axis
+set(gca, 'YDir', 'reverse')
+
+
 
 % Plot relative humidity
 subplot(1,3,3)
-plot(RH(:, plt_idx), altitude, 'Color', mySavedColors(63,'fixed'));
-xlabel('Relative Humidity', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+semilogy(reshape(RH(lat_idx, long_idx, :, time_idx), [], 1),...
+    pressure, 'Color', mySavedColors(61,'fixed'));
+xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 grid on; grid minor
+
+% flip y axis
+set(gca, 'YDir', 'reverse')
+
 
 
 
@@ -151,6 +188,50 @@ vert_prof = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, lwc_threshold, stop
 
 clear vocalsRex
 
+
+%% First find the reanalysis data point closest to the VOCALS-Rex measurement
+
+% Let's step through each vertical profile and find the closest point to
+% the reanalysis data
+
+
+
+% we will be computing the arclength between points on an ellipsoid
+% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
+wgs84 = wgs84Ellipsoid("m");
+
+% Set up an empty array for each vocals-rex profile
+era5_minDist = zeros(1, length(vert_prof));
+time_diff_era5_VR = zeros(1, length(vert_prof));
+
+% Step through each vertical profile and find the MODIS pixel that overlaps
+% with the mid point of the in-situ sample
+parfor nn = 1:length(vert_prof)
+
+  
+
+
+    dist_btwn_era5_and_VR = distance(lat, long, vert_prof(nn).latitude(round(end/2)),...
+        vert_prof(nn).longitude(round(end/2)), wgs84);
+
+    [era5_minDist(nn), index_minDist] = min(dist_btwn_era5_and_VR, [], 'all');            % m - minimum distance
+
+
+    % compute the time between the modis pixel closest to the VR sampled
+    % path and the time VOCALS was recorded
+    time_diff_era5_VR(nn) = abs(modis_pixel_time(index_minDist) - ...
+        vert_prof(nn).time_utc(round(end/2))) * 60;                         % minutes
+
+    % A single MODIS granule takes 5 minutes to be collected. First, lets
+    % determine if any profiles were recorded within the the 5 minute window
+    % when MODIS collected data.
+
+    within_5min_window(nn) = any(vert_prof(nn).time_utc >= modis_pixel_time(1,1) & ...
+        vert_prof(nn).time_utc <= modis_pixel_time(end,end));
+
+end
+
+
 %% Let's plot an example vertical profile from the same day as one of my retrievals from paper 1
 % find the radiosonde closest in time
 
@@ -165,6 +246,7 @@ C130_clr = 61;
 
 % Determine the time of the radiosonde launches
 launchTimes = datetime(2008, month, day, hour, minute, 0);
+
 
 for nn = 1:length(vert_prof)
 
