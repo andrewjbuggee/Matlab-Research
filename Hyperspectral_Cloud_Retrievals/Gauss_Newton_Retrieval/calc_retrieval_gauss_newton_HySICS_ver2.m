@@ -894,12 +894,18 @@ meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,.
 
 % lastly, we need the Jacobian of the difference between the retrieved
 % state vector and the state vector 1 standard deviation away
+Jacobian_plus_1sigma = compute_jacobian_HySICS_ver2(state_vec_plus_1sigma,...
+    meas_est_plus_1sigma, GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
 
 Jacobian_plus_1sigma = compute_jacobian_HySICS_ver2(sqrt(diag(posterior_cov)),...
     meas_est_plus_1sigma, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
-nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
+% nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
+
+nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - (Jacobian_plus_1sigma - Jacobian_plus_1sigma));
 
 
 % -------------------------------------------------------------

@@ -22,7 +22,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % Macbook folder name
     foldername = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/'];
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
 end
 
@@ -79,21 +79,21 @@ inputs.LWC_threshold = 0.03;       % g/m^3
 inputs.stop_at_max_LWC = false;
 
 % define the total number concentration threshold
-inputs.Nc_threshold = 1;       %  #-droplets/cm^3
+inputs.Nc_threshold = 25;       %  #-droplets/cm^3
 
 % if sorting for precipitation, provide a drizzle/precip threshold.
 inputs.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-inputs.keep_precip_drizzle_profiles = true;             % if false, keep non-precip profiles only
+inputs.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
 inputs.precip_driz_threshold = 5;         % g/m^2
 
 
 % start an empty array
-ensemble_profiles = [];
+ensemble_profiles = cell([]);
 
 % Load data
 
@@ -126,54 +126,61 @@ for nn = 1:length(filename)
         % what is the current length of the ensemble profile structure?
         l = length(ensemble_profiles);
 
-        % grab just the variables of interest for from each vertical profile
+        % grab just the variables of interest from each vertical profile
         for mm = 1:length(indexes_2keep)
 
 
+            % Grab all variables!
+            if l==0 & mm==1
+                ensemble_profiles{1} = vert_profs(indexes_2keep(mm));
+            else
 
+                ensemble_profiles{l+mm} = vert_profs(indexes_2keep(mm));
+            end
 
 
             % we only have droplet effective radius from both instruments if the 2DC
             % data is non-zero
-            if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
+            % if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
+            % 
+            %     % then we have an effective radius that uses data from both instruments
+            %     ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
+            %     % and we have an effective radius from just the 2DC data
+            %     ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
+            % 
+            % else
+            % 
+            %     % we don't have an effective radius for the 2DC data
+            %     % What we we have is the first moment
+            %     % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
+            %     % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
+            %     % VERY LOW VALUE
+            % 
+            %     % check to see if this field exists
+            %     if isfield(ensemble_profiles, 'mean_r_2DC')==true
+            % 
+            %         % we don't have an effective radius for the 2DC data
+            %         % What we we have is the first moment
+            %         ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
+            % 
+            % 
+            %     end
+            % 
+            % 
+            % end
 
-                % then we have an effective radius that uses data from both instruments
-                ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
-                % and we have an effective radius from just the 2DC data
-                ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
 
-            else
+            % ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
+            % ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
+            % ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
+            % ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
+            % ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
+            % ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
+            % ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
+            % ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
+            % ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
+            % ensemble_profiles(l+mm,:).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
 
-                % we don't have an effective radius for the 2DC data
-                % What we we have is the first moment
-                % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
-                % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
-                % VERY LOW VALUE
-
-                % check to see if this field exists
-                if isfield(ensemble_profiles, 'mean_r_2DC')==true
-
-                    % we don't have an effective radius for the 2DC data
-                    % What we we have is the first moment
-                    ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
-
-
-                end
-
-
-            end
-
-
-            ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
-            ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
-            ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
-            ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
-            ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
-            ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
-            ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
-            ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
-            ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
-            ensemble_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
 
 
         end
@@ -193,48 +200,58 @@ for nn = 1:length(filename)
         for mm = 1:length(indexes_2keep)
 
 
-
-            % we only have droplet effective radius from both instruments if the 2DC
-            % data is non-zero
-            if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
-
-                % then we have an effective radius that uses data from both instruments
-                ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
-                % and we have an effective radius from just the 2DC data
-                ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
-
+            % Grab all variables!
+            % Grab all variables!
+            if l==0 & mm==1
+                ensemble_profiles{1} = vert_profs(indexes_2keep(mm));
             else
 
-                % we don't have an effective radius for the 2DC data
-                % What we we have is the first moment
-                % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
-                % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
-                % VERY LOW VALUE
-
-                % check to see if this field exists
-                if isfield(ensemble_profiles, 'mean_r_2DC')==true
-
-                    % we don't have an effective radius for the 2DC data
-                    % What we we have is the first moment
-                    ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
-
-
-                end
-
-
+                ensemble_profiles{l+mm} = vert_profs(indexes_2keep(mm));
             end
 
 
-            ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
-            ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
-            ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
-            ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
-            ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
-            ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
-            ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
-            ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
-            ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
-            ensemble_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
+
+            % % we only have droplet effective radius from both instruments if the 2DC
+            % % data is non-zero
+            % if vert_profs(indexes_2keep(mm)).flag_2DC_data_is_conforming
+            % 
+            %     % then we have an effective radius that uses data from both instruments
+            %     ensemble_profiles(l+mm).re = vert_profs(indexes_2keep(mm)).re;                          % both instruments
+            %     % and we have an effective radius from just the 2DC data
+            %     ensemble_profiles(l+mm).re_2DC = vert_profs(indexes_2keep(mm)).re_2DC;                   % from the 2DC instrument only
+            % 
+            % else
+            % 
+            %     % we don't have an effective radius for the 2DC data
+            %     % What we we have is the first moment
+            %     % FOR NOW - STORE THE CDP RE DATA AS THE RE DATA
+            %     % THIS IS JUSTIFIED ONLY IF THE 2DC THRESHOLD IS SET TO A
+            %     % VERY LOW VALUE
+            % 
+            %     % check to see if this field exists
+            %     if isfield(ensemble_profiles, 'mean_r_2DC')==true
+            % 
+            %         % we don't have an effective radius for the 2DC data
+            %         % What we we have is the first moment
+            %         ensemble_profiles(l+mm).mean_r_2DC = vert_profs(indexes_2keep(mm)).mean_r_2DC;            % from the 2DC instrument only
+            % 
+            % 
+            %     end
+            % 
+            % 
+            % end
+            % 
+            % 
+            % ensemble_profiles(l+mm).altitude = vert_profs(indexes_2keep(mm)).altitude;
+            % ensemble_profiles(l+mm).tau = vert_profs(indexes_2keep(mm)).tau;
+            % ensemble_profiles(l+mm).re_CDP = vert_profs(indexes_2keep(mm)).re_CDP;
+            % ensemble_profiles(l+mm).lwc = vert_profs(indexes_2keep(mm)).lwc;
+            % ensemble_profiles(l+mm).lwc_CDP = vert_profs(indexes_2keep(mm)).lwc_CDP;
+            % ensemble_profiles(l+mm).lwc_2DC = vert_profs(indexes_2keep(mm)).lwc_2DC;
+            % ensemble_profiles(l+mm).total_Nc = vert_profs(indexes_2keep(mm)).total_Nc;
+            % ensemble_profiles(l+mm).time = vert_profs(indexes_2keep(mm)).time;
+            % ensemble_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
+            % ensemble_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
 
 
         end

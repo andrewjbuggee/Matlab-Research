@@ -142,7 +142,7 @@ end
 
 % if after the entire for loop this variable is not found, we will look for
 % another variable containg 2DC data. For some reason, certain data sets
-% don't have the variable listed above. Instead that usually have a
+% don't have the variable listed above. Instead they usually have a
 % variable described as '2D-C Concentration, 260X Emulation (per cell)'.
 % But even this variable is sometimes empty! It's all rather confusing.
 % What I have found is that when the above 2DC variable is missing, the
@@ -159,10 +159,12 @@ if exist("num_concentration_2DC", 'var')==false
 
 
         if strcmp('C1DC_RPC', info.Variables(nn).Name)==true
-
+            % if strcmp('CONC1DC_RPC', info.Variables(nn).Name)==true
 
             % read in the 2DC variable info
-            C1DC_RPC_info = ncinfo(filename, 'C1DC_RPC');
+            C1DC_RPC_info = ncinfo(filename, 'C1DC_RPC');                   % 2D-C concentration - #/L
+            % CONC1DC_RPC_info = ncinfo(filename, 'CONC1DC_RPC');                   % 2D-C concentration - #/L
+
             % First check to make use the data quality is listed as 'Good'.
             % If it is, then proceed
 
@@ -178,7 +180,11 @@ if exist("num_concentration_2DC", 'var')==false
 
                 %raw_counts_2DC = ncread(filename, 'A1DC_RPC');        % counts/bin  - where I think L stands for liters. 1 liter = 1000 cubic cm - again we only measure the number concentration!
                 num_concentration_2DC = ncread(filename, 'C1DC_RPC');        % #/L  - where I think L stands for liters. 1 liter = 1000 cubic cm - again we only measure the number concentration!
+                % num_concentration_2DC = ncread(filename, 'CONC1DC_RPC');        % #/L  - where I think L stands for liters. 1 liter = 1000 cubic cm - again we only measure the number concentration!
 
+
+                % convert the 2DC data to inverse cubic centimeters
+                num_concentration_2DC = num_concentration_2DC ./ 1000;         % # of droplets/cm^3 per bin
 
                 % Grab the droplet size bins
                 % These are the boundaries that define each bin size
@@ -194,7 +200,7 @@ if exist("num_concentration_2DC", 'var')==false
 
 
                 % --- define the 2DC droplet probe data ----
-                num_concentration_2DC = num_concentration_2DC(first_bin_2DC:last_bin_2DC,1,:);
+                num_concentration_2DC = num_concentration_2DC(first_bin_2DC:last_bin_2DC,1,:);     % # of droplets/cm^3 per bin
 
                 % ---- check to ensure the 2DC data is nan free ----
                 if any(isnan(num_concentration_2DC), 'all')==true
@@ -202,6 +208,11 @@ if exist("num_concentration_2DC", 'var')==false
                     % then we have no choice but to set the 2DC data to be
                     % a bunch of zeros
                     num_concentration_2DC = zeros(size(num_concentration_2DC));
+
+                    % set the nan values to 0
+                    % then we have no choice but to set the 2DC data to be
+                    % a bunch of zeros
+                    num_concentration_2DC(isnan(num_concentration_2DC)) = 0;
 
 
                 end
@@ -212,7 +223,7 @@ if exist("num_concentration_2DC", 'var')==false
                 mean_radius_2DC = reshape(ncread(filename, 'DBAR1DC_RPC'), 1, [])./2;   % microns - 2DC mean particle radius
 
                 % we should alsos read in the total droplet concentration data
-                total_Nc_2DC = ncread(filename, 'CONC1DC_RPC');     % #/L
+                total_Nc_2DC = ncread(filename, 'CONC1DC_RPC');                     % #/L
                 total_Nc_2DC = reshape(total_Nc_2DC./ 1000, 1, []);                 % # of droplets/cm^3
 
 
@@ -249,10 +260,12 @@ if exist("num_concentration_2DC", 'var')==false
 
 
         if strcmp('C1DC_RPI', info.Variables(nn).Name)==true
+            % if strcmp('CONC1DC_RPI', info.Variables(nn).Name)==true
 
 
             % read in the 2DC variable info
             C1DC_RPI_info = ncinfo(filename, 'C1DC_RPI');
+            % CONC1DC_RPI_info = ncinfo(filename, 'CONC1DC_RPI');
             % First check to make use the data quality is listed as 'Good'.
             % If it is, then proceed
 
@@ -548,7 +561,7 @@ if flag_2DC_data_is_conforming==true
     % radius correction only applies for the CDP instrument bins.
 
     droplet_matrix_center(index_r_cdp, :) = droplet_matrix_center(index_r_cdp,:)./...
-                                repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
+        repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
 
     % *** 0 divided by 0 gives NaN. Set these values to zero ****
     re = double(sum(droplet_matrix_center.^3 .* Nc, 1)./sum(droplet_matrix_center.^2 .* Nc,1) * 1e4);                 % microns
@@ -747,9 +760,176 @@ else
 
     else
 
-        % Then there is data? And we do it the onld fashion way but we
-        % still hold onto the 2DC calculated products.
-        error([newline, 'The 2DC data is the weird emulsion kind but there are more than just zeros!', newline])
+        % The Emulation 2D-C data has non-zero values. Proceed as normal
+
+        error([newline, 'There are non-zero values in the 2D-C emulation data! What should I do?', newline])
+
+
+        % ------------------------------------------------------------------
+        % ---------- Compute the total Number Concentration ---------------
+        % ------------------------------------------------------------------
+        % Lets compute the total number concetration at each time step by
+        % integrating over r
+        %total_Nc = trapz(drop_bins, Nc,1);       % cm^(-3)
+        total_Nc = double(sum(Nc,1));                     % cm^(-3)
+
+        % Now compute the effective radius for just the CDP instrument
+        index_r_cdp = (drop_radius_bin_center<=drop_radius_bin_center_CDP(end))';       % preform this in microns
+
+        % Now compute the total number concentration for the CDP instrument
+        total_Nc_CDP = double(sum(Nc(index_r_cdp,:),1));                     % cm^(-3)
+
+        % Now compute the total number concentration for the 2DC instrument
+        total_Nc_2DC = double(sum(Nc(~index_r_cdp,:),1));                     % cm^(-3)
+
+
+
+        % ------------------------------------------------------------------
+        % --------------- Compute liquid water content ---------------------
+        % ------------------------------------------------------------------
+
+        % Lets compute the total liquid water content at each time
+
+        % Lets compute the liquid water content and liquid water path
+        rho_lw = 1e6;                                                   % g/m^3 - density of liquid water
+
+        % we have to convert re to cm in order to have the finals units be in grams
+        % per meter cubed
+
+        lwc = double( 4/3 * pi *  rho_lw * sum(Nc .* droplet_matrix_center.^3,1) );        % grams of liquid water/meter cubed of air
+
+        % **** Painemal and Zuidema (2011) found a bias in the CDP flight
+        % measurements of LWC. To correct for this, they set the CDP LWC values
+        % to be equal to the measurements made by the King hot wire probe,
+        % which they claim has a high correlation with the Gerber PV-100 probe.
+        % We will preform a similar correction by setting the CDP LWC to be
+        % equal to the PV-100 probe data, which is consistantly less than the
+        % CDP measurements.
+        lwc_PV100 = reshape(ncread(filename, 'XGLWC'), 1, []);                         % g/m^3 - Gerber PV-100 Probe Liquid Water Content
+
+        % Set values less than 0 to be 0
+        lwc_PV100(lwc_PV100<0) = 0;
+        % ------------------------- CDP LWC ----------------------------
+        % compute the liquid water content measured by the CDP Instrument
+        lwc_CDP = double( 4/3 * pi *  rho_lw * sum(Nc(index_r_cdp, :) .* droplet_matrix_center(index_r_cdp, :).^3,1) );     % grams of liquid water/meter cubed of air
+
+        % Solve for the coefficient (Painemal and Zuidema 2011 pg 4)
+        a = lwc_CDP./lwc_PV100;
+
+        % set NaN values to 1
+        a(isnan(a)) = 1;
+
+        % set the inf calues to 1
+        a(a==inf) = 1;
+
+        % set zero values to be 1
+        a(a==0) = 1;
+
+        % Compute the corrected LWC values for the CDP instrument
+        % According to Painemal and Zuidema 2011 pg 4, use a to correct the LWC
+        % bias by creating a modified center radius r' = (r/a^(1/3))
+        lwc_CDP = double( 4/3 * pi *  rho_lw * sum(Nc(index_r_cdp, :) .* (droplet_matrix_center(index_r_cdp, :)./a.^(1/3)).^3,1) );     % grams of liquid water/meter cubed of air
+
+
+
+
+        % ------------------------- 2DC LWC ----------------------------
+        % compute the liquid water content measured by the 2DC Instrument
+        lwc_2DC = double( 4/3 * pi *  rho_lw * sum(Nc(~index_r_cdp, :) .* droplet_matrix_center(~index_r_cdp, :).^3,1) );                  % grams of liquid water/meter cubed of air
+
+        %     if exist('C1DC_RPC_info', 'var')==true || exist('C1DCA_RPC_info', 'var')==true
+        %         lwc_2DC = reshape(ncread(filename, 'PLWC1DC_RPC'), 1, []);
+        %
+        %     elseif exist('C1DC_RPI_info', 'var')==true
+        %         lwc_2DC = reshape(ncread(filename, 'PLWC1DC_RPI'), 1, []);
+        %     end
+
+
+
+        % *** Now recalculate the total LWC **
+
+        lwc = lwc_CDP + lwc_2DC;            % g/m^3
+
+
+
+
+
+        % ------------------------------------------------------------------
+        % ----------------- Compute the Effective Radius -------------------
+        % ------------------------------------------------------------------
+
+        % Compute the ratio of the third moment to the second moment and convert
+        % back to microns
+
+        % Use the correction described by Painemal and Zuidema (2011) page 4.
+        % The bias correction comes from solving for the difference between the
+        % CDP meausred LWC, which tends to be over estimated, and the King hot
+        % wire probe LWC, which in our case is the Gerber PV-100 LWC. The
+        % radius correction only applies for the CDP instrument bins.
+
+        droplet_matrix_center(index_r_cdp, :) = droplet_matrix_center(index_r_cdp,:)./...
+            repmat(a.^(1/3), sum(index_r_cdp), 1);                      % cm
+
+        % *** 0 divided by 0 gives NaN. Set these values to zero ****
+        re = double(sum(droplet_matrix_center.^3 .* Nc, 1)./sum(droplet_matrix_center.^2 .* Nc,1) * 1e4);                 % microns
+
+        % set NaN values to 0
+        re(isnan(re)) = 0;
+
+
+        % ------------------ Re CDP ---------------------
+        % compute the effective radius using only CDP data
+        re_CDP = double(sum(droplet_matrix_center(index_r_cdp,:).^3 .* Nc(index_r_cdp, :), 1)./...
+            sum(droplet_matrix_center(index_r_cdp, :).^2 .* Nc(index_r_cdp, :),1) * 1e4);                 % microns
+
+        % *** 0 divided by 0 gives NaN. Set these values to zero ****
+        % set NaN values to 0
+        re_CDP(isnan(re_CDP)) = 0;
+
+        %     if strcmp(filename(end-39:end-35), 'SPS_1')==true
+        %             % If we wish to read in 1Hz data, take the median at each time
+        %             % step.
+        %             re_CDP = ncread(filename, 'REFFD_RWO');         % microns
+        %
+        %             % Check to make sure we only have 1Hz data. Sometimes we dont!
+        %             if size(re_CDP,1)*size(re_CDP,2) == size(time,1)*size(time,2)
+        %                 re_CDP = reshape(re_CDP, 1, []);
+        %
+        %             elseif size(re_CDP,1)*size(re_CDP,2) > size(time,1)*size(time,2)
+        %
+        %                 % find which dimension has the 10 Hz data
+        %                 if size(re_CDP,1)==10
+        %                     re_CDP = median(re_CDP, 1);
+        %
+        %                 elseif size(re_CDP,2)==10
+        %                     re_CDP = median(re_CDP, 2);
+        %                     re_CDP = reshape(re_CDP, 1, []);
+        %                 end
+        %
+        %             else
+        %
+        %                 error([newline, 'I dont know what to do with the re_CDP data.', newline])
+        %
+        %             end
+        %
+        %
+        %         elseif strcmp(filename(40:end-35), 'SPS_25')==true
+        %             % If we wish to have 10 Hz data (of which the files are labeled
+        %             % SPS 25, then we simply read in all data
+        %             re_CDP = reshape(ncread(filename, 'REFFD_RWO'), 1, []);
+        %     end
+
+        % ------------------ Re 2DC ---------------------
+        % compute the effective radius using only 2DC data
+        re_2DC = double(sum(droplet_matrix_center(~index_r_cdp, :).^3 .* Nc(~index_r_cdp, :), 1)./...
+            sum(droplet_matrix_center(~index_r_cdp, :).^2 .* Nc(~index_r_cdp, :),1) * 1e4);                 % microns
+
+        % *** 0 divided by 0 gives NaN. Set these values to zero ****
+        % set NaN values to 0
+        re_2DC(isnan(re_2DC)) = 0;
+
+
+
 
 
     end
@@ -791,7 +971,7 @@ vocalsRex.drop_radius_bin_center = drop_radius_bin_center;
 vocalsRex.total_Nc = total_Nc;                                  % both instruments
 vocalsRex.lwc = double(lwc);                                    % g/m^3 both instruments
 
-% some 
+% some
 
 % we only have droplet effective radius from both instruments if the 2DC
 % data is non-zero

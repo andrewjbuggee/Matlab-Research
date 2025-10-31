@@ -803,6 +803,16 @@ for nn = 1:length(vert_profs)
 
             end
 
+            % Check to see if re is 0 somewhere in the profile, indicating
+            % a multilayer cloud. Set it to be a small value thats greater
+            % than 0
+            if sum(re_meters==0)>=1
+
+                % set re to a very small value
+                re_meters(re_meters==0) = 0.009e-6; % 0.01 microns
+
+            end
+
             total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
             altitude = vert_profs(nn).altitude(end) -  vert_profs(nn).altitude(vector_length-ii:vector_length); % meters
 
@@ -910,6 +920,16 @@ for nn = 1:length(vert_profs)
                 re_meters = vert_profs(nn).re_CDP(1:ii+1)./1e6;                      % meters
             end
 
+            % Check to see if re is 0 somewhere in the profile, indicating
+            % a multilayer cloud. Set it to be a small value thats greater
+            % than 0
+            if sum(re_meters==0)>=1
+
+                % set re to a very small value
+                re_meters(re_meters==0) = 0.009e-6; % 0.01 microns
+
+            end
+
             total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
             altitude = vert_profs(nn).altitude(1) -  vert_profs(nn).altitude(1:ii+1);   % meters
 
@@ -1010,9 +1030,17 @@ for nn = 1:length(vert_profs)
     end
 
 
+    % Check to see if there are any NaN values
+    if sum(isnan(vert_profs(nn).tau))>0
+
+        error([newline, 'There are NaNs in your optical depth calculation', newline])
+
+    else
 
     % add a zero at the begining!
     vert_profs(nn).tau = [0,vert_profs(nn).tau];
+
+    end
 
 end
 

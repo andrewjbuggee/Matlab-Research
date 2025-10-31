@@ -66,7 +66,8 @@ if strcmp(which_computer, 'anbu8374')==true
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    error(['Where is the mie folder?'])
+    mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+        'LibRadTran/libRadtran-2.0.4/Mie_Calculations/'];
 
 end
 
@@ -305,7 +306,7 @@ if strcmp(distribution_type, 'gamma')==true
 
 
 
-else
+elseif strcmp(distribution_type, 'lognormal')==true
 
 
     % -----------------------------------------------------
@@ -338,7 +339,9 @@ else
     while r_eff(rr)==0
         rr = rr+1;
     end
-    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+    % The first input is the modal radius, the logarithmic mode of the
+    % distribution. The second is the standard deviation
+    [n_r, r] = lognormal_size_distribution(r_eff(rr), distribution_var(rr), N0);
 
 
 
@@ -400,7 +403,7 @@ else
         % Compute the size distribution according to the changing effective
         % rdaius at each cloud layer
         if rr~=1
-            [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+            [n_r, r] = lognormal_size_distribution(r_eff(rr), distribution_var(rr), N0);
         end
 
         % step through each wavelength. At each wavelength we integrate over
@@ -464,6 +467,9 @@ else
 
 
 
+else
+
+    error([newline, 'What is the droplet distribution type?', newline])
 
 
 end
