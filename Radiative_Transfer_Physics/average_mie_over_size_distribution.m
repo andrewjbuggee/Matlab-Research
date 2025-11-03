@@ -173,14 +173,25 @@ if strcmp(distribution_type, 'gamma')==true
     % set the total number concentration to be 1
     N0 = 1;
 
-    % Use the frsit value of r_eff, but make sure r_eff is non zero
+    % Use the first value of r_eff, but make sure r_eff is non zero
     rr = 1;
     while r_eff(rr)==0
         rr = rr+1;
     end
-    [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
 
-
+    % Using the function I created to generate the distirbution
+    % [n_r, r] = gamma_size_distribution_libRadTran2(r_eff(rr), distribution_var(rr), N0);
+    
+    % ---------------------------------------------------------------------
+    % Using my new gamma_libRadtran distribution class
+    pd = prob.GammaDistribution_libRadtran(r_eff(rr), distribution_var(rr));
+    % Define the independent variable (radius values)
+    r = linspace(0.001*r_eff(rr), 7*r_eff(rr), 300);                  % microns - vector based on C.Emde (2016)
+    
+    % Calculate the dependent variable (probability density)
+    n_r = pdf(pd, r);
+    % ---------------------------------------------------------------------
+    
 
     % Define the size of the scatterer and its scattering properties
     % Assuming a pure homogenous medium composed of a single substance.

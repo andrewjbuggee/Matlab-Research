@@ -24,6 +24,15 @@ if strcmp(which_computer,'anbu8374')==true
 elseif strcmp(which_computer,'andrewbuggee')==true
 
 
+    foldername = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/'];
+
+
+    % ***** Define the VOCALS-REx File *****
+
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+
 
 end
 
@@ -65,6 +74,7 @@ figure;
 hold on;
 
 plt_idx = 10;
+fnt_sz = 20;
 
 % Plot temperature
 subplot(1,3,1)
@@ -236,9 +246,10 @@ for nn = 1:length(vert_prof)
 
     % Plot the effective radius
     subplot(2,3,4)
-    plot(vert_prof(nn).re, vert_prof(nn).altitude, 'Color', 'k');
+    plot(vert_prof(nn).re, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'));
     xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    title('In-situ droplet size - aircraft', 'Interpreter','latex', 'FontSize', fnt_sz)
     grid on; grid minor
     % ylim([0, altitude(end)])
 

@@ -23,6 +23,15 @@ if strcmp(which_computer,'anbu8374')==true
 elseif strcmp(which_computer,'andrewbuggee')==true
 
 
+    foldername = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/ERA5_reanalysis/ERA5_data/'];
+
+    % ***** Define the VOCALS-REx File *****
+
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+
+
 
 end
 
@@ -36,7 +45,9 @@ filename = '2008_11_Nov_VOCALS_region.nc';
 info = ncinfo([foldername, filename]);
 
 % read the time
-time = double(ncread([foldername, filename], 'valid_time'));
+time = double(ncread([foldername, filename], 'valid_time'));            % seconds since 1970
+% Convert to UTC datetime
+utcTime = datetime(time, 'ConvertFrom', 'posixtime', 'TimeZone', 'UTC');
 
 % read the lat, long
 lat = ncread([foldername, filename], 'latitude');                                                        % Meausred in degrees North
@@ -74,7 +85,7 @@ clwc = clwc * 1000; % Convert to grams per m^3
 
 temperature = temperature - 273.15; % Convert temperature to Celsius
 
-%% Plot just the radiosonde data
+%% Plot just the ERA5 data
 
 % Create a figure for the vertical profile
 figure;
@@ -206,7 +217,7 @@ time_diff_era5_VR = zeros(1, length(vert_prof));
 
 % Step through each vertical profile and find the MODIS pixel that overlaps
 % with the mid point of the in-situ sample
-parfor nn = 1:length(vert_prof)
+for nn = 1:length(vert_prof)
 
   
 
@@ -216,18 +227,11 @@ parfor nn = 1:length(vert_prof)
 
     [era5_minDist(nn), index_minDist] = min(dist_btwn_era5_and_VR, [], 'all');            % m - minimum distance
 
+    % 
+    % % compute the time between the modis pixel closest to the VR sampled
+    % % path and the time VOCALS was recorded
+    % time_diff_era5_VR(nn) = abs(utcTime - vert_prof(nn).time_utc(round(end/2))) * 60;                         % minutes
 
-    % compute the time between the modis pixel closest to the VR sampled
-    % path and the time VOCALS was recorded
-    time_diff_era5_VR(nn) = abs(modis_pixel_time(index_minDist) - ...
-        vert_prof(nn).time_utc(round(end/2))) * 60;                         % minutes
-
-    % A single MODIS granule takes 5 minutes to be collected. First, lets
-    % determine if any profiles were recorded within the the 5 minute window
-    % when MODIS collected data.
-
-    within_5min_window(nn) = any(vert_prof(nn).time_utc >= modis_pixel_time(1,1) & ...
-        vert_prof(nn).time_utc <= modis_pixel_time(end,end));
 
 end
 
@@ -241,19 +245,19 @@ end
 fnt_sz = 26;
 lgnd_fnt = 20;
 
-rdoSnde_clr = 'k';
+era5_clr = 'k';
 C130_clr = 61;
 
-% Determine the time of the radiosonde launches
-launchTimes = datetime(2008, month, day, hour, minute, 0);
 
 
 for nn = 1:length(vert_prof)
 
     % Find the index of the closest launch time to a specific retrieval time
     targetTime = datetime(2008, 11, 11, floor(vert_prof(nn).time_utc(1)),...
-        round(60*(vert_prof(nn).time_utc(1) - floor(vert_prof(nn).time_utc(1)))), 0); % Example target time
-    [~, closestIndex] = min(abs(launchTimes - targetTime));
+        round(60*(vert_prof(nn).time_utc(1) - floor(vert_prof(nn).time_utc(1)))), 0,...
+        'TimeZone', 'UTC'); % Example target time
+
+    [~, closestIndex] = min(abs(utcTime - targetTime));
 
 
     % plot the temperature, pressure and relative humidity as a function of
@@ -266,50 +270,62 @@ for nn = 1:length(vert_prof)
 
     % Plot temperature
     subplot(2,3,1)
-    plot(temperature(:, closestIndex), altitude, 'Color', rdoSnde_clr)
+    semilogy(reshape(temperature(lat_idx, long_idx, :, closestIndex), [], 1),...
+    pressure, 'Color', 'k');
     xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+
     grid on; grid minor
+    % flip y axis
+    set(gca, 'YDir', 'reverse')
 
     hold on
-    plot(vert_prof(nn).temp, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('Radiosonde', 'Aircraft','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    plot(vert_prof(nn).temp, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
+    legend('ERA-5', 'Aircraft','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 
 
 
-    % Plot pressure
+    % Plot CLWC
     subplot(2,3,2)
-    plot(pressure(:, closestIndex), altitude,'Color', rdoSnde_clr);
-    xlabel('Pressure ($mb$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    semilogy(reshape(clwc(lat_idx, long_idx, :, closestIndex), [], 1),...
+    pressure, 'Color', era5_clr);
+    xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+
     grid on; grid minor
+    % flip y axis
+    set(gca, 'YDir', 'reverse')
 
     hold on
-    plot(vert_prof(nn).pres, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('Radiosonde', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    plot(vert_prof(nn).lwc, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
+    legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 
-    title(['Radiosonde - (', num2str(lat(closestIndex)), ',', num2str(long(closestIndex)),...
-        ') - ', num2str(month(closestIndex)), '/', num2str(day(closestIndex)), '/2008 - ',...
-        num2str(hour(closestIndex)), ':', num2str(minute(closestIndex)), ' UTC'], ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    % title(['Radiosonde - (', num2str(lat(closestIndex)), ',', num2str(long(closestIndex)),...
+    %     ') - ', num2str(month(closestIndex)), '/', num2str(day(closestIndex)), '/2008 - ',...
+    %     num2str(hour(closestIndex)), ':', num2str(minute(closestIndex)), ' UTC'], ...
+    %     'FontSize', 20, 'Interpreter', 'latex')
 
 
 
 
     % Plot relative humidity
     subplot(2,3,3)
-    plot(RH(:, closestIndex), altitude, 'Color', rdoSnde_clr);
-    xlabel('Relative Humidity', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    semilogy(reshape(RH(lat_idx, long_idx, :, closestIndex), [], 1),...
+    pressure, 'Color', era5_clr);
+    xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     grid on; grid minor
+    
+    % flip y axis
+    set(gca, 'YDir', 'reverse')
 
     hold on
-    plot(vert_prof(nn).relative_humidity, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('Radiosonde', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    plot(vert_prof(nn).relative_humidity, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
+    legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 
@@ -318,9 +334,10 @@ for nn = 1:length(vert_prof)
 
     % Plot the effective radius
     subplot(2,3,4)
-    plot(vert_prof(nn).re, vert_prof(nn).altitude, 'Color', 'k');
+    plot(vert_prof(nn).re, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'));
     xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+    title('In-situ droplet size - aircraft', 'Interpreter','latex', 'FontSize', fnt_sz)
     grid on; grid minor
     % ylim([0, altitude(end)])
 
@@ -329,7 +346,7 @@ for nn = 1:length(vert_prof)
     % sampling the cloud
     subplot(2,3,5)
     % Plot the location of the radiosonde launch
-    geoscatter(lat(closestIndex), long(closestIndex), 100, 'k', 'filled', 'DisplayName', 'Radiosonde Launch');
+    geoscatter(lat(closestIndex), long(closestIndex), 100, 'k', 'filled', 'DisplayName', 'ERA-5 Reanalysis');
     hold on;
 
     % Plot the location of the sampled cloud

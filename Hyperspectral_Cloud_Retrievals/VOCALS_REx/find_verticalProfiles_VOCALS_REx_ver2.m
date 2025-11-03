@@ -546,6 +546,25 @@ end
 vert_profs(idx2delete) = [];
 
 
+%% Sometimes multilayer clouds still sneak through! If any vertical profiles have more than half of their measurements
+% below the number concentration, remove the profile altogether
+
+idx2delete  = [];
+% check the NC threshold first
+for nn = 1:length(vert_profs)
+
+    if sum(vert_profs(nn).total_Nc < Nc_threshold)>(floor(length(vert_profs(nn).total_Nc)/2))
+
+        % Remove this vertical profile
+        idx2delete = [idx2delete, nn];
+
+    end
+
+end
+
+% delete profiles if necessary
+vert_profs(idx2delete) = [];
+
 %% If stop_at_max_LWC is true, remove measurements after max LWC for each profile
 
 if stop_at_max_lwc == true

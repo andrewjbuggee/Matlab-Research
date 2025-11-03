@@ -172,7 +172,16 @@ for zz = 1:data_length
         % gamma_scale(zz) = gamma_fit.b;
         gamma_rEff(zz) = gamma_fit.r_eff;
         gamma_alpha(zz) = gamma_fit.alpha;
-            
+
+        % alpha values higher than 150 cause issues because of the
+        % enormously high value of the normalizing coefficient
+        % Gamma(150) = 3.8e260
+        % Limit alpha values to 150
+        if gamma_fit.alpha>150
+
+            gamma_alpha(zz) = 150;
+
+        end
 
 
         %% Plot the three fits against the histogram data
