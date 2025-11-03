@@ -62,3 +62,5 @@ codegen/
 # Octave session info
 octave-workspace
 
+
+*.txt
