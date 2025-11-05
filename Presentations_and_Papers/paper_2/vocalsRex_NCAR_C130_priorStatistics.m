@@ -314,6 +314,8 @@ tauC_fit_gamma = prob.GammaDistribution_libRadtran.fit(tau_c);
     'alpha', significance_lvl, 'NParams', 2);
 
 % Plot results
+lgnd_fnt = 20;
+
 figure; histogram(tau_c,'NumBins', 30, 'Normalization','pdf')
 hold on
 xVals = linspace(min(tau_c), max(tau_c), 1000);
@@ -717,160 +719,99 @@ end
 
 %%
 % -------------------------------------------------------------
-% ----- Make a subplot of r_top, r_bot and tau_c profiles -----
+% ----- Make quantile-quantile plots of the data -----
 % -------------------------------------------------------------
 
+fnt_sz = 15;
+mrkr_sz = 10;
+line_width = 1.5;
+lgnd_fnt = 15;
 
-axes_fnt_sz = 20;
-title_fnt_sz = 25;
+figure; 
 
+% -- Linear state vector --
+subplot(3,2,1)
+qp1 = qqplot(re_top_ensemble_trimmed);
+set(qp1(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp1(3), 'LineStyle', '--', 'LineWidth', line_width);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Effective radius at cloud top', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp1))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
 
-figure;
+subplot(3,2,3)
+qp2 = qqplot(re_bot_ensemble_trimmed);
+set(qp2(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Effective radius at cloud bottom', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp2))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
 
-% plot the mean effective radius
-subplot(1,3,1)
-
-% plot the standard deviation of the mean profile as an transparent area
-% centered around the mean radius profile
-x = [re_logNormal_mean - re_logNormal_std; flipud(re_logNormal_mean + re_logNormal_std)];
-y = [bin_center; flipud(bin_center)];
-fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-
-hold on
-
-% plot the mean droplet profile
-plot(re_logNormal_mean, bin_center, 'Color', mySavedColors(2, 'fixed'))
-
-
-grid on; grid minor
-xlabel('$<r_e(z)>$ $(\mu m)$', 'Interpreter','latex', 'Fontsize',axes_fnt_sz)
-ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize',axes_fnt_sz)
-
-% set x axis boundaries
-xlim([2, 20])                   % microns
-
-
-
-
-
-
-% plot the mean liquid water content profile
-subplot(1,3,2)
-
-% plot the standard deviation of the mean profile as an transparent area
-% centered around the mean radius profile
-x = [lwc_mean-lwc_std; flipud(lwc_mean + lwc_std)];
-y = [bin_center; flipud(bin_center)];
-fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-
-hold on
-
-% plot the mean droplet profile
-plot(lwc_mean, bin_center, 'Color', mySavedColors(2, 'fixed'))
-
-
-grid on; grid minor
-xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex', 'FontSize', axes_fnt_sz)
-ylabel('Normalized Altitude', 'Interpreter','latex', 'FontSize', axes_fnt_sz)
-
-% set x axis boundaries
-xlim([0, 0.6])                   % g/cm^3
-
-% set the figure title
-title(['Mean Profiles:  $LWC \geq$', num2str(ensemble_profiles{nn}.LWC_threshold), ' $g/m^{3}$',...
-    '   $N_c \geq$',  num2str(ensemble_profiles{nn}.Nc_threshold), ' $cm^{-3}$'],...
-    'Interpreter','latex', 'FontSize', title_fnt_sz)
+subplot(3,2,5)
+qp3 = qqplot(tau_c);
+set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Cloud optical depth', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
 
 
 
 
 
-% plot the mean droplet number concentration
-subplot(1,3,3)
 
-% plot the standard deviation of the mean profile as an transparent area
-% centered around the mean radius profile
-x = [Nc_mean-Nc_std; flipud(Nc_mean + Nc_std)];
-y = [bin_center; flipud(bin_center)];
-fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+% -- log state vector --
 
-hold on
+subplot(3,2,2)
+qp4 = qqplot(log(re_top_ensemble_trimmed));
+set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp4))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
 
-% plot the mean droplet profile
-plot(Nc_mean, bin_center, 'Color', mySavedColors(2, 'fixed'))
+
+subplot(3,2,4)
+qp5 = qqplot(log(re_bot_ensemble_trimmed));
+set(qp5(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp5))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
+
+subplot(3,2,6)
+qp6 = qqplot(log(tau_c));
+set(qp6(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp6))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+             'Color', 'white', 'TextColor', 'k')
 
 
-grid on; grid minor
-xlabel('$<N_c(z)>$ $(cm^{-3})$', 'Interpreter','latex', "FontSize", axes_fnt_sz)
-ylabel('Normalized Altitude', 'Interpreter', 'latex', 'FontSize', axes_fnt_sz)
-
-% set x axis boundaries
-xlim([0, 320])                   % cm^(-3)
-
-% set the size of the figure
-set(gcf, 'Position', [0 0 1255 700])
 
 
 %%
-
-% ----------------------------------------------------------------------
-% ----------------------- Adiabatic Curve Fits -------------------------
-% ----------------------------------------------------------------------
-
-% ------------------------- LIQUID WATER CONTENT ---------------------------
-% ----- Fit an adiabatic curve to the mean liquid water content profile -----
-nudge_from_top =2;
-lwc_slope = (lwc_mean(end-nudge_from_top) - lwc_mean(1))/(bin_center(end-nudge_from_top) - bin_center(1));
-lwc_intercept = lwc_mean(1) - lwc_slope*bin_center(1);
-lwc_adiabatic_fit = lwc_slope*bin_center + lwc_intercept;
-
-% add to subplot(1,3,1)
-subplot(1,3,2); hold on
-plot(lwc_adiabatic_fit(1:end-nudge_from_top), bin_center(1:end-nudge_from_top), 'k', 'LineWidth',2)
-
-% -- Include a legend in the lower right-hand corner of the 2nd subplot --
-legend({'Standard Deviation', 'Mean Profile', 'Adiabatic Fit'}, 'Interpreter','latex',...
-    'Location','southeast', 'FontSize', 17)
-
-
-
-% -------------------- EFFECTIVE DROPLET RADIUS -----------------------
-% Plot an adiabatic curve fit to the mean droplet radius profile
-nudge_from_bottom = 3;
-
-% ----- Fit an adiabatic curve to the mean droplet profile -----
-% use droplet profile function to create adiabatic fit
-re_adiabatic_fit = create_droplet_profile2([re_logNormal_mean(end), re_logNormal_mean(1 + nudge_from_bottom)],...
-    bin_center(1+nudge_from_bottom:end),'altitude', 'adiabatic');
-
-% derive droplet profile from adiabatic fit of LWC
-
-
-% add to subplot(1,3,1)
-subplot(1,3,1); hold on
-plot(re_adiabatic_fit, bin_center(1+nudge_from_bottom:end), 'k', 'LineWidth',2)
-
-
-
-
-
-% ---------------------- DROPLET NUMBER CONCENTRATION ---------------------------
-% ----- Fit an adiabatic curve to Number Concentration based on Adiabatic fits above -----
-% Nc_adiabatic_fit = 3*(lwc_adiabatic_fit./1e6)./...
-%                 (4*pi*(re_adiabatic_fit*1e-4).^3);
-
-
-
-
-% --- Create a Textbox stating these are only non-precipitating clouds ---
-% Create textbox
-annotation('textbox',[0.134 0.802 0.142 0.114],...
-    'String',{'Non-Precipitating clouds only ($LWP_{2DC}<1 \,g/m^{2}$)'},...
-    'LineWidth',2,...
-    'Interpreter','latex',...
-    'FontSize',17,...
-    'FontName','Helvetica Neue',...
-    'FitBoxToText','off');
-
-
-
