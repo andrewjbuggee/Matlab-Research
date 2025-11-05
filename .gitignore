@@ -29,6 +29,8 @@ Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_videos/*
 *.geo.tiff
 *.out
 *.INP
+*.cls
+
 
 # Windows default autosave extension
 *.asv
