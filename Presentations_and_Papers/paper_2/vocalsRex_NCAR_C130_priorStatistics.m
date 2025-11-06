@@ -725,6 +725,7 @@ end
 fnt_sz = 15;
 mrkr_sz = 10;
 line_width = 1.5;
+line_width_2 = 2.5;
 lgnd_fnt = 15;
 
 figure; 
@@ -733,37 +734,39 @@ figure;
 subplot(3,2,1)
 qp1 = qqplot(re_top_ensemble_trimmed);
 set(qp1(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
-set(qp1(3), 'LineStyle', '--', 'LineWidth', line_width);
+set(qp1(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('Effective radius at cloud top', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp1))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp1))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 subplot(3,2,3)
 qp2 = qqplot(re_bot_ensemble_trimmed);
 set(qp2(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp2(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('Effective radius at cloud bottom', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp2))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp2))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 subplot(3,2,5)
 qp3 = qqplot(tau_c);
 set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('Cloud optical depth', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
@@ -777,12 +780,13 @@ legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp3))], 'location',...
 subplot(3,2,2)
 qp4 = qqplot(log(re_top_ensemble_trimmed));
 set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp4))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
@@ -790,28 +794,43 @@ legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp4))], 'location',...
 subplot(3,2,4)
 qp5 = qqplot(log(re_bot_ensemble_trimmed));
 set(qp5(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp5(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp5))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp5))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
 subplot(3,2,6)
 qp6 = qqplot(log(tau_c));
 set(qp6(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp6(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2$ = $', num2str(compute_qqplot_R2(qp6))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp6))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
              'Color', 'white', 'TextColor', 'k')
 
+set(gcf, 'Position', [0,0, 1500, 850])
 
 
+%% Compute the covariance matrix
 
-%%
+% Each column represents the samples of a random variable, and each row are
+% the observations
+
+% For the covariance matrix, the number of samples need to be the same for
+% each varaible. And if they have a relationship, it would be best to
+% sample the different variables at the same time (or location, or whatever
+% the independent variable is). 
+
+% I have 73 vertical profiles. How should I arrange the data to take 1
+% value of r_top r_bot and optical deptH? 
+
+prior_cov = cov([re_top_ensemble_trimmed, re_bot_ensemble_trimmed, tau_c]);
