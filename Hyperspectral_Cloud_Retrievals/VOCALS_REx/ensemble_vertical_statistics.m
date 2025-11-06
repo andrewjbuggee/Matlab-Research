@@ -16,7 +16,7 @@ if strcmp(which_computer,'anbu8374')==true
 
 
     foldername = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/SPS_1/'];
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 

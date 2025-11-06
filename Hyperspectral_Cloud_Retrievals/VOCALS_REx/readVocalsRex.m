@@ -8,6 +8,9 @@ function vocalsRex = readVocalsRex(filename)
 
 info = ncinfo(filename);
 
+% store the date of this file
+date_of_flight = datetime(info.Attributes(14).Value);
+
 % read the time vector
 time = double(ncread(filename, 'Time'));                   % Measured in seconds
 
@@ -1000,6 +1003,7 @@ vocalsRex.total_Nc_2DC = total_Nc_2DC;                                          
 %     vocalsRex.time = linspace(time(1), time(end), length(lwc_CDP));     % sec
 % end
 vocalsRex.time = time;                                                  % sec
+vocalsRex.dateOfFlight = date_of_flight;
 vocalsRex.startTime = startTime;                                  % We have to assume that this is in UTC time as well
 vocalsRex.time_utc = double((startTime(1) + startTime(2)/60) + vocalsRex.time./3600); % UTC time
 vocalsRex.latitude = lat;
