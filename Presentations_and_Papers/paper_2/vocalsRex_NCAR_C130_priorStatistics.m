@@ -48,6 +48,11 @@ elseif strcmp(whatComputer, 'andrewbuggee')==true
     load([folderpath,...
         'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_02-Nov-2025.mat'])
 
+    % --- all profiles, LWC>0.03, Nc>25 ----
+    % load([folderpath,...
+    %     'ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_02-Nov-2025.mat']);
+
+
 
 end
 

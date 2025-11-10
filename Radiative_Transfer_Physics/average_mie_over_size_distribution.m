@@ -66,8 +66,9 @@ if strcmp(which_computer, 'anbu8374')==true
 
 elseif strcmp(which_computer, 'andrewbuggee')==true
 
-    mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/Mie_Calculations/'];
+    % mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
+    %     'LibRadTran/libRadtran-2.0.4/Mie_Calculations/'];
+    mie_folder = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/'];
 
 end
 

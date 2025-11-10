@@ -240,9 +240,11 @@ if strcmp('anbu8374', computer_name)
 
 elseif strcmp('andrewbuggee',computer_name)
 
-    mie_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
-        'Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/bin/'];
+    % mie_folderName = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/'...
+    %     'Hyperspectral-Cloud-Droplet-Retrieval/',...
+    %     'LibRadTran/libRadtran-2.0.4/bin/'];
+    mie_folderName = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/bin/';
+    
 
 elseif strcmp('curc', computer_name)
 
