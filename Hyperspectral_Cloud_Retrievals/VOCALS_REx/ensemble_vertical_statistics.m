@@ -86,7 +86,7 @@ inputs.sort_for_precip_driz = true;
 
 % the logic flag below tells the code to use either profiles with
 % precipitation or those without
-inputs.keep_precip_drizzle_profiles = true;             % if false, keep non-precip profiles only
+inputs.keep_precip_drizzle_profiles = false;             % if false, keep non-precip profiles only
 
 % The threshold is defined as the total 2DC LWP
 inputs.precip_driz_threshold = 5;         % g/m^2
