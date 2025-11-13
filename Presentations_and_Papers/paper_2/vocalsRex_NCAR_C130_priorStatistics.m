@@ -88,7 +88,36 @@ tau_c = zeros(length(ensemble_profiles),1);
 normalized_altitude = cell(1, length(ensemble_profiles));
 
 
+% -----------------------------------------------------------------
+% ------------------- For the covariance matrix -------------------
+% -----------------------------------------------------------------
+% We need 1 observation of cloud effective radius at top and bottom
+% for each cloud optical depth and each above cloud precipitable
+% water
+re_bot_sample = zeros(length(ensemble_profiles), 1);
+re_top_sample = zeros(length(ensemble_profiles), 1);
 
+% define which levels you wish to sample 'cloud top', and which you
+% wish to sample for 'cloud bottom'
+cloud_top_lvl_sample = round(0.9 * n_bins);
+cloud_bot_lvl_sample = round(0.1 * n_bins);
+
+
+% remove all values beyond 30 microns. There are only a few and they all
+% have a single count
+re_top_upper_trim_limit = 30;
+
+% remove all values below 4 microns. There are only a few and they all
+% have a single count
+re_top_lower_trim_limit = 4;
+
+
+% remove all values beyond 15 microns. There are only a few and they all
+% have a single count
+re_bot_upper_trim_limit = 16;
+
+% -----------------------------------------------------------------
+% -----------------------------------------------------------------
 
 for nn = 1:length(ensemble_profiles)
 
@@ -179,6 +208,113 @@ for nn = 1:length(ensemble_profiles)
 
         % store the total number concentration
         vertically_segmented_attributes{bb, 3} = [vertically_segmented_attributes{bb, 3}; reshape(Nc_total(index_segment), [],1)];
+
+
+        % ------------------- For the covariance matrix -------------------
+        % We need 1 observation of cloud effective radius at top and bottom
+        % for each cloud optical depth and each above cloud precipitable
+        % water
+
+        if bb == cloud_top_lvl_sample
+
+            re_top_sample(nn) = vertically_segmented_attributes{bb, 1}(end);
+
+            % check to see if this as the same value as the previous entry
+            if nn>1 && re_bot_sample(nn) == re_top_sample(nn-1)
+                % we want to sample another value
+                % Sample another value for the cloud bottom effective radius
+                if re_bot_sample(nn-1) ~= vertically_segmented_attributes{bb, 1}(end-1)
+
+                    error([newline, 'There was no sample from this cloud region for this profile!', newline])
+
+                    re_bot_sample(nn) = vertically_segmented_attributes{bb, 1}(end-1);
+
+                end
+
+            end
+
+
+            % We don't want to include outliers. Check to make sure these
+            % are within the predetermined bounds
+            if re_top_sample(nn) < re_top_lower_trim_limit || re_top_sample(nn) > re_top_upper_trim_limit
+
+                idx_used = find(index_segment);
+                % take the last value and try to move towards more data
+                % points, not less
+                if (ensemble_profiles{nn}.altitude(end) - ensemble_profiles{nn}.altitude(1))>0
+                    idx = idx_used(end)+1;
+                else
+                    idx = idx_used(end)-1;
+                end
+                re_top_sample(nn) = re(idx);
+
+                while re_top_sample(nn) < re_top_lower_trim_limit || re_top_sample(nn) > re_top_upper_trim_limit
+
+                    %  move towards more data
+                    % points, not less
+                    if (ensemble_profiles{nn}.altitude(end) - ensemble_profiles{nn}.altitude(1))>0
+                        idx = idx+1;
+                    else
+                        idx = idx-1;
+                    end
+
+                    re_top_sample(nn) = re(idx);
+                end
+
+
+            end
+
+
+
+        elseif bb == cloud_bot_lvl_sample
+
+            re_bot_sample(nn) = vertically_segmented_attributes{bb, 1}(end);
+
+            % check to see if this as the same value as the previous entry
+            if nn>1 && re_bot_sample(nn) == re_top_sample(nn-1)
+                % we want to sample another value
+                % Sample another value for the cloud bottom effective radius
+                if re_bot_sample(nn-1) ~= vertically_segmented_attributes{bb, 1}(end-1)
+
+                    error([newline, 'There was no sample from this cloud region for this profile!', newline])
+
+                    re_bot_sample(nn) = vertically_segmented_attributes{bb, 1}(end-1);
+
+                end
+
+            end
+
+            % We don't want to include outliers. Check to make sure these
+            % are within the predetermined bounds
+            if re_bot_sample(nn) > re_bot_upper_trim_limit
+
+                idx_used = find(index_segment);
+                % take the last value and try to move towards more data
+                % points, not less
+                if (ensemble_profiles{nn}.altitude(end) - ensemble_profiles{nn}.altitude(1))>0
+                    idx = idx_used(end)+1;
+                else
+                    idx = idx_used(end)-1;
+                end
+                re_bot_sample(nn) = re(idx);
+
+                while re_bot_sample(nn) > re_bot_upper_trim_limit
+
+                    %  move towards more data
+                    % points, not less
+                    if (ensemble_profiles{nn}.altitude(end) - ensemble_profiles{nn}.altitude(1))>0
+                        idx = idx+1;
+                    else
+                        idx = idx-1;
+                    end
+
+                    re_bot_sample(nn) = re(idx);
+                end
+            end
+
+
+        end
+
 
 
 
@@ -330,9 +466,9 @@ plot(xVals, pdf(tauC_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$\tau_{C}$ statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -397,8 +533,17 @@ lgnd_fnt = 20;
 % *** COMBINING DIFFERENT VERTICAL BINS LEADS TO A REJECTION OF ALL FIT
 % TYPES ***
 
+% # of bins = 30
+% cloudTop_idx = 26:30;
+% cloudBot_idx = 6:10;
+
 cloudTop_idx = 26:30;
-cloudBot_idx = 6:10;
+cloudBot_idx = 1:5;
+
+% cloudTop_idx = 27;
+% cloudBot_idx = 3;
+
+
 significance_lvl = 0.1;
 
 
@@ -465,9 +610,9 @@ plot(xVals, pdf(re_top_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$r_{top}$ statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -523,9 +668,9 @@ plot(xVals, pdf(re_bot_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$r_{bot}$ statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -542,18 +687,22 @@ title('$r_{bot}$ statistics and fits', ...
 % for re at cloud top
 % remove all values beyond 30 microns. There are only a few and they all
 % have a single count
+re_top_upper_trim_limit = 30;
 re_top_ensemble_trimmed = re_top_ensemble;
-re_top_ensemble_trimmed(re_top_ensemble_trimmed>30) = [];
-% remove all values below 5 microns. There are only a few and they all
+re_top_ensemble_trimmed(re_top_ensemble_trimmed > re_top_upper_trim_limit) = [];
+
+% remove all values below 4 microns. There are only a few and they all
 % have a single count
-re_top_ensemble_trimmed(re_top_ensemble_trimmed<5) = [];
+re_top_lower_trim_limit = 4;
+re_top_ensemble_trimmed(re_top_ensemble_trimmed < re_top_lower_trim_limit) = [];
 
 
 
 % remove all values beyond 15 microns. There are only a few and they all
 % have a single count
+re_bot_upper_trim_limit = 15;
 re_bot_ensemble_trimmed = re_bot_ensemble;
-re_bot_ensemble_trimmed(re_bot_ensemble_trimmed>15) = [];
+re_bot_ensemble_trimmed(re_bot_ensemble_trimmed > re_bot_upper_trim_limit) = [];
 
 
 
@@ -612,9 +761,9 @@ plot(xVals, pdf(re_top_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$r_{top}$ trimmed statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -670,9 +819,9 @@ plot(xVals, pdf(re_bot_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$r_{bot}$ trimmed statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -682,39 +831,101 @@ title('$r_{bot}$ trimmed statistics and fits', ...
 
 %%
 
-% Compile statistics using the best fit distributions
-
-
-% ---- most common best fit distribution for r_top ---
-if num_rejects_reTop(1)<num_rejects_reTop(2) && num_rejects_reTop(1)<num_rejects_reTop(3)
-
-    % normal fit was best
-
-
-elseif num_rejects_reTop(2)<num_rejects_reTop(1) && num_rejects_reTop(2)<num_rejects_reTop(3)
-
-    % lognormal fit was best
-
-
-elseif num_rejects_reTop(3)<num_rejects_reTop(1) && num_rejects_reTop(3)<num_rejects_reTop(2)
-
-    % gamma fit was best
-
-
-elseif num_rejects_reTop(2)<num_rejects_reTop(1) && num_rejects_reTop(2)==num_rejects_reTop(3)
-
-    % lognormal and gamma fits had same number of rejections. Use
-    % lognormal
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Load Above cloud precipitable water data drom VOCALS-REx radisonde data
+
+
+if strcmp(whatComputer,'anbu8374')==true
+
+
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+
+    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
 
 end
 
+radiosonde = load([folderpath,...
+    'precipitable_water_stats_for_paper2_combined_12-Nov-2025.mat']);
+
+% --------------------------------------------------------
+% ------- ABOVE CLOUD PRECIPITABLE WATER FITTING ---------
+% --------------------------------------------------------
+% Let's also fit these three distributions to the optical depth data
+significance_lvl = 0.05;    % 5% risk of false rejection
 
 
+% Kolmogorov test is better for this data set because of the outliers
+
+% if p < significance_lvl:
+%     h = 1 (true)  → REJECT the null hypothesis → Distribution is a BAD fit
+% else:
+%     h = 0 (false) → FAIL TO REJECT → Distribution is a GOOD fit (or at least acceptable)
+
+
+% fit the number concentration data to a normal distribution
+acpw_fit_normal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'normal');
+% [acpw_reject_normal, acpw_p_normal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_normal,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_normal, acpw_p_normal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_normal,'alpha', significance_lvl);
+
+
+% fit the number concentration content data to a log-normal distribution
+acpw_fit_lognormal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'lognormal');
+% [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_lognormal,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_lognormal, acpw_p_lognormal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_lognormal,'alpha', significance_lvl);
+
+
+% fit the total number concentration data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+% [acpw_reject_gamma, acpw_p_gamma] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_gamma,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_gamma, acpw_p_gamma] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_gamma,'alpha', significance_lvl);
+
+% Plot results
+lgnd_fnt = 20;
+
+figure; histogram(radiosonde.combined_aboveCloud_pw_timeAndSpace,'NumBins', 30, 'Normalization','pdf')
+hold on
+xVals = linspace(min(radiosonde.combined_aboveCloud_pw_timeAndSpace),...
+    max(radiosonde.combined_aboveCloud_pw_timeAndSpace), 1000);
+plot(xVals, pdf(acpw_fit_normal, xVals))
+plot(xVals, pdf(acpw_fit_lognormal, xVals))
+plot(xVals, pdf(acpw_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('$acpw$ statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
 
 
 
@@ -733,10 +944,12 @@ line_width = 1.5;
 line_width_2 = 2.5;
 lgnd_fnt = 15;
 
-figure; 
+figure;
 
 % -- Linear state vector --
-subplot(3,2,1)
+
+% --- Plot for the droplet size at cloud top ---
+subplot(4,2,1)
 qp1 = qqplot(re_top_ensemble_trimmed);
 set(qp1(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp1(3), 'LineStyle', '--', 'LineWidth', line_width_2);
@@ -747,9 +960,10 @@ title('Effective radius at cloud top', 'Interpreter','latex', 'FontSize', fnt_sz
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp1))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 
-subplot(3,2,3)
+% --- Plot for the droplet size at cloud bottom ---
+subplot(4,2,3)
 qp2 = qqplot(re_bot_ensemble_trimmed);
 set(qp2(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp2(3), 'LineStyle', '--', 'LineWidth', line_width_2);
@@ -760,9 +974,10 @@ title('Effective radius at cloud bottom', 'Interpreter','latex', 'FontSize', fnt
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp2))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 
-subplot(3,2,5)
+% --- Plot for cloud optical depth ---
+subplot(4,2,5)
 qp3 = qqplot(tau_c);
 set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
@@ -773,7 +988,21 @@ title('Cloud optical depth', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
+
+% --- Plot for the above cloud precipitable water ---
+subplot(4,2,7)
+qp4 = qqplot(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('above cloud precipitable water', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
 
 
 
@@ -782,47 +1011,67 @@ legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
 
 % -- log state vector --
 
-subplot(3,2,2)
-qp4 = qqplot(log(re_top_ensemble_trimmed));
-set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
-set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
-grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
-title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
-% compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
-    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
-
-
-subplot(3,2,4)
-qp5 = qqplot(log(re_bot_ensemble_trimmed));
+% --- Plot for the droplet size at cloud top ---
+subplot(4,2,2)
+qp5 = qqplot(log(re_top_ensemble_trimmed));
 set(qp5(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp5(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
-title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp5))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 
-subplot(3,2,6)
-qp6 = qqplot(log(tau_c));
+
+% --- Plot for the droplet size at cloud bottom ---
+subplot(4,2,4)
+qp6 = qqplot(log(re_bot_ensemble_trimmed));
 set(qp6(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp6(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
-title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp6))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 
-set(gcf, 'Position', [0,0, 1500, 850])
+% --- Plot for cloud optical depth ---
+subplot(4,2,6)
+qp7 = qqplot(log(tau_c));
+set(qp7(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp7(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp7))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+
+% --- Plot for the above cloud precipitable water ---
+subplot(4,2,8)
+qp8 = qqplot(log(radiosonde.combined_aboveCloud_pw_timeAndSpace));
+set(qp8(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp8(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($above cloud precipitable water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp8))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+set(gcf, 'Position', [0,0, 1700, 950])
+
+
 
 
 %% Compute the covariance matrix
@@ -833,9 +1082,50 @@ set(gcf, 'Position', [0,0, 1500, 850])
 % For the covariance matrix, the number of samples need to be the same for
 % each varaible. And if they have a relationship, it would be best to
 % sample the different variables at the same time (or location, or whatever
-% the independent variable is). 
+% the independent variable is).
 
 % I have 73 vertical profiles. How should I arrange the data to take 1
-% value of r_top r_bot and optical deptH? 
+% value of r_top r_bot and optical depth?
 
-prior_cov = cov([re_top_ensemble_trimmed, re_bot_ensemble_trimmed, tau_c]);
+prior_cov = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
+
+% The prior covariance must be symmetric positive definite
+try chol(prior_cov)
+    disp('Matrix is symmetric positive definite.')
+catch ME
+    disp('Matrix is not symmetric positive definite')
+end
+
+
+%% Save the prior covariance matrix and supporting variables to the paper_2 folder
+
+
+
+if strcmp(whatComputer,'anbu8374')==true
+
+
+    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/'];
+
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+
+    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/'];
+
+
+end
+
+
+combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
+
+save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
+    'prior_cov', 're_top_sample', 're_bot_sample', 'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+
+
+%% Clear variables
+
+% there are too many
+clear variables

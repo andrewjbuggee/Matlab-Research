@@ -54,6 +54,7 @@ function data = read_cls_file(filename)
                   'variable_names', {}, 'units', {}, 'sounding_data', {});
     
     % Process each sounding
+    soundings_processed = 0;
     for s = 1:num_soundings
         fprintf('\n--- Processing Sounding %d/%d ---\n', s, num_soundings);
         
@@ -69,21 +70,31 @@ function data = read_cls_file(filename)
         sounding_lines = all_lines(start_line:end_line);
         
         % Parse this sounding
-        data(s) = parse_single_sounding(sounding_lines, s);
+        sounding_data = parse_single_sounding(sounding_lines, s);
+        
+        % Check if sounding was skipped due to excessive bad data
+        if isempty(sounding_data)
+            fprintf('  Sounding %d skipped due to excessive erroneous data\n', s);
+            continue;  % Skip this sounding
+        end
+        
+        % Add to data array
+        soundings_processed = soundings_processed + 1;
+        data(soundings_processed) = sounding_data;
         
         % Display summary
-        fprintf('Data Type: %s\n', data(s).data_type);
-        fprintf('Project: %s\n', data(s).project_id);
-        fprintf('Release Site: %s\n', data(s).release_site);
+        fprintf('Data Type: %s\n', data(soundings_processed).data_type);
+        fprintf('Project: %s\n', data(soundings_processed).project_id);
+        fprintf('Release Site: %s\n', data(soundings_processed).release_site);
         fprintf('Location: %.3f°, %.3f° (%.1f m)\n', ...
-                data(s).longitude, data(s).latitude, data(s).altitude);
-        fprintf('Release Time: %s UTC\n', datestr(data(s).release_time));
-        fprintf('Sonde Info: %s\n', data(s).sonde_info);
-        fprintf('Quality: %s\n', data(s).quality);
-        fprintf('Number of data points: %d\n', size(data(s).sounding_data, 1));
+                data(soundings_processed).longitude, data(soundings_processed).latitude, data(soundings_processed).altitude);
+        fprintf('Release Time: %s UTC\n', datestr(data(soundings_processed).release_time));
+        fprintf('Sonde Info: %s\n', data(soundings_processed).sonde_info);
+        fprintf('Quality: %s\n', data(soundings_processed).quality);
+        fprintf('Number of data points: %d\n', size(data(soundings_processed).sounding_data, 1));
     end
     
-    fprintf('\n=== Successfully read %d sounding(s) ===\n', num_soundings);
+    fprintf('\n=== Successfully read %d out of %d sounding(s) ===\n', soundings_processed, num_soundings);
 end
 
 function sounding = parse_single_sounding(lines, sounding_num)
@@ -246,24 +257,39 @@ function sounding = parse_single_sounding(lines, sounding_num)
     end
     
     % Remove erroneous data rows
-    % Check for rows where pressure (column 2) >= 9999 or temperature (column 3) >= 999 or <= -999
+    % Check for rows where pressure >= 9999 or temperature >= 999 or <= -999 or dewpoint >= 999 or <= -999
     if ~isempty(sounding.sounding_data)
         num_rows_before = size(sounding.sounding_data, 1);
         
         % Find column indices
         press_idx = find(strcmp(sounding.variable_names, 'Press'), 1);
         temp_idx = find(strcmp(sounding.variable_names, 'Temp'), 1);
+        dewpt_idx = find(strcmp(sounding.variable_names, 'Dewpt'), 1);
         
-        if isempty(press_idx) || isempty(temp_idx)
-            % If column names don't match exactly, assume column 2 is pressure, column 3 is temp
-            press_idx = 2;
-            temp_idx = 3;
+        if isempty(press_idx) || isempty(temp_idx) || isempty(dewpt_idx)
+            % If column names don't match exactly, assume standard positions
+            press_idx = 2;  % Pressure is column 2
+            temp_idx = 3;   % Temperature is column 3
+            dewpt_idx = 4;  % Dewpoint is column 4
         end
         
-        % Identify bad rows (pressure >= 9999 OR temperature >= 999 OR temperature <= -999)
+        % Identify bad rows (pressure >= 9999 OR temperature >= 999 OR temperature <= -999 
+        %                     OR dewpoint >= 999 OR dewpoint <= -999)
         bad_rows = (sounding.sounding_data(:, press_idx) >= 9999) | ...
                    (sounding.sounding_data(:, temp_idx) >= 999) | ...
-                   (sounding.sounding_data(:, temp_idx) <= -999);
+                   (sounding.sounding_data(:, temp_idx) <= -999) | ...
+                   (sounding.sounding_data(:, dewpt_idx) >= 999) | ...
+                   (sounding.sounding_data(:, dewpt_idx) <= -999);
+        
+        num_bad = sum(bad_rows);
+        percent_bad = (num_bad / num_rows_before) * 100;
+        
+        % Check if more than 50% of data is bad
+        if percent_bad > 50
+            fprintf('  WARNING: %.1f%% of data is erroneous (>50%%) - SKIPPING this sounding\n', percent_bad);
+            sounding = [];  % Return empty to signal this sounding should be skipped
+            return;
+        end
         
         % Remove bad rows
         sounding.sounding_data(bad_rows, :) = [];
@@ -272,7 +298,8 @@ function sounding = parse_single_sounding(lines, sounding_num)
         num_removed = num_rows_before - num_rows_after;
         
         if num_removed > 0
-            fprintf('  Removed %d erroneous data row(s) from sounding %d\n', num_removed, sounding_num);
+            fprintf('  Removed %d erroneous data row(s) from sounding %d (%.1f%% of data)\n', ...
+                    num_removed, sounding_num, percent_bad);
         end
     end
 end

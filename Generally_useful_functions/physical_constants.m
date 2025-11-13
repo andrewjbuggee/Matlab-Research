@@ -24,6 +24,9 @@ constant.R_uni = 8.31446262;                % J/K/mol
 % Dry air gas constant
 constant.R_air_dry = 287.052874;               % J/K/Kg
 
+% water vapor gas constant
+constant.R_waterVapor = 461.52;               % J/(kg K) 
+
 % molar mass of dry air
 constant.Mol_mass_air_dry = 0.2897;                % kg/mol
 
