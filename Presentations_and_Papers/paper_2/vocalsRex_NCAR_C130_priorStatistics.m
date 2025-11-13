@@ -1087,11 +1087,92 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % I have 73 vertical profiles. How should I arrange the data to take 1
 % value of r_top r_bot and optical depth?
 
-prior_cov = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
+prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
+
+prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
+
+
 
 % The prior covariance must be symmetric positive definite
-try chol(prior_cov)
+try chol(prior_cov_lin)
     disp('Matrix is symmetric positive definite.')
+
+    % plot heat maps of the covariance matrix
+    % Plot heat map for linear covariance matrix
+    figure;
+    imagesc(prior_cov_lin);
+    colormap("hot")
+    colorbar;
+    title('Heat Map of Linear Covariance Matrix', 'Interpreter', 'latex', 'FontSize', fnt_sz);
+    % define the variable names along the x and y axis
+    % Define variable names for the heat map axes
+    variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
+    set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
+        'YTickLabel', variableNames);
+    
+    % display to covariance matrix values on the heat map
+    % Display covariance matrix values on the heat map
+    textStrings = num2str(prior_cov_lin(:), '%.2f'); % Create strings from the matrix values
+    textStrings = strtrim(cellstr(textStrings)); % Remove any space padding
+    [xPos, yPos] = meshgrid(1:size(prior_cov_lin, 2), 1:size(prior_cov_lin, 1)); % Create x and y coordinates
+    hStrings = text(xPos(:), yPos(:), textStrings(:), 'HorizontalAlignment', 'center'); % Create text objects
+    midValue = mean(get(gca, 'CLim')); % Get the middle value of the color range
+    textColors = repmat(prior_cov_lin(:) > midValue, 1, 3); % Choose white or black for the text color
+    set(hStrings, {'Color'}, num2cell(textColors, 2)); % Change the color of the text
+    % update the font size of the covaraince values displayed on the heat
+    % map
+    % Update the font size of the covariance values displayed on the heat map
+    set(hStrings, 'FontSize', fnt_sz);
+    % the color of the covaraince matrix values in the last two columns of
+    % the last two rows needs to be white to show up better against the
+    % background color
+    % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
+    set(hStrings(end-1:end, :), 'Color', 'white');
+    set(hStrings(end-4, :), 'Color', 'white');
+    % The color of the covaraince matrix value for the 3rd column and 3rd
+    % row needs to be black to show up better against the background
+    set(hStrings(end-5, :), 'Color', 'black');
+
+    
+    % Plot heat map for logarithmic covariance matrix
+    figure;
+    imagesc(prior_cov_log);
+    colormap("hot")
+    colorbar;
+    title('Heat Map of Logarithmic Covariance Matrix', 'Interpreter', 'latex', 'FontSize', fnt_sz);
+    % define the variable names along the x and y axis
+    % Define variable names for the heat map axes
+    variableNames = {'log(Effective Radius Top)', 'log(Effective Radius Bottom)',...
+        'log(Optical Depth)', 'log(Above Cloud PW)'};
+    set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
+        'YTickLabel', variableNames);
+    
+    % display to covariance matrix values on the heat map
+    % Display covariance matrix values on the heat map
+    textStrings = num2str(prior_cov_log(:), '%.2f'); % Create strings from the matrix values
+    textStrings = strtrim(cellstr(textStrings)); % Remove any space padding
+    [xPos, yPos] = meshgrid(1:size(prior_cov_log, 2), 1:size(prior_cov_log, 1)); % Create x and y coordinates
+    hStrings = text(xPos(:), yPos(:), textStrings(:), 'HorizontalAlignment', 'center'); % Create text objects
+    midValue = mean(get(gca, 'CLim')); % Get the middle value of the color range
+    textColors = repmat(prior_cov_log(:) > midValue, 1, 3); % Choose white or black for the text color
+    set(hStrings, {'Color'}, num2cell(textColors, 2)); % Change the color of the text
+    % update the font size of the covaraince values displayed on the heat
+    % map
+    % Update the font size of the covariance values displayed on the heat map
+    set(hStrings, 'FontSize', fnt_sz);
+    % the color of the covaraince matrix values in the last two columns of
+    % the last two rows needs to be white to show up better against the
+    % background color
+    % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
+    set(hStrings(end-1, :), 'Color', 'white');
+    set(hStrings(end-4, :), 'Color', 'white');
+    set(hStrings(end, :), 'Color', 'black');
+    % The color of the covaraince matrix value for the 3rd column and 3rd
+    % row needs to be black to show up better against the background
+    set(hStrings(end-5, :), 'Color', 'black');
+
+
+
 catch ME
     disp('Matrix is not symmetric positive definite')
 end
@@ -1122,7 +1203,7 @@ end
 combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 
 save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-    'prior_cov', 're_top_sample', 're_bot_sample', 'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+    'prior_cov_lin', 're_top_sample', 're_bot_sample', 'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
 
 
 %% Clear variables
