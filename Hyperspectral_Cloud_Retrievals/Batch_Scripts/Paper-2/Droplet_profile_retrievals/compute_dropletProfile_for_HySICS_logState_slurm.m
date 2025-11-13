@@ -18,9 +18,9 @@ which_computer = folder_paths.which_computer;
 
 %% Would you like to print status updates and/or the libRadtran error file?
 
-print_status_updates = false;
+print_status_updates = true;
 
-print_libRadtran_err = false;
+print_libRadtran_err = true;
 
 
 %% LOAD SIMULATED HYSICS DATA
@@ -35,8 +35,17 @@ if strcmp(which_computer,'anbu8374')==true
 
     % load all filenames in the folder defined above.
     %     filenames = dir([folder_paths.HySICS_simulated_spectra, '*.mat']);
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
+
+
+
+    % define the folder where the spectra are located
+    folder_paths.HySICS_simulated_spectra = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
+
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
+        'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_rTop_9.2516_rBot_5.3192_tauC_6.1312_tcwv_14_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-16-Sep-2025.mat']);
 
 
 
@@ -124,7 +133,7 @@ end
 files{1} = filenames.name;
 
 % *** Retrieve r_top, r_bot, tau_c, and cwvs ***
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_logState_lowUncertainty(filenames,...
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_logState_lowUncertainty(files,...
     folder_paths, print_status_updates, print_libRadtran_err);
 
 
