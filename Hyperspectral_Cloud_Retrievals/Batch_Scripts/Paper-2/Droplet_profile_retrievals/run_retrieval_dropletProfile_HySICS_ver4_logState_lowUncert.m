@@ -212,8 +212,8 @@ for ff = 1:length(filenames)
     % Create inputs to retrieve log(r_top), log(r_bot), log(tau_c), log(cwv)
     GN_inputs = create_model_prior_covariance_HySICS_ver4_logState_lowUncert(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
-
-    GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
+    % *** transform the measurements to log space ***
+    GN_inputs = create_HySICS_measurement_covariance_ver4_logState(GN_inputs, simulated_measurements);
 
 
     %% CALCULATE RETRIEVAL PARAMETERS

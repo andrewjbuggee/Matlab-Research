@@ -20,7 +20,8 @@ percent_change_limit = GN_inputs.percent_change_limit;
 % Create the measurement vectors for each pixel!
 % Each column is associated with a specific pixel, and each row represents
 % the reflectance measurement at a specific modis band
-measurements = hysics.Refl_model; % column vector of the reflectance measurements
+% *** Take the logarithm of the measurements ***
+measurements_ln = log(hysics.Refl_model); % column vector of the reflectance measurements
 
 
 
@@ -61,7 +62,7 @@ num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve
 
 % ----- define number of spectral bands to use -----
 % If a measurement vector has a nan value, ignore this spectral channel
-num_bands = length(measurements);
+num_bands = length(measurements_ln);
 
 
 % define the spectral response function
@@ -142,29 +143,32 @@ if print_status_updates==true
             % Therefore, we ask, 'what is the reflectance of a cloud with our
             % current state vector guess?'
 
-            % For the retrieval of r_top, r_bot, tau_c, cwv
+            % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
+            % *** Take the logarithm of the measurement estimate ***
             disp([newline, 'Estimating spectral measurements...', newline])
-            measurement_estimate = compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response, folder_paths);
+            measurement_estimate_ln = log(compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response, folder_paths));
+
+            
 
 
             % compute residual, rss residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
-            residual(:,ii) = measurements - measurement_estimate;
+            residual(:,ii) = measurements_ln - measurement_estimate_ln;
             rss_residual(ii) = sqrt(sum(residual(:,ii).^2));
 
         else
 
             % We've already calculated the measurement estimate!
-            measurement_estimate = new_measurement_estimate;
+            measurement_estimate_ln = new_measurement_estimate;
 
         end
 
 
         % **** compute the jacobian ****
-        % For the retrieval of r_top, r_bot, tau_c, cwv
+        % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
-        Jacobian = compute_jacobian_HySICS_ver2(exp(current_guess), measurement_estimate, GN_inputs,...
+        Jacobian = compute_jacobian_HySICS_ver2(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -247,7 +251,7 @@ if print_status_updates==true
             % to detmerine convergence
             disp([newline, 'Estimating spectral measurements...', newline])
             new_measurement_estimate = compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths);
-            residual(:,ii+1) = measurements - new_measurement_estimate;
+            residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
 
@@ -319,7 +323,7 @@ if print_status_updates==true
             end
 
             % compute the rss_residual for the constrained state vector
-            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements, 1, length(a))).^2, 1));
+            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements_ln, 1, length(a))).^2, 1));
             % find the smallest rss residual that is less than the previus
             % itereates rss residual
             [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
@@ -346,7 +350,7 @@ if print_status_updates==true
             % Select the step length by choosing the a value with the minimumum
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual(:,ii+1) = measurements - new_measurement_estimate;
+            residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
@@ -497,26 +501,26 @@ else
             % current state vector guess?'
 
             % For the retrieval of r_top, r_bot, tau_c, cwv
-            measurement_estimate = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
+            measurement_estimate_ln = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
 
 
             % compute residual, rss residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
-            residual(:,ii) = measurements - measurement_estimate;
+            residual(:,ii) = measurements_ln - measurement_estimate_ln;
             rss_residual(ii) = sqrt(sum(residual(:,ii).^2));
 
         else
 
             % We've already calculated the measurement estimate!
-            measurement_estimate = new_measurement_estimate;
+            measurement_estimate_ln = new_measurement_estimate;
 
         end
 
 
         % **** compute the jacobian ****
         % For the retrieval of r_top, r_bot, tau_c, cwv
-        Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate, GN_inputs,...
+        Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -592,7 +596,7 @@ else
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             new_measurement_estimate = compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths);
-            residual(:,ii+1) = measurements - new_measurement_estimate;
+            residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
 
@@ -661,7 +665,7 @@ else
             end
 
             % compute the rss_residual for the constrained state vector
-            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements, 1, length(a))).^2, 1));
+            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements_ln, 1, length(a))).^2, 1));
             % find the smallest rss residual that is less than the previus
             % itereates rss residual
             [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
@@ -688,7 +692,7 @@ else
             % Select the step length by choosing the a value with the minimumum
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual(:,ii+1) = measurements - new_measurement_estimate;
+            residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
             new_guess = constrained_guesses(:, min_residual_idx);
 
