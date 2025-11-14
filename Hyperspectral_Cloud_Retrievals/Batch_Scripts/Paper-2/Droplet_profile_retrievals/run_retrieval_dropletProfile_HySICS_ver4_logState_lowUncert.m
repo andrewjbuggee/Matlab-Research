@@ -22,7 +22,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_logState_lowUncertainty(filenames,...
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_logState_lowUncert(filenames,...
     folder_paths, print_status_updates, print_libRadtran_err)
 
 
@@ -210,7 +210,7 @@ for ff = 1:length(filenames)
     use_TBLUT_estimates = true;
 
     % Create inputs to retrieve log(r_top), log(r_bot), log(tau_c), log(cwv)
-    GN_inputs = create_model_prior_covariance_HySICS_ver4_logState_lowUncertainty1(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+    GN_inputs = create_model_prior_covariance_HySICS_ver4_logState_lowUncert(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
 
     GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);

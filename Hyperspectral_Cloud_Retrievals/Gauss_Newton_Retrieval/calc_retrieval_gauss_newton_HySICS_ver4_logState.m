@@ -200,7 +200,7 @@ if print_status_updates==true
         % is the value of the second row.
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=30 & ...
+            constrained_guesses(1,:)<=log(25) & ...
             constrained_guesses(2,:)>0   & ...
             constrained_guesses(3,:)>0   & ...
             constrained_guesses(4,:)>0));
@@ -304,11 +304,11 @@ if print_status_updates==true
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
-                        constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
+                if constrained_guesses(1,mm)>0 && constrained_guesses(1,mm)<log(25) && ...
+                        constrained_guesses(2,mm)>0 && constrained_guesses(2,mm)<log(25)
 
                     disp([newline, 'Estimating spectral measurements...', newline])
-                    constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(constrained_guesses(:,mm),...
+                    constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
                         GN_inputs, spec_response, folder_paths);
 
                 else
@@ -370,20 +370,20 @@ if print_status_updates==true
 
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
-        if new_guess(1)>25
-            disp([newline,'r_top = ',num2str(new_guess(1)),'. Set to 20 \mum'])
-            new_guess(1) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<3.5
-            disp([newline,'r_top = ',num2str(new_guess(1)),'. Set to 3.5 \mum'])
-            new_guess(1) = 3.5; % microns
+        if new_guess(1)>log(25)
+            disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 15 \mum'])
+            new_guess(1) = log(15); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(1)<log(3.5)
+            disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 3.5 \mum'])
+            new_guess(1) = log(3.5); % microns
         end
 
-        if new_guess(2)>25
-            disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 20 \mum'])
-            new_guess(2) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<3.5
-            disp([newline,'r_bottom = ',num2str(new_guess(2)),'. Set to 3.5 \mum'])
-            new_guess(2) = 3.5; % microns
+        if new_guess(2)>log(25)
+            disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 20 \mum'])
+            new_guess(2) = log(15); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(2)<log(3.5)
+            disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 3.5 \mum'])
+            new_guess(2) = log(3.5); % microns
         end
 
 
@@ -803,7 +803,8 @@ end
 
 
 
-
+% transform the retrieval back to linear space
+retrieval = exp(retrieval);
 
 
 
@@ -817,7 +818,7 @@ end
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS_ver2(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_ver2(exp(retrieval(:,end)), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
