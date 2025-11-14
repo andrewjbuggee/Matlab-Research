@@ -376,7 +376,7 @@ if print_status_updates==true
         % table, then we must reset the value.
         if new_guess(1)>log(25)
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 15 \mum'])
-            new_guess(1) = log(15); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+            new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
         elseif new_guess(1)<log(3.5)
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 3.5 \mum'])
             new_guess(1) = log(3.5); % microns
@@ -384,7 +384,7 @@ if print_status_updates==true
 
         if new_guess(2)>log(25)
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 20 \mum'])
-            new_guess(2) = log(15); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+            new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
         elseif new_guess(2)<log(3.5)
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 3.5 \mum'])
             new_guess(2) = log(3.5); % microns
@@ -718,16 +718,16 @@ else
 
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
-        if new_guess(1)>25
-            new_guess(1) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<3.5
-            new_guess(1) = 3.5; % microns
+        if new_guess(1)>log(25)
+            new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(1)<log(3.5)
+            new_guess(1) = log(4); % microns
         end
 
-        if new_guess(2)>25
-            new_guess(2) = 20; % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<3.5
-            new_guess(2) = 3.5; % microns
+        if new_guess(2)>log(25)
+            new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
+        elseif new_guess(2)<log(3.5)
+            new_guess(2) = log(4); % microns
         end
 
 
@@ -824,9 +824,11 @@ retrieval = exp(retrieval);
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS_ver4_logState(exp(retrieval(:,end)), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+% How do I treat the posterior covariance matrix in log space? Do I simply
+% take the exponential of the covariance matrix?
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
 
 
@@ -892,27 +894,27 @@ end
 % Define the state vector used to evaluate the non linearity of our problem
 % by defining a state vector with values 1 standard deviation away from the
 % retrieved state
-state_vec_plus_1sigma = retrieval(:,end) + sqrt(diag(posterior_cov));
-state_vec_minus_1sigma = retrieval(:,end) - sqrt(diag(posterior_cov));
-
-% compute the measurement estimate for this state vector
-meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,...
-                        GN_inputs, spec_response, folder_paths);
-
-% lastly, we need the Jacobian of the difference between the retrieved
-% state vector and the state vector 1 standard deviation away
-Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(state_vec_plus_1sigma,...
-    meas_est_plus_1sigma, GN_inputs,...
-    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
-
-
-Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(sqrt(diag(posterior_cov)),...
-    meas_est_plus_1sigma, GN_inputs,...
-    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
-
-% nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
-
-nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - (Jacobian_plus_1sigma - Jacobian_plus_1sigma));
+% state_vec_plus_1sigma = retrieval(:,end) + sqrt(diag(posterior_cov));
+% state_vec_minus_1sigma = retrieval(:,end) - sqrt(diag(posterior_cov));
+% 
+% % compute the measurement estimate for this state vector
+% meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,...
+%                         GN_inputs, spec_response, folder_paths);
+% 
+% % lastly, we need the Jacobian of the difference between the retrieved
+% % state vector and the state vector 1 standard deviation away
+% Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(state_vec_plus_1sigma,...
+%     meas_est_plus_1sigma, GN_inputs,...
+%     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+% 
+% 
+% Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(sqrt(diag(posterior_cov)),...
+%     meas_est_plus_1sigma, GN_inputs,...
+%     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+% 
+% % nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
+% 
+% nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - (Jacobian_plus_1sigma - Jacobian_plus_1sigma));
 
 
 % -------------------------------------------------------------
@@ -924,25 +926,25 @@ nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - (Jacobian_plu
 
 
 
-H_above_aPriori = zeros(num_parameters, num_bands);
-
-for nn = 1:num_bands
-
-    posterior_cov_perChannel_above_apriori = [];
-
-    % The retrieval covariance using only the model covaraince
-    posterior_cov_perChannel_above_apriori = model_cov - (model_cov * Jacobian(nn,:)')*(model_cov * Jacobian(nn,:)')' /...
-        (1 + (model_cov * Jacobian(nn,:)')' * Jacobian(nn,:)');
-
-    dH = [];
-
-    % The change in information content from the model a priori for each channel
-    dH = 1/2 * (log2(model_cov) - log2(posterior_cov_perChannel_above_apriori));
-
-    % Let's grab just the main diagonal components and take the square root
-    H_above_aPriori(:, nn) = sqrt(diag(dH));
-
-end
+% H_above_aPriori = zeros(num_parameters, num_bands);
+% 
+% for nn = 1:num_bands
+% 
+%     posterior_cov_perChannel_above_apriori = [];
+% 
+%     % The retrieval covariance using only the model covaraince
+%     posterior_cov_perChannel_above_apriori = model_cov - (model_cov * Jacobian(nn,:)')*(model_cov * Jacobian(nn,:)')' /...
+%         (1 + (model_cov * Jacobian(nn,:)')' * Jacobian(nn,:)');
+% 
+%     dH = [];
+% 
+%     % The change in information content from the model a priori for each channel
+%     dH = 1/2 * (log2(model_cov) - log2(posterior_cov_perChannel_above_apriori));
+% 
+%     % Let's grab just the main diagonal components and take the square root
+%     H_above_aPriori(:, nn) = sqrt(diag(dH));
+% 
+% end
 
 
 % -----------------------------------------------------------------------------
@@ -978,7 +980,7 @@ GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
 GN_output.posterior_cov = posterior_cov;
 GN_output.Jacobian_final = Jacobian;
-GN_output.H_above_aPriori = H_above_aPriori;
+% GN_output.H_above_aPriori = H_above_aPriori;
 
 
 
