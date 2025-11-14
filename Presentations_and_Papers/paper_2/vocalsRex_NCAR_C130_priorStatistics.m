@@ -1203,7 +1203,8 @@ end
 combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 
 save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-    'prior_cov_lin', 're_top_sample', 're_bot_sample', 'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+    'prior_cov_lin', 'prior_cov_log', 're_top_sample', 're_bot_sample',...
+    'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
 
 
 %% Clear variables
