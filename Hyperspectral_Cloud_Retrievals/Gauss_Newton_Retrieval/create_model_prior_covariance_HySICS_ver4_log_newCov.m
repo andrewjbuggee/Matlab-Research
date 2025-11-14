@@ -35,7 +35,8 @@ if strcmp(GN_inputs.which_computer, 'anbu8374')==true
 
 elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
 
-    error(['no stats'])
+    prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_14-Nov-2025.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'curc')==true
 
