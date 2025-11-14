@@ -168,7 +168,7 @@ if print_status_updates==true
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
-        Jacobian = compute_jacobian_HySICS_ver2(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        Jacobian = compute_jacobian_HySICS_ver4_logState(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -250,7 +250,7 @@ if print_status_updates==true
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             disp([newline, 'Estimating spectral measurements...', newline])
-            new_measurement_estimate = compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths);
+            new_measurement_estimate = log(compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths));
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
@@ -312,8 +312,8 @@ if print_status_updates==true
                         constrained_guesses(2,mm)>0 && constrained_guesses(2,mm)<log(25)
 
                     disp([newline, 'Estimating spectral measurements...', newline])
-                    constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
-                        GN_inputs, spec_response, folder_paths);
+                    constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
+                        GN_inputs, spec_response, folder_paths));
 
                 else
 
@@ -501,7 +501,8 @@ else
             % current state vector guess?'
 
             % For the retrieval of r_top, r_bot, tau_c, cwv
-            measurement_estimate_ln = compute_forward_model_HySICS_ver2(current_guess, GN_inputs, spec_response, folder_paths);
+            measurement_estimate_ln = log(compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response,...
+                folder_paths));
 
 
             % compute residual, rss residual, the difference between the
@@ -520,7 +521,7 @@ else
 
         % **** compute the jacobian ****
         % For the retrieval of r_top, r_bot, tau_c, cwv
-        Jacobian = compute_jacobian_HySICS_ver2(current_guess, measurement_estimate_ln, GN_inputs,...
+        Jacobian = compute_jacobian_HySICS_ver4_logState(current_guess, measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -595,7 +596,8 @@ else
 
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths);
+            new_measurement_estimate = log(compute_forward_model_HySICS_ver2(exp(new_guess), GN_inputs, spec_response,...
+                folder_paths));
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
@@ -654,8 +656,8 @@ else
                 if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
                         constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
 
-                    constrained_measurement_estimate(:,mm)= compute_forward_model_HySICS_ver2(constrained_guesses(:,mm),...
-                        GN_inputs, spec_response, folder_paths);
+                    constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
+                        GN_inputs, spec_response, folder_paths));
 
                 else
 
@@ -822,7 +824,7 @@ retrieval = exp(retrieval);
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS_ver2(exp(retrieval(:,end)), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_ver4_logState(exp(retrieval(:,end)), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
@@ -899,12 +901,12 @@ meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,.
 
 % lastly, we need the Jacobian of the difference between the retrieved
 % state vector and the state vector 1 standard deviation away
-Jacobian_plus_1sigma = compute_jacobian_HySICS_ver2(state_vec_plus_1sigma,...
+Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(state_vec_plus_1sigma,...
     meas_est_plus_1sigma, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
-Jacobian_plus_1sigma = compute_jacobian_HySICS_ver2(sqrt(diag(posterior_cov)),...
+Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(sqrt(diag(posterior_cov)),...
     meas_est_plus_1sigma, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 

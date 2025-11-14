@@ -8,17 +8,18 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian = compute_jacobian_HySICS_ver4_logState(state_vector, measurement_estimate, GN_inputs,...
+function jacobian_ln = compute_jacobian_HySICS_ver4_logState(state_vector, measurement_estimate, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
-
+% convert the measurement back to linear space
+meas_est_linear = exp(measurement_estimate);
 
 % Define the measurement variance for the current pixel
 measurement_variance_ln = GN_inputs.measurement.variance;
 
 % define the measurement uncertainty
-measurement_uncert_ln = GN_inputs.measurement.uncertainty(1)*100;  % percent 
+measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
 
 
 % --- compute the Jacobian at out current estimate ---
@@ -65,7 +66,7 @@ num_state_variables = length(state_vector);
 
 % Define the fractional change the represents the partial derivative based
 % on the measurement uncertainty. Define the change for each variable.
-partial_diff_change = measurement_uncert_ln.*[1/20, 1/5.7143, 1/20, 1/20];
+partial_diff_change = measurement_uncert.*[1/20, 1/5.7143, 1/20, 1/20];
 % below better for computing information content?
 % change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c, 0.2*wv_col_aboveCloud];
 % below better for retrieval
@@ -259,16 +260,20 @@ end
 % We transform the variables using a = ln(x). The jacobian is transormed
 % from dF(x)/dx to dF(x(a))/da = d'F(x(a))/dx * dx/da
 % Which equals d'F(x(a))/dx * x
+% ** Use equation 6.61 from Rodgers (2000). This is the same as equation C3
+% from Dubovik and King (2000). This shows that the jacobian in log space
+% is: dLog(F)/dLog(x) = K x/F
 
 % Compute the change in the measurement and the jacobian matrix
 change_in_measurement = reshape(new_measurement_estimate, num_wl, num_state_variables) - ...
-    repmat(measurement_estimate, 1, num_state_variables);
+    repmat(meas_est_linear, 1, num_state_variables);
 
-jacobian = change_in_measurement./repmat(change_in_state,num_wl,1);
+dF_dx = change_in_measurement./repmat(change_in_state,num_wl,1);
+jacobian_ln = dF_dx .* (repmat(state_vector', num_wl, 1) ./ repmat(meas_est_linear, 1, num_state_variables));
 
 % ----- Check to see if there are any NaN values in the Jacobian Matrix -----
 
-if any(isnan(jacobian))==true
+if any(isnan(jacobian_ln))==true
 
     error([newline, 'There are NaN values in the Jacobian matrix.', newline])
 end
