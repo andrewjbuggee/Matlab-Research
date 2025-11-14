@@ -88,26 +88,21 @@ if folder_extension_number==0
 
 
         % Define the folder path where all .INP files will be saved
-        folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/INP_OUT/'];
+        folder_paths.libRadtran_inp = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/HySICS/INP_OUT/';
 
         % mie folder location
-        folder_paths.libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
-            'libRadtran-2.0.4/Mie_Calculations/'];
+        folder_paths.libRadtran_mie_folder = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
 
 
         % libRadtran data folder
-        folder_paths.libRadtran_data = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/'];
+        folder_paths.libRadtran_data = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/';
 
 
         % water cloud file location
-        folder_paths.libRadtran_water_cloud_files = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/'];
+        folder_paths.libRadtran_water_cloud_files = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/';
 
         % libRadtran atmosphere folder location
-        folder_paths.atm_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-            'LibRadTran/libRadtran-2.0.4/data/atmmod/'];
+        folder_paths.atm_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
 
 
 
@@ -236,31 +231,27 @@ else
 
 
         % Define the folder path where all .INP files will be saved
-        folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/HySICS/INP_OUT_',...
+        folder_paths.libRadtran_inp = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/HySICS/INP_OUT_',...
                                                         num2str(folder_extension_number), '/'];
 
 
         % mie folder location
-        folder_paths.libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/',...
-            'libRadtran-2.0.4/Mie_Calculations_', num2str(folder_extension_number), '/'];
+        folder_paths.libRadtran_mie_folder = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/',...
+            'Mie_Calculations_', num2str(folder_extension_number), '/'];
 
 
 
         % libRadtran data folder
-        folder_paths.libRadtran_data = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/'];
+        folder_paths.libRadtran_data = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/';
 
 
         % water cloud file location
-        folder_paths.libRadtran_water_cloud_files = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/',...
-            'Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc_',...
+        folder_paths.libRadtran_water_cloud_files = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc_',...
                                                         num2str(folder_extension_number), '/'];
 
 
         % libRadtran atmosphere folder location
-        folder_paths.atm_folder_path = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-            'LibRadTran/libRadtran-2.0.4/data/atmmod_',...
+        folder_paths.atm_folder_path = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod_',...
                                                         num2str(folder_extension_number), '/'];
 
 

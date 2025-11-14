@@ -2,7 +2,7 @@
 % This is a function that retrieves a vertical droplet profile and the
 % integrated column water vapor amount above cloud
 
-% This script retrieves 4 variables: r_top, r_bot, tau_c, and acpw
+% This script retrieves 4 variables: ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
 
 
 % INPUTS
@@ -22,7 +22,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(filenames,...
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_logState_lowUncert(filenames,...
     folder_paths, print_status_updates, print_libRadtran_err)
 
 
@@ -176,8 +176,8 @@ for ff = 1:length(filenames)
 
     %% CREATE GAUSS-NEWTON INPUTS
 
-    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
-    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver2(simulated_measurements, print_libRadtran_err);
+    % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv)
+    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver4_logState(simulated_measurements, print_libRadtran_err);
 
     if print_status_updates==true
         disp('Dont forget to check the inputs and change if needed!!')
@@ -209,13 +209,11 @@ for ff = 1:length(filenames)
 
     use_TBLUT_estimates = true;
 
-    % Create inputs to retrieve r_top, r_bot, tau_c, acpw
-    %     GN_inputs = create_model_prior_covariance_HySICS_ver2(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
-    GN_inputs = create_model_prior_covariance_HySICS_ver2_lowUncertainty1(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
-    %     GN_inputs = create_model_prior_covariance_HySICS_ver2_highUncertainty1(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+    % Create inputs to retrieve log(r_top), log(r_bot), log(tau_c), log(cwv)
+    GN_inputs = create_model_prior_covariance_HySICS_ver4_logState_lowUncert(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
-
-    GN_inputs = create_HySICS_measurement_covariance(GN_inputs, simulated_measurements);
+    % *** transform the measurements to log space ***
+    GN_inputs = create_HySICS_measurement_covariance_ver4_logState(GN_inputs, simulated_measurements);
 
 
     %% CALCULATE RETRIEVAL PARAMETERS
@@ -225,7 +223,7 @@ for ff = 1:length(filenames)
     % --------------------------------------------------------------
     % ---------------- Retrieve Vertical Profile! ------------------
     % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver2(GN_inputs, simulated_measurements, folder_paths, print_status_updates);
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_logState(GN_inputs, simulated_measurements, folder_paths, print_status_updates);
     % --------------------------------------------------------------
     % --------------------------------------------------------------
 

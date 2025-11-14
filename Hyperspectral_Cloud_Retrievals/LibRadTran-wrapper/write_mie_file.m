@@ -52,7 +52,7 @@
 %       the calculation.
 
 
-%   (7) index - a value to append at the end of the file name so that no
+%   (7) index1 - a value to append at the end of the file name so that no
 %   two filenames are the same while parallel computing is going on
 
 %   (8) indexRadius - a value to append at the end of the file name so that no
