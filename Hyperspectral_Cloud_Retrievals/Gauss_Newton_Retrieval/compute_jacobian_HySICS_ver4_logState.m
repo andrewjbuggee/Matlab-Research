@@ -8,17 +8,17 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian_ln = compute_jacobian_HySICS_ver4_logState(state_vector, measurement_estimate, GN_inputs,...
+function jacobian_ln = compute_jacobian_HySICS_ver4_logState(state_vector, measurement_estimate_ln, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
 % convert the measurement back to linear space
-meas_est_linear = exp(measurement_estimate);
+meas_est_linear = exp(measurement_estimate_ln);
 
 % Define the measurement variance for the current pixel
-measurement_variance_ln = GN_inputs.measurement.variance;
+measurement_variance = GN_inputs.measurement.variance_noLog;
 
-% define the measurement uncertainty
+% define the measurement uncertainty in linear space
 measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
 
 
@@ -76,7 +76,7 @@ change_in_state = partial_diff_change.* [r_top, r_bottom, tau_c, wv_col_aboveClo
 
 % ----------------------------------------------------------------
 
-% each column is a unique state vector with once variable being adjusted
+% each column is a unique state vector with one variable being adjusted
 state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(change_in_state);
 
 % ----------------------------------------------------------
@@ -257,9 +257,9 @@ end
 
 
 % *** When transforming to the variables to log space... ***
-% We transform the variables using a = ln(x). The jacobian is transormed
-% from dF(x)/dx to dF(x(a))/da = d'F(x(a))/dx * dx/da
-% Which equals d'F(x(a))/dx * x
+% We transform the variables using x' = ln(x) and y' = ln(y)
+% The jacobian is now: dy'/dx' = dln(y)/dln(x). This becomes
+% dy'/dx' = K' = dy/dx * x/y = K * (x/y)
 % ** Use equation 6.61 from Rodgers (2000). This is the same as equation C3
 % from Dubovik and King (2000). This shows that the jacobian in log space
 % is: dLog(F)/dLog(x) = K x/F

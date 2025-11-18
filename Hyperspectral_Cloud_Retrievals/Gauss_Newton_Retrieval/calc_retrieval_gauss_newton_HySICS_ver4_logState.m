@@ -5,16 +5,17 @@ function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_logSta
 
 
 % ----- unpack inputs -----
-
+% ** 4 variables below should be in log space **
 model_apriori = GN_inputs.model.apriori'; % a priori expected values for the model parameters
 model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
-% Retrieve the convergence limit
+% Retrieve the convergence limit ** This is in linear space! **
 convergence_limit = GN_inputs.convergence_limit;
 
 % retrieve the percent limit change between successive iterations
+% ** check this in linear space **
 percent_change_limit = GN_inputs.percent_change_limit;
 
 % Create the measurement vectors for each pixel!
@@ -31,7 +32,7 @@ measurements_ln = log(hysics.Refl_model); % column vector of the reflectance mea
 
 % set the maximum scalar value used to create a set of scalar values that
 % will be multiplied along the direction of greatest change
-a_largestVal = 3;
+a_largestVal = 4;
 
 % if trying to have specific values, like a=1, use a step size
 a_stepSize = 0.333;
@@ -148,14 +149,14 @@ if print_status_updates==true
             disp([newline, 'Estimating spectral measurements...', newline])
             measurement_estimate_ln = log(compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response, folder_paths));
 
-            
+
 
 
             % compute residual, rss residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
             residual(:,ii) = measurements_ln - measurement_estimate_ln;
-            rss_residual(ii) = sqrt(sum(residual(:,ii).^2));
+            rss_residual(ii) = sqrt(sum( ( exp(measurements_ln) - exp(measurement_estimate_ln)).^2));
 
         else
 
@@ -193,7 +194,7 @@ if print_status_updates==true
         % where the variable is bounded: l<x1<u
         % we want to compute the maximum non-negative feasible step within
         % our bounds
-        % a = linspace(0, 20, 2000);
+        % ** In log space, we need a larger maximum a value ** ??
         a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
@@ -205,9 +206,9 @@ if print_status_updates==true
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
             constrained_guesses(1,:)<=log(25) & ...
-            constrained_guesses(2,:)>0   & ...
-            constrained_guesses(3,:)>0   & ...
-            constrained_guesses(4,:)>0));
+            constrained_guesses(2,:)>log(1e-5)   & ...
+            constrained_guesses(3,:)>log(1e-5)   & ...
+            constrained_guesses(4,:)>log(1e-5)));
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
@@ -227,7 +228,7 @@ if print_status_updates==true
 
             disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
                 'Trying a different inital guess...', newline])
-            
+
             % Check to see if both guesses are 3.5, the lower limit of our
             % lookup table
             if current_guess(1)==3.5 && current_guess(2)==3.5
@@ -239,7 +240,7 @@ if print_status_updates==true
                 new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3), current_guess(4)];
 
             end
-    
+
             disp([newline, 'Initial guess was: r_t = ', num2str(current_guess(1)),...
                 '  r_b = ', num2str(current_guess(2)), '  Tau_c = ', num2str(current_guess(3)),...
                 '  acpw = ', num2str(current_guess(4)), newline])
@@ -280,7 +281,7 @@ if print_status_updates==true
 
             disp([newline, 'Computing new direction using predefined constraints...', newline])
 
-            
+
             % Set the a vector to values between 0 and some fraction of the max a
             a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
             if max_a>1
@@ -308,8 +309,8 @@ if print_status_updates==true
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>0 && constrained_guesses(1,mm)<log(25) && ...
-                        constrained_guesses(2,mm)>0 && constrained_guesses(2,mm)<log(25)
+                if constrained_guesses(1,mm)>log(1e-5) && constrained_guesses(1,mm)<log(25) && ...
+                        constrained_guesses(2,mm)>log(1e-5) && constrained_guesses(2,mm)<log(25)
 
                     disp([newline, 'Estimating spectral measurements...', newline])
                     constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
@@ -323,7 +324,9 @@ if print_status_updates==true
             end
 
             % compute the rss_residual for the constrained state vector
-            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements_ln, 1, length(a))).^2, 1));
+            % This needs to be computed in linear space!
+            rss_residual_constrained = sqrt(sum( (exp(constrained_measurement_estimate) -...
+                repmat(hysics.Refl_model, 1, length(a))).^2, 1));
             % find the smallest rss residual that is less than the previus
             % itereates rss residual
             [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
@@ -351,7 +354,7 @@ if print_status_updates==true
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
-            rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
+            rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
             new_guess = constrained_guesses(:, min_residual_idx);
 
 
@@ -477,7 +480,7 @@ if print_status_updates==true
 
 
 else
-    
+
     % ---------------------------------------------
     % Dont print any messages to the command window
     % ---------------------------------------------
@@ -500,16 +503,18 @@ else
             % Therefore, we ask, 'what is the reflectance of a cloud with our
             % current state vector guess?'
 
-            % For the retrieval of r_top, r_bot, tau_c, cwv
-            measurement_estimate_ln = log(compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response,...
-                folder_paths));
+            % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
+            % *** Take the logarithm of the measurement estimate ***
+            measurement_estimate_ln = log(compute_forward_model_HySICS_ver2(exp(current_guess), GN_inputs, spec_response, folder_paths));
+
+
 
 
             % compute residual, rss residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
             % the difference between the current guess and the prior
             residual(:,ii) = measurements_ln - measurement_estimate_ln;
-            rss_residual(ii) = sqrt(sum(residual(:,ii).^2));
+            rss_residual(ii) = sqrt(sum( ( exp(measurements_ln) - exp(measurement_estimate_ln)).^2));
 
         else
 
@@ -520,8 +525,8 @@ else
 
 
         % **** compute the jacobian ****
-        % For the retrieval of r_top, r_bot, tau_c, cwv
-        Jacobian = compute_jacobian_HySICS_ver4_logState(current_guess, measurement_estimate_ln, GN_inputs,...
+        % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
+        Jacobian = compute_jacobian_HySICS_ver4_logState(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -546,6 +551,7 @@ else
         % where the variable is bounded: l<x1<u
         % we want to compute the maximum non-negative feasible step within
         % our bounds
+        % ** In log space, we need a larger maximum a value ** ??
         a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
@@ -556,10 +562,10 @@ else
         % is the value of the second row.
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=30 & ...
-            constrained_guesses(2,:)>0   & ...
-            constrained_guesses(3,:)>0   & ...
-            constrained_guesses(4,:)>0));
+            constrained_guesses(1,:)<=log(25) & ...
+            constrained_guesses(2,:)>log(1e-5)   & ...
+            constrained_guesses(3,:)>log(1e-5)   & ...
+            constrained_guesses(4,:)>log(1e-5)));
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
@@ -579,7 +585,6 @@ else
 
 
 
-            
             % Check to see if both guesses are 3.5, the lower limit of our
             % lookup table
             if current_guess(1)==3.5 && current_guess(2)==3.5
@@ -596,8 +601,7 @@ else
 
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = log(compute_forward_model_HySICS_ver2(exp(new_guess), GN_inputs, spec_response,...
-                folder_paths));
+            new_measurement_estimate = log(compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths));
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
@@ -607,7 +611,6 @@ else
             % in this case, the only direction the algorithm finds is one
             % that forces the profile to be non-adiabatic. Let's break the
             % loop at this point
-
 
 
 
@@ -653,8 +656,8 @@ else
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>1 && constrained_guesses(1,mm)<25 && ...
-                        constrained_guesses(2,mm)>1 && constrained_guesses(2,mm)<25
+                if constrained_guesses(1,mm)>log(1e-5) && constrained_guesses(1,mm)<log(25) && ...
+                        constrained_guesses(2,mm)>log(1e-5) && constrained_guesses(2,mm)<log(25)
 
                     constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
                         GN_inputs, spec_response, folder_paths));
@@ -667,13 +670,15 @@ else
             end
 
             % compute the rss_residual for the constrained state vector
-            rss_residual_constrained = sqrt(sum((constrained_measurement_estimate - repmat(measurements_ln, 1, length(a))).^2, 1));
+            % This needs to be computed in linear space!
+            rss_residual_constrained = sqrt(sum( (exp(constrained_measurement_estimate) -...
+                repmat(hysics.Refl_model, 1, length(a))).^2, 1));
             % find the smallest rss residual that is less than the previus
             % itereates rss residual
             [min_val_lessThanPrevious, ~] = min(rss_residual_constrained(rss_residual_constrained < rss_residual(ii)));
 
             % Check to see if all rss_residuals are greater than the
-            % previous iterate
+            % previous iteration
             if isempty(min_val_lessThanPrevious)
 
                 % If no rss_residual is less than the previous iterate,
@@ -695,7 +700,7 @@ else
             % residual
             new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
-            rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
+            rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
             new_guess = constrained_guesses(:, min_residual_idx);
 
 
@@ -721,13 +726,13 @@ else
         if new_guess(1)>log(25)
             new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
         elseif new_guess(1)<log(3.5)
-            new_guess(1) = log(4); % microns
+            new_guess(1) = log(3.5); % microns
         end
 
         if new_guess(2)>log(25)
             new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
         elseif new_guess(2)<log(3.5)
-            new_guess(2) = log(4); % microns
+            new_guess(2) = log(3.5); % microns
         end
 
 
@@ -739,7 +744,6 @@ else
 
 
         if rss_residual(ii+1)<convergence_limit
-
 
 
             % Clear the rest of the zeros that are place holders for later
@@ -781,6 +785,10 @@ else
 
             if abs(rss_residual(ii+1) - rss_residual(ii))/rss_residual(ii)<percent_change_limit
 
+                disp([newline, 'RSS residual has plataued. The current value differs from the previous value by less than ',...
+                    num2str(100*percent_change_limit), '%', newline,...
+                    'RSS Limit = ', num2str(convergence_limit),newline,...
+                    'Lowest value was: ','RSS = ', num2str(rss_residual(ii+1))])
 
                 % Clear the rest of the zeros that are place holders for later
                 % iterations
@@ -799,6 +807,7 @@ else
 
 
     end
+
 
 
 end
@@ -896,24 +905,24 @@ end
 % retrieved state
 % state_vec_plus_1sigma = retrieval(:,end) + sqrt(diag(posterior_cov));
 % state_vec_minus_1sigma = retrieval(:,end) - sqrt(diag(posterior_cov));
-% 
+%
 % % compute the measurement estimate for this state vector
 % meas_est_plus_1sigma = compute_forward_model_HySICS_ver2(state_vec_plus_1sigma,...
 %                         GN_inputs, spec_response, folder_paths);
-% 
+%
 % % lastly, we need the Jacobian of the difference between the retrieved
 % % state vector and the state vector 1 standard deviation away
 % Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(state_vec_plus_1sigma,...
 %     meas_est_plus_1sigma, GN_inputs,...
 %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
-% 
-% 
+%
+%
 % Jacobian_plus_1sigma = compute_jacobian_HySICS_ver4_logState(sqrt(diag(posterior_cov)),...
 %     meas_est_plus_1sigma, GN_inputs,...
 %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
-% 
+%
 % % nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - Jacobian_plus_1sigma);
-% 
+%
 % nonLin_degree = (new_measurement_estimate - meas_est_plus_1sigma - (Jacobian_plus_1sigma - Jacobian_plus_1sigma));
 
 
@@ -927,23 +936,23 @@ end
 
 
 % H_above_aPriori = zeros(num_parameters, num_bands);
-% 
+%
 % for nn = 1:num_bands
-% 
+%
 %     posterior_cov_perChannel_above_apriori = [];
-% 
+%
 %     % The retrieval covariance using only the model covaraince
 %     posterior_cov_perChannel_above_apriori = model_cov - (model_cov * Jacobian(nn,:)')*(model_cov * Jacobian(nn,:)')' /...
 %         (1 + (model_cov * Jacobian(nn,:)')' * Jacobian(nn,:)');
-% 
+%
 %     dH = [];
-% 
+%
 %     % The change in information content from the model a priori for each channel
 %     dH = 1/2 * (log2(model_cov) - log2(posterior_cov_perChannel_above_apriori));
-% 
+%
 %     % Let's grab just the main diagonal components and take the square root
 %     H_above_aPriori(:, nn) = sqrt(diag(dH));
-% 
+%
 % end
 
 

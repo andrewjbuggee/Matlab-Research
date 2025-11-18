@@ -61,7 +61,8 @@ if use_TBLUT_estimates==true
     % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = log([1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau, acpw.min_interpolated]);
+    GN_inputs.model.apriori_noLog = [1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau, acpw.min_interpolated];
+    GN_inputs.model.apriori = log(GN_inputs.model.apriori_noLog);
 
 
     % The first two values are the standard deviation of the effective
@@ -113,15 +114,52 @@ if use_TBLUT_estimates==true
     colWaterVapor_uncert = 0.05;
 
 
+    % To create the covaraince in log-space, which is the covariance of the
+    % log of the prior data, let's generate fake log-normally distributed
+    % data with the mean and variance in linear space
+    % --- define the mean ---
+    % m_rTop = GN_inputs.model.apriori(1);
+    % m_rBot = GN_inputs.model.apriori(2);
+    % m_tauC = GN_inputs.model.apriori(3);
+    % m_acpw = GN_inputs.model.apriori(4);
+    % 
+    % % --- define the variance ---
+    % v_rTop = (GN_inputs.model.apriori_noLog(1) * rTop_uncert)^2;
+    % v_rBot = (GN_inputs.model.apriori_noLog(2) * rBot_uncert)^2;
+    % v_tauC = (GN_inputs.model.apriori_noLog(3) * optThick_uncert)^2;
+    % v_acpw = (GN_inputs.model.apriori_noLo(4) * colWaterVapor_uncert)^2;
+    % 
+    % 
+    % % Create distributions
+    % % Compute the lognormal distribution parameters mu and sigma
+    % mu_rTop = log((m_rTop^2)/sqrt(v_rTop + m_rTop^2));
+    % mu_rBot = log((m_rBot^2)/sqrt(v_rBot + m_rBot^2));
+    % mu_tauC = log((m_tauC^2)/sqrt(v_tauC + m_tauC^2));
+    % mu_acpw = log((m_acpw^2)/sqrt(v_acpw + m_acpw^2));
+    % 
+    % sigma_rTop = sqrt(log(v_rTop / (m_rTop^2)+1));
+    % sigma_rBot = sqrt(log(v_rBot / (m_rBot^2)+1));
+    % sigma_tauC = sqrt(log(v_tauC / (m_tauC^2)+1));
+    % sigma_acpw = sqrt(log(v_acpw / (m_acpw^2)+1));
+    % 
+    % 
+    % % sample from each distribution
+    % samples_rTop = lognrnd(mu_rTop,sigma_rTop);
+    % samples_rBot = lognrnd(mu_rBot,sigma_rBot);
+    % samples_acpw = lognrnd(mu_acpw,sigma_acpw);
+    % samples_acpw = lognrnd(mu_acpw,sigma_acpw);
+
+
 
     % *** TESTING NEW UNCERTAINTY ***
-    stdev_variables = [GN_inputs.model.apriori(1) * rTop_uncert, ...
-        GN_inputs.model.apriori(2) * rBot_uncert,...
-        GN_inputs.model.apriori(3) * optThick_uncert,...
-        GN_inputs.model.apriori(4) * colWaterVapor_uncert];
+    % stdev_variables = [GN_inputs.model.apriori_noLog(1) * rTop_uncert, ...
+    %     GN_inputs.model.apriori_noLog(2) * rBot_uncert,...
+    %     GN_inputs.model.apriori_noLog(3) * optThick_uncert,...
+    %     GN_inputs.model.apriori_noLog(4) * colWaterVapor_uncert];
 
     % variance for the effective radius (microns squared) and optical thickness respectively
-    GN_inputs.model.variance = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2, stdev_variables(4)^2];
+    % *** In log-space, this is var(log(x)), the variance of the log of x ***
+    % GN_inputs.model.variance_noLog = [stdev_variables(1)^2, stdev_variables(2)^2, stdev_variables(3)^2, stdev_variables(4)^2];
 
 
 
@@ -129,7 +167,7 @@ if use_TBLUT_estimates==true
     % ----------- Set the Initial guess  ----------------
     %----------------------------------------------------
 
-    % Define teh initial guess as the a priori value
+    % Define the initial guess as the a priori value
     GN_inputs.model.initialGuess = GN_inputs.model.apriori;
 
 
@@ -139,7 +177,21 @@ if use_TBLUT_estimates==true
     %----------------------------------------------------------
 
     % For now lets claim the desired variables are independent
-    GN_inputs.model.covariance = diag(GN_inputs.model.variance);
+    % GN_inputs.model.covariance_noLog = diag(GN_inputs.model.variance_noLog);
+    % 
+    % % To avoid values of -infinity, set the zeros to some small non-zero
+    % % value
+    % GN_inputs.model.covariance_noLog(GN_inputs.model.covariance_noLog==0) = 1e-10;
+    % 
+    % % Define the covariance of the log of the prior
+    % GN_inputs.model.covariance = log(GN_inputs.model.covariance_noLog);
+
+
+
+    % *** Build covariance based on a priori stats ***
+    % But set off diagonal values to 0
+    GN_inputs.model.covariance = diag([0.0427, 0.1034, 0.5439, 0.4374]);
+
 
 
 

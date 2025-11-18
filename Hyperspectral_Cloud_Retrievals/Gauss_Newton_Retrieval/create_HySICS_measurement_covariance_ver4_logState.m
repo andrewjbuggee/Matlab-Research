@@ -9,9 +9,6 @@ function [GN_inputs] = create_HySICS_measurement_covariance_ver4_logState(GN_inp
 
 covariance_type = GN_inputs.measurement.covariance_type;
 
-% *** transform the measurements to log space ***
-measurements_ln = log(simulated_measurements.Refl_model);
-
 
 % ---**--- Important Quantity ---**---
 % According To "VALIDATION OF MODIS-DERIVED TOP-OF-ATMOSPHERE SPECTRAL RADIANCES BY MEANS OF VICARIOUS CALIBRATION"
@@ -72,7 +69,34 @@ elseif strcmp(covariance_type,'independent') == true
         length(GN_inputs.bands2run))';        % fraction
 
 
-    GN_inputs.measurement.rss_uncert = sqrt(sum( (measurements_ln.* GN_inputs.measurement.uncertainty).^2))';   % 1/sr - reflectance
+    % *** For computing the covariance of the logarithm of the measurements ***
+    % Assume each spectral channel is follows a gaussian distribution with
+    % the mean value as the measurement and the standard deviation as the
+    % total uncertainty.
+    % create a set of synthetic measurements for each channel
+    % Take the log of these and compute the variance
+    % The main diagonal is var(log(y))
+    n_samples = 10000;
+    measurement_samples_synthetic = zeros(n_samples, length(simulated_measurements.Refl_model));
+    for nn = 1:length(simulated_measurements.Refl_model)
+
+        measurement_samples_synthetic(:,nn) = (GN_inputs.measurement.uncertainty(nn) .* randn(n_samples, 1)) +...
+            simulated_measurements.Refl_model(nn);
+
+    end
+
+
+
+
+    % Compute the uncertainty of each spectral measurement in linear space
+    % first
+    meas_uncertainty_absolute = simulated_measurements.Refl_model .* GN_inputs.measurement.uncertainty;
+
+    % Does it make sense to compute the root-sum-square uncertainty using
+    % the measurements in log space? Values less than 1 approach 1 infinity
+    % when you take the log. So, smaller absolute unceratinties leads to a
+    % larger RSS uncert. Let's keep this in linear space
+    GN_inputs.measurement.rss_uncert_linear = sqrt(sum( (meas_uncertainty_absolute ).^2));   % 1/sr - reflectance
 
 
 
@@ -81,15 +105,23 @@ elseif strcmp(covariance_type,'independent') == true
     % diagonal correspond to the square of the uncertainty estimate for
     % each wavelength channel'
 
-    GN_inputs.measurement.variance = (measurements_ln.* GN_inputs.measurement.uncertainty).^2;     % 1/sr^2 - reflectance squared
+    GN_inputs.measurement.variance_noLog = var(measurement_samples_synthetic, [], 1);     % 1/sr^2 - reflectance squared
 
 
 
 
     % Create a diagonal matrix where each entry is the variance of that
     % spectral channel for reflectance measurements
-    GN_inputs.measurement.covariance = diag(GN_inputs.measurement.variance);
+    GN_inputs.measurement.covariance_noLog = diag(GN_inputs.measurement.variance_noLog);
 
+    % % To avoid values of -infinity, set the zeros to some small non-zero
+    % % value
+    % GN_inputs.measurement.covariance_noLog(GN_inputs.measurement.covariance_noLog==0) = 1e-10;
+    % 
+    % % Define the covariance of the log of the prior
+    % GN_inputs.measurement.covariance = log(GN_inputs.measurement.covariance_noLog);
+
+    GN_inputs.measurement.covariance = diag(var(log(measurement_samples_synthetic),[], 1));
 
 
 
@@ -110,7 +142,7 @@ end
 
 % the convergence limit should be the RSS of the measurement uncertainty,
 % in units of reflectance!
-GN_inputs.convergence_limit = sqrt(sum((measurements_ln .* GN_inputs.measurement.uncertainty).^2));           % 1/sr - Root-sum-square of the reflectance uncertainty
+GN_inputs.convergence_limit = GN_inputs.measurement.rss_uncert_linear;           % 1/sr - Root-sum-square of the reflectance uncertainty
 %GN_inputs.convergence_limit = linspace(0.01, 0.01, length(pixels2use.res1km.linearIndex));  % generic convergence limit
 
 
