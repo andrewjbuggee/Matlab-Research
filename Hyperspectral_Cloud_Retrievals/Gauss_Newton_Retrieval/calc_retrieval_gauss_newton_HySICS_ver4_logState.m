@@ -11,6 +11,10 @@ model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
+% Grab the model and measurement covariances in linear space
+model_cov_lin = GN_inputs.model.covariance_lin; % model parameter covariance matrix
+measurement_cov_lin = GN_inputs.measurement.covariance_lin; % measurement covaraince matrix
+
 % Retrieve the convergence limit ** This is in linear space! **
 convergence_limit = GN_inputs.convergence_limit;
 
@@ -827,19 +831,41 @@ retrieval = exp(retrieval);
 
 
 
-
+% ---------------------------------------------------------------------
 % ----------------- COMPUTE THE POSTERIOR COVARIANCE ------------------
+% ---------------------------------------------------------------------
 % once convergence has occured, we can compute the posterior covariance
 % matrix
 
+% ------------------------
+% ---- In linear space ---
+% ------------------------
+% Let's compute the Jacobian in linear space for the posterior matrix
+Jacobian_lin = compute_jacobian_HySICS_ver2(retrieval(:,end), exp(new_measurement_estimate), GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+% compute the posterior in linear space
+posterior_cov_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1);
+
+
+% compute the averaging kernel
+A = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1) *...
+    Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin;
+
+% Grab the linear measurement and model covariance
+
+% ---------------------
+% ---- In log space ---
+% ---------------------
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % How do I treat the posterior covariance matrix in log space? Do I simply
 % take the exponential of the covariance matrix?
-posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
-
+posterior_cov_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
+% ---------------------------------------------------------------------
+% ---------------------------------------------------------------------
 
 
 
@@ -889,6 +915,20 @@ else
 
 end
 % -------------------------------------------------------------------
+
+
+
+
+% ------------------------------------------------------------
+% -------- Compute the degrees of freedom for signal ---------
+% ------------------------------------------------------------
+% dof_signal = trace(posterior_cov_lin * model_cov_lin^(-1));
+dof_signal = trace(A);
+
+
+% Compute the shannon information content
+H = -1/2 * log(eye(num_parameters) - A);
+
 
 
 
@@ -981,15 +1021,19 @@ absDiff_stateVec = [abs((GN_inputs.measurement.r_top - retrieval(1,end))),...
 % ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
+GN_output.new_measurement_estimate = new_measurement_estimate;
 GN_output.residual = residual;
 GN_output.rss_residual = rss_residual;
 GN_output.percentDiff_abs = percentDiff_abs;
 GN_output.absDiff = absDiff_stateVec;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
-GN_output.posterior_cov = posterior_cov;
-GN_output.Jacobian_final = Jacobian;
+GN_output.posterior_cov = posterior_cov_lin;
+GN_output.Jacobian_final_lin = Jacobian_lin;
+GN_output.Jacobian_final_log = Jacobian_log;
 % GN_output.H_above_aPriori = H_above_aPriori;
+GN_output.infoContent = H;
+GN_output.dof_signal = dof_signal;
 
 
 

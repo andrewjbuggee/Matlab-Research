@@ -18,9 +18,9 @@ which_computer = folder_paths.which_computer;
 
 %% Would you like to print status updates and/or the libRadtran error file?
 
-print_status_updates = true;
+print_status_updates = false;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 
 %% LOAD SIMULATED HYSICS DATA

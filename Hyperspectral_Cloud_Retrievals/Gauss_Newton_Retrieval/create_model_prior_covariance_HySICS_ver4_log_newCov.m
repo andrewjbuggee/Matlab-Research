@@ -161,6 +161,9 @@ if use_TBLUT_estimates==true
     % For now lets claim the desired variables are independent
     GN_inputs.model.covariance = prior_stats.prior_cov_log;
 
+    % For now lets claim the desired variables are independent
+    GN_inputs.model.covariance_lin = prior_stats.prior_cov_lin;
+
 
     %----------------------------------------------------
     % ------ Define the Variance of each Variable  ------

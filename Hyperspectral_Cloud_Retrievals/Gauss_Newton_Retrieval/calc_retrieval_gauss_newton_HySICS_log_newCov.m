@@ -62,7 +62,7 @@ num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve
 
 % ----- define number of spectral bands to use -----
 % If a measurement vector has a nan value, ignore this spectral channel
-num_bands = length(measurements);
+num_bands = length(hysics.Refl_model);
 
 
 % define the spectral response function
@@ -819,7 +819,7 @@ retrieval = exp(retrieval);
 % matrix
 
 % we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian = compute_jacobian_HySICS_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths);
 
 posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
@@ -945,8 +945,7 @@ end
 
 percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN_inputs.measurement.r_top),...
     abs((GN_inputs.measurement.r_bot - retrieval(2,end))/GN_inputs.measurement.r_bot),...
-    abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c),...
-    abs((GN_inputs.measurement.actpw - retrieval(4,end))/GN_inputs.measurement.actpw)]';
+    abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c)]';
 
 
 
@@ -956,8 +955,7 @@ percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN
 
 absDiff_stateVec = [abs((GN_inputs.measurement.r_top - retrieval(1,end))),...
     abs((GN_inputs.measurement.r_bot - retrieval(2,end))),...
-    abs((GN_inputs.measurement.tau_c - retrieval(3,end))),...
-    abs((GN_inputs.measurement.actpw - retrieval(4,end)))]';
+    abs((GN_inputs.measurement.tau_c - retrieval(3,end)))]';
 
 
 

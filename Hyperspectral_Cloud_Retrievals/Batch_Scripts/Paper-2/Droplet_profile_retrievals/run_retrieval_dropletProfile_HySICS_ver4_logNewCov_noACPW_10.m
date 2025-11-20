@@ -214,7 +214,7 @@ for ff = 1:length(filenames)
 
     %% CREATE GAUSS-NEWTON INPUTS
 
-    % Create inputs to retrieve r_top, r_bot, tau_c, cwv
+    % Create inputs to retrieve r_top, r_bot, tau_c
     GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS(simulated_measurements, print_libRadtran_err);
 
     if print_status_updates==true
