@@ -849,7 +849,7 @@ posterior_cov_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) +
 
 
 % compute the averaging kernel
-A = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1) *...
+A_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1) *...
     Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin;
 
 % Grab the linear measurement and model covariance
@@ -864,6 +864,10 @@ Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measu
 % How do I treat the posterior covariance matrix in log space? Do I simply
 % take the exponential of the covariance matrix?
 posterior_cov_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
+
+
+A_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1) *...
+    Jacobian_log' * measurement_cov^(-1) * Jacobian_log;
 % ---------------------------------------------------------------------
 % ---------------------------------------------------------------------
 
@@ -922,12 +926,18 @@ end
 % ------------------------------------------------------------
 % -------- Compute the degrees of freedom for signal ---------
 % ------------------------------------------------------------
-% dof_signal = trace(posterior_cov_lin * model_cov_lin^(-1));
-dof_signal = trace(A);
+% compute the trace (the sum of the elements along the main diagonal
+dof_signal_lin = trace(A_lin);
+dof_signal_log = trace(A_log);
+% Also keep the degrees of freedom for signal for each variable
+% These are the elements along the main diagonal of A
+dof_signal_lin_perVariable = diag(A_lin);
+dof_signal_log_perVariable = diag(A_log);
 
 
 % Compute the shannon information content
-H = -1/2 * log(eye(num_parameters) - A);
+H_lin = -1/2 * log(det(eye(num_parameters) - A_lin));      % bits
+H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
 
 
 
@@ -971,6 +981,8 @@ H = -1/2 * log(eye(num_parameters) - A);
 
 % -------------------------------------------------------------
 % ------ Compute the retrieval covariance for each channel ----
+% -------------------------------------------------------------
+
 % Which channels have the highest information content above that of the a priori?
 
 
@@ -1032,8 +1044,13 @@ GN_output.posterior_cov = posterior_cov_lin;
 GN_output.Jacobian_final_lin = Jacobian_lin;
 GN_output.Jacobian_final_log = Jacobian_log;
 % GN_output.H_above_aPriori = H_above_aPriori;
-GN_output.infoContent = H;
-GN_output.dof_signal = dof_signal;
+
+GN_output.infoContent_lin = H_lin;
+GN_output.infoContent_log = H_log;
+GN_output.dof_signal_lin = dof_signal_lin;
+GN_output.dof_signal_log = dof_signal_log;
+GN_output.dof_signal_lin_perVariable = dof_signal_lin_perVariable;
+GN_output.dof_signal_log_perVariable = dof_signal_log_perVariable;
 
 
 
