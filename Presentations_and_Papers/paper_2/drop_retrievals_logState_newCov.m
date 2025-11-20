@@ -37,7 +37,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % ---- Define where the retrievals are stored ---
-    error('Where is the folder?')
+    folder_paths.drive = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'HySICS/Droplet_profile_retrievals/paper2_variableSweep/test_logSpace_newCov/'];
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -193,7 +194,7 @@ end
 
 
 % Create a Legend with only the two black curves
-legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 10,...
+legend(lgnd_str, 'Interpreter','latex', 'Location','northwest', 'FontSize', 20,...
     'Color', 'white', 'TextColor', 'k')
 
 grid on; grid minor

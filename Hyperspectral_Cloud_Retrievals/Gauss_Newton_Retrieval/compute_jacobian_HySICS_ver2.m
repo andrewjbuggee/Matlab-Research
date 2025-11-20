@@ -14,8 +14,7 @@ function jacobian = compute_jacobian_HySICS_ver2(state_vector, measurement_estim
 
 
 
-% Define the measurement variance for the current pixel
-measurement_variance = GN_inputs.measurement.variance;
+
 
 % define the measurement uncertainty
 measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
@@ -274,6 +273,9 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
+
+    % Define the measurement variance for the current pixel
+    measurement_variance = GN_inputs.measurement.variance;
 
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)

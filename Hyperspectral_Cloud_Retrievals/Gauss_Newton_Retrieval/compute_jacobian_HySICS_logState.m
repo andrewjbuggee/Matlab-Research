@@ -15,7 +15,7 @@ meas_est_linear = exp(measurement_estimate_ln);
 
 
 % Define the measurement variance for the current pixel
-measurement_variance = GN_inputs.measurement.variance;
+measurement_variance = GN_inputs.measurement.variance_noLog;
 
 % define the measurement uncertainty in linear space
 measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 

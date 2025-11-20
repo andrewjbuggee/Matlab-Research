@@ -80,7 +80,7 @@ if use_TBLUT_estimates==true
     % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = log([1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau, acpw.min_interpolated]);
+    GN_inputs.model.apriori = log([1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau]);
 
 
     % The first two values are the standard deviation of the effective
@@ -160,6 +160,9 @@ if use_TBLUT_estimates==true
 
     % For now lets claim the desired variables are independent
     GN_inputs.model.covariance = prior_stats.prior_cov_log_noACPW;
+
+     % For now lets claim the desired variables are independent
+    GN_inputs.model.covariance_lin = prior_stats.prior_cov_lin_noACPW;
 
 
     %----------------------------------------------------

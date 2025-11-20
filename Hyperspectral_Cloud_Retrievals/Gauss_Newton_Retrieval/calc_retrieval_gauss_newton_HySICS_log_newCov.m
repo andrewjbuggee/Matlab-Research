@@ -11,6 +11,10 @@ model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
+% Grab the model and measurement covariances in linear space
+model_cov_lin = GN_inputs.model.covariance_lin; % model parameter covariance matrix
+measurement_cov_lin = GN_inputs.measurement.covariance_lin; % measurement covaraince matrix
+
 % Retrieve the convergence limit
 convergence_limit = GN_inputs.convergence_limit;
 
@@ -62,7 +66,7 @@ num_parameters = GN_inputs.num_model_parameters; % number of parameters to solve
 
 % ----- define number of spectral bands to use -----
 % If a measurement vector has a nan value, ignore this spectral channel
-num_bands = length(measurements);
+num_bands = length(hysics.Refl_model);
 
 
 % define the spectral response function
@@ -814,15 +818,67 @@ retrieval = exp(retrieval);
 
 
 
+% ---------------------------------------------------------------------
 % ----------------- COMPUTE THE POSTERIOR COVARIANCE ------------------
+% ---------------------------------------------------------------------
 % once convergence has occured, we can compute the posterior covariance
 % matrix
 
-% we need to compute the jacobian using the solution state
-Jacobian = compute_jacobian_HySICS(retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    spec_response, jacobian_barPlot_flag, folder_paths);
+% ------------------------
+% ---- In linear space ---
+% ------------------------
+% Let's compute the Jacobian in linear space for the posterior matrix
+Jacobian_lin = compute_jacobian_HySICS_ver2(retrieval(:,end), exp(new_measurement_estimate), GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
-posterior_cov = ((Jacobian' * measurement_cov^(-1) * Jacobian) + model_cov^(-1))^(-1);
+% compute the posterior in linear space
+posterior_cov_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1);
+
+
+% compute the averaging kernel
+A_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1) *...
+    Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin;
+
+% Grab the linear measurement and model covariance
+
+% ---------------------
+% ---- In log space ---
+% ---------------------
+% we need to compute the jacobian using the solution state
+Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+% How do I treat the posterior covariance matrix in log space? Do I simply
+% take the exponential of the covariance matrix?
+posterior_cov_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
+
+
+A_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1) *...
+    Jacobian_log' * measurement_cov^(-1) * Jacobian_log;
+% ---------------------------------------------------------------------
+% ---------------------------------------------------------------------
+
+
+
+
+% ------------------------------------------------------------
+% -------- Compute the degrees of freedom for signal ---------
+% ------------------------------------------------------------
+% compute the trace (the sum of the elements along the main diagonal
+dof_signal_lin = trace(A_lin);
+dof_signal_log = trace(A_log);
+% Also keep the degrees of freedom for signal for each variable
+% These are the elements along the main diagonal of A
+dof_signal_lin_perVariable = diag(A_lin);
+dof_signal_log_perVariable = diag(A_log);
+
+
+% Compute the shannon information content
+H_lin = -1/2 * log(det(eye(num_parameters) - A_lin));      % bits
+H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
+
+
+
 
 
 
@@ -945,8 +1001,7 @@ end
 
 percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN_inputs.measurement.r_top),...
     abs((GN_inputs.measurement.r_bot - retrieval(2,end))/GN_inputs.measurement.r_bot),...
-    abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c),...
-    abs((GN_inputs.measurement.actpw - retrieval(4,end))/GN_inputs.measurement.actpw)]';
+    abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c)]';
 
 
 
@@ -956,8 +1011,7 @@ percentDiff_abs = 100.* [abs((GN_inputs.measurement.r_top - retrieval(1,end))/GN
 
 absDiff_stateVec = [abs((GN_inputs.measurement.r_top - retrieval(1,end))),...
     abs((GN_inputs.measurement.r_bot - retrieval(2,end))),...
-    abs((GN_inputs.measurement.tau_c - retrieval(3,end))),...
-    abs((GN_inputs.measurement.actpw - retrieval(4,end)))]';
+    abs((GN_inputs.measurement.tau_c - retrieval(3,end)))]';
 
 
 
@@ -968,16 +1022,28 @@ absDiff_stateVec = [abs((GN_inputs.measurement.r_top - retrieval(1,end))),...
 % ---- Collect all outputs ----
 
 GN_output.retrieval = retrieval;
+GN_output.new_measurement_estimate = new_measurement_estimate;
 GN_output.residual = residual;
 GN_output.rss_residual = rss_residual;
 GN_output.percentDiff_abs = percentDiff_abs;
 GN_output.absDiff = absDiff_stateVec;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
-GN_output.posterior_cov = posterior_cov;
-GN_output.Jacobian_final = Jacobian;
+
+GN_output.posterior_cov_lin = posterior_cov_lin;
+GN_output.posterior_cov_log = posterior_cov_log;
+
+GN_output.Jacobian_final_lin = Jacobian_lin;
+GN_output.Jacobian_final_log = Jacobian_log;
 % GN_output.H_above_aPriori = H_above_aPriori;
 
+GN_output.infoContent_lin = H_lin;
+GN_output.infoContent_log = H_log;
+
+GN_output.dof_signal_lin = dof_signal_lin;
+GN_output.dof_signal_log = dof_signal_log;
+GN_output.dof_signal_lin_perVariable = dof_signal_lin_perVariable;
+GN_output.dof_signal_log_perVariable = dof_signal_log_perVariable;
 
 
 
