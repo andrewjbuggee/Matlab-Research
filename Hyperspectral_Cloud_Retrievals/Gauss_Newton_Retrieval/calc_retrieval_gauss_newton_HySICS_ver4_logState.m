@@ -875,6 +875,27 @@ A_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))
 
 
 
+
+% ------------------------------------------------------------
+% -------- Compute the degrees of freedom for signal ---------
+% ------------------------------------------------------------
+% compute the trace (the sum of the elements along the main diagonal
+dof_signal_lin = trace(A_lin);
+dof_signal_log = trace(A_log);
+% Also keep the degrees of freedom for signal for each variable
+% These are the elements along the main diagonal of A
+dof_signal_lin_perVariable = diag(A_lin);
+dof_signal_log_perVariable = diag(A_log);
+
+
+% Compute the shannon information content
+H_lin = -1/2 * log(det(eye(num_parameters) - A_lin));      % bits
+H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
+
+
+
+
+
 % ---------------- COMPUTE LIQUID WATER PATH ------------------
 % Compute the retireved Liquid water path with the final profile
 
@@ -923,21 +944,7 @@ end
 
 
 
-% ------------------------------------------------------------
-% -------- Compute the degrees of freedom for signal ---------
-% ------------------------------------------------------------
-% compute the trace (the sum of the elements along the main diagonal
-dof_signal_lin = trace(A_lin);
-dof_signal_log = trace(A_log);
-% Also keep the degrees of freedom for signal for each variable
-% These are the elements along the main diagonal of A
-dof_signal_lin_perVariable = diag(A_lin);
-dof_signal_log_perVariable = diag(A_log);
 
-
-% Compute the shannon information content
-H_lin = -1/2 * log(det(eye(num_parameters) - A_lin));      % bits
-H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
 
 
 
@@ -1040,13 +1047,17 @@ GN_output.percentDiff_abs = percentDiff_abs;
 GN_output.absDiff = absDiff_stateVec;
 GN_output.diff_guess_prior = diff_guess_prior;
 GN_output.jacobian_diff_guess_prior = jacobian_diff_guess_prior;
-GN_output.posterior_cov = posterior_cov_lin;
+
+GN_output.posterior_cov_lin = posterior_cov_lin;
+GN_output.posterior_cov_log = posterior_cov_log;
+
 GN_output.Jacobian_final_lin = Jacobian_lin;
 GN_output.Jacobian_final_log = Jacobian_log;
 % GN_output.H_above_aPriori = H_above_aPriori;
 
 GN_output.infoContent_lin = H_lin;
 GN_output.infoContent_log = H_log;
+
 GN_output.dof_signal_lin = dof_signal_lin;
 GN_output.dof_signal_log = dof_signal_log;
 GN_output.dof_signal_lin_perVariable = dof_signal_lin_perVariable;
