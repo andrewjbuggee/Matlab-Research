@@ -1,7 +1,7 @@
 %% Create model priori covariance inputs
 
 
-% Create inputs to retrieve ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
+% Create inputs to retrieve ln(r_top), ln(r_bot), ln(tau_c)
 
 
 % (3) use_TBLUT_estimate - this is a true or false flag that tells the code
@@ -12,7 +12,7 @@
 
 %%
 
-function [GN_inputs] = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_inputs, tblut, use_TBLUT_estimates, acpw)
+function [GN_inputs] = create_model_prior_covariance_HySICS_ver4_log_newCov_noACPW(GN_inputs, tblut, use_TBLUT_estimates)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -31,17 +31,17 @@ function [GN_inputs] = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_i
 if strcmp(GN_inputs.which_computer, 'anbu8374')==true
 
     prior_stats = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_12-Nov-2025.mat']);
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_18-Nov-2025.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
 
     prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_14-Nov-2025.mat']);
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_18-Nov-2025.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'curc')==true
 
     prior_stats = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/prior_covarance_matrix_14-Nov-2025.mat']);
+        'paper_2/prior_covarance_matrix_18-Nov-2025.mat']);
 
 end
 
@@ -80,7 +80,7 @@ if use_TBLUT_estimates==true
     % represent a prior
     % for column water vapor, the units are kg/m^2 (where 1 kg/m^2 is about
     % equivelant to 1 mm)
-    GN_inputs.model.apriori = log([1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau, acpw.min_interpolated]);
+    GN_inputs.model.apriori = log([1.1*tblut.minRe, 0.6*tblut.minRe, tblut.minTau]);
 
 
     % The first two values are the standard deviation of the effective
@@ -159,10 +159,10 @@ if use_TBLUT_estimates==true
     %----------------------------------------------------------
 
     % For now lets claim the desired variables are independent
-    GN_inputs.model.covariance = prior_stats.prior_cov_log;
+    GN_inputs.model.covariance = prior_stats.prior_cov_log_noACPW;
 
-    % For now lets claim the desired variables are independent
-    GN_inputs.model.covariance_lin = prior_stats.prior_cov_lin;
+     % For now lets claim the desired variables are independent
+    GN_inputs.model.covariance_lin = prior_stats.prior_cov_lin_noACPW;
 
 
     %----------------------------------------------------

@@ -1092,6 +1092,11 @@ prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_ab
 prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
 
 
+prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
+
+prior_cov_log_noACPW = cov(log([re_top_sample, re_bot_sample, tau_c]));
+
+
 
 % The prior covariance must be symmetric positive definite
 try chol(prior_cov_lin)
@@ -1193,8 +1198,7 @@ if strcmp(whatComputer,'anbu8374')==true
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
 
-    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/'];
+    folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
 
 
 end
@@ -1203,7 +1207,7 @@ end
 combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 
 save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-    'prior_cov_lin', 'prior_cov_log', 're_top_sample', 're_bot_sample',...
+    'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
     'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
 
 

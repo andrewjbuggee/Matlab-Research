@@ -112,7 +112,7 @@ elseif strcmp(covariance_type,'independent') == true
 
     % Create a diagonal matrix where each entry is the variance of that
     % spectral channel for reflectance measurements
-    GN_inputs.measurement.covariance_noLog = diag(GN_inputs.measurement.variance_noLog);
+    GN_inputs.measurement.covariance_lin = diag(GN_inputs.measurement.variance_noLog);
 
     % % To avoid values of -infinity, set the zeros to some small non-zero
     % % value
