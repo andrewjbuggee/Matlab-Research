@@ -828,7 +828,7 @@ retrieval = exp(retrieval);
 % ---- In linear space ---
 % ------------------------
 % Let's compute the Jacobian in linear space for the posterior matrix
-Jacobian_lin = compute_jacobian_HySICS_ver2(retrieval(:,end), exp(new_measurement_estimate), GN_inputs,...
+Jacobian_lin = compute_jacobian_HySICS(retrieval(:,end), exp(new_measurement_estimate), GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % compute the posterior in linear space
@@ -845,7 +845,7 @@ A_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_l
 % ---- In log space ---
 % ---------------------
 % we need to compute the jacobian using the solution state
-Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+Jacobian_log = compute_jacobian_HySICS_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % How do I treat the posterior covariance matrix in log space? Do I simply

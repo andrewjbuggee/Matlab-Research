@@ -10,8 +10,8 @@ function jacobian = compute_jacobian_HySICS(state_vector, measurement_estimate, 
 
 
 
-% Define the measurement variance for the current pixel
-measurement_variance = GN_inputs.measurement.variance;
+% define the measurement uncertainty
+measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
 
 
 % --- compute the Jacobian at out current estimate ---
@@ -54,7 +54,14 @@ num_state_variables = length(state_vector);
 % ---------------------------------------------------------
 % ---- define the incremental change to each variable -----
 
-change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c];
+% Define the fractional change the represents the partial derivative based
+% on the measurement uncertainty. Define the change for each variable.
+partial_diff_change = measurement_uncert.*[1/20, 1/5.7143, 1/20];
+% below better for computing information content?
+% change_in_state = [0.1 * r_top, 0.35 * r_bottom, 0.1 * tau_c];
+% below better for retrieval
+
+change_in_state = partial_diff_change.* [r_top, r_bottom, tau_c];
 
 % ----------------------------------------------------------------
 
@@ -150,8 +157,8 @@ parfor nn = 1:num_INP_files
 
 
     % ----- Write an INP file --------
-%     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
-%         changing_variables(nn, 4:5), wc_filename{1});
+    %     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
+    %         changing_variables(nn, 4:5), wc_filename{1});
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         changing_variables(nn, 4:5), wc_filename{1}, [], changing_variables(nn,3));
 
@@ -203,6 +210,10 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
+
+
+    % Define the measurement variance for the current pixel
+    measurement_variance = GN_inputs.measurement.variance;
 
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)
