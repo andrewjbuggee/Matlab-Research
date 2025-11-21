@@ -21,7 +21,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=40G
-#SBATCH --time=20:00:00     # Longer time for multiple files
+#SBATCH --time=23:59:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=noACPW_assumed25_hysicsRetrieval_log_newCov_%A_%a
@@ -29,7 +29,7 @@
 #SBATCH --error=noACPW_assumed25_hysicsRetrieval_log_newCov_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=161-200       # 40 jobs × 21 files each = 840 files
+#SBATCH --array=361-420       # 60 jobs × 14 files each = 840 files
 
 # Load modules
 ml purge
@@ -76,7 +76,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=21
+FILES_PER_JOB=14
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
