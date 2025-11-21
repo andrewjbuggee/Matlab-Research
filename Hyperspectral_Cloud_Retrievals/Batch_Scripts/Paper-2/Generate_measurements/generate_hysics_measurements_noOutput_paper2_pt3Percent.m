@@ -3,6 +3,11 @@
 
 
 
+clear variables;
+addLibRadTran_paths;
+folder_paths = define_folderPaths_for_HySICS(1001);
+
+
 
 %%  Delete old files?
 
@@ -35,10 +40,15 @@ start_parallel_pool(folder_paths.which_computer)
 % tau_c = [5,11,17,23];
 % tcpw = [8, 14, 20];
 
-r_top = [7.3418, 8.4296, 9.2516, 10.8153, 11.6297];
-r_bot = [4.6147, 5.3192, 6.8372, 7.0135];
-tau_c = [6.1312, 9.9317, 12.4356, 15.3172, 18.2468, 21.3466, 24.1697];
-tcpw = [5.3741, 8.123, 10.6422, 13.6234, 15.8543, 18.9824];
+% r_top = [7.3418, 8.4296, 9.2516, 10.8153, 11.6297];
+% r_bot = [4.6147, 5.3192, 6.8372, 7.0135];
+% tau_c = [6.1312, 9.9317, 12.4356, 15.3172, 18.2468, 21.3466, 24.1697];
+% tcpw = [5.3741, 8.123, 10.6422, 13.6234, 15.8543, 18.9824];
+
+r_top = 9.2516;
+r_bot = 5.3192;
+tau_c = [6.1312, 24.1697];
+tcpw = [10.6422, 18.9824];
 
 
 
@@ -381,7 +391,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/vza_7_subset_1percent/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands/'];
 
 
 elseif strcmp(which_computer,'curc')==true

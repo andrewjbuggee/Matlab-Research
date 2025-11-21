@@ -18,15 +18,15 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     % ----- MACBOOK ------
 
 
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/solar_flux/');
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/wc/');
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/albedo/');
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/altitude/');
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/atmmod/');
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/data/correlated_k/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/solar_flux/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/albedo/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/altitude/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/correlated_k/');
 
     % LibRadTran Bin folder
-    addpath('/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/LibRadTran/libRadtran-2.0.4/bin/');
+    addpath('/Users/andrewbuggee/Documents/libRadtran-2.0.6/bin/');
 
 
 elseif strcmp(whatComputer,'curc')==true
