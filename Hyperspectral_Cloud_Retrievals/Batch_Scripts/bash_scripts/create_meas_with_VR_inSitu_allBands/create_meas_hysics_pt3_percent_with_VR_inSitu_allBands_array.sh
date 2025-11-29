@@ -8,7 +8,7 @@
 # ----------------------------------------------------------
 
 #SBATCH --nodes=1
-#SBATCH --time=6:00:00   # Adjusted time for single measurement
+#SBATCH --time=00:30:00   # Adjusted time for single measurement
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=40G
