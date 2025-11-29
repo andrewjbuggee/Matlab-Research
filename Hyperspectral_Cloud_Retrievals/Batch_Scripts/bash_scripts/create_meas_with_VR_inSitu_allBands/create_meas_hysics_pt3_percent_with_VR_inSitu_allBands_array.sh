@@ -8,7 +8,7 @@
 # ----------------------------------------------------------
 
 #SBATCH --nodes=1
-#SBATCH --time=6:00:00   # Adjusted time for single measurement
+#SBATCH --time=00:30:00   # Adjusted time for single measurement
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=40G
@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-73
+#SBATCH --array=1-73    # 73 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
