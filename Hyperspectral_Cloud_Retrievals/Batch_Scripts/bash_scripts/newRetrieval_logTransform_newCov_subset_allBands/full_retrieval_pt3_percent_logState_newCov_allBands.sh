@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_logState_newCov_subset_allBands_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=200-204       # 4 jobs × 1 files each = 4 retrieved profiles
+#SBATCH --array=200-203       # 4 jobs × 1 files each = 4 retrieved profiles
 
 # Load modules
 ml purge

@@ -357,7 +357,9 @@ acpw = [3.1097, 4.7003, 6.1580, 7.8831, 9.1740, 10.9840];
 
 % Find all files within filenames_fullRetrieval with the same r_top and
 % r_bot
-idx_profiles_2_plot = [200, 463, 744, 598, 81, 315];
+% idx_profiles_2_plot = [200, 463, 744, 598, 81, 315];
+idx_profiles_2_plot = [666   806   551    30   714   785];
+% idx_profiles_2_plot = randi([1, length(filenames_fullRetrieval)], 1, 6);
 
 % Define the linewidth
 ln_wdth = 2;
@@ -401,9 +403,17 @@ for nn = 1:length(idx_profiles_2_plot)
 
 
     % what was the assumed above cloud column water vapor path?
-    simulated_CWV = ds.GN_inputs.measurement.actpw; % kg/m^2
+    simulated_ACPW = ds.GN_inputs.measurement.actpw; % kg/m^2
+    simulated_tauC = ds.GN_inputs.measurement.tau_c; % 
+    simulated_rTop = ds.GN_inputs.measurement.r_top; % 
+    simulated_rBot = ds.GN_inputs.measurement.r_bot; % 
 
-    title(['Simulated profile - $acpw$ = ',num2str(round(simulated_CWV, 2)), ' $mm$'],...
+    % title(['Simulated profile - $acpw$ = ',num2str(round(simulated_ACPW, 2)), ' $mm$',...
+    %     ', $\tau_{c} = $', num2str(simulated_tauC)],...
+    %     'Fontsize', 15, 'Interpreter', 'latex');
+
+    title(['$r_{top} = $', num2str(round(simulated_rTop,1)),', $r_{bot} = $', num2str(round(simulated_rBot,1)),...
+        ', $\tau_{c} = $', num2str(round(simulated_tauC,1)), ', $acpw$ = ',num2str(round(simulated_ACPW, 1)), ' $mm$'],...
         'Fontsize', 15, 'Interpreter', 'latex');
 
     % Skip the first two legend entries
@@ -418,7 +428,7 @@ for nn = 1:length(idx_profiles_2_plot)
     hold on
 
 
-    if isfield(ds.GN_outputs, 'posterior_cov')==true
+    if isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov')==true
 
         e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
             sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
@@ -426,7 +436,7 @@ for nn = 1:length(idx_profiles_2_plot)
             'MarkerEdgeColor', C(1,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
             'Color', C(1,:));
 
-    elseif isfield(ds.GN_outputs, 'posterior_cov_lin')==true
+    elseif isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov_lin')==true
 
         e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2,...
             sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds.GN_outputs.posterior_cov_lin(2,2))/2,...
@@ -443,9 +453,19 @@ for nn = 1:length(idx_profiles_2_plot)
     [~,idx_acpw] = min(abs(acpw - ds.GN_inputs.measurement.actpw));
     tcpw_file = tcpw(idx_acpw);
     % Define the matching file name
-    filePattern = sprintf(['dropletRetrieval_noACPW_HySICS_35bands_0.3%%_uncert_rTop_%.4f_rBot_%.4f',...
-        '_tauC_%.4f_tcwv_%.4f_*.mat'], ds.GN_inputs.measurement.r_top, ds.GN_inputs.measurement.r_bot,...
-        ds.GN_inputs.measurement.tau_c, tcpw_file);
+    if idx_acpw == 2
+
+        filePattern = sprintf(['dropletRetrieval_noACPW_HySICS_35bands_0.3%%_uncert_rTop_%.4f_rBot_%.4f',...
+            '_tauC_%.4f_tcwv_%.3f_*.mat'], ds.GN_inputs.measurement.r_top, ds.GN_inputs.measurement.r_bot,...
+            ds.GN_inputs.measurement.tau_c, tcpw_file);
+
+    else
+
+        filePattern = sprintf(['dropletRetrieval_noACPW_HySICS_35bands_0.3%%_uncert_rTop_%.4f_rBot_%.4f',...
+            '_tauC_%.4f_tcwv_%.4f_*.mat'], ds.GN_inputs.measurement.r_top, ds.GN_inputs.measurement.r_bot,...
+            ds.GN_inputs.measurement.tau_c, tcpw_file);
+
+    end
 
 
 
@@ -463,7 +483,7 @@ for nn = 1:length(idx_profiles_2_plot)
         hold on
 
 
-        if isfield(ds_10.GN_outputs, 'posterior_cov')==true
+        if isfield(ds_10, 'GN_outputs')==true && isfield(ds_10.GN_outputs, 'posterior_cov')==true
 
             e2 = errorbar(ds_10.GN_outputs.retrieval(2,end), ds_10.GN_outputs.retrieval(1,end), sqrt(ds_10.GN_outputs.posterior_cov(1,1))/2,...
                 sqrt(ds_10.GN_outputs.posterior_cov(1,1))/2, sqrt(ds_10.GN_outputs.posterior_cov(2,2))/2,...
@@ -471,7 +491,7 @@ for nn = 1:length(idx_profiles_2_plot)
                 'MarkerEdgeColor', C(2,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
                 'Color', C(2,:));
 
-        elseif isfield(ds_10.GN_outputs, 'posterior_cov_lin')==true
+        elseif isfield(ds_10, 'GN_outputs')==true && isfield(ds_10.GN_outputs, 'posterior_cov_lin')==true
 
             e2 = errorbar(ds_10.GN_outputs.retrieval(2,end), ds_10.GN_outputs.retrieval(1,end), sqrt(ds_10.GN_outputs.posterior_cov_lin(1,1))/2,...
                 sqrt(ds_10.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds_10.GN_outputs.posterior_cov_lin(2,2))/2,...
@@ -503,7 +523,7 @@ for nn = 1:length(idx_profiles_2_plot)
         hold on
 
 
-        if isfield(ds_15.GN_outputs, 'posterior_cov')==true
+        if isfield(ds_15, 'GN_outputs')==true && isfield(ds_15.GN_outputs, 'posterior_cov')==true
 
             e3 = errorbar(ds_15.GN_outputs.retrieval(2,end), ds_15.GN_outputs.retrieval(1,end), sqrt(ds_15.GN_outputs.posterior_cov(1,1))/2,...
                 sqrt(ds_15.GN_outputs.posterior_cov(1,1))/2, sqrt(ds_15.GN_outputs.posterior_cov(2,2))/2,...
@@ -511,7 +531,7 @@ for nn = 1:length(idx_profiles_2_plot)
                 'MarkerEdgeColor', C(3,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
                 'Color', C(3,:));
 
-        elseif isfield(ds_15.GN_outputs, 'posterior_cov_lin')==true
+        elseif isfield(ds_15, 'GN_outputs')==true && isfield(ds_15.GN_outputs, 'posterior_cov_lin')==true
 
             e3 = errorbar(ds_15.GN_outputs.retrieval(2,end), ds_15.GN_outputs.retrieval(1,end), sqrt(ds_15.GN_outputs.posterior_cov_lin(1,1))/2,...
                 sqrt(ds_15.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds_15.GN_outputs.posterior_cov_lin(2,2))/2,...
@@ -544,7 +564,7 @@ for nn = 1:length(idx_profiles_2_plot)
         hold on
 
 
-        if isfield(ds_20.GN_outputs, 'posterior_cov')==true
+        if isfield(ds_20, 'GN_outputs')==true && isfield(ds_20.GN_outputs, 'posterior_cov')==true
 
             e4 = errorbar(ds_20.GN_outputs.retrieval(2,end), ds_20.GN_outputs.retrieval(1,end), sqrt(ds_20.GN_outputs.posterior_cov(1,1))/2,...
                 sqrt(ds_20.GN_outputs.posterior_cov(1,1))/2, sqrt(ds_20.GN_outputs.posterior_cov(2,2))/2,...
@@ -552,7 +572,7 @@ for nn = 1:length(idx_profiles_2_plot)
                 'MarkerEdgeColor', C(4,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
                 'Color', C(4,:));
 
-        elseif isfield(ds_20.GN_outputs, 'posterior_cov_lin')==true
+        elseif isfield(ds_20, 'GN_outputs')==true && isfield(ds_20.GN_outputs, 'posterior_cov_lin')==true
 
             e4 = errorbar(ds_20.GN_outputs.retrieval(2,end), ds_20.GN_outputs.retrieval(1,end), sqrt(ds_20.GN_outputs.posterior_cov_lin(1,1))/2,...
                 sqrt(ds_20.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds_20.GN_outputs.posterior_cov_lin(2,2))/2,...
