@@ -152,7 +152,7 @@ if nargin~=15
 end
 
 % Check to make sure re is the same length as the altitude vector
-[r_re,c_re] = size(re);
+[rows_re, cols_re] = size(re);
 
 % first check to see if z_topBottom is a vector or a matrix
 if size(z_topBottom,1)==1 || size(z_topBottom,2)==1
@@ -1049,7 +1049,7 @@ for nn = 1:num_files_2write
     % both the effective radius and the LWC need zeros on either boundary,
     % unless if the cloud is at the surface
 
-    if (r_re==1 || c_re==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
+    if (rows_re==1 || cols_re==1) && strcmp(vert_homogeneous_str, 'vert-non-homogeneous')==true
 
         if z(1)==0
             % If true, then the cloud starts at the surface and we only append

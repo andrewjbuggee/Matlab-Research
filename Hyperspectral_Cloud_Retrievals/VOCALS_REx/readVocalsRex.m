@@ -799,7 +799,7 @@ else
         % we have to convert re to cm in order to have the finals units be in grams
         % per meter cubed
 
-        lwc = double( 4/3 * pi *  rho_lw * sum(Nc .* droplet_matrix_center.^3,1) );        % grams of liquid water/meter cubed of air
+        lwc = double( 4/3 * pi *  rho_lw * sum(Nc .* droplet_matrix_center.^3,1) );        % g/m^3 - grams of liquid water/meter cubed of air
 
         % **** Painemal and Zuidema (2011) found a bias in the CDP flight
         % measurements of LWC. To correct for this, they set the CDP LWC values

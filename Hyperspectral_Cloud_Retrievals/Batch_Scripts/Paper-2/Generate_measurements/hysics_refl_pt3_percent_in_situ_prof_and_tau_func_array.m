@@ -1,13 +1,12 @@
+function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, measurement_idx)
 %% Generate measurements with in-situ measured droplet profiles and optical depth
 % Everything else is defined by the user
+% 
+% INPUT:
+%   measurement_idx - integer index (1-73) specifying which measurement to process
 
-
-
-clear variables;
-addLibRadTran_paths;
-folder_paths = define_folderPaths_for_HySICS(1001);
-
-
+% Note: Don't clear variables or call addLibRadTran_paths / define_folderPaths_for_HySICS
+% These should already be set by the calling script
 
 %%  Delete old files?
 
@@ -52,8 +51,8 @@ if strcmp(which_computer,'anbu8374')==true
 
 
 
-    load([folderpath,...
-        'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_02-Nov-2025.mat'])
+    ds = load([folderpath,...
+        'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_02-Nov-2025.mat']);
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -72,7 +71,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>25 ----
-    load([folderpath, saved_profiles_filename])
+    ds = load([folderpath, saved_profiles_filename]);
 
 
 
@@ -83,16 +82,41 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
+     % Location of ensemble data
+    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+        'vocals_rex_data/NCAR_C130/SPS_1/'];
+
+    saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+
+
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    ds = load([folderpath, saved_profiles_filename]);
+
 end
 
 
 % define the campaign name from which the data came
 campaign_name = 'vocalsRex';
 
+%% Validate measurement_idx input
+
+% Check that measurement_idx is valid
+total_measurements = length(ds.ensemble_profiles);
+
+if measurement_idx < 1 || measurement_idx > total_measurements
+    error('measurement_idx must be between 1 and %d', total_measurements);
+end
+
+fprintf('Processing measurement %d of %d\n', measurement_idx, total_measurements);
+
+
+
 %% Inputs needed to create the measurement input structure
 
-% define the number of measurements being created
-num_meas = length(ensemble_profiles);
+% define the number of measurements being created - now just processing one
+num_meas = 1;
 
 
 
@@ -102,7 +126,6 @@ num_meas = length(ensemble_profiles);
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path = folder_paths.libRadtran_water_cloud_files;
-libRadtran_mie_folder = folder_paths.libRadtran_mie_folder;
 which_computer = folder_paths.which_computer;
 % store which_computer in inputs structure
 inputs.which_computer = which_computer;
@@ -201,7 +224,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -231,7 +254,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 
 
-inputs.bands2run = [49, 426, 613]';
+% inputs.bands2run = [49, 426, 613]';
 % inputs.bands2run = [49, 57, 288, 426, 613]';
 
 % test bands
@@ -713,7 +736,7 @@ num_INP_files = num_meas * num_wl;
 inputs.calc_type = 'simulated_spectra';
 
 
-% First, write all the wc files
+% First, write all the wc files - now just for the single measurement
 wc_filename = cell(num_meas, 1);
 
 % for storage
@@ -725,232 +748,227 @@ lwc = cell(num_meas, 1);
 z = cell(num_meas, 1);
 
 
-% --------------------------------------
-% ---- Write all Water Cloud files! ----
-% --------------------------------------
+% --------------------------------------------------------
+% ---- Write Water Cloud file for single measurement! ----
+% --------------------------------------------------------
 
-parfor nn = 1:num_meas
-    % for nn = 1:num_meas
+% Use nn=1 since we're only processing one measurement
+nn = 1;
 
+% define lwc, re, and z as column vectors
+% grab the LWC vector
+lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
+% grad the altitude vector
+z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+% grab the date of flight
+date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
+% grab the time of flight
+time_of_flight(nn) = ds.ensemble_profiles{measurement_idx}.time_utc(round(length(ds.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
 
-    % define lwc, re, and z as column vectors
-    % grab the LWC vector
-    lwc{nn} = ensemble_profiles{nn}.lwc';     % g/m^3
-    % grad the altitude vector
-    z{nn} = (ensemble_profiles{nn}.altitude') ./ 1e3;   % kilometers
-    % grab the date of flight
-    date_of_flight{nn} = ensemble_profiles{nn}.dateOfFlight;
-    % grab the time of flight
-    time_of_flight(nn) = ensemble_profiles{nn}.time_utc(round(length(ensemble_profiles{nn}.time_utc)/2));  % UTC time
-
-    % store the optical depth of each profile
-    tau_c(nn) = max(ensemble_profiles{nn}.tau);
-
-
-    if isfield(ensemble_profiles{nn}, 're') == true
-
-        % define the effective radius profile
-        re{nn} = ensemble_profiles{nn}.re';        % microns
-
-        % Sometimes droplets will be larger than 25 microns. If there are droplets
-        % larger than 25 microns, skip this in-situ measurement for now. libRadtran
-        % cannot process droplets larger than 25 microns, which is the limit of the
-        % pre-computed mie table
-
-        if any(re{nn}>=25)==true
-
-            if strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==11
-
-                % only the last two measurements exceed 25 microns. Remove
-                % them and use this profile
-                re{nn} = re{nn}(1:end-2);
-                lwc{nn} = lwc{nn}(1:end-2);
-                z{nn} = z{nn}(1:end-2);
-
-                tau_c(nn) = ensemble_profiles{nn}.tau(end-2);
-
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
-
-            elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==15
+% store the optical depth of each profile
+tau_c(nn) = max(ds.ensemble_profiles{measurement_idx}.tau);
 
 
-                % only the last measurement exceeds 25 microns. Remove
-                % them and use this profile
-                re{nn} = re{nn}(1:end-1);
-                lwc{nn} = lwc{nn}(1:end-1);
-                z{nn} = z{nn}(1:end-1);
+if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
-                tau_c(nn) = ensemble_profiles{nn}.tau(end-1);
+    % define the effective radius profile
+    re{nn} = ds.ensemble_profiles{measurement_idx}.re';        % microns
 
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
+    % Sometimes droplets will be larger than 25 microns. If there are droplets
+    % larger than 25 microns, skip this in-situ measurement for now. libRadtran
+    % cannot process droplets larger than 25 microns, which is the limit of the
+    % pre-computed mie table
 
+    if any(re{nn}>=25)==true
 
-            elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==22
+        if strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==11
 
+            % only the last two measurements exceed 25 microns. Remove
+            % them and use this profile
+            re{nn} = re{nn}(1:end-2);
+            lwc{nn} = lwc{nn}(1:end-2);
+            z{nn} = z{nn}(1:end-2);
 
-                % only the last measurement exceeds 25 microns. Remove
-                % them and use this profile
-                re{nn} = re{nn}(1:end-1);
-                lwc{nn} = lwc{nn}(1:end-1);
-                z{nn} = z{nn}(1:end-1);
-
-                tau_c(nn) = ensemble_profiles{nn}.tau(end-1);
-
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
-
-
-            elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==36
-
-
-                % only the last 12 measurements exceed 25 microns. Remove
-                % them and use this profile
-                re{nn} = re{nn}(1:end-12);
-                lwc{nn} = lwc{nn}(1:end-12);
-                z{nn} = z{nn}(1:end-12);
-
-                tau_c(nn) = ensemble_profiles{nn}.tau(end-12);
-
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
-
-
-            elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==50
-
-
-                % only the exclude the 60th measurement, which jumps to 30 microns. Remove
-                % and use this profile
-                re{nn}(60) = [];
-                lwc{nn}(60) = [];
-                z{nn}(60) = [];
-
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
-
-
-            elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
-                    '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
-                    nn==54
-
-
-                % only the last measurement exceeds 25 microns. Remove
-                % them and use this profile
-                re{nn} = re{nn}(1:end-1);
-                lwc{nn} = lwc{nn}(1:end-1);
-                z{nn} = z{nn}(1:end-1);
-
-                tau_c(nn) = ensemble_profiles{nn}.tau(end-1);
-
-                wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                    date_of_flight{nn}, time_of_flight(nn),...
-                    inputs.compute_weighting_functions, which_computer,...
-                    nn, wc_folder_path);
-
-
-            else
-
-                wc_filename{nn} = NaN;
-
-            end
-
-        else
-
-            % At times there are very thin gaps in the clouds
-            % as well. In these cases the droplet sizes go to 0. Get rid of
-            % these levels
-
-            idx_0 = re{nn}<=0.1;
-            sum(idx_0)
-            if sum(idx_0)>0
-                re{nn}(idx_0) = [];
-                lwc{nn}(idx_0) = [];
-                z{nn}(idx_0) = [];
-            end
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
                 inputs.compute_weighting_functions, which_computer,...
-                nn, wc_folder_path);
+                measurement_idx, wc_folder_path);
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==15
 
 
-        end
+            % only the last measurement exceeds 25 microns. Remove
+            % them and use this profile
+            re{nn} = re{nn}(1:end-1);
+            lwc{nn} = lwc{nn}(1:end-1);
+            z{nn} = z{nn}(1:end-1);
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
 
 
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==22
 
-    elseif isfield(ensemble_profiles{nn}, 're_CDP') == true
+
+            % only the last measurement exceeds 25 microns. Remove
+            % them and use this profile
+            re{nn} = re{nn}(1:end-1);
+            lwc{nn} = lwc{nn}(1:end-1);
+            z{nn} = z{nn}(1:end-1);
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
 
 
-        % define the effective radius profile
-        re{nn} = ensemble_profiles{nn}.re_CDP';        % microns
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==36
 
-        % Sometimes droplets will be larger than 25 microns. If there are droplets
-        % larger than 25 microns, skip this in-situ measurement for now. libRadtran
-        % cannot process droplets larger than 25 microns, which is the limit of the
-        % pre-computed mie table
 
-        if any(re{nn}>=25)==true
+            % only the last 12 measurements exceed 25 microns. Remove
+            % them and use this profile
+            re{nn} = re{nn}(1:end-12);
+            lwc{nn} = lwc{nn}(1:end-12);
+            z{nn} = z{nn}(1:end-12);
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-12);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==50
+
+
+            % only the exclude the 60th measurement, which jumps to 30 microns. Remove
+            % and use this profile
+            re{nn}(60) = [];
+            lwc{nn}(60) = [];
+            z{nn}(60) = [];
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
+                measurement_idx==54
+
+
+            % only the last measurement exceeds 25 microns. Remove
+            % them and use this profile
+            re{nn} = re{nn}(1:end-1);
+            lwc{nn} = lwc{nn}(1:end-1);
+            z{nn} = z{nn}(1:end-1);
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+        else
 
             wc_filename{nn} = NaN;
 
-        else
-
-            % At times there are very thin gaps in the clouds
-            % as well. In these cases the droplet sizes go to 0. Get rid of
-            % these levels
-
-            idx_0 = re{nn}<=0.1;
-            sum(idx_0)
-            if sum(idx_0)>0
-
-                re{nn}(idx_0) = [];
-                lwc{nn}(idx_0) = [];
-                z{nn}(idx_0) = [];
-            end
-
-
-            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                date_of_flight{nn}, time_of_flight(nn),...
-                inputs.compute_weighting_functions, which_computer,...
-                nn, wc_folder_path);
-
         end
 
+    else
+
+        % At times there are very thin gaps in the clouds
+        % as well. In these cases the droplet sizes go to 0. Get rid of
+        % these levels
+
+        idx_0 = re{nn}<=0.1;
+        sum(idx_0)
+        if sum(idx_0)>0
+            re{nn}(idx_0) = [];
+            lwc{nn}(idx_0) = [];
+            z{nn}(idx_0) = [];
+        end
+
+        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+            date_of_flight{nn}, time_of_flight(nn),...
+            inputs.compute_weighting_functions, which_computer,...
+            measurement_idx, wc_folder_path);
 
 
     end
+
+
+
+elseif isfield(ds.ensemble_profiles{measurement_idx}, 're_CDP') == true
+
+
+    % define the effective radius profile
+    re{nn} = ds.ensemble_profiles{measurement_idx}.re_CDP';        % microns
+
+    % Sometimes droplets will be larger than 25 microns. If there are droplets
+    % larger than 25 microns, skip this in-situ measurement for now. libRadtran
+    % cannot process droplets larger than 25 microns, which is the limit of the
+    % pre-computed mie table
+
+    if any(re{nn}>=25)==true
+
+        wc_filename{nn} = NaN;
+
+    else
+
+        % At times there are very thin gaps in the clouds
+        % as well. In these cases the droplet sizes go to 0. Get rid of
+        % these levels
+
+        idx_0 = re{nn}<=0.1;
+        sum(idx_0)
+        if sum(idx_0)>0
+
+            re{nn}(idx_0) = [];
+            lwc{nn}(idx_0) = [];
+            z{nn}(idx_0) = [];
+        end
+
+
+        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+            date_of_flight{nn}, time_of_flight(nn),...
+            inputs.compute_weighting_functions, which_computer,...
+            measurement_idx, wc_folder_path);
+
+    end
+
 
 
 end
 
 
 % *** we dont' need the ensemble profiles anymore ***
-clear ensemble_profiles
+clear ds
 
-% changing variable steps through each in-situ measurement, and wavelength
+% changing variable steps through each wavelength for this single measurement
 % in for loop speak, it would be:
-% for nn = 1:num_inSitu
 %   for ww = 1:num_wl
 changing_variables_allStateVectors = {reshape(repmat( (1:num_meas), num_wl, 1), [],1),...
     reshape(repmat(tau_c', num_wl, 1), [], 1),...
@@ -991,14 +1009,14 @@ parfor nn = 1:num_INP_files
     % ------------------------------------------------
     % ---- Define the input and output filenames! ----
     % ------------------------------------------------
-    % input_names need a unique identifier. Let's give them the nn value so
-    % they can be traced, and are writen over in memory
+    % input_names need a unique identifier. Let's give them the measurement_idx value and nn value
+    % so they can be traced, and are written over in memory
 
 
     inputFileName{nn} = [num2str(mean(wavelengths)), 'nm_', campaign_name,'_',...
         char(changing_variables_allStateVectors{3}{nn}),'_',...
-        num2str(changing_variables_allStateVectors{4}(nn)),'-UTC_nn_',...
-        num2str(changing_variables_allStateVectors{1}(nn)), '.INP'];
+        num2str(changing_variables_allStateVectors{4}(nn)),'-UTC_meas_',...
+        num2str(measurement_idx), '_nn_', num2str(nn), '.INP'];
 
 
 
@@ -1197,7 +1215,7 @@ if ~exist(inputs.folderpath_2save, 'dir')
 end
 
 
-% *** save all spectral calculations for each in-situ measurement as one ***
+% *** save all spectral calculations for this single in-situ measurement as one ***
 
 for nn = 1:(num_INP_files/num_wl)
 
@@ -1217,7 +1235,7 @@ for nn = 1:(num_INP_files/num_wl)
     filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
         num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert_',...
         campaign_name, '_inSitu_re_lwc_tauC_z_', char(date_of_flight{nn}),'_', num2str(time_of_flight(nn)),...
-        'UTC_prof-nn_', num2str(nn), '_vza_', num2str(round(inputs.RT.vza)),...
+        'UTC_prof-nn_', num2str(measurement_idx), '_vza_', num2str(round(inputs.RT.vza)),...
         '_vaz_', num2str(round(inputs.RT.vaz)), '_sza_', num2str(round(inputs.RT.sza)),...
         '_saz_', num2str(round(inputs.RT.phi0)),...
         '_sim-ran-on-',char(datetime("today")),'.mat'];
@@ -1228,5 +1246,6 @@ for nn = 1:(num_INP_files/num_wl)
 
 end
 
+fprintf('Successfully completed measurement %d\n', measurement_idx);
 
-
+end
