@@ -450,16 +450,6 @@ inputs.RT.define_atm_grid=false;
 % --------------------------------------------------------------
 
 % Define the altitude of the sensor
-% How many layers to model in the cloud?
-% if strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous')==true
-%
-%     inputs.RT.sensor_altitude = [0, sort(linspace(inputs.RT.z_topBottom(1), inputs.RT.z_topBottom(2), inputs.RT.n_layers+1))];          % top-of-atmosphere
-%
-% elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous')==true
-%
-%     inputs.RT.sensor_altitude = 'toa';
-%
-% end
 
 % I think the sensor altitude, for now, is the cloud top
 % inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
@@ -757,7 +747,7 @@ nn = 1;
 % define lwc, re, and z as column vectors
 % grab the LWC vector
 lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
-% grad the altitude vector
+% grab the altitude vector
 z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the date of flight
 date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
@@ -772,6 +762,16 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
     % define the effective radius profile
     re{nn} = ds.ensemble_profiles{measurement_idx}.re';        % microns
+
+    % rearrange z, lwc, and re so that all profiles are stored from cloud
+    % top to bottom. Therefore, the first value in the column vector is
+    % cloud top
+    if (z{nn}(2) - z{nn}(1))>0
+        % The the profile starts from cloud bottom and needs to be flipped
+        z{nn} = flipud(z{nn});
+        lwc{nn} = flipud(lwc{nn});
+        re{nn} = flipud(re{nn});
+    end
 
     % Sometimes droplets will be larger than 25 microns. If there are droplets
     % larger than 25 microns, skip this in-situ measurement for now. libRadtran
@@ -925,6 +925,16 @@ elseif isfield(ds.ensemble_profiles{measurement_idx}, 're_CDP') == true
 
     % define the effective radius profile
     re{nn} = ds.ensemble_profiles{measurement_idx}.re_CDP';        % microns
+
+    % rearrange z, lwc, and re so that all profiles are stored from cloud
+    % top to bottom. Therefore, the first value in the column vector is
+    % cloud top
+    if (z{nn}(2) - z{nn}(1))>0
+        % The the profile starts from cloud bottom and needs to be flipped
+        z{nn} = flipud(z{nn});
+        lwc{nn} = flipud(lwc{nn});
+        re{nn} = flipud(re{nn});
+    end
 
     % Sometimes droplets will be larger than 25 microns. If there are droplets
     % larger than 25 microns, skip this in-situ measurement for now. libRadtran

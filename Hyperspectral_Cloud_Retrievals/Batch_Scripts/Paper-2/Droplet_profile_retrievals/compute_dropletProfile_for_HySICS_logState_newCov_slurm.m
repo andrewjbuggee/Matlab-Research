@@ -12,7 +12,7 @@ clear variables;
 
 %% Define the folders for libRadtran calculation and define the computer in use
 
-folder_paths = define_folderPaths_for_HySICS(1);
+folder_paths = define_folderPaths_for_HySICS(3);
 which_computer = folder_paths.which_computer;
 
 
@@ -100,11 +100,22 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
     %     '31-Oct-2008_9.0864UTC_prof-nn_24_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
 
+    % all bands - testing failed file
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '04-Nov-2008_6.09UTC_prof-nn_35_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
+
 
     % using only 66 bands 
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '15-Oct-2008_18.4297UTC_prof-nn_1_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-29-Nov-2025.mat']);
+
+
+    % 66 bands - ensemble profile 35
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-        '15-Oct-2008_18.4297UTC_prof-nn_1_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-29-Nov-2025.mat']);
+        '04-Nov-2008_6.09UTC_prof-nn_35_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']); 
 
 
 
