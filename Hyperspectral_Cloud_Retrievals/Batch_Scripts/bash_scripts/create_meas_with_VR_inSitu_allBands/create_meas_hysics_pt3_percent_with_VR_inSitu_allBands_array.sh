@@ -11,7 +11,7 @@
 #SBATCH --time=00:30:00   # Adjusted time for single measurement
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=40G
+#SBATCH --mem=32G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --job-name=create_meas_pt3_percent
