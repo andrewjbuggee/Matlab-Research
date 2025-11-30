@@ -786,9 +786,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last two measurements exceed 25 microns. Remove
             % them and use this profile
-            re{nn} = re{nn}(1:end-2);
-            lwc{nn} = lwc{nn}(1:end-2);
-            z{nn} = z{nn}(1:end-2);
+            idx_remove = re{nn}>=25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
 
@@ -804,9 +805,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 25 microns. Remove
             % them and use this profile
-            re{nn} = re{nn}(1:end-1);
-            lwc{nn} = lwc{nn}(1:end-1);
-            z{nn} = z{nn}(1:end-1);
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
@@ -823,9 +825,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 25 microns. Remove
             % them and use this profile
-            re{nn} = re{nn}(1:end-1);
-            lwc{nn} = lwc{nn}(1:end-1);
-            z{nn} = z{nn}(1:end-1);
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
@@ -842,9 +845,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last 12 measurements exceed 25 microns. Remove
             % them and use this profile
-            re{nn} = re{nn}(1:end-12);
-            lwc{nn} = lwc{nn}(1:end-12);
-            z{nn} = z{nn}(1:end-12);
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-12);
 
@@ -861,9 +865,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the exclude the 60th measurement, which jumps to 30 microns. Remove
             % and use this profile
-            re{nn}(60) = [];
-            lwc{nn}(60) = [];
-            z{nn}(60) = [];
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -878,9 +883,10 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 25 microns. Remove
             % them and use this profile
-            re{nn} = re{nn}(1:end-1);
-            lwc{nn} = lwc{nn}(1:end-1);
-            z{nn} = z{nn}(1:end-1);
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
