@@ -176,7 +176,19 @@ inputs.RT.cloud_depth = 500;                % meters
 
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+if isfield(inputs_measurement.RT, 'z_topBottom')==true
+
+    inputs.RT.z_topBottom = inputs_measurement.RT.z_topBottom;          % km above surface
+
+else
+
+    % inputs.RT.z_topBottom = [inputs_measurement.RT.z(1), inputs_measurement.RT.z(end)];
+
+    % define the geometric location of the cloud top and cloud bottom
+    inputs.RT.z_topBottom = [1.5, 1];          % km above surface
+
+end
+
 
 
 % Water Cloud depth

@@ -412,7 +412,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
     end
 
     % define the geometric location of the cloud top and cloud bottom
-    if load_parameters_from_measurement==true
+    if load_parameters_from_measurement==true && isfield(sim_meas.inputs.RT, 'z_topBottom')==true
 
         inputs.RT.z_topBottom = sim_meas.inputs.RT.z_topBottom;          % km above surface  - value for pixel used in Figure 3.a from paper 1
 

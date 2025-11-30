@@ -5,7 +5,8 @@
 
 %%
 
-function [acpw_retrieval] = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err)
+function [acpw_retrieval] = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths,...
+    print_status_updates, print_libRadtran_err)
 
 
 %% Unpack folder_paths
