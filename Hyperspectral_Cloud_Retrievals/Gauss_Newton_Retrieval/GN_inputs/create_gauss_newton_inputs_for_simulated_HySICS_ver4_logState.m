@@ -56,8 +56,18 @@ GN_inputs.measurement.prior = 'gaussian';
 GN_inputs.measurement.covariance_type = 'independent';
 
 % Store the simulated state vector used to create the measurements
-GN_inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
-GN_inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
+if isfield(simulated_measurements.inputs.RT, 'r_top')
+    % Then we have a simulated adiabatic or other theoretical profile
+    GN_inputs.measurement.r_top = simulated_measurements.inputs.RT.r_top;      % microns
+    GN_inputs.measurement.r_bot = simulated_measurements.inputs.RT.r_bot;      % microns
+
+elseif isfield(simulated_measurements.inputs.RT, 're')
+
+    GN_inputs.measurement.re_prof = simulated_measurements.inputs.RT.re;   % in-situ re profile
+    GN_inputs.measurement.lwc_prof = simulated_measurements.inputs.RT.lwc;   % in-situ lwc profile
+    GN_inputs.measurement.z = simulated_measurements.inputs.RT.z;            % altidue vector for in-situ measurements
+end
+
 GN_inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth
 GN_inputs.measurement.actpw = aboveCloud_CWV_simulated_hysics_spectra(simulated_measurements.inputs); % kg/m^2 (equivelant to mm)
 

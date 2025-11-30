@@ -1,7 +1,8 @@
 % This script retrieves 4 variables: ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
 
 
-function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_logState(GN_inputs, hysics, folder_paths, print_status_updates)
+function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert(GN_inputs,...
+    hysics, folder_paths, print_status_updates)
 
 
 % ----- unpack inputs -----
@@ -9,6 +10,7 @@ function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_logSta
 model_apriori = GN_inputs.model.apriori'; % a priori expected values for the model parameters
 model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
 measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
+forward_model_cov = GN_inputs.model.forward_model.covariance;  % forward model parameter covariance
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 % Grab the model and measurement covariances in linear space
@@ -176,13 +178,27 @@ if print_status_updates==true
         Jacobian = compute_jacobian_HySICS_ver4_logState(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+        % --------------------------------------------------------------
+        % Compute the jacobian of the forward model parameters that have
+        % a defined uncertainty
+        % --------------------------------------------------------------
+        jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+            hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % -----------------------------------------------------------------
+        % --------- Update the total measurement covariance ---------------
+        % ----------------------------------------------------------------- 
+        % S_e = S_y + S_b'
+        % S_b' = K_b * S_b * K_b'
+        total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
         jacobian_diff_guess_prior(:,ii) = Jacobian*diff_guess_prior(:,ii);
 
 
-
+        % -----------------------------------------------------------------
         % -------------- Compute the new state vector ---------------------
         % -----------------------------------------------------------------
 
@@ -190,8 +206,8 @@ if print_status_updates==true
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov^(-1) + Jacobian' * measurement_cov^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  measurement_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
+        new_direction = (model_cov^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
 
         % fine the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + a*new_direction <u
@@ -533,6 +549,20 @@ else
         Jacobian = compute_jacobian_HySICS_ver4_logState(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+        % --------------------------------------------------------------
+        % Compute the jacobian of the forward model parameters that have
+        % a defined uncertainty
+        % --------------------------------------------------------------
+        jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+            hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % -----------------------------------------------------------------
+        % --------- Update the total measurement covariance ---------------
+        % ----------------------------------------------------------------- 
+        % S_e = S_y + S_b'
+        % S_b' = K_b * S_b * K_b'
+        total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -547,8 +577,8 @@ else
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov^(-1) + Jacobian' * measurement_cov^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  measurement_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
+        new_direction = (model_cov^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
 
         % fine the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + a*new_direction <u
@@ -861,13 +891,29 @@ A_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_l
 Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+
+% --------------------------------------------------------------
+% Compute the jacobian of the forward model parameters that have
+% a defined uncertainty
+% --------------------------------------------------------------
+jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+    hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+% -----------------------------------------------------------------
+% --------- Update the total measurement covariance ---------------
+% -----------------------------------------------------------------
+% S_e = S_y + S_b'
+% S_b' = K_b * S_b * K_b'
+total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+
+
 % How do I treat the posterior covariance matrix in log space? Do I simply
 % take the exponential of the covariance matrix?
-posterior_cov_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
+posterior_cov_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
 
 
-A_log = ((Jacobian_log' * measurement_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1) *...
-    Jacobian_log' * measurement_cov^(-1) * Jacobian_log;
+A_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1) *...
+    Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log;
 % ---------------------------------------------------------------------
 % ---------------------------------------------------------------------
 

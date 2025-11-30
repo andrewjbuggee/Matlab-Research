@@ -394,8 +394,16 @@ if strcmp(sim_meas_likeness, 'exact')==true
 
     % define the cloud geometric depth
     if load_parameters_from_measurement==true
+        
+        if isfield(sim_meas.inputs.RT, 'cloud_depth')==true
 
-        inputs.RT.cloud_depth = sim_meas.inputs.RT.cloud_depth;                % meters
+            inputs.RT.cloud_depth = sim_meas.inputs.RT.cloud_depth;                % meters
+
+        elseif isfield(sim_meas.inputs.RT, 'z_topBottom')==true
+
+            inputs.RT.cloud_depth = sim_meas.inputs.RT.z_topBottom(1) - sim_meas.inputs.RT.z_topBottom(2);                % meters
+
+        end
 
     else
 
@@ -593,7 +601,16 @@ if strcmp(sim_meas_likeness, 'exact')==true
         %   distribution alpha parameter of 7 ***
         if load_parameters_from_measurement==true
 
-            inputs.RT.distribution_var = sim_meas.inputs.RT.distribution_var;              % distribution variance
+            if isfield(sim_meas.inputs.RT, 'distribution_var')
+
+                inputs.RT.distribution_var = sim_meas.inputs.RT.distribution_var;              % distribution variance
+
+            else
+
+                inputs.RT.distribution_var = linspace(10,10, inputs.RT.n_layers);              % distribution variance
+                
+            end
+
 
         else
 
@@ -1334,6 +1351,7 @@ elseif strcmp(sim_meas_likeness, 'subset')==true
 
     % ------------------------------------------------------------------------
     % -------------- Do you want a cloud in your model? ----------------------
+    % ------------------------------------------------------------------------
     if load_parameters_from_measurement==true
 
         % Load

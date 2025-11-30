@@ -36,8 +36,8 @@
 %       Physically, this too forces subadiabatic behavior at mid-levels.
 
 % OUTPUTS:
-%   (1) re - effective droplet radius profile (microns). The starts at
-%   cloud top and descends to the cloud bottom value
+%   (1) re - effective droplet radius profile (microns). The profile starts at
+%   cloud base and ascends to the cloud bottom value
 
 
 % By Andrew John Buggee

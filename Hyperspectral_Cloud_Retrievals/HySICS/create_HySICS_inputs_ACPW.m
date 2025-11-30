@@ -156,13 +156,25 @@ inputs.RT.re = tblut_retrieval.minRe;     % microns
 inputs.RT.tau_c = tblut_retrieval.minTau;
 
 
+% define the altitude vector
+if isfield(inputs_measurement.RT, 'z')==true
 
-% define the cloud geometric depth
-inputs.RT.cloud_depth = inputs_measurement.RT.cloud_depth;                % meters
+    inputs.RT.z = inputs_measurement.RT.z;
+
+end
 
 
 % define the geometric location of the cloud top and cloud bottom
-inputs.RT.z_topBottom = inputs_measurement.RT.z_topBottom;          % km above surface
+if isfield(inputs_measurement.RT, 'z_topBottom')==true
+
+    inputs.RT.z_topBottom = inputs_measurement.RT.z_topBottom;          % km above surface
+
+else
+
+    inputs.RT.z_topBottom = [inputs_measurement.RT.z(1), inputs_measurement.RT.z(end)];
+
+end
+
 
 
 % Water Cloud depth
