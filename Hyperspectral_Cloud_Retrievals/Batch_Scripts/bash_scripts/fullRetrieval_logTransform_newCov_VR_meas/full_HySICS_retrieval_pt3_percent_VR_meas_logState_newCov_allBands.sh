@@ -21,15 +21,15 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=50G
-#SBATCH --time=23:59:00     # Longer time for multiple files
+#SBATCH --time=06:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_rTop_10_subset_logState_newCov_%A_%a
-#SBATCH --output=full_retrieval_hysics_rTop_10_subset_logState_newCov_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_rTop_10_subset_logState_newCov_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a
+#SBATCH --output=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-40       # 40 jobs × 21 files each = 840 files for subset folder
+#SBATCH --array=1-73       # 73 jobs × 1 files each = 73 files for subset folder
 
 # Load modules
 ml purge
@@ -61,13 +61,13 @@ module load matlab/R2024b
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/testing_new_log_state_and_prior_cov"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1"
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands/"
 # ----------------------------------------------------------
 
 # Get list of all files
@@ -77,7 +77,7 @@ mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -
 # Calculate which files this job should process
 # ----------------------------------------------------------
 # *** MODIFY THIS VALUE BASED ON NUMBER OF FILES AND JOBS ***
-FILES_PER_JOB=21
+FILES_PER_JOB=1
 # ----------------------------------------------------------
 
 START_IDX=$(( (SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) * FILES_PER_JOB ))
@@ -145,7 +145,7 @@ fi
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_log_newCov(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
