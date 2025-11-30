@@ -21,7 +21,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=50G
-#SBATCH --time=06:00:00     # Longer time for multiple files
+#SBATCH --time=12:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a
