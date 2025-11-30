@@ -15,11 +15,9 @@ function jacobian_ln = compute_jacobian_HySICS_ver4_logState(state_vector, measu
 % convert the measurement back to linear space
 meas_est_linear = exp(measurement_estimate_ln);
 
-% Define the measurement variance for the current pixel
-measurement_variance = GN_inputs.measurement.variance_noLog;
 
 % define the measurement uncertainty in linear space
-measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent 
+measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent
 
 
 % --- compute the Jacobian at out current estimate ---
@@ -273,7 +271,7 @@ jacobian_ln = dF_dx .* (repmat(state_vector', num_wl, 1) ./ repmat(meas_est_line
 
 % ----- Check to see if there are any NaN values in the Jacobian Matrix -----
 
-if any(isnan(jacobian_ln))==true
+if any(isnan(jacobian_ln), 'all')==true
 
     error([newline, 'There are NaN values in the Jacobian matrix.', newline])
 end
@@ -283,6 +281,9 @@ end
 % --- Optional Plot! ---
 
 if jacobian_barPlot_flag==true
+
+    % Define the measurement variance for the current pixel
+    measurement_variance = GN_inputs.measurement.variance_noLog;
 
     spectral_bands = zeros(1,length(GN_inputs.spec_response));
     for bb = 1:length(GN_inputs.spec_response)

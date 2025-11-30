@@ -45,6 +45,13 @@ cd /projects/anbu8374/
 # Load MATLAB
 module load matlab/R2024b
 
+# Create unique temp directory for this array task to avoid race conditions
+export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+mkdir -p $TMPDIR
+
+# Add a small random delay to prevent simultaneous MATLAB startups
+sleep $((SLURM_ARRAY_TASK_ID % 10))
+
 # Run MATLAB script for the specific measurement index
 echo "Starting MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
 

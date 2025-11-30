@@ -22,7 +22,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver4_log_newCov(filenames,...
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(filenames,...
     folder_paths, print_status_updates, print_libRadtran_err)
 
 
@@ -222,9 +222,9 @@ for ff = 1:length(filenames)
     % I don't need anything but the covariance matrix and the expected values
     %inputs = create_model_prior(inputs,data_inputs);
 
-    % -------------------------------------------------------
+    % --------------------------------------------------------
     % do you want to use your estimates or the MODIS estimate?
-    % -------------------------------------------------------
+    % --------------------------------------------------------
 
     use_TBLUT_estimates = true;
 
@@ -232,8 +232,13 @@ for ff = 1:length(filenames)
     GN_inputs = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
 
     % *** transform the measurements to log space ***
-    GN_inputs = create_HySICS_measurement_covariance_ver4_logState(GN_inputs, simulated_measurements);
+    GN_inputs = create_HySICS_measurement_cov_ver4_log_no_FM_uncert(GN_inputs, simulated_measurements);
 
+
+    %% Create the forward model covariance matrix and transform it into measurement space
+    % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
+
+    GN_inputs = create_HySICS_forward_model_covariance_ver4_logState(GN_inputs);
 
 
     %% CALCULATE RETRIEVAL PARAMETERS
@@ -243,7 +248,8 @@ for ff = 1:length(filenames)
     % --------------------------------------------------------------
     % ---------------- Retrieve Vertical Profile! ------------------
     % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_logState(GN_inputs, simulated_measurements, folder_paths, print_status_updates);
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert(GN_inputs,...
+        simulated_measurements, folder_paths, print_status_updates);
     % --------------------------------------------------------------
     % --------------------------------------------------------------
 
