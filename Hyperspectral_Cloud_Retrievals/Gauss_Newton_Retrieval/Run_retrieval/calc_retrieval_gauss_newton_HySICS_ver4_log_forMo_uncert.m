@@ -182,12 +182,22 @@ if print_status_updates==true
         % Compute the jacobian of the forward model parameters that have
         % a defined uncertainty
         % --------------------------------------------------------------
+        % compute the new forward model asumed droplet profile
+        if ii>1
+            % re is a column vector that starts at cloud base and grows towards cloud top
+            GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([current_guess(1),...
+                current_guess(2)]), sort(GN_inputs.RT.z),...
+                GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+        end
+        
+        disp([newline, 'Computing the Forward Model Jacobian...', newline])
+
         jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % -----------------------------------------------------------------
         % --------- Update the total measurement covariance ---------------
-        % ----------------------------------------------------------------- 
+        % -----------------------------------------------------------------
         % S_e = S_y + S_b'
         % S_b' = K_b * S_b * K_b'
         total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
@@ -553,12 +563,20 @@ else
         % Compute the jacobian of the forward model parameters that have
         % a defined uncertainty
         % --------------------------------------------------------------
+        % compute the new forward model asumed droplet profile
+        if ii>1
+            % re is a column vector that starts at cloud base and grows towards cloud top
+            GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([current_guess(1),...
+                current_guess(2)]), sort(GN_inputs.RT.z),...
+                GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+        end
+
         jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % -----------------------------------------------------------------
         % --------- Update the total measurement covariance ---------------
-        % ----------------------------------------------------------------- 
+        % -----------------------------------------------------------------
         % S_e = S_y + S_b'
         % S_b' = K_b * S_b * K_b'
         total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
@@ -896,6 +914,13 @@ Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measu
 % Compute the jacobian of the forward model parameters that have
 % a defined uncertainty
 % --------------------------------------------------------------
+% compute the new forward model asumed droplet profile
+
+% re is a column vector that starts at cloud base and grows towards cloud top
+GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([current_guess(1),...
+    current_guess(2)]), sort(GN_inputs.RT.z),...
+    GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+
 jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
@@ -1074,7 +1099,7 @@ if isfield(GN_inputs.measurement, 'r_top')==true
 elseif isfield(GN_inputs.measurement, 're_prof')==true
 
     re_prof_retrieved = create_droplet_profile2([retrieval(1,end), retrieval(2,end)],...
-    GN_inputs.measurement.z, 'altitude', GN_inputs.model.profile.type);                               % microns
+        GN_inputs.measurement.z, 'altitude', GN_inputs.model.profile.type);                               % microns
 
     percentDiff_abs =  {100 * abs((GN_inputs.measurement.re_prof - re_prof_retrieved')./GN_inputs.measurement.re_prof),...
         100 * abs((GN_inputs.measurement.tau_c - retrieval(3,end))/GN_inputs.measurement.tau_c),...

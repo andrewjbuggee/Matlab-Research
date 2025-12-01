@@ -106,17 +106,32 @@ num_INP_files = size(changing_variables, 1);
 % create droplet profile - there are four unique ones!
 % ----------------------------------------------------------
 
-re_with_topChange = create_droplet_profile2([changing_variables(1,1), changing_variables(1,2)],...
+re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-re_with_botChange = create_droplet_profile2([changing_variables(num_wl+1,1), changing_variables(num_wl+1,2)],...
-    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+% re_with_topChange = create_droplet_profile2([changing_variables(1,1), changing_variables(1,2)],...
+%     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+% 
+% re_with_botChange = create_droplet_profile2([changing_variables(num_wl+1,1), changing_variables(num_wl+1,2)],...
+%     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+
+% by creating a new profile with new boundary conditions, you alter the
+% entire droplet profile. Keep the profile exactly the same, except for the
+% values at cloud top and bottom
+
+% Change the value at cloud top
+re_with_topChange = re_with_noChange;
+re_with_topChange(end) = re_with_topChange(end) + change_in_state(1);
+
+% Change the value at cloud bottom
+re_with_botChange = re_with_noChange;
+re_with_botChange(1) = re_with_botChange(1) + change_in_state(2);
+
 
 re_with_tauChange = create_droplet_profile2([changing_variables(2*num_wl +1,1), changing_variables(2*num_wl +1,2)],...
     GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-re_with_noChange = create_droplet_profile2(changing_variables(3*num_wl +1,1:2),...
-    GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+
 
 
 % -----------------------------------------------------------
