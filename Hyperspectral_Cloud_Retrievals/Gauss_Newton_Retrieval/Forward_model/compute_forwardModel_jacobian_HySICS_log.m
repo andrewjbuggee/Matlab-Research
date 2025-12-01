@@ -29,7 +29,7 @@ measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent
 r_top = state_vector(1);
 r_bottom = state_vector(2);
 tau_c = state_vector(3);
-
+wv_col_aboveCloud = state_vector(4);
 
 % ----- unpack parallel for loop variables ------
 % We want to avoid large broadcast variables!
@@ -37,6 +37,7 @@ wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
 libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+atm_folder_path = folder_paths.atm_folder_path;
 mie_folder_path = folder_paths.libRadtran_mie_folder;
 
 which_computer = GN_inputs.which_computer;
@@ -134,16 +135,18 @@ end
 wc_filenames = reshape( repmat(wc_filenames', num_wl, 1), num_INP_files, 1);
 
 
+% -----------------------------------------------------------
+% ---------- create water vapor density profiles ------------
+% -----------------------------------------------------------
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
+    wv_col_aboveCloud, atm_folder_path);
+
 
 
 new_measurement_estimate = zeros(num_INP_files, 1);
 
 
-% *** We don't want to modify the above cloud column water vapor ***
-% We are just computing the change in reflectance with respect to the a
-% change in the assumed profile
-% *** set 'modify_aboveCloud_columnWaterVapor' to false ***
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = false;
+
 
 parfor nn = 1:num_INP_files
     % for nn = 1:num_INP_files
@@ -161,7 +164,8 @@ parfor nn = 1:num_INP_files
 
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
-        changing_variables(nn, end-2:end-1), wc_filenames{nn}{1}, [], tau_c);
+        changing_variables(nn, end-2:end-1), wc_filenames{nn}{1}, [], tau_c,...
+        aboveCloud_waterVaporColumn_fileName);
 
 
 
@@ -191,9 +195,6 @@ parfor nn = 1:num_INP_files
 
 end
 
-% *** set 'modify_aboveCloud_columnWaterVapor' to true ***
-% need this for future calculations
-GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;
 
 
 % *** When transforming to the variables to log space... ***

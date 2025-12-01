@@ -21,7 +21,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=50G
-#SBATCH --time=22:00:00     # Longer time for multiple files
+#SBATCH --time=16:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a
@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-73       # 73 jobs × 1 files each = 73 files for subset folder
+#SBATCH --array=101-173       # 73 jobs × 1 files each = 73 files for subset folder
 
 # Load modules
 ml purge
@@ -67,7 +67,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_2/"
 # ----------------------------------------------------------
 
 # Get list of all files
