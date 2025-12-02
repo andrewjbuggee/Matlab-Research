@@ -570,6 +570,7 @@ else
                 current_guess(2)]), sort(GN_inputs.RT.z),...
                 GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
         end
+        
 
         jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
@@ -587,7 +588,7 @@ else
         jacobian_diff_guess_prior(:,ii) = Jacobian*diff_guess_prior(:,ii);
 
 
-
+        % -----------------------------------------------------------------
         % -------------- Compute the new state vector ---------------------
         % -----------------------------------------------------------------
 
@@ -639,9 +640,9 @@ else
 
             % Check to see if both guesses are 3.5, the lower limit of our
             % lookup table
-            if current_guess(1)==log(3.5) && current_guess(2)==log(3.5)
+            if current_guess(1)==3.5 && current_guess(2)==3.5
 
-                new_guess = [log(9), log(5), current_guess(3), current_guess(4)];
+                new_guess = [9, 5, current_guess(3), current_guess(4)];
 
             else
 
@@ -655,7 +656,7 @@ else
             % to detmerine convergence
             new_measurement_estimate = log(compute_forward_model_HySICS_ver2(new_guess, GN_inputs, spec_response, folder_paths));
             residual(:,ii+1) = measurements_ln - new_measurement_estimate;
-            rss_residual(ii+1) = sqrt(sum( ( exp(measurements_ln) - exp(measurement_estimate_ln)).^2));
+            rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
 
 
         elseif max_a==0 && ii>1
@@ -762,13 +763,6 @@ else
 
 
 
-        % ----- new_guess using the previous iteration -----
-        %new_guess = current_guess + (model_cov(:,:,pp)^(-1) + jacobian' * measurement_cov^(-1) *jacobian)^(-1) * (jacobian' *  measurement_cov(:,:,pp)^(-1) * residual(:,ii,pp) - model_cov(:,:,pp)^(-1) *diff_guess_prior(:,ii,pp));
-
-
-        % ----- new_guess using the model prior mean value -----
-        %new_guess = model_apriori(:,pp) + model_cov(:,:,pp) * Jacobian' * (Jacobian * model_cov(:,:,pp) * Jacobian' + measurement_cov(:,:,pp))^(-1) * (residual(:,ii) + jacobian_diff_guess_prior(:,ii));
-
         % -----------------------------------------------------------------
         % -----------------------------------------------------------------
 
@@ -837,10 +831,6 @@ else
 
             if abs(rss_residual(ii+1) - rss_residual(ii))/rss_residual(ii)<percent_change_limit
 
-                disp([newline, 'RSS residual has plataued. The current value differs from the previous value by less than ',...
-                    num2str(100*percent_change_limit), '%', newline,...
-                    'RSS Limit = ', num2str(convergence_limit),newline,...
-                    'Lowest value was: ','RSS = ', num2str(rss_residual(ii+1))])
 
                 % Clear the rest of the zeros that are place holders for later
                 % iterations
@@ -859,7 +849,6 @@ else
 
 
     end
-
 
 
 end

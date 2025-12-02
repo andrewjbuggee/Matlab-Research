@@ -61,6 +61,36 @@ GN_inputs.model.forward_model.re.std(end-1:end) = 2; % microns
 GN_inputs.model.forward_model.re.std(3:end-2) = 1; % microns
 
 
+% *** For computing the covariance of the logarithm of the parameters ***
+% Assume each assumed droplet effective radius along the profile follows a
+% lognormal distribution, where the mean is the assumed value and the std
+% is the value defined above
+
+% Take the log of these and compute the variance
+% The main diagonal is var(log(y))
+n_samples = 10000;
+samples_effective_radius = zeros(length(GN_inputs.model.forward_model.re.mean{1}), n_samples);
+
+for nn = 1:length(GN_inputs.model.forward_model.re.mean{1})
+
+    % convert mean and std from a normal distribution to a lognormal
+    % distribution
+    mu_log = log(GN_inputs.model.forward_model.re.mean{1}(nn)) -...
+        (1/2 * log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
+
+    std_log = sqrt( log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
+
+
+    logNorm_dist = makedist("Lognormal", mu_log, std_log);
+
+    samples_effective_radius(:,nn) = logNorm_dist.random(1, n_samples);
+
+
+end
+
+
+
+
 
 
 
@@ -69,7 +99,9 @@ GN_inputs.model.forward_model.re.std(3:end-2) = 1; % microns
 %----------------------------------------------------------
 
 % For now lets claim the desired variables are independent
-GN_inputs.model.forward_model.covariance = diag((GN_inputs.model.forward_model.re.std).^2);
+% GN_inputs.model.forward_model.covariance = diag((GN_inputs.model.forward_model.re.std).^2);
+
+GN_inputs.model.forward_model.covariance = diag(var(samples_effective_radius, [], 1));     % 1/sr^2 - reflectance squared
 
 
 %----------------------------------------------------
