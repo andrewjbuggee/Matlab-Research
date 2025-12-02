@@ -385,7 +385,7 @@ if tblut_retrieval.minRe<=5 && tblut_retrieval.minTau<=10
 
 
      % save the new retrieval
-     save(folder_paths.saveOutput_filename, "tblut_retrieval_2", "tblut_retrieval"); % save inputSettings to the same folder as the input and output file
+     save(folder_paths.saveOutput_filename, "tblut_retrieval_2", "tblut_retrieval", '-append'); % save inputSettings to the same folder as the input and output file
 
     
 

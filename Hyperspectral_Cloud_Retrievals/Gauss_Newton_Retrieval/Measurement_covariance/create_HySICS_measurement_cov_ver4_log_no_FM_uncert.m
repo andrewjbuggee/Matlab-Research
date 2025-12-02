@@ -70,7 +70,7 @@ elseif strcmp(covariance_type,'independent') == true
     % *** For computing the covariance of the logarithm of the measurements ***
     % Assume each spectral channel is follows a gaussian distribution with
     % the mean value as the measurement and the standard deviation as the
-    % total uncertainty.
+    % uncertainty.
     % create a set of synthetic measurements for each channel
     % Take the log of these and compute the variance
     % The main diagonal is var(log(y))
