@@ -881,6 +881,7 @@ retrieval = exp(retrieval);
 Jacobian_lin = compute_jacobian_HySICS_ver2(retrieval(:,end), exp(new_measurement_estimate), GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
+
 % compute the posterior in linear space
 posterior_cov_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_lin^(-1))^(-1);
 

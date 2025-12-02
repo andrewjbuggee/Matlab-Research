@@ -83,7 +83,7 @@ for nn = 1:length(GN_inputs.model.forward_model.re.mean{1})
 
     logNorm_dist = makedist("Lognormal", mu_log, std_log);
 
-    samples_effective_radius(:,nn) = logNorm_dist.random(1, n_samples);
+    samples_effective_radius(nn, :) = logNorm_dist.random(1, n_samples);
 
 
 end
@@ -101,13 +101,17 @@ end
 % For now lets claim the desired variables are independent
 % GN_inputs.model.forward_model.covariance = diag((GN_inputs.model.forward_model.re.std).^2);
 
-GN_inputs.model.forward_model.covariance = diag(var(samples_effective_radius, [], 1));     % 1/sr^2 - reflectance squared
+% you need to take the log of the data!
+GN_inputs.model.forward_model.covariance = diag(var( log(samples_effective_radius), [], 2));     %  log space covaraince
 
+GN_inputs.model.forward_model.covariance_lin = diag( var(samples_effective_radius, [], 2));     %  log space covaraince
 
 %----------------------------------------------------
 % ------ Define the Variance of each Variable  ------
 %----------------------------------------------------
 GN_inputs.model.forward_model.variance = diag(GN_inputs.model.forward_model.covariance);
+
+GN_inputs.model.forward_model.variance_lin = diag(GN_inputs.model.forward_model.covariance_lin);
 
 
 
