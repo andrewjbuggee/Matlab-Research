@@ -24,6 +24,11 @@ index_precip_drizzle = [];
 
 for nn = 1:length(vert_profs)
 
+    % Check to see if LWP is negative. If it is, throw an error
+    if vert_profs(nn).lwp_2DC < 0
+        error([newline, 'LWP is negative! Check your calcualtions', newline])
+    end
+    
     if vert_profs(nn).lwp_2DC>precipitation_drizzle_threshold
         index_precip_drizzle = [index_precip_drizzle, nn];
     end
