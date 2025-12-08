@@ -878,7 +878,7 @@ if strcmp(sim_meas_likeness, 'exact')==true
     % 400 ppm = 1.0019 * 10^23 molecules/cm^2
     inputs.RT.modify_CO2 = true;
 
-    inputs.RT.CO2_mixing_ratio = 416;       % ppm
+    inputs.RT.CO2_mixing_ratio = 418;       % ppm
     % inputs.RT.CO2_mixing_ratio = 0;       % ppm
     % ------------------------------------------------------------------------
 

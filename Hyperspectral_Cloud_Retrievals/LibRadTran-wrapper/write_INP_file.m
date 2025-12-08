@@ -273,6 +273,34 @@ end
 
 
 
+% Use radiosonde dat file to define the pressure, temperatrue and other ell
+% mixed gasses
+% --------------------------------------------------------------------
+if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==true
+
+    % check to make sure the input for this setting exists
+    if isfield(inputs.RT, 'radiosonde_file')==true
+
+
+        % If true, define the filename for the new custom column water vapor
+    % density profile
+    % ----------------------------------------------------------------
+    formatSpec = '%s %s %s %5s %s \n\n';
+    fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' H2O RH', ' ', '# Custom water vapor profile');
+
+
+    else
+
+        error([newline, 'No custom radiosonde file defined', newline])
+
+    end
+
+    
+
+
+end
+
+
 
 % Define the concentration of carbon dioxide
 % --------------------------------------------------------------------

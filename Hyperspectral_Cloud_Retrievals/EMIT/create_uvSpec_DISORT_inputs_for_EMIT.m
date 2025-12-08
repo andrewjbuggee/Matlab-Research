@@ -15,7 +15,7 @@
 
 %%
 
-function inputs = create_uvSpec_DISORT_inputs_for_EMIT(inputs, emit)
+function inputs = create_uvSpec_DISORT_inputs_for_EMIT(inputs, emit, print_libRadtran_err)
 
 
 % ------------------------------------------------------------
@@ -168,9 +168,9 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % libRadtran estimates of reflectance below 500 nm consistently
 % overestimate the measured values from EMIT. Let's ignore wavelengths
 % below 500
-inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
-    94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
-    231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
+%     94, 115, 116, 117, 156, 157, 158, 172, 175, 176,...
+%     231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
 
@@ -178,10 +178,10 @@ inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 86, 87, 88, 89, 90,...
 % This set has a total of 64 bands. They are not exactly the same set as
 % the 66 HySICS bands used to retrieve column water vapor because the
 % HySICS channels are more narrow.
-% inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
-%     94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
-%     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
-%     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+    94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+    157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+    220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
 
 % ------------------------------------------------------------------------
@@ -262,10 +262,6 @@ inputs.RT.yesCloud = true;
 
 
 
-% define the cloud geometric depth
-
-inputs.RT.cloud_depth = 500;                % meters
-
 
 
 % define the geometric location of the cloud top and cloud bottom
@@ -278,7 +274,7 @@ inputs.RT.z_topBottom = [1.25, 0.75];          % km above surface  - value for p
 inputs.RT.H = inputs.RT.z_topBottom(1) - inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
 % Do you want to manually set the optical depth?
-inputs.RT.modify_wc_opticalDepth = false;
+inputs.RT.modify_wc_opticalDepth = true;
 
 % ------------------------------------------------------------------------
 
@@ -307,9 +303,6 @@ inputs.RT.lambda_forTau = 500;            % nm
 % -------------------- Cloud optical properties --------------------------
 % ------------------------------------------------------------------------
 
-% define whether this is a vertically homogenous cloud or not
-inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
-
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
@@ -321,7 +314,7 @@ if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
     % *** To match the optical
     %   properties mie table precomputed by libRadtran, use a gamma
     %   distribution alpha parameter of 7 ***
-    inputs.RT.distribution_var = 7;              % distribution variance
+    inputs.RT.distribution_var = 10;              % distribution variance
 
     % define the type of droplet distribution
     inputs.RT.distribution_str = 'gamma';
@@ -726,7 +719,15 @@ inputs.RT.no_scattering_aer = false;
 
 % --------------------------------------------------------------
 % Do you want to print an error message?
-inputs.RT.errMsg = 'verbose';
+if print_libRadtran_err==true
+
+    inputs.RT.errMsg = 'verbose';
+
+else
+
+    inputs.RT.errMsg = 'quiet';
+
+end
 % --------------------------------------------------------------
 
 

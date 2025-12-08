@@ -13,7 +13,15 @@ function emit = remove_unwanted_emit_data(emit, pixels2use)
 num_wavelengths = size(emit.radiance.measurements, 3);
 
 % define the number of pixels
-num_pixels = length(pixels2use.idx);
+if isfield(pixels2use, 'idx')==true
+
+    num_pixels = length(pixels2use.idx);
+
+elseif isfield(pixels2use, 'linear_idx')==true
+
+    num_pixels = length(pixels2use.linear_idx);
+end
+
 
 % define the rows and columns of data to keep
 row = [pixels2use(:).row];
@@ -55,11 +63,12 @@ emit.obs.utc_time(~keep_emit_data_index(:,:,1)) = [];
 
 % Sort the radiance data into a desired format
 
-if length(pixels2use.idx)==1
+if num_pixels==1
 
     emit.radiance.measurements = reshape(emit.radiance.measurements, [], 1);
 
 else
+
 
 end
 

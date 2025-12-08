@@ -21,23 +21,24 @@
 
 %%
 
-function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_paths)
+function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, folder_paths, print_libRadtran_err,...
+    GN_inputs, use_MODIS_AIRS_data)
 
-
-disp([newline, 'Computing the TBLUT retrieval...', newline])
 
 
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response);
+inputs_tblut = create_emit_inputs_TBLUT(folder_paths, emit, spec_response, print_libRadtran_err);
 
 
-%% SPECIAL CASES
+%% Update based on GN_inputs
+
+if exist("use_MODIS_AIRS_data", "var")==1
 
 % Values for 27_Jan_2024 - ** pixel [1242, 973] **
 % override the cloud top height
-inputs_tblut.RT.z_topBottom = [0.700, 0.500];    % km
+inputs_tblut.RT.z_topBottom = GN_inputs.RT.z_topBottom;  % km
 
 % change inputs that depend on z_topBottom
 % Water Cloud depth
@@ -45,10 +46,14 @@ inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom
 
 
 inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
-% Values for 27_Jan_2024 - ** pixel [1242, 640] **
-inputs_tblut.RT.waterVapor_column = 26;   % mm - milimeters of water condensed in a column
 
+inputs_tblut.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
 
+inputs_tblut.RT.use_radiosonde_file = true;
+
+inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file;
+
+end
 
 %% Define the solar source file name and read in the solar source data
 
@@ -97,6 +102,14 @@ if inputs_tblut.flags.writeINPfiles == true
     changing_variables = [changing_variables, repmat((1:num_wl)', num_rEff*num_tauC, 1)];
 
 
+    % Define the water cloud folder path location
+    wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+
+    % Define the mie folder path
+    mie_folder_path = folder_paths.libRadtran_mie_folder;
+
+
+
     % First, write all the wc files
     temp_names = cell(num_rEff*num_tauC, 1);
     wc_filename = cell(num_INP_files, 1);
@@ -114,7 +127,8 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1);
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
 
@@ -125,9 +139,15 @@ if inputs_tblut.flags.writeINPfiles == true
     wc_filename(2:num_wl:num_INP_files, 1) = temp_names;
 
 
+    % define the INP folder location
+    inp_folder_path = folder_paths.libRadtran_inp;
+
+    % define the libRadtran data path
+    libRadtran_data_path = folder_paths.libRadtran_data;
+
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-        % for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -150,8 +170,8 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folder_paths.libRadtran_inp, folder_paths.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
-            wavelengths, wc_filename{nn});
+        write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs_tblut,...
+            wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
 
 
     end

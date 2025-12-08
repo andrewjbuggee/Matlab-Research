@@ -179,6 +179,10 @@ else
         folder_paths.HySICS_retrievals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
             'HySICS/Droplet_profile_retrievals/'];
 
+        % libRadtran data folder
+        folder_paths.libRadtran_data = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+
         
         % Define the folder path where all .INP files will be saved
         folder_paths.libRadtran_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/INP_OUT_',...
@@ -188,10 +192,6 @@ else
         % mie folder location
         folder_paths.libRadtran_mie_folder = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations_',...
                                                 num2str(folder_extension_number), '/'];
-
-
-        % libRadtran data folder
-        folder_paths.libRadtran_data = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
 
 
         % libRadtran atmosphere folder location
