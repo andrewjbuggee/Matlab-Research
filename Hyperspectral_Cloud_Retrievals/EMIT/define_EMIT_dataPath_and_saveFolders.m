@@ -139,17 +139,27 @@ else
         folder_paths.emitDataPath = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/EMIT/EMIT_data/';
 
 
+        % Define the libRadtran data files path. All paths must be absolute in
+        % the INP files for libRadtran
+        folder_paths.libRadtran_data = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
+
+
         % Define the folder path where all .INP files will be saved
         folder_paths.libRadtran_inp = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/EMIT/',...
             num2str(folder_extension_number), '/'];
 
+        % mie folder location
+        folder_paths.libRadtran_mie_folder = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/Mie_Calculations/emit_',...
+            num2str(folder_extension_number), '/'];
 
-        % Define the libRadtran data files path. All paths must be absolute in
-        % the INP files for libRadtran
-        folder_paths.libRadtran_data_path = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
 
         % water cloud file location
-        folder_paths.water_cloud_folder_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc_',...
+        folder_paths.libRadtran_water_cloud_files = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc_',...
+            num2str(folder_extension_number), '/'];
+
+
+        % libRadtran atmosphere folder location
+        folder_paths.atm_folder_path = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod_',...
             num2str(folder_extension_number), '/'];
 
 
