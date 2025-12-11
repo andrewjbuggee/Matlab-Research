@@ -41,6 +41,10 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
+    folder_paths.coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
+    
+    folder_paths.coincident_dataFolder = '2024-09-12/';
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 

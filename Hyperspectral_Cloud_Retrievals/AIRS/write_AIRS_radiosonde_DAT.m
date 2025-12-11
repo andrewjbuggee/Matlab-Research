@@ -126,14 +126,14 @@ end
 
 %% Prepare data for writing
 
-% libRadtran atmospheric files typically have pressure decreasing 
-% (altitude increasing) from top to bottom of file
+% libRadtran radiosonde files must have pressure increasing 
+% (altitude decreasing) from top to bottom of file
 % Check if pressure is in ascending or descending order
-if pressure(1) < pressure(end)
+if pressure(1) > pressure(end)
     % Pressure is ascending (surface to top), need to flip
-    pressure_2write = flipud(pressure);
-    temperature_2write = flipud(temperature);
-    relHum_2write = flipud(relHum);
+    pressure_2write = fliplr(pressure);
+    temperature_2write = fliplr(temperature);
+    relHum_2write = fliplr(relHum);
 else
     % Pressure is already descending (top to surface)
     pressure_2write = pressure;
