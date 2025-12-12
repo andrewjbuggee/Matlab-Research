@@ -31,7 +31,7 @@ figure;
 clr_start = 62;
 
 ttl_fnt = 20;
-ax_fnt = 20;
+ax_fnt = 30;
 lgnd_fnt = 18;
 
 

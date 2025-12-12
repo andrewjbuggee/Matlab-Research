@@ -213,7 +213,7 @@ rev = 1;
 folder_paths.saveOutput_filename = [folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
     'Droplet_profile_retrievals/',...
     num2str(numel(GN_inputs.bands2run)),...
-    'bands_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+    'bands_EMIT_dropRetrieval_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
 
@@ -310,6 +310,23 @@ if print_status_updates==true
 end
 
 
+
+
+%% Compute the ACPW retrieval estimate
+
+if print_status_updates==true
+    disp([newline, 'Computing the TBLUT retrieval...', newline])
+    tic
+end
+
+use_MODIS_AIRS_data = true;
+
+acpw_retrieval = ACPW_retrieval_forEMIT(emit, spec_response, folder_paths, print_libRadtran_err,...
+    GN_inputs, use_MODIS_AIRS_data);
+
+if print_status_updates==true
+    disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
+end
 
 %% Create the Model and Measurement prior
 
