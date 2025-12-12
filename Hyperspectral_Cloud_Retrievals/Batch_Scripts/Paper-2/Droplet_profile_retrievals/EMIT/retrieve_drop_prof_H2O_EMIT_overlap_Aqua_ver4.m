@@ -56,8 +56,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
 
-    folder_paths.coincident_dataFolder = '2024-09-12/';
-  
+    % folder_paths.coincident_dataFolder = '2024-09-12/';
+
+    folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
 
 elseif strcmp(which_computer,'curc')==true
 
@@ -85,7 +86,7 @@ criteria.cld_phase = 'water';
 criteria.cld_cvr = 1;   % cloud fraction
 criteria.cld_tau_min = 3;   % cloud optical depth
 criteria.cld_tau_max = 30;   % cloud optical depth
-criteria.H = 0.5;         % horizontal inhomogeneity index
+criteria.H = 2;         % horizontal inhomogeneity index
 
 % plot flag
 plot_data = false;
@@ -99,6 +100,11 @@ plot_data = false;
 [overlap_pixels, emit, modis, airs, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, plot_data);
 
 
+%% Plot all three swaths
+
+figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
+hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
+hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
 
 %% Remove data that is not needed
 

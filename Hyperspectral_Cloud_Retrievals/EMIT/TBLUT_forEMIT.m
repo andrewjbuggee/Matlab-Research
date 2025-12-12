@@ -220,7 +220,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
     parfor nn = 1:num_INP_files
-        % for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
