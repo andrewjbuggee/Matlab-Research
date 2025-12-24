@@ -277,7 +277,7 @@ inputs.RT.vaz = inputs_measurement.RT.vaz;     % degree
 
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
-inputs.RT.modify_waterVapor = false;
+inputs.RT.modify_total_columnWaterVapor = false;
 
 % default value is 14.295 mm
 inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a column

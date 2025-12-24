@@ -11,6 +11,8 @@
 % (2) folder_paths - structure containing the path to save the file
 % (3) idx - linear index of the pixel to extract profile (1 to num_pixels)
 % (4) filename (optional) - custom filename. If not provided, generates automatic name
+% (5) num_vars - if 2, use just temperature and pressure from AIRS. if 3,
+%                use temperature, pressure and relative humidity
 
 % OUTPUTS:
 % (1) filename_fullPath - full path to the saved .DAT file
@@ -19,7 +21,7 @@
 
 %%
 
-function [filename_fullPath] = write_AIRS_radiosonde_DAT(airs, folder_paths, idx, filename)
+function [filename_fullPath] = write_AIRS_radiosonde_DAT(airs, folder_paths, idx, filename, num_vars)
 
 % Check if folder_paths structure has the atmosphere folder field
 if ~isfield(folder_paths, 'atm_folder_path')
@@ -113,9 +115,27 @@ if nargin < 4 || isempty(filename)
         year = airs.metadata.start_year{1};
         month = airs.metadata.start_month{1};
         day = airs.metadata.start_day{1};
-        filename = sprintf('AIRS_profile_lat%.2f_lon%.2f_%04d%02d%02d.dat', lat, lon, year, month, day);
+
+        if num_vars==2
+
+            filename = sprintf('AIRS_profile_T-P_lat%.2f_lon%.2f_%04d%02d%02d.dat', lat, lon, year, month, day);
+        elseif num_vars==3
+
+            filename = sprintf('AIRS_profile_T-P-RH_lat%.2f_lon%.2f_%04d%02d%02d.dat', lat, lon, year, month, day);
+        end
+
     else
-        filename = sprintf('AIRS_profile_lat%.2f_lon%.2f.dat', lat, lon);
+        
+        if num_vars==2
+
+            filename = sprintf('AIRS_profile_T-P_lat%.2f_lon%.2f.dat', lat, lon);
+
+        elseif num_vars==3
+
+            filename = sprintf('AIRS_profile_T-P-RH_lat%.2f_lon%.2f.dat', lat, lon);
+
+        end
+
     end
 end
 
@@ -143,28 +163,61 @@ end
 
 %% Write the file
 
-% Open file for writing
-fileID = fopen([atm_folder_path, filename], 'w');
+if num_vars==2
 
-if fileID == -1
-    error([newline, 'Could not open file for writing: ', atm_folder_path, filename, newline])
+    % Open file for writing
+    fileID = fopen([atm_folder_path, filename], 'w');
+
+    if fileID == -1
+        error([newline, 'Could not open file for writing: ', atm_folder_path, filename, newline])
+    end
+
+    % Write header comment - single line format like the example
+    fprintf(fileID, '# extracted from AIRS L2 data, Lat=%.4f, Lon=%.4f\n', ...
+        airs.geo.Latitude(idx), airs.geo.Longitude(idx));
+
+    % Write column headers - exactly matching the example format
+    fprintf(fileID, '#   p(hPa)  T(K)\n');
+
+    % Write the data - three columns with specific formatting to match example
+    % Format: pressure with 5 decimal places, temperature with 1 decimal, RH in scientific notation
+    for ii = 1:length(pressure_2write)
+        fprintf(fileID, '%12.5f %5.1f\n', pressure_2write(ii), temperature_2write(ii));
+    end
+
+    % Close the file
+    fclose(fileID);
+
+
+elseif num_vars==3
+
+
+    % Open file for writing
+    fileID = fopen([atm_folder_path, filename], 'w');
+
+    if fileID == -1
+        error([newline, 'Could not open file for writing: ', atm_folder_path, filename, newline])
+    end
+
+    % Write header comment - single line format like the example
+    fprintf(fileID, '# extracted from AIRS L2 data, Lat=%.4f, Lon=%.4f\n', ...
+        airs.geo.Latitude(idx), airs.geo.Longitude(idx));
+
+    % Write column headers - exactly matching the example format
+    fprintf(fileID, '#   p(hPa)  T(K)  h2o(relative humidity)\n');
+
+    % Write the data - three columns with specific formatting to match example
+    % Format: pressure with 5 decimal places, temperature with 1 decimal, RH in scientific notation
+    for ii = 1:length(pressure_2write)
+        fprintf(fileID, '%12.5f %5.1f %e\n', pressure_2write(ii), temperature_2write(ii), relHum_2write(ii));
+    end
+
+    % Close the file
+    fclose(fileID);
+
+
+
 end
-
-% Write header comment - single line format like the example
-fprintf(fileID, '# extracted from AIRS L2 data, Lat=%.4f, Lon=%.4f\n', ...
-    airs.geo.Latitude(idx), airs.geo.Longitude(idx));
-
-% Write column headers - exactly matching the example format
-fprintf(fileID, '#   p(hPa)  T(K)  h2o(relative humidity)\n');
-
-% Write the data - three columns with specific formatting to match example
-% Format: pressure with 5 decimal places, temperature with 1 decimal, RH in scientific notation
-for ii = 1:length(pressure_2write)
-    fprintf(fileID, '%12.5f %5.1f %e\n', pressure_2write(ii), temperature_2write(ii), relHum_2write(ii));
-end
-
-% Close the file
-fclose(fileID);
 
 %% Define output filename with full path
 

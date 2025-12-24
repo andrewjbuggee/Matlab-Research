@@ -5,8 +5,9 @@
 
 %%
 
-function [acpw_retrieval] = ACPW_retrieval_for_EMIT(emit, tblut_retrieval, folder_paths,...
-    print_status_updates, print_libRadtran_err)
+function [acpw_retrieval] = ACPW_retrieval_for_EMIT(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
+    GN_inputs, print_libRadtran_err, print_status_updates)
+
 
 
 %% Unpack folder_paths
@@ -32,41 +33,73 @@ which_computer = folder_paths.which_computer;
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_acpw = create_HySICS_inputs_ACPW(emit.inputs, tblut_retrieval, print_libRadtran_err);
+inputs_acpw = create_emit_inputs_ACPW(emit, tblut_retrieval, print_libRadtran_err);
 
+
+%% Update based on GN_inputs
+
+if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
+
+    % override the cloud top height
+    inputs_acpw.RT.z_topBottom = GN_inputs.RT.z_topBottom;  % km
+
+    % change inputs that depend on z_topBottom
+    % Water Cloud depth
+    inputs_acpw.RT.H = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+
+    inputs_acpw.RT.use_radiosonde_file = true;
+
+    % For the ACPW retrieval, we will use the just temperature and
+    % pressure from the radiosonde file
+    % ** only use temp and pres **
+    inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P;
+
+end
 
 %% Find the measurements closest to the bands to run
 
-[~, idx_1] = min(abs(emit.inputs.bands2run - inputs_acpw.bands2run(1)));
+if size(emit.radiance.measurements, 1) == 285
 
-[~, idx_2] = min(abs(emit.inputs.bands2run - inputs_acpw.bands2run(2)));
+    bands = 1:285;
 
-[~, idx_3] = min(abs(emit.inputs.bands2run - inputs_acpw.bands2run(3)));
+[~, idx_1] = min(abs(bands - inputs_acpw.bands2run(1)));
+
+[~, idx_2] = min(abs(bands - inputs_acpw.bands2run(2)));
+
+[~, idx_3] = min(abs(bands - inputs_acpw.bands2run(3)));
+
+else
+
+    error([newline, 'Have you downselected the number of EMIT wavelengths to use?', newline])
+
+end
 
 
 % error if the values found are at least 15nm from the intended wavlengths
-if abs(mean(emit.inputs.RT.wavelengths2run(idx_1,:)) - 900)>15
+if abs(emit.radiance.wavelength(idx_1) - 900)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 900 nm', newline])
 
-elseif abs(mean(emit.inputs.RT.wavelengths2run(idx_2,:)) - 955)>15
+elseif abs(emit.radiance.wavelength(idx_2) - 955)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 955 nm', newline])
 
 
-elseif abs(mean(emit.inputs.RT.wavelengths2run(idx_3,:)) - 1127)>15
+elseif abs(emit.radiance.wavelength(idx_3) - 1127)>15
 
     error([newline, 'The measurements provided dont have a reflectance measurement close to 1127 nm', newline])
 
 else
 
-    % Then we set the bands to run to be to ones found to be closest to the
+    % Then we set the bands-to-run to be to ones found to be closest to the
     % desired bands out of the measurement bands provided
     inputs_acpw.bands2run_from_set_of_measurements = [idx_1, idx_2, idx_3];
     inputs_acpw.bands2plot = inputs_acpw.bands2run;
 
     % ---- Define the wavelengths ----
-    inputs_acpw.RT.wavelengths2run = emit.inputs.RT.wavelengths2run(inputs_acpw.bands2run_from_set_of_measurements,:);
+    inputs_acpw.RT.wavelengths2run = [spec_response.wavelength(inputs_acpw.bands2run_from_set_of_measurements, 1),...
+        spec_response.wavelength(inputs_acpw.bands2run_from_set_of_measurements, end)];
 
 
 
@@ -83,7 +116,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
 
 
-    inputs_acpw.acpw_sim = 3:30;    % mm
+    inputs_acpw.acpw_sim = 0:40;    % mm
 
     % num wavelengths
     num_wl = length(inputs_acpw.bands2run);
@@ -130,7 +163,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-        % for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -196,10 +229,8 @@ if inputs_acpw.flags.runUVSPEC == true
 
 
 
-    spec_response = emit.spec_response.value;
-
     % Let's only keep values we need
-    spec_response = spec_response(inputs_acpw.bands2run_from_set_of_measurements, :);
+    spec_response = spec_response.value(inputs_acpw.bands2run_from_set_of_measurements, :);
 
 
     % store the reflectances
@@ -298,7 +329,7 @@ end
 
 
 
-R_measurement = emit.Refl_model(inputs_acpw.bands2run_from_set_of_measurements);
+R_measurement = emit.reflectance.value(inputs_acpw.bands2run_from_set_of_measurements);
 
 RMS = sqrt( mean( (repmat(R_measurement, 1, num_tcpw) - reshape(Refl_model_acpw, num_wl, [])).^2, 1) );
 

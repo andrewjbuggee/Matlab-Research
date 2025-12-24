@@ -16,52 +16,32 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_ACPW(folder_paths, emit, spec_response, print_libRadtran_err)
+function inputs = create_emit_inputs_ACPW(emit, tblut_retrieval, print_libRadtran_err)
 
 
 %%
 
-% Determine which computer this is being run on
-inputs.which_computer = folder_paths.which_computer;
-
-
-
 % We're not computing weighting functions
 inputs.compute_weighting_functions = false;
 
+
+
 % Define which EMIT bands to run
-% band 38 has a center wavelength of 656 nm
-% band 235 has a center wavelength of 2123 nm
-inputs.bands2run = [38, 235]; % these are the bands that we will run uvspec with
-inputs.bands2plot = [38, 235]; % these are the EMIT bands that will be plotted, both the modis calcualted stuff and the stuff I calcualte
+% number of channels = 285 ranging from center wavelengths: [381, 2492]
 
- % ---- Define the wavelengths ----
-inputs.RT.wavelengths2run = spec_response.wavelength([inputs.bands2run],[1,end]);
-
-
-% if interpGridScaleFactor is 10, then 9 rows will be interpolated to be 90
-% rows, and 10 columns will be interpolated to be 100 columns
-inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase the grid size for interpolation.
-
-
+% band 67 has a center wavelength of 872.5 nm
+% band 71 has a center wavelength of 902.4 nm
+% band 78 has a center wavelength of 954.6 nm
+% band 101 has a center wavelength of 1126.2 nm
+inputs.bands2run = [71, 78, 101]; % these are the bands that we will run uvspec with
+inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands
 inputs.RT.monochromatic_calc = false;
 
-
-% --------------------------------------------
-% Create a new folder to save all calculations
-% --------------------------------------------
-
-
-
-% Store the file name for the libRadTran INP and OUT files
-inputs.folder2save.libRadTran_INP_OUT = folder_paths.libRadtran_inp;
-
-
-% This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = folder_paths.reflectance_calcs;
-
+% if interpGridScaleFactor is 10, then 9 rows will be interpolated to be 90
+% rows, and 10 columns will be interpolated to be 100 columns
+inputs.interpGridScaleFactor = 150; % scale factor the will be used to increase the grid size for interpolation.
 
 
 
@@ -74,11 +54,6 @@ inputs.folder2save.reflectance_calcs = folder_paths.reflectance_calcs;
 % define flags that tell the codes to either run certain things, or don't
 % run certain things
 
-inputs.flags.findSuitablePixels = false; % if true, this will search the modis data set for pixels to use
-
-% if true, the code will load an older set of pixels that has already been used before, and
-% likely has INP files. If false, it tells the code to find a new random subset of pixels
-inputs.flags.loadPixelSet = true;
 inputs.flags.writeINPfiles = true; % if true, this will create inp files for each the length of vector pixel.row
 inputs.flags.runUVSPEC = true; % if true, this will run all of the inp files create from the above flag through uvspec
 inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch code to plot
@@ -90,7 +65,6 @@ inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSearch
 % ------------------------------------------------------
 % ----- Define Radiative Transfer Model Parameters -----
 % ------------------------------------------------------
-
 
 % Define the RTE Solver
 inputs.RT.rte_solver = 'disort';
@@ -144,7 +118,6 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 
 
-
 % define the atmospheric data file
 inputs.RT.atm_file = 'afglus.dat';
 
@@ -156,10 +129,13 @@ inputs.RT.day_of_year = emit.day_of_year;
 
 
 
-
 % ------------------------------------------------------------------------
 % -------------- Do you want a cloud in your model? ----------------------
 inputs.RT.yesCloud = true;
+
+% *** Use the TBLUT retreival estimates ***
+inputs.RT.re = tblut_retrieval.minRe;     % microns
+inputs.RT.tau_c = tblut_retrieval.minTau;
 
 
 % define the cloud geometric depth
@@ -178,13 +154,37 @@ inputs.RT.H = inputs.RT.z_topBottom(2) - inputs.RT.z_topBottom(1);              
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS cloud top height estimate? ---------
 inputs.RT.use_MODIS_cloudTopHeight = false;
+% ------------------------------------------------------------------------                               % km - geometric thickness of cloud
+
+
+% -------------------------------------------------------------------
+% define the independent variable used to define the effective radius
+% profile within the cloud
+% -------------------------------------------------------------------
+% if using altitude, z should be a vector starting at the cloud bottom
+% and increasing
+inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
+
+
 % ------------------------------------------------------------------------
+
 
 
 % ------------------------------------------------------------------------
 % ------ Do you want to use the MODIS above cloud water vapor? ---------
 inputs.RT.use_MODIS_aboveCloudWaterVapor = false;
 % ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% ----------- Define the vertical atmospheric grid -----------
+% --------------------------------------------------------------
+inputs.RT.define_atm_grid=false;
+% Set the vertical grid to include the cloud layers
+
+
+
 
 
 
@@ -202,6 +202,11 @@ inputs.RT.distribution_str = 'gamma';
 inputs.RT.distribution_var = 7;
 % define whether this is a vertically homogenous cloud or not
 inputs.RT.vert_homogeneous_str = 'vert-homogeneous';
+
+% We're modeling a homoegenous cloud layer using the TBLUT retrieval, so
+% the number of free re parameters is 1
+inputs.RT.num_re_parameters = 1;
+
 % define how liquid water content will be computed
 % can either be 'mie' or '2limit'
 inputs.RT.parameterization_str = 'mie';     % This string is used to compute the LWC from optical depth and effective radius
@@ -212,30 +217,8 @@ inputs.RT.parameterization_str = 'mie';     % This string is used to compute the
 inputs.RT.lambda_forTau = 500;            % nm
 
 
-% -------------------------------------------------------------------
-% define the independent variable used to define the effective radius
-% profile within the cloud
-% -------------------------------------------------------------------
-% if using altitude, z should be a vector starting at the cloud bottom
-% and increasing
-inputs.RT.indVar = 'altitude';                    % string that tells the code which independent variable we used
-
-
-% --------------------------------------------------------------
-% ----------- Define the vertical atmospheric grid -----------
-% --------------------------------------------------------------
-inputs.RT.define_atm_grid=false;
-% Set the vertical grid to include the cloud layers
-
-
-% -----------------------------------------------------------------------
-% -------------- Define the grid of r_e and tau_c values ----------------
-% -----------------------------------------------------------------------
-% MODIS only considers homogenous plane parallel clouds. Lets construct the
-% re matrix needed to create homogenous water clouds using write_wc_file
-inputs.RT.re = [3:0.5:9, 11:2:17];      % microns
-inputs.RT.tau_c = [1:10, 12:2:20,  25:5:35, 40:10:60];
-
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = true;
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -299,8 +282,6 @@ inputs.RT.vaz = emit.obs.sensor.azimuth;
 
 
 
-
-
 % ------------------------------------------------------------------------
 % -------- Do you want to modify the column water vapor amount? ----------
 inputs.RT.modify_total_columnWaterVapor = false;
@@ -311,13 +292,21 @@ inputs.RT.waterVapor_column = 40;       % mm (kg/m^2) - of water condensed in a 
 
 
 
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+% -----------------------------------------------------------------------
+
+
+
 % ------------------------------------------------------------------------
 % ------- Do you want to modify concentration of Carbon dioxide? ---------
 
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-% Using values measured by OCO-3 on 27 Jan 2024 off the coast of Chile
 inputs.RT.CO2_mixing_ratio = 418;       % ppm - concentration of CO2
 % ------------------------------------------------------------------------
 
@@ -422,40 +411,25 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
+
 if print_libRadtran_err==true
 
     inputs.RT.errMsg = 'verbose';
 
 else
 
-   inputs.RT.errMsg = 'quiet';
+    inputs.RT.errMsg = 'quiet';
 
 end
-% --------------------------------------------------------------
 
 % --------------------------------------------------------------
 
-
-
-
-
-% --------------------------------------------------------------
-% --- Create a file name for the droplet profile retrieval -----
 % --------------------------------------------------------------
 
-rev = 1;
-
-
-
-inputs.saveOutput_fileName = folder_paths.saveOutput_filename;
 
 
 
 
-while isfile(inputs.saveOutput_fileName)
-    rev = rev+1;
-    inputs.saveOutput_fileName = [inputs.saveOutput_fileName(1:end-5), num2str(rev),'.mat'];
-end
 
 
 
@@ -467,5 +441,6 @@ end
 % ----- ISSUE A WARNING! SETTINGS SHOULD BE CHECKED -----
 
 warning([newline, 'Check inputs structure to make sure the settings reflect the situation you wish to model!', newline]);
+
 
 end

@@ -96,14 +96,14 @@ elseif strcmp(which_computer,'andrewbuggee')==true
         'log_newCov_subset_allBands_VR_inSitu_1/'];
 
     % all bands
-    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
-    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-    %     '31-Oct-2008_9.0864UTC_prof-nn_24_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
-
-    % all bands - testing failed file
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-        '21-Oct-2008_6.0819UTC_prof-nn_11_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']);
+        '31-Oct-2008_9.0864UTC_prof-nn_24_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
+
+    % all bands - testing failed file
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '21-Oct-2008_6.0819UTC_prof-nn_11_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']);
 
 
     % using only 66 bands 

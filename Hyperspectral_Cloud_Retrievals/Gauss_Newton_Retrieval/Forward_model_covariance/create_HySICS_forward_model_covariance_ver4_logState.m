@@ -41,6 +41,11 @@ function [GN_inputs] = create_HySICS_forward_model_covariance_ver4_logState(GN_i
 % --- Define the mean and std of each forward model parameter ---
 %----------------------------------------------------------------
 
+
+%----------------------------------------------------------------
+% ------------ Uncertainty due to adiabatic profile -------------
+%----------------------------------------------------------------
+
 % Define the uncertainty due to assuming a theoretical adiabatic
 % droplet profile
 % create a droplet profile using the a priori values and the number of
@@ -94,6 +99,59 @@ end
 
 
 
+
+%----------------------------------------------------------------
+% --------------- Uncertainty of Cloud Top Height ---------------
+%----------------------------------------------------------------
+
+% Define the uncertainty due incorrect knowledge of cloud top height
+% create a droplet profile using the a priori values and the number of
+% layers assumed in our forward model
+% re is a column vector that starts at cloud base and grows towards cloud top
+GN_inputs.model.forward_model.cloudTopHeight.mean = GN_inputs.RT.z_topBottom(1);    % km - cloud top height
+
+% Define the standard deviation. This
+% reflects the uncertainty between the assumed value and the true value
+
+GN_inputs.model.forward_model.cloudTopHeight.std = 0.4;  % km
+
+% check to make sure the cloud top height is larger than the std. If not,
+% reduce the cloud top height std to a value less than the cloud top height
+if GN_inputs.model.forward_model.cloudTopHeight.mean < GN_inputs.model.forward_model.cloudTopHeight.std 
+
+    GN_inputs.model.forward_model.cloudTopHeight.std = 0.5 * GN_inputs.model.forward_model.cloudTopHeight.mean;
+
+end
+
+
+% *** For computing the covariance of the logarithm of the parameters ***
+% Assume the cloud top height follows a lognormal distribution,
+% where the mean is the assumed value and the std
+% is the value defined above
+
+% Take the log of these and compute the variance
+% The main diagonal is var(log(y))
+n_samples = 10000;
+
+% convert mean and std from a normal distribution to a lognormal
+% distribution
+mu_log = log(GN_inputs.model.forward_model.cloudTopHeight.mean) -...
+    (1/2 * log( (GN_inputs.model.forward_model.cloudTopHeight.std^2 / GN_inputs.model.forward_model.cloudTopHeight.mean^2) +1));
+
+std_log = sqrt( log( (GN_inputs.model.forward_model.cloudTopHeight.std^2 / GN_inputs.model.forward_model.cloudTopHeight.mean^2) +1));
+
+
+logNorm_dist = makedist("Lognormal", mu_log, std_log);
+
+samples_cloudTopHeight = logNorm_dist.random(1, n_samples);
+
+
+
+
+
+
+
+
 %----------------------------------------------------------
 % ----------- Define the Covariance Matrix ----------------
 %----------------------------------------------------------
@@ -101,10 +159,14 @@ end
 % For now lets claim the desired variables are independent
 % GN_inputs.model.forward_model.covariance = diag((GN_inputs.model.forward_model.re.std).^2);
 
-% you need to take the log of the data!
-GN_inputs.model.forward_model.covariance = diag(var( log(samples_effective_radius), [], 2));     %  log space covaraince
 
-GN_inputs.model.forward_model.covariance_lin = diag( var(samples_effective_radius, [], 2));     %  log space covaraince
+% ** ensure the magnitude of cloud top height is similar to effective radius **
+
+% you need to take the log of the data!
+% ** Combine both data sets! **
+GN_inputs.model.forward_model.covariance = diag(var( log( [samples_effective_radius; samples_cloudTopHeight] ), [], 2));     %  log space covaraince
+
+GN_inputs.model.forward_model.covariance_lin = diag( var( [samples_effective_radius; samples_cloudTopHeight], [], 2));     %  log space covaraince
 
 %----------------------------------------------------
 % ------ Define the Variance of each Variable  ------

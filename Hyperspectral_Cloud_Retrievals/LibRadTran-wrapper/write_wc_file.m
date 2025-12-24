@@ -936,7 +936,8 @@ for nn = 1:num_files_2write
                 % print top and bottom
 
                 fileName{nn} = ['WC_rtop',num2str(round(re(end,nn), 4)),'_rbot',num2str(round(re(1,nn), 4)),'_T',num2str(round(tau_c(nn), 4)),...
-                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+                    '_', distribution_type, '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(nn), '.DAT'];
 
             elseif num_re_parameters==3
 
@@ -946,7 +947,8 @@ for nn = 1:num_files_2write
 
                 fileName{nn} = ['WC_rtop',num2str(round(re(end,nn), 4)), '_rmid', num2str(round(re(idx_middle,nn), 4)),...
                     '_rbot',num2str(round(re(1,nn), 4)),'_T',num2str(round(tau_c(nn), 4)),...
-                    '_', distribution_type,'_nn',num2str(nn), '.DAT'];
+                    '_', distribution_type, '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(nn), '.DAT'];
 
             end
 
@@ -958,7 +960,8 @@ for nn = 1:num_files_2write
                 % print top and bottom
 
             fileName{nn} = ['WC_rtop',num2str(round(re(end,nn),4)),'_rbot',num2str(round(re(1,nn),4)),'_T',num2str(round(tau_c(nn),4)),...
-                '_', distribution_type,'_nn',num2str(index), '.DAT'];
+                '_', distribution_type, '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(index), '.DAT'];
 
             elseif num_re_parameters==3
 
@@ -968,7 +971,8 @@ for nn = 1:num_files_2write
 
                 fileName{nn} = ['WC_rtop',num2str(round(re(end,nn), 4)), '_rmid',num2str(round(re(idx_middle,nn), 4)),...
                     '_rbot',num2str(round(re(1,nn), 4)),'_T',num2str(round(tau_c(nn), 4)),...
-                '_', distribution_type,'_nn',num2str(index), '.DAT'];
+                '_', distribution_type, '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(index), '.DAT'];
 
             end
 
@@ -994,11 +998,13 @@ for nn = 1:num_files_2write
         % create the water cloud file name
         if index==0
             fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
-                '_nn',num2str(nn), '.DAT'];
+                '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(nn), '.DAT'];
         elseif index>0
 
             fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
-                '_nn',num2str(index), '.DAT'];
+                '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(index), '.DAT'];
         end
 
 
@@ -1022,11 +1028,13 @@ for nn = 1:num_files_2write
         % create the water cloud file name
         if index==0
             fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
-                '_nn',num2str(nn), '.DAT'];
+                '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(nn), '.DAT'];
         elseif index>0
 
             fileName{nn} = ['WC_r',num2str(round(re(nn), 4)),'_T',num2str(round(tau_c(nn), 4)),'_', distribution_type,...
-                '_nn',num2str(index), '.DAT'];
+                '_cloudTopBottom', num2str(z_topBottom(1)), '-',num2str(z_topBottom(2)),...
+                    'km_nn',num2str(index), '.DAT'];
         end
 
 

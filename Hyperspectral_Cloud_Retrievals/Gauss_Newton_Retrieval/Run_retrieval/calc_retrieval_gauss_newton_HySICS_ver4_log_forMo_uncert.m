@@ -175,7 +175,7 @@ if print_status_updates==true
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
-        Jacobian = compute_jacobian_HySICS_ver4_logState(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        Jacobian = compute_jacobian_HySICS_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % --------------------------------------------------------------
@@ -426,10 +426,10 @@ if print_status_updates==true
 
         % store the latest guess
         retrieval(:,ii+1) = new_guess;
+        
 
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
-
 
         if rss_residual(ii+1)<convergence_limit
 
@@ -896,7 +896,9 @@ A_lin = ((Jacobian_lin' * measurement_cov_lin^(-1) * Jacobian_lin) + model_cov_l
 % ---- In log space ---
 % ---------------------
 % we need to compute the jacobian using the solution state
-Jacobian_log = compute_jacobian_HySICS_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
+% *** CHECK THAT THE RETRIEVAL AND THE MEASUREMENTS ARE IN THE PROPER SPCAE
+% EITHER LOG OR LINEAR ***
+Jacobian_log = compute_jacobian_HySICS_ver4_logState( retrieval(:,end), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 
@@ -911,7 +913,7 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([cu
     current_guess(2)]), sort(GN_inputs.RT.z),...
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), new_measurement_estimate, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % -----------------------------------------------------------------

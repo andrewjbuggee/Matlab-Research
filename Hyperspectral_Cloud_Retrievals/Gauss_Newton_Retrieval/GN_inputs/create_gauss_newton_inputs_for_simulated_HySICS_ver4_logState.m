@@ -64,7 +64,13 @@ if isfield(simulated_measurements.inputs.RT, 'r_top')
 elseif isfield(simulated_measurements.inputs.RT, 're')
 
     GN_inputs.measurement.re_prof = simulated_measurements.inputs.RT.re;   % in-situ re profile
-    GN_inputs.measurement.tau_prof = simulated_measurements.inputs.RT.tau;   % in-situ re profile
+
+    if isfield(simulated_measurements.inputs.RT, 'tau')==true
+
+        GN_inputs.measurement.tau_prof = simulated_measurements.inputs.RT.tau;   % in-situ dervied optical depth vector
+
+    end
+
     GN_inputs.measurement.lwc_prof = simulated_measurements.inputs.RT.lwc;   % in-situ lwc profile
     GN_inputs.measurement.z = simulated_measurements.inputs.RT.z;            % altidue vector for in-situ measurements
 end
