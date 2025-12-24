@@ -37,6 +37,18 @@ inputs_tblut = create_HySICS_inputs_TBLUT(simulated_measurements.inputs, print_l
 
 
 
+
+%% Update the cloud top height!
+% ** VOCALS-REx in-situ measurements result in a mean cloud top height
+% of 1203 meters and a mean cloud depth of about 230 meters
+% ** testing the retrieval when I lack knowledge of cloud top precisely **
+inputs_tblut.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+% update depenent variables
+inputs_tblut.RT.cloud_depth = 0.3230;                % kilometers
+inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+
 %% Find the measurements closest to the bands to run
 
 [~, idx_1] = min(abs(simulated_measurements.inputs.bands2run - inputs_tblut.bands2run(1)));

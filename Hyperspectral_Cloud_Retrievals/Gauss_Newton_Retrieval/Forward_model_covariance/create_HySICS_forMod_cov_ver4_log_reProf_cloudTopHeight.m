@@ -24,7 +24,7 @@
 
 %%
 
-function [GN_inputs] = create_HySICS_forward_model_covariance_ver4_logState(GN_inputs)
+function [GN_inputs] = create_HySICS_forMod_cov_ver4_log_reProf_cloudTopHeight(GN_inputs)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -112,8 +112,8 @@ GN_inputs.model.forward_model.cloudTopHeight.mean = GN_inputs.RT.z_topBottom(1);
 
 % Define the standard deviation. This
 % reflects the uncertainty between the assumed value and the true value
-
-GN_inputs.model.forward_model.cloudTopHeight.std = 0.4;  % km
+% Set the standard deviation to 250 meters
+GN_inputs.model.forward_model.cloudTopHeight.std = 0.250;  % km
 
 % check to make sure the cloud top height is larger than the std. If not,
 % reduce the cloud top height std to a value less than the cloud top height

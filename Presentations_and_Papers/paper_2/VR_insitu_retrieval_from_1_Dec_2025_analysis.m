@@ -139,8 +139,6 @@ ylim(ax_lim)
 
 clear variables
 
-clear variables
-
 
 % Determine which computer you're using
 which_computer = whatComputer();

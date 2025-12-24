@@ -3,7 +3,6 @@
 
 % *** CURRENT UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
-% (2) Cloud top height
 
 % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
 
@@ -15,7 +14,7 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian_fm_ln = compute_forwardModel_jacobian_HySICS_log(state_vector, measurement_estimate_ln, GN_inputs,...
+function jacobian_fm_ln = compute_forMod_jacobian_HySICS_log_reProf(state_vector, measurement_estimate_ln, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
@@ -66,14 +65,8 @@ num_wl = size(GN_inputs.RT.wavelengths2run,1);
 
 %% define the variables that are changing
 
-% Define the length of the droplet profile, the number of layers modeled
-% within the cloud
-num_cloud_layers = GN_inputs.RT.n_layers;
-
-% unpack the forward model parameters - both droplet profile and cloud top height
-forward_model_params = [ fliplr(GN_inputs.model.forward_model.re.mean{end}'),...
-    GN_inputs.model.forward_model.cloudTopHeight.mean];
-
+% unpack the forward model covariance matrix
+forward_model_params = fliplr(GN_inputs.model.forward_model.re.mean{end}');
 
 num_forward_model_params = length(forward_model_params);
 
@@ -83,8 +76,7 @@ num_forward_model_params = length(forward_model_params);
 
 % Define the fractional change the represents the partial derivative based
 % on the measurement uncertainty. Define the change for each variable.
-partial_diff_change = measurement_uncert .*...
-    [linspace(1/20, 1/5.7143, num_cloud_layers), 1/10];
+partial_diff_change = measurement_uncert .* linspace(1/20, 1/5.7143, num_forward_model_params);
 
 % Compute the change in each parameter
 change_in_params = partial_diff_change .* forward_model_params;
@@ -97,7 +89,7 @@ fm_params_with_change = repmat(forward_model_params', 1, num_forward_model_param
 
 % ----------------------------------------------------------
 
-% changing variable
+% changing variable steps through reff, tauC, and wavelength
 % in for loop speak, it would be:
 % for xx = 1:state_variable
 %    for ww = 1:num_wl
@@ -113,62 +105,27 @@ end
 % function. These always increase chronologically
 changing_variables = [changing_variables, repmat((1:num_wl)', num_forward_model_params, 1)];
 
-
-
-% -----------------------------------------------------------
-% ---------- create water vapor density profiles ------------
-% -----------------------------------------------------------
-% ** create file with original cloud top height **
-aboveCloud_waterVaporColumn_fileName_original_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path);
-
-% ** create file with new cloud top height **
-% Define the cloud top value
-GN_inputs.RT.z_topBottom = [changing_variables(num_forward_model_params * num_wl, num_cloud_layers+1), ...
-    changing_variables(num_forward_model_params * num_wl, num_cloud_layers+1) - GN_inputs.RT.cloud_depth];
-
-aboveCloud_waterVaporColumn_fileName_new_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path);
-% -----------------------------------------------------------
-% -----------------------------------------------------------
-
-
 % how many INP files?
 num_INP_files = size(changing_variables, 1);
-
-
-% create a cell array for ACPW filenames
-acpw_filenames = cell(num_INP_files, 1);
-% Define the ACPW filenames
-acpw_filenames(1:(num_cloud_layers * num_wl)) =  {aboveCloud_waterVaporColumn_fileName_original_cloudTopHeight};
-acpw_filenames((num_cloud_layers * num_wl)+1 : end) =  {aboveCloud_waterVaporColumn_fileName_new_cloudTopHeight};
-
-
-
 
 wc_filenames = cell(num_forward_model_params, 1);
 
 for xx = 1:num_forward_model_params
 
-        % create droplet profile
-        re_profile = changing_variables(xx * num_wl, 1:num_cloud_layers);
+    % create droplet profile
+    re_withChange = changing_variables(xx * num_wl, 1:end-3);
 
-        % for the function 'write_wc_file', the re vector must be arranged so
-        % that the first entry is at cloud bottom, and the final value is at
-        % cloud top. Flip the above vector
-        re_profile = fliplr(re_profile);
+    % for the function 'write_wc_file', the re vector must be arranged so
+    % that the first entry is at cloud bottom, and the final value is at
+    % cloud top. Flip the above vector
+    re_withChange = fliplr(re_withChange);
 
-        % Define the cloud top value
-        GN_inputs.RT.z_topBottom = [changing_variables(xx * num_wl, num_cloud_layers+1), ...
-            changing_variables(xx * num_wl, num_cloud_layers+1) - GN_inputs.RT.cloud_depth];
-
-    
 
     % -----------------------------------------------------------
     %    create water-cloud file - there are four unique ones!
     % -----------------------------------------------------------
 
-    wc_filenames{xx} = write_wc_file(re_profile, tau_c, GN_inputs.RT.z_topBottom,...
+    wc_filenames{xx} = write_wc_file(re_withChange, tau_c, GN_inputs.RT.z_topBottom,...
         GN_inputs.RT.lambda_forTau, GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var,...
         GN_inputs.RT.vert_homogeneous_str, GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar,...
         GN_inputs.compute_weighting_functions, which_computer, xx, 2, wc_folder_path, mie_folder_path);
@@ -176,11 +133,15 @@ for xx = 1:num_forward_model_params
 end
 
 
-
-
 % repeat the wc_filenames array for easy access in the for loop below
 wc_filenames = reshape( repmat(wc_filenames', num_wl, 1), num_INP_files, 1);
 
+
+% -----------------------------------------------------------
+% ---------- create water vapor density profiles ------------
+% -----------------------------------------------------------
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
+    wv_col_aboveCloud, atm_folder_path);
 
 
 
@@ -206,7 +167,7 @@ parfor nn = 1:num_INP_files
     % ----- Write an INP file --------
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
         changing_variables(nn, end-2:end-1), wc_filenames{nn}{1}, [], tau_c,...
-        acpw_filenames{nn});
+        aboveCloud_waterVaporColumn_fileName);
 
 
 

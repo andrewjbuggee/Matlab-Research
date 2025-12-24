@@ -195,7 +195,7 @@ for ff = 1:length(filenames)
 
     %% CREATE GAUSS-NEWTON INPUTS
 
-    % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv)
+    % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv) 
     GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver4_logState(simulated_measurements, print_libRadtran_err);
 
     if print_status_updates==true
@@ -205,6 +205,19 @@ for ff = 1:length(filenames)
     GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
 
     % what was the assumed above cloud column water vapor path?
+
+    %% Update the cloud top height!
+    % ** VOCALS-REx in-situ measurements result in a mean cloud top height
+    % of 1203 meters and a mean cloud depth of about 230 meters
+    % ** testing the retrieval when I lack knowledge of cloud top precisely **
+    GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+    % update depenent variables
+    GN_inputs.RT.cloud_depth = 0.3230;                % kilometers
+    GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+    GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
+    GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
+
 
     %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
@@ -238,7 +251,11 @@ for ff = 1:length(filenames)
     %% Create the forward model covariance matrix and transform it into measurement space
     % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
 
-    GN_inputs = create_HySICS_forward_model_covariance_ver4_logState(GN_inputs);
+    % Just re profile uncertainty
+    % GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf(GN_inputs);
+
+    % Including re_profile and cloud top height uncertainty
+    GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf_cloudTopHeight(GN_inputs);
 
 
     %% CALCULATE RETRIEVAL PARAMETERS

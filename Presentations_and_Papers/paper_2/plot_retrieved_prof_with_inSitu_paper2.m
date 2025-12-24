@@ -25,9 +25,32 @@ figure;
 title('In-situ vs. Retrieved droplet profile', 'Interpreter','latex',...
     'FontSize', 26)
 
-plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
-    'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
-    'Color', 'k', 'MarkerFaceColor', 'k')
+if ds.GN_inputs.measurement.tau(end) ~= ds.GN_inputs.measurement.tau_c
+
+    % check the length
+    if length(ds.GN_inputs.measurement.tau) ~= length(ds.GN_inputs.measurement.re_prof)
+
+        warning([newline, 'Tau vector length doesnt match radius profile length', newline])
+
+        if ds.GN_inputs.measurement.tau(length(ds.GN_inputs.measurement.re_prof)) == ds.GN_inputs.measurement.tau_c
+
+            plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau(1:length(ds.GN_inputs.measurement.re_prof)),...
+                'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+                'Color', 'k', 'MarkerFaceColor', 'k')
+
+
+        end
+
+    end
+
+else
+
+
+    plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
+        'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+        'Color', 'k', 'MarkerFaceColor', 'k')
+
+end
 
 % flip y-axis and provide axes labels
 set(gca,'YDir','reverse')
@@ -102,7 +125,7 @@ LWP_true = ds.GN_inputs.measurement.lwp;   % g/m^2
 
 % Print this information on the figure
 
-dim = [.137 .4 .3 .3];
+dim = [0.141166666666667 0.71690449790349 0.293506310780843 0.157698676699684];
 str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_tblut,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$', newline...
     '$LWP_{true} = \,$',num2str(round(LWP_true,1)),' $g/m^{2}$'];
@@ -135,7 +158,7 @@ else
 end
 
 
-dim = [.137 .2 .3 .3];
+dim = [0.141166666666667 0.571252065991597 0.238002173105876 0.103351108611576];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');

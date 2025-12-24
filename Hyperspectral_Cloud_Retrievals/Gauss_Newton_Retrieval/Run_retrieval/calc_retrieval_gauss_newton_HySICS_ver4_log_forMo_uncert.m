@@ -190,10 +190,21 @@ if print_status_updates==true
                 GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
         end
         
+        % --------------------------------------------------------------
+        % --------------------------------------------------------------
         disp([newline, 'Computing the Forward Model Jacobian...', newline])
 
-        jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % ** For uncertainty with re profile **
+        % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % ** For uncertainty with re profile and cloud top height **
+        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+        % --------------------------------------------------------------
+        % --------------------------------------------------------------
+
+
 
         % -----------------------------------------------------------------
         % --------- Update the total measurement covariance ---------------
@@ -572,8 +583,18 @@ else
         end
         
 
-        jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % --------------------------------------------------------------
+        % --------------------------------------------------------------
+
+        % ** For uncertainty with re profile **
+        % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % ** For uncertainty with re profile and cloud top height **
+        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+        % --------------------------------------------------------------
+        % --------------------------------------------------------------
 
         % -----------------------------------------------------------------
         % --------- Update the total measurement covariance ---------------
@@ -913,8 +934,18 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([cu
     current_guess(2)]), sort(GN_inputs.RT.z),...
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-jacobian_fm = compute_forwardModel_jacobian_HySICS_log(exp(current_guess), new_measurement_estimate, GN_inputs,...
+
+% ** For uncertainty with re profile **
+% jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+%     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+% ** For uncertainty with re profile and cloud top height **
+jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+% --------------------------------------------------------------
+
+
+
 
 % -----------------------------------------------------------------
 % --------- Update the total measurement covariance ---------------
