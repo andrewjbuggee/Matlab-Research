@@ -35,6 +35,18 @@ which_computer = folder_paths.which_computer;
 inputs_acpw = create_HySICS_inputs_ACPW(simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
 
 
+
+%% Update the cloud top height!
+% ** VOCALS-REx in-situ measurements result in a mean cloud top height
+% of 1203 meters and a mean cloud depth of about 230 meters
+% ** testing the retrieval when I lack knowledge of cloud top precisely **
+inputs_acpw.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+% update depenent variables
+inputs_acpw.RT.cloud_depth = 0.3230;                % kilometers
+inputs_acpw.RT.H = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+
+
 %% Find the measurements closest to the bands to run
 
 [~, idx_1] = min(abs(simulated_measurements.inputs.bands2run - inputs_acpw.bands2run(1)));

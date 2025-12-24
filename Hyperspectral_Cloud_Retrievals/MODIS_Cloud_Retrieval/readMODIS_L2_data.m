@@ -156,7 +156,8 @@ opticalThickness_16 = hdfread(fileName,'Cloud_Optical_Thickness_16');
 optThickness_uncertainty_16 = hdfread(fileName,'Cloud_Optical_Thickness_Uncertainty_16');
 
 
-% extract the cloud top geopotential height at 1km resolution - units (meters)
+% Cloud Top Height at 1-km resolution from LEOCAT, 
+% Geopotential Height at Retrieved Cloud Top Pressure Level rounded to nearest 50 m - units (meters)
 cloudTop_geopotentialHeight = hdfread(fileName,'cloud_top_height_1km');
 
 % extract the cloud phase - 
@@ -173,7 +174,7 @@ cloudTop_pressure = hdfread(fileName,'cloud_top_pressure_1km');
 % extract the cloud top temperature - units (k)
 cloudTop_temperature = hdfread(fileName,'cloud_top_temperature_1km');
 
-% extract the cloud water height for band 7 and either 1 or 2 or 5
+% extract the cloud water path for band 7 and either 1 or 2 or 5
 columnWaterPath = hdfread(fileName, 'Cloud_Water_Path');            % g/m^2
 
 % extract the cloud phase - 

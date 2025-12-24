@@ -4,8 +4,8 @@
 %%
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, wc_folder_path, inputFileName, inputs,...
-                        wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename,...
-                        total_column_precipitable_water)
+    wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename,...
+    total_column_precipitable_water)
 
 
 
@@ -271,6 +271,44 @@ if isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_
 end
 
 
+
+
+% Use radiosonde dat file to define the pressure, temperatrue and other ell
+% mixed gasses
+% --------------------------------------------------------------------
+if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==true
+
+    % check to make sure the input for this setting exists
+    if isfield(inputs.RT, 'radiosonde_file')==true
+
+
+        % If true, check to see how many variables there are two define.
+        % If 2, we're only defining temperature and pressure
+        % If 3, we'll define temperature, pressure and relative humidity
+        % ----------------------------------------------------------------
+        if isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==2
+
+            formatSpec = '%s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' ', '# Custom water vapor profile');
+
+        elseif isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==3
+
+            formatSpec = '%s %s %s %5s %s \n\n';
+            fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' H2O RH', ' ', '# Custom water vapor profile');
+
+        end
+
+
+    else
+
+        error([newline, 'No custom radiosonde file defined', newline])
+
+    end
+
+
+
+
+end
 
 
 

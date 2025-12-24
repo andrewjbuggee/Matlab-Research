@@ -84,6 +84,10 @@ vertically_segmented_attributes = cell(n_bins, 3);
 % Store all cloud optical depths
 tau_c = zeros(length(ensemble_profiles),1);
 
+% Store all cloud top heights and geometric depths
+cloudTopHeight = zeros(length(ensemble_profiles),1);
+cloudDepth = zeros(length(ensemble_profiles),1);
+
 
 normalized_altitude = cell(1, length(ensemble_profiles));
 
@@ -173,11 +177,27 @@ for nn = 1:length(ensemble_profiles)
 
 
 
-    % Also store the cloud optical thickness for each profile
+    % store the cloud optical thickness for each profile
     tau_c(nn,1) = max(ensemble_profiles{nn}.tau);
+
+
+    % store the cloud optical thickness for each profile
+    cloudTopHeight(nn,1) = max(ensemble_profiles{nn}.altitude);  % meters
+
+
+    % store the cloud optical thickness for each profile
+    cloudDepth(nn,1) = ensemble_profiles{nn}.cloud_depth;        % meters
 
     % Check if there is ever a 0
     if tau_c(nn,1)==0
+
+        error('Why?')
+
+    elseif cloudTopHeight(nn,1)==0
+
+        error('Why?')
+
+    elseif cloudDepth(nn,1)==0
 
         error('Why?')
 
@@ -474,6 +494,88 @@ title('$\tau_{C}$ statistics and fits', ...
 
 
 
+% -------------------------------------------
+% -------------- CLOUD TOP HEIGHT -----------
+% -------------------------------------------
+% Let's also fit these three distributions to the optical depth data
+
+% fit the number concentration data to a normal distribution
+cloudTopHeight_fit_normal = fitdist(cloudTopHeight, 'normal');
+[cloudTopHeight_reject_normal, cloudTopHeight_p_normal] = chi2gof(cloudTopHeight, 'CDF', cloudTopHeight_fit_normal,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% fit the number concentration content data to a log-normal distribution
+cloudTopHeight_fit_lognormal = fitdist(cloudTopHeight, 'lognormal');
+[cloudTopHeight_reject_lognormal, cloudTopHeight_p_lognormal] = chi2gof(cloudTopHeight, 'CDF', cloudTopHeight_fit_lognormal,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% fit the total number concentration data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+cloudTopHeight_fit_gamma = prob.GammaDistribution_libRadtran.fit(cloudTopHeight);
+[cloudTopHeight_reject_gamma, cloudTopHeight_p_gamma] = chi2gof(cloudTopHeight, 'CDF', cloudTopHeight_fit_gamma,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% Plot results
+lgnd_fnt = 20;
+
+figure; histogram(cloudTopHeight,'NumBins', 30, 'Normalization','pdf')
+hold on
+xVals = linspace(min(cloudTopHeight), max(cloudTopHeight), 1000);
+plot(xVals, pdf(cloudTopHeight_fit_normal, xVals))
+plot(xVals, pdf(cloudTopHeight_fit_lognormal, xVals))
+plot(xVals, pdf(cloudTopHeight_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('Cloud Top Height statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
+
+% -------------------------------------------
+% ----------- CLOUD DEPTH FITTING ---------
+% -------------------------------------------
+% Let's also fit these three distributions to the cloud depth data
+
+% fit the number concentration data to a normal distribution
+cloudDepth_fit_normal = fitdist(cloudDepth, 'normal');
+[cloudDepth_reject_normal, cloudDepth_p_normal] = chi2gof(cloudDepth, 'CDF', cloudDepth_fit_normal,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% fit the number concentration content data to a log-normal distribution
+cloudDepth_fit_lognormal = fitdist(cloudDepth, 'lognormal');
+[cloudDepth_reject_lognormal, cloudDepth_p_lognormal] = chi2gof(cloudDepth, 'CDF', cloudDepth_fit_lognormal,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% fit the total number concentration data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+cloudDepth_fit_gamma = prob.GammaDistribution_libRadtran.fit(cloudDepth);
+[cloudDepth_reject_gamma, cloudDepth_p_gamma] = chi2gof(cloudDepth, 'CDF', cloudDepth_fit_gamma,...
+    'alpha', significance_lvl, 'NParams', 2);
+
+% Plot results
+lgnd_fnt = 20;
+
+figure; histogram(cloudDepth,'NumBins', 30, 'Normalization','pdf')
+hold on
+xVals = linspace(min(cloudDepth), max(cloudDepth), 1000);
+plot(xVals, pdf(cloudDepth_fit_normal, xVals))
+plot(xVals, pdf(cloudDepth_fit_lognormal, xVals))
+plot(xVals, pdf(cloudDepth_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('Cloud Depth statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
+
 
 
 
@@ -515,7 +617,24 @@ title('Number of distribution rejections of $r_{bot}$ data', 'interpreter', 'lat
 % ------------------------------------------
 
 figure; histogram('Categories', bin_names, 'BinCounts', [tauC_reject_normal, tauC_reject_lognormal, tauC_reject_gamma]);
-title('Number of distribution rejections of $r_{bot}$ data', 'interpreter', 'latex'); ylabel('Counts')
+title('Number of distribution rejections of $\tau_{C}$ data', 'interpreter', 'latex'); ylabel('Counts')
+
+
+% ------------------------------------------
+% ---------- CLOUD TOP HEIGHT FITTING ------
+% ------------------------------------------
+
+figure; histogram('Categories', bin_names, 'BinCounts', [cloudTopHeight_reject_normal, cloudTopHeight_reject_lognormal,...
+    cloudTopHeight_reject_gamma]);
+title('Number of distribution rejections of cloud top height data', 'interpreter', 'latex'); ylabel('Counts')
+
+
+% ------------------------------------------
+% ----------- CLOUD DEPTH FITTING ----------
+% ------------------------------------------
+
+figure; histogram('Categories', bin_names, 'BinCounts', [cloudDepth_reject_normal, cloudDepth_reject_lognormal, cloudDepth_reject_gamma]);
+title('Number of distribution rejections of cloud depth data', 'interpreter', 'latex'); ylabel('Counts')
 
 
 % ----------------------------------------------------------------------
@@ -1068,6 +1187,75 @@ title('$\ln($above cloud precipitable water$)$', 'Interpreter','latex', 'FontSiz
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp8))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+
+set(gcf, 'Position', [0,0, 1700, 950])
+
+
+
+
+% create a seperate plot for cloud top height and cloud depth
+figure; 
+
+% -- linear state vector --
+
+% --- Plot for cloud top height ---
+subplot(2,2,1)
+qp3 = qqplot(cloudTopHeight);
+set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Cloud top height', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+% --- Plot for cloud top height ---
+subplot(2,2,2)
+qp3 = qqplot(cloudDepth);
+set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Cloud Depth', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+% -- log state vector --
+
+% --- Plot for cloud top height ---
+subplot(2,2,3)
+qp3 = qqplot(log(cloudTopHeight));
+set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title(['$\ln($Cloud Top Height$)$'], 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+% --- Plot for cloud top height ---
+subplot(2,2,4)
+qp3 = qqplot(log(cloudDepth));
+set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+grid on; grid minor;
+xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Cloud Depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% compute the R^2 value from the figure handle and print this in the legend
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
 
 set(gcf, 'Position', [0,0, 1700, 950])
 

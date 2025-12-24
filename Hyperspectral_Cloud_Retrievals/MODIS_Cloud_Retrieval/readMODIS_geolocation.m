@@ -10,8 +10,8 @@ function [sensor,solar,geo] = readMODIS_geolocation(fileName)
 
     % load the geolocation data from the MOD03 geolocation hdf file
     % these are the lat-long positions of MODIS pixels on Earths surface
-    geo.lat = hdfread(fileName,'Latitude');
-    geo.long = hdfread(fileName,'Longitude');
+    geo.lat = double(hdfread(fileName,'Latitude'));
+    geo.long = double(hdfread(fileName,'Longitude'));
 
     % Sometimes MODIS won't properly register data. If this happens, it
     % will assign a value of -999 to the latitude and longitude. Let's

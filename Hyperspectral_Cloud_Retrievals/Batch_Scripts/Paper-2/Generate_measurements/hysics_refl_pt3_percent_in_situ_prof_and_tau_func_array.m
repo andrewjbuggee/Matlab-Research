@@ -735,6 +735,7 @@ time_of_flight = zeros(num_meas, 1);
 re = cell(num_meas, 1);
 lwc = cell(num_meas, 1);
 z = cell(num_meas, 1);
+tau = cell(num_meas, 1);
 
 
 % --------------------------------------------------------
@@ -749,6 +750,8 @@ nn = 1;
 lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
 % grab the altitude vector
 z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+% grab the optical depth vector
+tau{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the date of flight
 date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
 % grab the time of flight
@@ -771,6 +774,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
         z{nn} = flipud(z{nn});
         lwc{nn} = flipud(lwc{nn});
         re{nn} = flipud(re{nn});
+        tau{nn} = flipud(tau{nn});
     end
 
     % Sometimes droplets will be larger than 25 microns. If there are droplets
@@ -790,6 +794,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
 
@@ -809,6 +814,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
@@ -829,6 +835,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
@@ -849,6 +856,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-12);
 
@@ -869,6 +877,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -887,6 +896,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
@@ -911,9 +921,12 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
         idx_0 = re{nn}<=0.1;
         sum(idx_0)
         if sum(idx_0)>0
+
             re{nn}(idx_0) = [];
             lwc{nn}(idx_0) = [];
             z{nn}(idx_0) = [];
+            tau{nn}(idx_0) = [];
+
         end
 
         wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
@@ -940,6 +953,7 @@ elseif isfield(ds.ensemble_profiles{measurement_idx}, 're_CDP') == true
         z{nn} = flipud(z{nn});
         lwc{nn} = flipud(lwc{nn});
         re{nn} = flipud(re{nn});
+        tau{nn} = flipud(tau{nn});
     end
 
     % Sometimes droplets will be larger than 25 microns. If there are droplets
@@ -964,6 +978,8 @@ elseif isfield(ds.ensemble_profiles{measurement_idx}, 're_CDP') == true
             re{nn}(idx_0) = [];
             lwc{nn}(idx_0) = [];
             z{nn}(idx_0) = [];
+            tau{nn}(idx_0) = [];
+
         end
 
 
@@ -1242,6 +1258,7 @@ for nn = 1:(num_INP_files/num_wl)
 
 
     inputs.RT.re = re{nn};
+    inputs.RT.tau = tau{nn};
     inputs.RT.tau_c = tau_c(nn);
     inputs.RT.z = z{nn};
     inputs.RT.lwc = lwc{nn};

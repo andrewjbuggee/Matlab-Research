@@ -33,7 +33,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    % ---- Define where the retrievals are stored ---
+     % ---- Define where the retrievals are stored ---
+    folder_paths.drive.fullRetrieval = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/newRetrieval_logTransform_newCov/'];
+
+    folder_paths.drive.noACPW_10 = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_logState_1/'];
 
 
 
@@ -295,6 +299,15 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % ---- Define where the retrievals are stored ---
+    folder_paths.drive.fullRetrieval = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov/'];
+
+    folder_paths.drive.noACPW_10 = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov_noACPW_10'];
+
+    folder_paths.drive.noACPW_15 = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov_noACPW_15/'];
+
+    folder_paths.drive.noACPW_20 = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov_noACPW_20/'];
+
+    folder_paths.drive.noACPW_25 = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov_noACPW_25/'];
 
 
 
@@ -358,7 +371,8 @@ acpw = [3.1097, 4.7003, 6.1580, 7.8831, 9.1740, 10.9840];
 % Find all files within filenames_fullRetrieval with the same r_top and
 % r_bot
 % idx_profiles_2_plot = [200, 463, 744, 598, 81, 315];
-idx_profiles_2_plot = [666   806   551    30   714   785];
+% idx_profiles_2_plot = [666   806   551    30   714   785];
+idx_profiles_2_plot = [666   806   551    30   785];
 % idx_profiles_2_plot = randi([1, length(filenames_fullRetrieval)], 1, 6);
 
 % Define the linewidth
@@ -372,7 +386,8 @@ sq_dmnd_size = 12;
 % define the colors for each curve plotted
 C = mySavedColors(61:(61+5 +1), 'fixed');
 
-lgnd_str = cell(1, length(tau_c) + length(tcpw) + 2);
+% lgnd_str = cell(1, length(tau_c) + length(tcpw) + 2);
+lgnd_str = cell(1, 6);
 
 figure;
 
@@ -424,27 +439,29 @@ for nn = 1:length(idx_profiles_2_plot)
 
 
 
-    % First plot the full retreival
+    % ----------------------------------------------------------------
+    % --------------- First, plot the whole retrieval ----------------
+    % ----------------------------------------------------------------
     hold on
 
 
-    if isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov')==true
-
-        e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
-            sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(1,:),...
-            'MarkerEdgeColor', C(1,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
-            'Color', C(1,:));
-
-    elseif isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov_lin')==true
-
-        e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2,...
-            sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds.GN_outputs.posterior_cov_lin(2,2))/2,...
-            sqrt(ds.GN_outputs.posterior_cov_lin(2,2))/2, 'MarkerFaceColor', C(1,:),...
-            'MarkerEdgeColor', C(1,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
-            'Color', C(1,:));
-
-    end
+    % if isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov')==true
+    % 
+    %     e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+    %         sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+    %         sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(1,:),...
+    %         'MarkerEdgeColor', C(1,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
+    %         'Color', C(1,:));
+    % 
+    % elseif isfield(ds, 'GN_outputs')==true && isfield(ds.GN_outputs, 'posterior_cov_lin')==true
+    % 
+    %     e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2,...
+    %         sqrt(ds.GN_outputs.posterior_cov_lin(1,1))/2, sqrt(ds.GN_outputs.posterior_cov_lin(2,2))/2,...
+    %         sqrt(ds.GN_outputs.posterior_cov_lin(2,2))/2, 'MarkerFaceColor', C(1,:),...
+    %         'MarkerEdgeColor', C(1,:), 'Linewidth', ln_wdth, 'Marker', '.', 'MarkerSize', circ_size,...
+    %         'Color', C(1,:));
+    % 
+    % end
 
     hold on
 
@@ -506,6 +523,7 @@ for nn = 1:length(idx_profiles_2_plot)
 
     end
 
+    lgnd_str{3} = 'assumed $acpw = 10 mm$';
 
 
 
@@ -546,7 +564,7 @@ for nn = 1:length(idx_profiles_2_plot)
 
     end
 
-
+    lgnd_str{4} = 'assumed $acpw = 15 mm$';
 
 
 
@@ -587,6 +605,7 @@ for nn = 1:length(idx_profiles_2_plot)
 
     end
 
+    lgnd_str{5} = 'assumed $acpw = 20 mm$';
 
 
 
@@ -627,6 +646,7 @@ for nn = 1:length(idx_profiles_2_plot)
 
     end
 
+    lgnd_str{6} = 'assumed $acpw = 25 mm$';
 
 
 
@@ -638,11 +658,17 @@ for nn = 1:length(idx_profiles_2_plot)
     ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',15)
     xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',15)
 
+    if nn==1
 
-    xlim([ds.GN_inputs.measurement.r_bot - 2, ds.GN_inputs.measurement.r_bot + 2])
-    ylim([ds.GN_inputs.measurement.r_top - 0.75, ds.GN_inputs.measurement.r_top + 0.75])
+        xlim([ds.GN_inputs.measurement.r_bot - 2.75, ds.GN_inputs.measurement.r_bot + 2.75])
+        ylim([ds.GN_inputs.measurement.r_top - 0.75, ds.GN_inputs.measurement.r_top + 0.75])
 
+    else
 
+        xlim([ds.GN_inputs.measurement.r_bot - 1.8, ds.GN_inputs.measurement.r_bot + 1.8])
+        ylim([ds.GN_inputs.measurement.r_top - 0.75, ds.GN_inputs.measurement.r_top + 0.75])
+
+    end
 
 
 end
@@ -653,7 +679,9 @@ end
 
 
 
-
+% plot legend
+legend(lgnd_str, 'Interpreter','latex', 'Location','best', 'FontSize', 20,...
+    'Color', 'white', 'TextColor', 'k')
 
 
 

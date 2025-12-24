@@ -21,34 +21,43 @@
 
 %%
 
-function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, emitDataFolder, folder_paths)
+function tblut_retrieval = TBLUT_forEMIT(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
+    GN_inputs, use_MODIS_AIRS_data)
 
-
-disp([newline, 'Computing the TBLUT retrieval...', newline])
 
 
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response);
+inputs_tblut = create_emit_inputs_TBLUT(folder_paths, emit, spec_response, print_libRadtran_err);
 
 
-%% SPECIAL CASES
+%% Update based on GN_inputs
 
-% Values for 27_Jan_2024 - ** pixel [1242, 973] **
-% override the cloud top height
-inputs_tblut.RT.z_topBottom = [0.700, 0.500];    % km
+if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
-% change inputs that depend on z_topBottom
-% Water Cloud depth
-inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+    % Values for 27_Jan_2024 - ** pixel [1242, 973] **
+    % override the cloud top height
+    inputs_tblut.RT.z_topBottom = GN_inputs.RT.z_topBottom;  % km
 
-
-inputs_tblut.RT.modify_total_columnWaterVapor = true;             % don't modify the full column
-% Values for 27_Jan_2024 - ** pixel [1242, 640] **
-inputs_tblut.RT.waterVapor_column = 26;   % mm - milimeters of water condensed in a column
+    % change inputs that depend on z_topBottom
+    % Water Cloud depth
+    inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
 
+    inputs_tblut.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+
+    inputs_tblut.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+
+    inputs_tblut.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
+
+    inputs_tblut.RT.use_radiosonde_file = true;
+
+    % Use the same one defined for the full retrieval
+    inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+    inputs_tblut.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
+
+end
 
 %% Define the solar source file name and read in the solar source data
 
@@ -97,6 +106,14 @@ if inputs_tblut.flags.writeINPfiles == true
     changing_variables = [changing_variables, repmat((1:num_wl)', num_rEff*num_tauC, 1)];
 
 
+    % Define the water cloud folder path location
+    wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+
+    % Define the mie folder path
+    mie_folder_path = folder_paths.libRadtran_mie_folder;
+
+
+
     % First, write all the wc files
     temp_names = cell(num_rEff*num_tauC, 1);
     wc_filename = cell(num_INP_files, 1);
@@ -114,7 +131,8 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1);
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
 
@@ -124,6 +142,12 @@ if inputs_tblut.flags.writeINPfiles == true
     wc_filename(1:num_wl:num_INP_files, 1) = temp_names;
     wc_filename(2:num_wl:num_INP_files, 1) = temp_names;
 
+
+    % define the INP folder location
+    inp_folder_path = folder_paths.libRadtran_inp;
+
+    % define the libRadtran data path
+    libRadtran_data_path = folder_paths.libRadtran_data;
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
@@ -150,8 +174,8 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(folder_paths.libRadtran_inp, folder_paths.libRadtran_data_path, inputFileName{nn}, inputs_tblut,...
-            wavelengths, wc_filename{nn});
+        write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs_tblut,...
+            wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
 
 
     end
@@ -199,45 +223,108 @@ if inputs_tblut.flags.runUVSPEC == true
     Refl_model_tblut = zeros(num_INP_files, 1);
 
 
-    parfor nn = 1:num_INP_files
+
+    if print_status_updates == true
+
+        parfor nn = 1:num_INP_files
         % for nn = 1:num_INP_files
 
 
-        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
 
 
-        % ----------------------------------------------------
-        % --------------- RUN RADIATIVE TRANSFER -------------
-        % ----------------------------------------------------
+            % ----------------------------------------------------
+            % --------------- RUN RADIATIVE TRANSFER -------------
+            % ----------------------------------------------------
 
 
 
-        % compute INP file
-        runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
-            inputs_tblut.which_computer);
+            % compute INP file
+            runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+                inputs_tblut.which_computer);
 
 
-        % read .OUT file
-        % radiance is in units of mW/nm/m^2/sr
-        [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
-            inputs_tblut.RT.compute_reflectivity_uvSpec);
+            % read .OUT file
+            % radiance is in units of mW/nm/m^2/sr
+            [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+                inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
-        % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-        idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
-            source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
 
-        [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
-            source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:)');
+            [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
+                source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:)');
 
 
-        %         [Refl_model_tblut(nn),~, inputs_tblut] = runReflectanceFunction_4EMIT(inputs_tblut,...
-        %             names, emit.spec_response.value);
+            %         [Refl_model_tblut(nn),~, inputs_tblut] = runReflectanceFunction_4EMIT(inputs_tblut,...
+            %             names, emit.spec_response.value);
 
+
+
+        end
+
+
+    else
+
+
+
+        parfor nn = 1:num_INP_files
+            % for nn = 1:num_INP_files
+
+
+
+            % ----------------------------------------------------
+            % --------------- RUN RADIATIVE TRANSFER -------------
+            % ----------------------------------------------------
+
+
+
+            % compute INP file
+            runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+                inputs_tblut.which_computer);
+
+
+            % read .OUT file
+            % radiance is in units of mW/nm/m^2/sr
+            [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+                inputs_tblut.RT.compute_reflectivity_uvSpec);
+
+
+            % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
+            idx_wl = source_wavelength>=(changing_variables(nn,3) - wl_perturb) &...
+                source_wavelength<=(changing_variables(nn,4) + wl_perturb);
+
+            [Refl_model_tblut(nn), ~] = reflectanceFunction_ver2(inputs_tblut, ds,...
+                source_flux(idx_wl), spec_response_value(changing_variables(nn,end),:)');
+
+
+            %         [Refl_model_tblut(nn),~, inputs_tblut] = runReflectanceFunction_4EMIT(inputs_tblut,...
+            %             names, emit.spec_response.value);
+
+
+
+        end
 
 
     end
 
+
+
+
+    % If the new save_output director doesn't exist, make it and add it to
+    % the path
+    if ~exist([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
+            'Droplet_profile_retrievals/'], 'dir')
+
+        mkdir([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
+            'Droplet_profile_retrievals/'])
+
+        addpath([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
+            'Droplet_profile_retrievals/'])
+
+    end
 
 
     % save the calculated reflectances and the inputs
@@ -247,7 +334,7 @@ if inputs_tblut.flags.runUVSPEC == true
 
 elseif inputs_tblut.flags.runUVSPEC == false
 
-    load([inputs_tblut.savedCalculations_folderName,inputs_tblut.saveCalculations_fileName] ,'inputs_tblut','Refl_model_tblut');
+    load(inputs_tblut.saveOutput_fileName ,'inputs_tblut','Refl_model_tblut');
 
 end
 
@@ -268,5 +355,42 @@ end
 tblut_retrieval = leastSquaresGridSearch_EMIT(emit.reflectance, Refl_model_tblut, inputs_tblut);
 
 
+%% We need to check a common failure mode - small optical depths have large non-unique solution regions
+% These non-unique solution regions grow larger as the solar and viewing
+% zenith angle approach 0 (at zenith).
+
+% *** If the minimum solution effective radius is less than 5 microns, and
+% the optical depth is less than 10, we need to double check the retrieval
+
+if tblut_retrieval.minRe<=5 && tblut_retrieval.minTau<=10
+
+    % start with checking if both the solar and viewing zenith angles are less
+    % that 10 degrees - this results in large non-unique regions in the look-up
+    % table
+
+    error([newline, 'Set up TBLUT for small drops!', newline])
+
+
+    % Lets compute reflectance at two additional weakly absorbing
+    % channels using the minimum solution and see how it compares
+    tblut_retrieval_2 = TBLUT_for_HySICS_smallDrops_smallTau(simulated_measurements, folder_paths,...
+        tblut_retrieval, print_status_updates, print_libRadtran_err);
+
+    % replace the minimum solution from the first tblut retrieval with the
+    % new one
+    [new_min_val, idx_min] = min(tblut_retrieval_2.minRMS);
+    tblut_retrieval.minRe = tblut_retrieval_2.states_2check(idx_min, 1);
+    tblut_retrieval.minTau = tblut_retrieval_2.states_2check(idx_min, 2);
+    tblut_retrieval.minLSD = new_min_val;
+
+
+    % save the new retrieval
+    save(folder_paths.saveOutput_filename, "tblut_retrieval_2", "tblut_retrieval", '-append'); % save inputSettings to the same folder as the input and output file
+
+
+
+
+
+end
 
 end

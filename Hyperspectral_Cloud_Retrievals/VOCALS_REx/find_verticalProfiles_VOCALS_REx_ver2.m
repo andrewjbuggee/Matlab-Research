@@ -667,15 +667,15 @@ for nn = 1:length(vert_profs)
         % then the plane is descending!
 
         % Compute the total LWP
-        vert_profs(nn).lwp = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc));            % g/m^2
+        vert_profs(nn).lwp = (-1) * trapz(vert_profs(nn).altitude, vert_profs(nn).lwc);            % g/m^2
 
         % ------ Compute the CDP LWP ---------
-        vert_profs(nn).lwp_CDP = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc_CDP));
+        vert_profs(nn).lwp_CDP = (-1) * trapz(vert_profs(nn).altitude, vert_profs(nn).lwc_CDP);
 
 
         % ------ Compute the 2DC LWP ---------
         % compute the 2DC LWP by integration over the cloud depth
-        vert_profs(nn).lwp_2DC = trapz(flipud(vert_profs(nn).altitude), flipud(vert_profs(nn).lwc_2DC));
+        vert_profs(nn).lwp_2DC = (-1) * trapz(vert_profs(nn).altitude, vert_profs(nn).lwc_2DC);
 
 
 

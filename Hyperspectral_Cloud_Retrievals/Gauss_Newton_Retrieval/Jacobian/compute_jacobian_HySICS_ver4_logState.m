@@ -17,6 +17,8 @@ meas_est_linear = exp(measurement_estimate_ln);
 
 
 % define the measurement uncertainty in linear space
+% The EMIT measurement uncertianty is manually set, and each channel is
+% given the same value, so only take the first value.
 measurement_uncert = GN_inputs.measurement.uncertainty(1)*100;  % percent
 
 
@@ -71,8 +73,8 @@ partial_diff_change = measurement_uncert.*[1/20, 1/5.7143, 1/20, 1/20];
 
 change_in_state = partial_diff_change.* [r_top, r_bottom, tau_c, wv_col_aboveCloud];
 
-
 % ----------------------------------------------------------------
+
 
 % each column is a unique state vector with one variable being adjusted
 state_vectors_with_change = repmat(state_vector, 1, num_state_variables) + diag(change_in_state);

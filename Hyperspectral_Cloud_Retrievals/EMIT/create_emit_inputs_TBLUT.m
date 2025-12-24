@@ -16,30 +16,14 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT(emitDataFolder, folder_paths, emit, spec_response)
+function inputs = create_emit_inputs_TBLUT(folder_paths, emit, spec_response, print_libRadtran_err)
 
 
 %%
 
 % Determine which computer this is being run on
-inputs.which_computer = whatComputer;
+inputs.which_computer = folder_paths.which_computer;
 
-% --- SAVE THE EMIT FILE NAME ----
-inputs.emitDataFolder = emitDataFolder;
-
-% read the contents of the EMIT data folder
-folder_contents = dir([folder_paths.emitDataPath, emitDataFolder]);
-
-% ----- Save the L1B file name -----
-for nn = 1:length(folder_contents)
-
-    if length(folder_contents(nn).name)>5 && strcmp(folder_contents(nn).name(1:12), 'EMIT_L1B_RAD')==true
-
-        inputs.L1B_filename = folder_contents(nn).name;
-
-    end
-
-end
 
 
 % We're not computing weighting functions
@@ -69,17 +53,14 @@ inputs.RT.monochromatic_calc = false;
 % Create a new folder to save all calculations
 % --------------------------------------------
 
-% Define the folder that stores the inputs and calculated reflectanes
-% using todays date
-data_date = datetime([inputs.L1B_filename(18:21), '-', inputs.L1B_filename(22:23), '-', inputs.L1B_filename(24:25)],...
-    'InputFormat','yyyy-MM-dd');
+
 
 % Store the file name for the libRadTran INP and OUT files
 inputs.folder2save.libRadTran_INP_OUT = folder_paths.libRadtran_inp;
 
 
 % This is the folder where the reflectance calculations will be stored
-inputs.folder2save.reflectance_calcs = [folder_paths.reflectance_calcs, emitDataFolder];
+inputs.folder2save.reflectance_calcs = folder_paths.reflectance_calcs;
 
 
 
@@ -252,8 +233,8 @@ inputs.RT.define_atm_grid=false;
 % -----------------------------------------------------------------------
 % MODIS only considers homogenous plane parallel clouds. Lets construct the
 % re matrix needed to create homogenous water clouds using write_wc_file
-inputs.RT.re = 3:2:24;      % microns
-inputs.RT.tau_c = [1:10, 12.5, 15, 17.5,  20:5:50, 60];
+inputs.RT.re = [3:0.5:9, 11:2:17];      % microns
+inputs.RT.tau_c = [1:10, 12:2:20,  25:5:35, 40:10:60];
 
 
 % --------------------------------------------------------------
@@ -441,7 +422,15 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % ----- Do you want a long error message? -----
 % if so, set error message to 'verbose'. Otherwise, set error message to
 % 'quiet'
-inputs.RT.errMsg = 'verbose';
+if print_libRadtran_err==true
+
+    inputs.RT.errMsg = 'verbose';
+
+else
+
+   inputs.RT.errMsg = 'quiet';
+
+end
 % --------------------------------------------------------------
 
 % --------------------------------------------------------------

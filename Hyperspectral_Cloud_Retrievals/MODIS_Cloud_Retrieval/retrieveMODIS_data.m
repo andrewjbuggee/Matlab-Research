@@ -85,7 +85,7 @@ for ii = 1:length(files)
         L1B_fileNames{ii} = file_ii;
 
         % Retrieve the water vapor column estimates
-        modis.vapor = readMODIS_L2_waterVapor_data(file_ii);   % values in cm of water precipitable water
+        modis.vapor = readMODIS_L2_waterVapor_data(file_ii);   % values in cm of precipitable water
 
     elseif strcmp(file_ii(1:5),'MOD35') == true || strcmp(file_ii(1:5), 'MYD35') == true
 

@@ -30,16 +30,37 @@ xlabel('$r_{e}$ $$(\mu m)$$','Interpreter','latex')
 grid on; grid minor; hold on;
 
 % Plot the retrieval uncertainty of the radius at cloud top
-errorbar(GN_outputs.re_profile(1), GN_outputs.tau_vector(1), sqrt(GN_outputs.posterior_cov(1,1)),...
-    'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+if isfield(GN_outputs, 'posterior_cov')==true
 
-% Plot the retrieval uncertainty of the radius at cloud bottom
-errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov(2,2)),...
-    'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
 
-% Plot the retrieval uncertainty of the optical depth
-errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov(3,3)),...
-    'vertical', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+    errorbar(GN_outputs.re_profile(1), GN_outputs.tau_vector(1), sqrt(GN_outputs.posterior_cov(1,1)),...
+        'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % Plot the retrieval uncertainty of the radius at cloud bottom
+    errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov(2,2)),...
+        'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % Plot the retrieval uncertainty of the optical depth
+    errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov(3,3)),...
+        'vertical', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+
+elseif isfield(GN_outputs, 'posterior_cov_log')==true
+
+
+    errorbar(GN_outputs.re_profile(1), GN_outputs.tau_vector(1), sqrt(GN_outputs.posterior_cov_log(1,1)),...
+        'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % Plot the retrieval uncertainty of the radius at cloud bottom
+    errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov_log(2,2)),...
+        'horizontal', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+    % Plot the retrieval uncertainty of the optical depth
+    errorbar(GN_outputs.re_profile(end), GN_outputs.tau_vector(end), sqrt(GN_outputs.posterior_cov_log(3,3)),...
+        'vertical', 'Color',mySavedColors(1,'fixed'), 'markersize', 20, 'Linewidth', 2)
+
+
+end
 
 
 

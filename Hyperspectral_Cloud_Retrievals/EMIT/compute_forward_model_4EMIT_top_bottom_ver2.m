@@ -24,8 +24,25 @@ wv_col_aboveCloud = current_guess(4);
 % We want to avoid large broadcast variables!
 wavelengths2run = GN_inputs.RT.wavelengths2run;
 libRadtran_inp = folder_paths.libRadtran_inp;
-libRadtran_data_path = GN_inputs.libRadtran_data_path;
+libRadtran_data_path = folder_paths.libRadtran_data;
 which_computer = GN_inputs.which_computer;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+mie_folder_path = folder_paths.libRadtran_mie_folder;
+atm_folder_path = folder_paths.atm_folder_path;
+
+% ----- Use radiosonde file for all three variables, if a file exists -----
+if GN_inputs.RT.use_radiosonde_file==true
+
+    if isfield(GN_inputs.RT, 'radiosonde_file_T_P_RH')==true
+
+        GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+
+    else
+
+        error([newline, 'No Radiosonde file defined', newline])
+    end
+
+end
 
 
 % Read the solar flux file over the wavelength range specified
@@ -80,7 +97,7 @@ loop_var = 0;
 wc_filename = write_wc_file(re, tau_c, GN_inputs.RT.z_topBottom, GN_inputs.RT.lambda_forTau,...
     GN_inputs.RT.distribution_str, GN_inputs.RT.distribution_var, GN_inputs.RT.vert_homogeneous_str,...
     GN_inputs.RT.parameterization_str, GN_inputs.RT.indVar, false, GN_inputs.which_computer,...
-    loop_var, 2);
+    loop_var, 2, wc_folder_path, mie_folder_path);
 wc_filename = wc_filename{1};
 
 % ------------------------------------------------------
@@ -88,7 +105,7 @@ wc_filename = wc_filename{1};
 
 
 % *** Set the above cloud column water vapor amount ***
-aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud);
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud, atm_folder_path);
 % ------------------------------------------------------
 
 
@@ -107,8 +124,8 @@ parfor ww = 1:size(wavelengths2run,1)
 
 
     % ----- Write an INP file --------
-    write_INP_file(libRadtran_inp, libRadtran_data_path, inputFileName, GN_inputs,...
-        wavelengths2run(ww,:), wc_filename, [], [], aboveCloud_waterVaporColumn_fileName);
+    write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName, GN_inputs,...
+        wavelengths2run(ww,:), wc_filename, [], tau_c, aboveCloud_waterVaporColumn_fileName);
 
 
     % ----------------------------------------------------

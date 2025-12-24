@@ -1,4 +1,4 @@
-d%% Read in Vocals Rex Data
+%% Read in Vocals Rex Data
 
 
 % By Andrew John Buggee

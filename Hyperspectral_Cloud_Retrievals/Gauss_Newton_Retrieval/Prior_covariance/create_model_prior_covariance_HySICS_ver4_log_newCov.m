@@ -149,7 +149,7 @@ if use_TBLUT_estimates==true
     % ----------- Set the Initial guess  ----------------
     %----------------------------------------------------
 
-    % Define teh initial guess as the a priori value
+    % Define the initial guess as the a priori value
     GN_inputs.model.initialGuess = GN_inputs.model.apriori;
 
 

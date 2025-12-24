@@ -21,7 +21,8 @@ function [filename_fullPath] = alter_aboveCloud_columnWaterVapor_profile(inputs,
 
 
 % create the modified atm file name
-fileName = [inputs.RT.atm_file(1:end-4), '_H2O_prof_', num2str(aboveCloudTotal), 'mm-aboveCloud.DAT'];
+fileName = [inputs.RT.atm_file(1:end-4), '_H2O_prof_', num2str(aboveCloudTotal), 'mm-aboveCloud',...
+    '_cloudTop_', num2str(inputs.RT.z_topBottom(1)), 'km.DAT'];
 
 
 

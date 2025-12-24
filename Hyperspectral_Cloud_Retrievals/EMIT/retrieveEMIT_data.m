@@ -32,13 +32,13 @@ for ii = 1:length(files)
 
 
 
-    if strcmp(L1B_fileNames{ii}(10:12), 'RAD')==true
+    if strcmp(L1B_fileNames{ii}(1:12), 'EMIT_L1B_RAD')==true
     
 
         % read in the radiance data
         emit.radiance = readEMIT_L1B_radiance_data(L1B_fileNames{ii});
 
-    elseif strcmp(L1B_fileNames{ii}(10:12), 'OBS')==true
+    elseif strcmp(L1B_fileNames{ii}(1:12), 'EMIT_L1B_OBS')==true
 
         % read in the observation data
         emit.obs = readEMIT_L1B_observation_data(L1B_fileNames{ii});
