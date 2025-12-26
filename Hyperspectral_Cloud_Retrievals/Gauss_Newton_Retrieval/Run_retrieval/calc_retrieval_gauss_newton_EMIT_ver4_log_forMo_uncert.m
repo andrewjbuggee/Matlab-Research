@@ -61,7 +61,7 @@ end
 
 % set the maximum scalar value used to create a set of scalar values that
 % will be multiplied along the direction of greatest change
-a_largestVal = 3;
+a_largestVal = 2;
 
 % if trying to have specific values, like a=1, use a step size
 a_stepSize = 0.333;
@@ -205,8 +205,20 @@ for ii = 1:num_iterations
             GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
     end
 
-     jacobian_fm = compute_forwardModel_jacobian_EMIT_log( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths);
+    
+    % --------------------------------------------------------------
+    % --------------------------------------------------------------
+    disp([newline, 'Computing the Forward Model Jacobian...', newline])
+
+    % ** For uncertainty with re profile **
+    % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+    %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+    % ** For uncertainty with re profile and cloud top height **
+    jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        spec_response.value, jacobian_barPlot_flag, folder_paths);
+    % --------------------------------------------------------------
+    % --------------------------------------------------------------
 
 
      % -----------------------------------------------------------------
@@ -556,7 +568,7 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([cu
     current_guess(2)]), sort(GN_inputs.RT.z),...
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-jacobian_fm = compute_forwardModel_jacobian_EMIT_log( retrieval(:,end), new_measurement_estimate, GN_inputs,...
+jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( retrieval(:,end), new_measurement_estimate, GN_inputs,...
     spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % -----------------------------------------------------------------

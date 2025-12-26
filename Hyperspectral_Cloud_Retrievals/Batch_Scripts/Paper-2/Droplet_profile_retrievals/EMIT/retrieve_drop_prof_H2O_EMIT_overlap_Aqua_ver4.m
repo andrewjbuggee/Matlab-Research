@@ -267,13 +267,13 @@ for pp = 1:length(overlap_pixels)
     % This set has a total of 64 bands. They are not exactly the same set as
     % the 66 HySICS bands used to retrieve column water vapor because the
     % HySICS channels are more narrow.
-    % GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
-    %     94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
-    %     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
-    %     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+    GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+        94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+        157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+        220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
     % --- Use all 285 spectral channels -
-    GN_inputs.bands2run = (1:285)';
+    % GN_inputs.bands2run = (1:285)';
 
 
     %% Override input settings with MODIS derived values
@@ -475,7 +475,11 @@ for pp = 1:length(overlap_pixels)
     %% Create the forward model covariance matrix and transform it into measurement space
     % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
 
-    GN_inputs = create_EMIT_forward_model_covariance_ver4_logState(GN_inputs);
+    % Just re profile uncertainty
+    % GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf(GN_inputs);
+
+    % Including re_profile and cloud top height uncertainty
+    GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf_cloudTop(GN_inputs);
 
 
     %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
@@ -516,7 +520,8 @@ for pp = 1:length(overlap_pixels)
 
     %% Make plot of the retrieved profile
 
-    plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
+    % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
+    plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, [], amsr)
 
 
 

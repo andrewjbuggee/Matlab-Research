@@ -24,7 +24,7 @@
 
 %%
 
-function [GN_inputs] = create_EMIT_forward_model_covariance_ver4_logState(GN_inputs)
+function [GN_inputs] = create_EMIT_forMod_cov_ver4_log_reProf(GN_inputs)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------

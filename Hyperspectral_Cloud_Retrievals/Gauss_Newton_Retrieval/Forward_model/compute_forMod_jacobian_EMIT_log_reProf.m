@@ -12,7 +12,7 @@
 % By Andrew J. Buggee
 %%
 
-function jacobian_fm_ln = compute_forwardModel_jacobian_EMIT_log(state_vector, measurement_estimate_ln, GN_inputs,...
+function jacobian_fm_ln = compute_forMod_jacobian_EMIT_log_reProf(state_vector, measurement_estimate_ln, GN_inputs,...
     spec_response, jacobian_barPlot_flag, folder_paths)
 
 
