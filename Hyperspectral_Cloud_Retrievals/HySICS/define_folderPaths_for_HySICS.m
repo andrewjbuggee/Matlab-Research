@@ -79,12 +79,14 @@ if folder_extension_number==0
         %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
 
         folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-            'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
+            'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
+            'log_newCov_subset_allBands_VR_inSitu/'];
 
 
         % ---- Define where the retrievals will be stored ---
         folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-            'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/'];
+            'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/',...
+            'paper2_variableSweep/test_logSpace_newCov_with_VR_inSitu_meas/'];
 
 
         % Define the folder path where all .INP files will be saved
@@ -222,12 +224,14 @@ else
         %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/'];
 
         folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-            'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/'];
+            'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
+            'log_newCov_subset_allBands_VR_inSitu_1/'];
 
 
         % ---- Define where the retrievals will be stored ---
         folder_paths.HySICS_retrievals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-            'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/'];
+            'Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/',...
+            'paper2_variableSweep/test_logSpace_newCov_with_VR_inSitu_meas/'];
 
 
         % Define the folder path where all .INP files will be saved
