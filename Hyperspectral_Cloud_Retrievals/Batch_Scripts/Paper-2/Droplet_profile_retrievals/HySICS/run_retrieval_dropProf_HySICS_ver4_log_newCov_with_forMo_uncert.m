@@ -182,7 +182,7 @@ for ff = 1:length(filenames)
     if print_status_updates==true
         disp([newline, 'Computing the ACPW retrieval...', newline])
         tic
-    end
+        endea
 
 
     acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);

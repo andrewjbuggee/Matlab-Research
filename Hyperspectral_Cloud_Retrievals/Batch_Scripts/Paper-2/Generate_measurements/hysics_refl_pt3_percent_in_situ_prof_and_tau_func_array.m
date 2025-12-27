@@ -65,8 +65,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
-        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+        '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
 
 
@@ -86,8 +90,11 @@ elseif strcmp(which_computer,'curc')==true
     folderpath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
-        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+        '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>25 ----
@@ -1213,8 +1220,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
+    % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
+
     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -1231,7 +1241,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
-        'Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
+        'Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
 
 
 
