@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_uncert_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-73       # 73 jobs × 1 files each = 73 files for subset folder
+#SBATCH --array=1-69       # 69 jobs × 1 files each = 69 files for subset folder
 
 # Load modules
 ml purge
@@ -61,13 +61,13 @@ module load matlab/R2024b
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2"
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_cloudTop_uncert_1/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1/"
 # ----------------------------------------------------------
 
 # Get list of all files
