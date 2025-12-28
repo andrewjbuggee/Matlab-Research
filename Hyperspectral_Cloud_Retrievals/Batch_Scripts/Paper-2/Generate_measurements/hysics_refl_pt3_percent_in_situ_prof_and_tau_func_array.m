@@ -1,7 +1,7 @@
 function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, measurement_idx)
 %% Generate measurements with in-situ measured droplet profiles and optical depth
 % Everything else is defined by the user
-% 
+%
 % INPUT:
 %   measurement_idx - integer index (1-73) specifying which measurement to process
 
@@ -23,6 +23,7 @@ delete([folder_paths.atm_folder_path, '*-aboveCloud.DAT'])
 % delete old MIE files
 delete([folder_paths.libRadtran_mie_folder, '*.INP'])
 delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
+
 
 %% Start parallel pool
 
@@ -86,7 +87,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-     % Location of ensemble data
+    % Location of ensemble data
     folderpath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -758,7 +759,7 @@ lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
 % grab the altitude vector
 z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the optical depth vector
-tau{nn} = (ds.ensemble_profiles{measurement_idx}.tau') ./ 1e3;   
+tau{nn} = (ds.ensemble_profiles{measurement_idx}.tau') ./ 1e3;
 % grab the date of flight
 date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
 % grab the time of flight
@@ -1105,6 +1106,9 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
+
+    % Stagger the start times to avoid simultaneous file access
+    pause(rand); % Each worker waits a different amount
 
 
     % ----------------------------------------------------
