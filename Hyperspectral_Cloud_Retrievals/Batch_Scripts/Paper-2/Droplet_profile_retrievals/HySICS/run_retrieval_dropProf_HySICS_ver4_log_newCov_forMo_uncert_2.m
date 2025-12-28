@@ -7,6 +7,8 @@
 
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
+% (2) Cloud top height assumption
+
 
 
 % INPUTS
@@ -26,7 +28,7 @@
 % By Andrew John Buggee
 
 
-function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(filenames,...
+function [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(filenames,...
     folder_paths, print_status_updates, print_libRadtran_err)
 
 
@@ -210,6 +212,18 @@ for ff = 1:length(filenames)
 
     % what was the assumed above cloud column water vapor path?
 
+    %% Update the cloud top height!
+    % ** VOCALS-REx in-situ measurements result in a mean cloud top height
+    % of 1203 meters and a mean cloud depth of about 230 meters
+    % ** testing the retrieval when I lack knowledge of cloud top precisely **
+    GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+    % update depenent variables
+    GN_inputs.RT.cloud_depth = 0.3230;                % kilometers
+    GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+    GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
+    GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
+
 
     %% We're retrieving above cloud column water vapor. Make sure input settings are correct
 
@@ -243,8 +257,8 @@ for ff = 1:length(filenames)
     %% Create the forward model covariance matrix and transform it into measurement space
     % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
 
-    % Just re profile uncertainty
-    GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf(GN_inputs);
+    % Including re_profile and cloud top height uncertainty
+    GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf_cloudTopHeight(GN_inputs);
 
 
     %% CALCULATE RETRIEVAL PARAMETERS
@@ -254,7 +268,7 @@ for ff = 1:length(filenames)
     % --------------------------------------------------------------
     % ---------------- Retrieve Vertical Profile! ------------------
     % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert(GN_inputs,...
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_2(GN_inputs,...
         simulated_measurements, folder_paths, print_status_updates);
     % --------------------------------------------------------------
     % --------------------------------------------------------------

@@ -2,9 +2,9 @@
 
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
+% (2) Cloud top height assumption
 
-
-function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert(GN_inputs,...
+function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_2(GN_inputs,...
     hysics, folder_paths, print_status_updates)
 
 
@@ -192,14 +192,15 @@ if print_status_updates==true
                 current_guess(2)]), sort(GN_inputs.RT.z),...
                 GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
         end
-        
+
         % --------------------------------------------------------------
         % --------------------------------------------------------------
         disp([newline, 'Computing the Forward Model Jacobian...', newline])
 
-        % ** For uncertainty with re profile **
-        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % ** For uncertainty with re profile and cloud top height **
+        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+
 
 
         % --------------------------------------------------------------
@@ -438,7 +439,7 @@ if print_status_updates==true
 
         % store the latest guess
         retrieval(:,ii+1) = new_guess;
-        
+
 
         % If the residual is below a certain threshold as defined in the
         % GN_inputs strucute, break the for loop. We've converged
@@ -582,13 +583,13 @@ else
                 current_guess(2)]), sort(GN_inputs.RT.z),...
                 GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
         end
-        
+
 
         % --------------------------------------------------------------
         % --------------------------------------------------------------
 
-        % ** For uncertainty with re profile **
-        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % ** For uncertainty with re profile and cloud top height **
+        jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
             hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % --------------------------------------------------------------
@@ -933,8 +934,8 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2(exp([cu
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
 
-% ** For uncertainty with re profile **
-jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
+% ** For uncertainty with re profile and cloud top height **
+jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf_cloudTopHeight(exp(current_guess), measurement_estimate_ln, GN_inputs,...
     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
 % --------------------------------------------------------------
