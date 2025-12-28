@@ -758,14 +758,14 @@ lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
 % grab the altitude vector
 z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the optical depth vector
-tau{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+tau{nn} = (ds.ensemble_profiles{measurement_idx}.tau') ./ 1e3;   
 % grab the date of flight
 date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
 % grab the time of flight
 time_of_flight(nn) = ds.ensemble_profiles{measurement_idx}.time_utc(round(length(ds.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
 
 % store the optical depth of each profile
-tau_c(nn) = max(ds.ensemble_profiles{measurement_idx}.tau);
+tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end);
 
 
 if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true

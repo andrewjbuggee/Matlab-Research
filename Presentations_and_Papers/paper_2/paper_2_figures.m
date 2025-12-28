@@ -5,7 +5,7 @@
 %%  Plot droplet profile retrievals using simualted HySICS measurements with vocals-Rex in-situ measurements
 
 
-
+clear variables
 
 
 % Determine which computer you're using
@@ -66,7 +66,7 @@ filenames_retrieval(idx_2delete) = [];
 
 
 
-plt_idx = 73;
+plt_idx = 2;
 
 plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_retrieval(plt_idx).name)
 
