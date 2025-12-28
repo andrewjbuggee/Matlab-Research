@@ -1211,8 +1211,8 @@ tic
 Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
-% parfor nn = 1:num_INP_files
-for nn = 1:num_INP_files
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
     pause(0.1 * rand); % Each worker waits a different amount
