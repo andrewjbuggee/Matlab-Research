@@ -1245,7 +1245,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/',...
-        'Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
+        'Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
 
 
 
