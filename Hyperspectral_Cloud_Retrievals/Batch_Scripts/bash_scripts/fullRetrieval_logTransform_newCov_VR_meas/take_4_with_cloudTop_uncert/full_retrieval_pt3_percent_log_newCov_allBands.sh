@@ -61,7 +61,7 @@ module load matlab/R2024b
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2"
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------

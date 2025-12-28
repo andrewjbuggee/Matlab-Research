@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-73    # 73 measurements from the ensemble_profiles to process
+#SBATCH --array=1-69    # 69 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
