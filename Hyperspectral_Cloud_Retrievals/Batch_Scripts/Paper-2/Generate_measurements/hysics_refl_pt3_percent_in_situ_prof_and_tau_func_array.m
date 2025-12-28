@@ -899,7 +899,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
 
             % only the last measurement exceeds 25 microns. Remove
-            % them and use this profile
+            % it and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
@@ -914,9 +914,115 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx, wc_folder_path);
 
 
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
+                measurement_idx==51
+
+            % only the last measurement exceeds 25 microns. Remove
+            % it and use this profile
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
+                measurement_idx==22
+
+
+            % only the last measurement exceeds 25 microns. Remove
+            % it and use this profile
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
+                measurement_idx==47
+
+
+            % only 1 in-situ measurement exceeds 25, which jumps to 30 microns. Remove
+            % and use this profile
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
+                measurement_idx==15
+
+
+            % only the last measurement exceeds 25 microns. Remove
+            % it and use this profile
+            idx_remove = re{nn} >= 25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+
+        elseif strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
+                '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
+                measurement_idx==11
+
+
+            % only the last two measurements exceed 25 microns. Remove
+            % them and use this profile
+            idx_remove = re{nn}>=25;
+            re{nn}(idx_remove) = [];
+            lwc{nn}(idx_remove) = [];
+            z{nn}(idx_remove) = [];
+            tau{nn}(idx_remove) = [];
+
+            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
+
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+
+
         else
 
-            wc_filename{nn} = NaN;
+            error([newline, 'There is a droplet size measurement larger than 25 microns and I dont know what to do', newline])
 
         end
 
@@ -1105,10 +1211,11 @@ tic
 Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
-parfor nn = 1:num_INP_files
+% parfor nn = 1:num_INP_files
+for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
-    pause(rand); % Each worker waits a different amount
+    pause(0.1 * rand); % Each worker waits a different amount
 
 
     % ----------------------------------------------------
