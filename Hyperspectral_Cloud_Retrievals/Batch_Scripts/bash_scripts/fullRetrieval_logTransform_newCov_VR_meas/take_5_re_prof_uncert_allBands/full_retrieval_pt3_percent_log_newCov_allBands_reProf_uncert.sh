@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_uncert_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-69       # 69 jobs × 1 files each = 69 files for subset folder
+#SBATCH --array=1-67       # 67 jobs × 1 files each = 67 files for subset folder
 
 # Load modules
 ml purge
