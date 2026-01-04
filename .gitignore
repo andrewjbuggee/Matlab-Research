@@ -30,7 +30,7 @@ Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_videos/*
 *.out
 *.INP
 *.cls
-
+*.hdf.jpg.1
 
 # Windows default autosave extension
 *.asv
