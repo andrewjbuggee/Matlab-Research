@@ -200,155 +200,155 @@ for ff = 1:length(filenames)
         endea
 
 
-    acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
+        acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
 
 
-    if print_status_updates==true
-        disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
+        if print_status_updates==true
+            disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
+        end
+
+
+        %% CREATE GAUSS-NEWTON INPUTS
+
+        % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv)
+        GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver4_logState(simulated_measurements, print_libRadtran_err);
+
+        if print_status_updates==true
+            disp('Dont forget to check the inputs and change if needed!!')
+        end
+
+        GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
+
+        % what was the assumed above cloud column water vapor path?
+
+        %% Update the cloud top height!
+        % ** VOCALS-REx in-situ measurements result in a mean cloud top height
+        % of 1203 meters and a mean cloud depth of about 230 meters
+        % ** testing the retrieval when I lack knowledge of cloud top precisely **
+        GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+        % update depenent variables
+        GN_inputs.RT.cloud_depth = 0.3230;                % kilometers
+        GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+        GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
+        GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
+
+
+        %% We're retrieving above cloud column water vapor. Make sure input settings are correct
+
+        GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+        GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
+
+        %% override optical depth
+
+        % Do you want to manually set the optical depth?
+        GN_inputs.RT.modify_wc_opticalDepth = true;
+
+
+        %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
+
+        % I don't need anything but the covariance matrix and the expected values
+        %inputs = create_model_prior(inputs,data_inputs);
+
+        % --------------------------------------------------------
+        % do you want to use your estimates or the MODIS estimate?
+        % --------------------------------------------------------
+
+        use_TBLUT_estimates = true;
+
+        % Create inputs to retrieve log(r_top), log(r_bot), log(tau_c), log(cwv)
+        GN_inputs = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
+
+        % *** transform the measurements to log space ***
+        GN_inputs = create_HySICS_measurement_cov_ver4_log_no_FM_uncert(GN_inputs, simulated_measurements);
+
+
+        %% Create the forward model covariance matrix and transform it into measurement space
+        % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
+
+        % Including re_profile and cloud top height uncertainty
+        GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf_cloudTopHeight(GN_inputs);
+
+
+        %% CALCULATE RETRIEVAL PARAMETERS
+
+        tic
+
+        % --------------------------------------------------------------
+        % ---------------- Retrieve Vertical Profile! ------------------
+        % --------------------------------------------------------------
+        [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_2(GN_inputs,...
+            simulated_measurements, folder_paths, print_status_updates);
+        % --------------------------------------------------------------
+        % --------------------------------------------------------------
+
+        if print_status_updates==true
+            disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
+        end
+
+
+        %%
+        % ----------------------------------------------
+        % ------------ SAVE OUTPUT STRUCTURE -----------
+        % ----------------------------------------------
+
+        % Save the version without an measurement uncertainty. Then we can add
+        % uncertainty and save the new file
+
+
+        % If the folder path doesn't exit, create a new directory
+        % 7 means a directory exists with the name defined below
+        if exist(folder_paths.HySICS_retrievals, 'dir')~=7
+
+            mkdir(folder_paths.HySICS_retrievals)
+
+        end
+
+        % 2 means the file exists with a .mat extension
+        if exist(folder_paths.saveOutput_filename, 'file')==2
+            % append
+            save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
+
+        else
+
+            save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", "acpw_retrieval");
+
+        end
+
+
+        % if exist(folder_paths.saveOutput_filename, 'file')==2
+        %     % append
+        %     save(folder_paths.saveOutput_filename, "folder_paths", "GN_inputs", '-append');
+        %
+        % else
+        %     save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval", "acpw_retrieval", "GN_inputs");
+        %
+        % end
+
+
+
+
+
+
+
+
+        if print_status_updates==true
+            disp([newline, 'Total time to run retrieval on was ', num2str(toc), ' seconds', newline])
+        end
+
+
+
+        %% Clear variables and start again!
+
+
+        if length(filenames)>1 && ff~=length(filenames)
+
+            clear simulated_measurements tblut_retrieval acpw_retrieval GN_inputs GN_outputs
+
+        end
+
+
     end
-
-
-    %% CREATE GAUSS-NEWTON INPUTS
-
-    % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv) 
-    GN_inputs = create_gauss_newton_inputs_for_simulated_HySICS_ver4_logState(simulated_measurements, print_libRadtran_err);
-
-    if print_status_updates==true
-        disp('Dont forget to check the inputs and change if needed!!')
-    end
-
-    GN_inputs.calc_type = 'forward_model_calcs_forRetrieval';
-
-    % what was the assumed above cloud column water vapor path?
-
-    %% Update the cloud top height!
-    % ** VOCALS-REx in-situ measurements result in a mean cloud top height
-    % of 1203 meters and a mean cloud depth of about 230 meters
-    % ** testing the retrieval when I lack knowledge of cloud top precisely **
-    GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
-
-    % update depenent variables
-    GN_inputs.RT.cloud_depth = 0.3230;                % kilometers
-    GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
-    GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
-    GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
-
-
-    %% We're retrieving above cloud column water vapor. Make sure input settings are correct
-
-    GN_inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-    GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
-
-    %% override optical depth
-
-    % Do you want to manually set the optical depth?
-    GN_inputs.RT.modify_wc_opticalDepth = true;
-
-
-    %% CREATE MODEL PRIOR AND COVARIANCE MATRIX AND MEASUREMENT COVARIANCE
-
-    % I don't need anything but the covariance matrix and the expected values
-    %inputs = create_model_prior(inputs,data_inputs);
-
-    % --------------------------------------------------------
-    % do you want to use your estimates or the MODIS estimate?
-    % --------------------------------------------------------
-
-    use_TBLUT_estimates = true;
-
-    % Create inputs to retrieve log(r_top), log(r_bot), log(tau_c), log(cwv)
-    GN_inputs = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_inputs, tblut_retrieval, use_TBLUT_estimates, acpw_retrieval);
-
-    % *** transform the measurements to log space ***
-    GN_inputs = create_HySICS_measurement_cov_ver4_log_no_FM_uncert(GN_inputs, simulated_measurements);
-
-
-    %% Create the forward model covariance matrix and transform it into measurement space
-    % S_b' = K_b * S_b * K_b' (Maahn et al. 2020 E1516)
-
-    % Including re_profile and cloud top height uncertainty
-    GN_inputs = create_HySICS_forMod_cov_ver4_log_reProf_cloudTopHeight(GN_inputs);
-
-
-    %% CALCULATE RETRIEVAL PARAMETERS
-
-    tic
-
-    % --------------------------------------------------------------
-    % ---------------- Retrieve Vertical Profile! ------------------
-    % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_2(GN_inputs,...
-        simulated_measurements, folder_paths, print_status_updates);
-    % --------------------------------------------------------------
-    % --------------------------------------------------------------
-
-    if print_status_updates==true
-        disp([newline, 'Hyperspectral retrieval completed in ', num2str(toc), ' seconds', newline])
-    end
-
-
-    %%
-    % ----------------------------------------------
-    % ------------ SAVE OUTPUT STRUCTURE -----------
-    % ----------------------------------------------
-
-    % Save the version without an measurement uncertainty. Then we can add
-    % uncertainty and save the new file
-
-
-    % If the folder path doesn't exit, create a new directory
-    % 7 means a directory exists with the name defined below
-    if exist(folder_paths.HySICS_retrievals, 'dir')~=7
-
-        mkdir(folder_paths.HySICS_retrievals)
-
-    end
-
-    % 2 means the file exists with a .mat extension
-    if exist(folder_paths.saveOutput_filename, 'file')==2
-        % append
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", '-append');
-
-    else
-
-        save(folder_paths.saveOutput_filename, "GN_outputs", "GN_inputs", "folder_paths", "tblut_retrieval", "acpw_retrieval");
-
-    end
-
-
-    % if exist(folder_paths.saveOutput_filename, 'file')==2
-    %     % append
-    %     save(folder_paths.saveOutput_filename, "folder_paths", "GN_inputs", '-append');
-    %
-    % else
-    %     save(folder_paths.saveOutput_filename, "folder_paths", "tblut_retrieval", "acpw_retrieval", "GN_inputs");
-    %
-    % end
-
-
-
-
-
-
-
-
-    if print_status_updates==true
-        disp([newline, 'Total time to run retrieval on was ', num2str(toc), ' seconds', newline])
-    end
-
-
-
-    %% Clear variables and start again!
-
-
-    if length(filenames)>1 && ff~=length(filenames)
-
-        clear simulated_measurements tblut_retrieval acpw_retrieval GN_inputs GN_outputs
-
-    end
-
-
-end
 
 
 
