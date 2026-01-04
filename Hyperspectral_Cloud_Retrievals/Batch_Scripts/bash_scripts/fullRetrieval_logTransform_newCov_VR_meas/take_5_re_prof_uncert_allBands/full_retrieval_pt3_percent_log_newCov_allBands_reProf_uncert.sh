@@ -31,6 +31,8 @@
 #SBATCH --mail-type=ALL
 #SBATCH --array=1-67       # 67 jobs × 1 files each = 67 files for subset folder
 
+# ** Is there a way for th --array to read the number of files in a directory automatically? **
+
 # Load modules
 ml purge
 ml gcc/11.2.0

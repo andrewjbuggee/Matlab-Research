@@ -93,12 +93,17 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % are located
     folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
-        'log_newCov_subset_allBands_VR_inSitu_1/'];
+        'log_newCov_subset_allBands_VR_inSitu_2/'];
+
+    % all bands
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '31-Oct-2008_9.0864UTC_prof-nn_24_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
 
     % all bands
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-        '31-Oct-2008_9.0864UTC_prof-nn_24_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-28-Nov-2025.mat']);
+        '15-Oct-2008_19.1883UTC_prof-nn_2_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
     % all bands - testing failed file
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -199,8 +204,8 @@ files{1} = filenames.name;
 % *** Retrieve r_top, r_bot, tau_c, and cwvs ***
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(...
-    files,folder_paths, print_status_updates, print_libRadtran_err);
+% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(...
+%     files,folder_paths, print_status_updates, print_libRadtran_err);
 
 
 
