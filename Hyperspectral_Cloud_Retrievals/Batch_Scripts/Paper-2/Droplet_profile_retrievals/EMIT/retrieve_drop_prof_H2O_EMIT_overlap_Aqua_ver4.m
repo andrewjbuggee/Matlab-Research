@@ -58,7 +58,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % folder_paths.coincident_dataFolder = '2024-09-12/';
 
-    folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
+    % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
+
+    folder_paths.coincident_dataFolder = '2024_5_16_T193023/';
 
 elseif strcmp(which_computer,'curc')==true
 
@@ -86,7 +88,7 @@ criteria.cld_phase = 'water';
 criteria.cld_cvr = 1;   % cloud fraction
 criteria.cld_tau_min = 3;   % cloud optical depth
 criteria.cld_tau_max = 30;   % cloud optical depth
-criteria.H = 1.5;         % horizontal inhomogeneity index
+criteria.H = 0.1;         % horizontal inhomogeneity index
 
 % plot flag
 plot_data = false;
