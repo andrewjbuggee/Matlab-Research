@@ -8,7 +8,7 @@
 
 %%
 
-function [tblut_retrieval] = leastSquaresGridSearch_EMIT(emitRefl, modelRefl,inputs_tblut)
+function [tblut_retrieval] = leastSquaresGridSearch_EMIT(emit_refl_obs, modelRefl,inputs_tblut)
 
 
 
@@ -16,7 +16,6 @@ function [tblut_retrieval] = leastSquaresGridSearch_EMIT(emitRefl, modelRefl,inp
 re = inputs_tblut.RT.re;
 tau_c = inputs_tblut.RT.tau_c;
 interpGridScaleFactor = inputs_tblut.interpGridScaleFactor;
-bands2run = inputs_tblut.bands2run; % bands to run through uvspec
 
 % extract size of forward modeled calcualtions
 num_rEff = length(re);
@@ -53,10 +52,6 @@ new_re = linspace(min(re),max(re),interpGridScaleFactor*length(re));
 
 % lets shape our data in an easy to use format
 
-% grab the observations for the pair of bands desired for the
-% retrieval
-observations = emitRefl.value(bands2run');     % 1/sr - reflectance
-
 
 
 % reshape the libRadTran forward modeled reflectance to be an array where one
@@ -77,10 +72,10 @@ interp_modelRefl_band2 = interp2(Re0, T0, modelRefl_band2_array, Re, T);
 % interpolated array, but where every value is the observed
 % reflectance
 % for band 1...
-observations_newGrid_band1 = repmat(observations(1),...
+observations_newGrid_band1 = repmat(emit_refl_obs(1),...
                   length(newTau_c), length(new_re));
 % for band 2...
-observations_newGrid_band2 = repmat(observations(2),...
+observations_newGrid_band2 = repmat(emit_refl_obs(2),...
                   length(newTau_c), length(new_re));
 
 
