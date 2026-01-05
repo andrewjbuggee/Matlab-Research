@@ -26,7 +26,7 @@ addpath(folderName)
 % -----------------------------------------------------
 
 
-files = dir([folderName, '*.hdf']);       % find all files that end in .hdf
+files = dir([folderName, 'AIRS*.hdf']);       % find all files that end in .hdf
 
 % check to see if we found any files!
 if isempty(files)==true
