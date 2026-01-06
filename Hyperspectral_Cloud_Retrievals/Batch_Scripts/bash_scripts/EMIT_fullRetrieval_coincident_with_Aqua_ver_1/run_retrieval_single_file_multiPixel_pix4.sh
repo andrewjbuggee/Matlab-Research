@@ -29,7 +29,7 @@
 #SBATCH --error=full_retrieval_EMIT_log_newCov_allBands_rev_1_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=200       # 1 jobs × 1 files each = 1 files for subset folder
+#SBATCH --array=204       # 1 jobs × 1 files each = 1 files for subset folder
 
 # ** Is there a way for the --array to read the number of files in a directory automatically? **
 
@@ -64,7 +64,7 @@ sleep $((SLURM_ARRAY_TASK_ID % 10))
 echo "Starting MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
 
 # 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); retrieve_drop_prof_H2O_EMIT_overlap_Aqua_ver4; exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); retrieve_drop_prof_H2O_EMIT_overlap_Aqua_ver5_pix4; exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"

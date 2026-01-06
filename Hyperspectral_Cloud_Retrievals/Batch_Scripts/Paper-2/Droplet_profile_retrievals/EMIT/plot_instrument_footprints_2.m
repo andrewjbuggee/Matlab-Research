@@ -66,7 +66,7 @@
 
 %%
 
-function fig_handle = plot_instrument_footprints(modis, emit, amsr, pixels, options)
+function fig_handle = plot_instrument_footprints_2(modis, emit, amsr, pixels, options)
 
 % Set default options
 if nargin < 5
@@ -547,6 +547,32 @@ if options.show_labels && ~isempty(legend_handles)
     legend(gx, legend_handles, legend_entries, 'Location', 'best', ...
         'FontSize', 12);
 end
+
+% Update tick label interpreter and font size
+if options.show_rgb == true
+    
+    gx.TickLabelInterpreter = "latex";
+    gx.FontSize = 16;
+
+else
+
+    % gx.LatitudeAxis.TickLabelInterpreter = "latex";
+    gx.LatitudeAxis.FontSize = 16;
+    gx.LatitudeLabel.FontSize = 24;
+    gx.LatitudeLabel.Interpreter = "latex";
+
+    % gx.LongitudeAxis.TickLabelInterpreter = "latex";
+    gx.LongitudeAxis.FontSize = 16;
+    gx.LongitudeLabel.FontSize = 24;
+    gx.LongitudeLabel.Interpreter = "latex";
+
+    gx.Title.Interpreter = "latex";
+    gx.Title.FontSize = 24;
+
+end
+
+
+
 
 hold(gx, 'off');
 
