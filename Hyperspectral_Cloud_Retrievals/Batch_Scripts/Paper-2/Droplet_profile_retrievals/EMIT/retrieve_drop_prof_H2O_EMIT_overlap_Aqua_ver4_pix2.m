@@ -64,8 +64,10 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
 
     % 11 Pixels with H less than 1.6
-    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
+    % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
+    % 2 Pixels with H less than 1.1
+    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
 
 elseif strcmp(which_computer,'curc')==true
 
