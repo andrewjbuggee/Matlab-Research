@@ -60,7 +60,10 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
 
-    folder_paths.coincident_dataFolder = '2024_5_16_T193023/';
+    % EMIT pixels masked out
+    % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
+
+    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
 elseif strcmp(which_computer,'curc')==true
 
@@ -74,6 +77,13 @@ elseif strcmp(which_computer,'curc')==true
     addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
     addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
     addLibRadTran_paths;
+
+    % define the folder where the coincident data is stored
+    folder_paths.coincident_dataPath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+
+    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
 end
 
@@ -102,6 +112,26 @@ plot_data = false;
 [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
     criteria, plot_data);
 
+% ** If there aren't any pixels found ... **
+% Increase the horizontal inhomogeneity index
+
+while isempty(overlap_pixels.modis.linear_idx) == true
+
+    disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
+    criteria.H = criteria.H + 0.25;         % horizontal inhomogeneity index
+
+    % recompute
+    [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+        criteria, plot_data);
+
+    if isempty(overlap_pixels.modis.linear_idx) == false
+
+        % print the H value used
+        disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
+
+    end
+
+end
 
 %% Plot all three swaths
 
@@ -112,7 +142,7 @@ hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
 
 %% Plot the pixel footprints on the Earth to see the overlap
 % Add an RGB true color image for context
-
+clear options
 options.use_radiance = false;
 [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
@@ -120,8 +150,8 @@ options.show_rgb = true;
 options.rgb_image = rgb_img;
 options.rgb_lat = rgb_lat;
 options.rgb_lon = rgb_lon;
-options.latlim = [-27, -22];  % Only show -30° to -20° latitude
-options.lonlim = [-72, -67];  % Only show -75° to -65° longitude
+% options.latlim = [-27, -22];  % Only show -30° to -20° latitude
+% options.lonlim = [-72, -67];  % Only show -75° to -65° longitude
 
 % ** Plot with RGB Image **
 % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
@@ -143,16 +173,9 @@ airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
 amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
 
 
-%% Check to see if all chosen EMIT pixels have been masked out
-
-if all(isnan(emit.radiance.measurements))
-
-    error([newline, 'EMIT pixels are masked out. Need to find other pixels.', newline])
-
-end
 
 
-%% Set INP filename
+%% Set libRadtran INP directory
 
 folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, 'EMIT_', folder_paths.coincident_dataFolder(1:end-1), '_',...
     folder_paths.L1B_fileName_emit{1}(27:30),'/'];
@@ -167,6 +190,7 @@ end
 
 
 %%   Delete old files?
+
 % First, delete files in the HySICS folder
 delete([folder_paths.libRadtran_inp, '*.INP'])
 delete([folder_paths.libRadtran_inp, '*.OUT'])
@@ -188,7 +212,19 @@ delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 %% RUN FOR LOOP OVER ALL PIXELS
 
-for pp = 1:length(overlap_pixels)
+for pp = 1:length(overlap_pixels.modis.linear_idx)
+
+
+    %% Check to see if all chosen EMIT pixels have been masked out
+
+    if all(isnan(emit.radiance.measurements(:, pp)))
+
+        warning([newline, 'EMIT pixels are masked out. Moving to next pixel', newline])
+
+        continue
+
+    end
+
 
 
     if pp>1
@@ -196,7 +232,6 @@ for pp = 1:length(overlap_pixels)
         clear GN_inputs GN_outputs spec_response
 
     end
-
 
 
     %% Create an input structure that helps write the INP files
@@ -269,18 +304,17 @@ for pp = 1:length(overlap_pixels)
     % This set has a total of 64 bands. They are not exactly the same set as
     % the 66 HySICS bands used to retrieve column water vapor because the
     % HySICS channels are more narrow.
-    GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
-        94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
-        157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
-        220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+    % GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+    %     94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+    %     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+    %     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
     % --- Use all 285 spectral channels -
-    % GN_inputs.bands2run = (1:285)';
+    GN_inputs.bands2run = (1:285)';
 
 
     %% Override input settings with MODIS derived values
 
-    % pixel_2_use = 1;
 
     % --------------------------------------------
     % *** Use MODIS Cloud Top Height Retrieval ***
@@ -438,8 +472,8 @@ for pp = 1:length(overlap_pixels)
 
     use_MODIS_AIRS_data = true;
 
-    tblut_retrieval = TBLUT_forEMIT(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
-        GN_inputs, use_MODIS_AIRS_data);
+    tblut_retrieval = TBLUT_forEMIT_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
+        GN_inputs, use_MODIS_AIRS_data, pp);
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -457,8 +491,8 @@ for pp = 1:length(overlap_pixels)
 
     use_MODIS_AIRS_data = true;
 
-    acpw_retrieval = ACPW_retrieval_for_EMIT(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-        GN_inputs, print_libRadtran_err, print_status_updates);
+    acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
+        GN_inputs, print_libRadtran_err, print_status_updates, pp);
 
     if print_status_updates==true
         disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -468,10 +502,10 @@ for pp = 1:length(overlap_pixels)
 
     use_TBLUT_estimate = true;
 
-    GN_inputs = create_model_prior_covariance_EMIT_top_bottom_ver4_log(GN_inputs, tblut_retrieval, acpw_retrieval, use_TBLUT_estimate);
-    %inputs = create_model_prior_covariance_EMIT_top_middle(inputs, pixels2use, tblut_retrieval, true);
+    GN_inputs = create_model_prior_covariance_EMIT_top_bottom_ver4_log(GN_inputs, tblut_retrieval,...
+        acpw_retrieval, use_TBLUT_estimate);
 
-    GN_inputs = create_EMIT_measurement_cov_ver4_log_no_FM_uncert(GN_inputs, emit);
+    GN_inputs = create_EMIT_measurement_cov_ver4_log_no_FM_uncert_perPixel(GN_inputs, emit, pp);
 
 
     %% Create the forward model covariance matrix and transform it into measurement space
@@ -486,15 +520,15 @@ for pp = 1:length(overlap_pixels)
 
     %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
 
-    tic
     % --------------------------------------------------------------
     % ---------------- Retrieve Vertical Profile! ------------------
     % --------------------------------------------------------------
 
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert(GN_inputs, emit, spec_response,...
-        folder_paths, print_status_updates);
+    disp([newline, 'Running Multispectral retrieval... ', newline])
 
-    disp([newline, 'Multispectral retrieval took ', num2str(toc), 'seconds to run', newline])
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs, emit, spec_response,...
+        folder_paths, print_status_updates, pp);
+
 
     % --------------------------------------------------------------
     % --------------------------------------------------------------
@@ -523,8 +557,7 @@ for pp = 1:length(overlap_pixels)
     %% Make plot of the retrieved profile
 
     % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-    plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, [], amsr)
-
+    % plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, [], amsr)
 
 
 

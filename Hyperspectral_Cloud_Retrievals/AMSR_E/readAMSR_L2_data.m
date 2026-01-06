@@ -196,22 +196,22 @@ for ii = 1:length(files)
 
 
         %% ---- Display Summary ----
-        fprintf('AMSR data successfully loaded!\n');
-        fprintf('File: %s\n', files(ii).name);
-        fprintf('Dimensions: %d pixels x %d scans\n', size(AMSR.geo.Latitude,1), size(AMSR.geo.Latitude,2));
-        fprintf('Latitude range: [%.2f, %.2f]\n', min(AMSR.geo.Latitude(:), [], 'omitnan'), max(AMSR.geo.Latitude(:), [], 'omitnan'));
-        fprintf('Longitude range: [%.2f, %.2f]\n', min(AMSR.geo.Longitude(:), [], 'omitnan'), max(AMSR.geo.Longitude(:), [], 'omitnan'));
-        
-        % Display data ranges
-        fprintf('\nData ranges:\n');
-        fprintf('  TPW: [%.2f, %.2f] mm\n', min(AMSR.H2O.TotalPrecipitableWater(:), [], 'omitnan'), ...
-            max(AMSR.H2O.TotalPrecipitableWater(:), [], 'omitnan'));
-        fprintf('  LWP: [%.2f, %.2f] g/m^2\n', min(AMSR.cloud.LiquidWaterPath(:), [], 'omitnan'), ...
-            max(AMSR.cloud.LiquidWaterPath(:), [], 'omitnan'));
-        fprintf('  Wind Speed: [%.2f, %.2f] m/s\n', min(AMSR.wind.WindSpeed(:), [], 'omitnan'), ...
-            max(AMSR.wind.WindSpeed(:), [], 'omitnan'));
-        fprintf('  SST: [%.2f, %.2f] K\n', min(AMSR.SST.ReynoldsSST(:), [], 'omitnan'), ...
-            max(AMSR.SST.ReynoldsSST(:), [], 'omitnan'));
+        % fprintf('AMSR data successfully loaded!\n');
+        % fprintf('File: %s\n', files(ii).name);
+        % fprintf('Dimensions: %d pixels x %d scans\n', size(AMSR.geo.Latitude,1), size(AMSR.geo.Latitude,2));
+        % fprintf('Latitude range: [%.2f, %.2f]\n', min(AMSR.geo.Latitude(:), [], 'omitnan'), max(AMSR.geo.Latitude(:), [], 'omitnan'));
+        % fprintf('Longitude range: [%.2f, %.2f]\n', min(AMSR.geo.Longitude(:), [], 'omitnan'), max(AMSR.geo.Longitude(:), [], 'omitnan'));
+        % 
+        % % Display data ranges
+        % fprintf('\nData ranges:\n');
+        % fprintf('  TPW: [%.2f, %.2f] mm\n', min(AMSR.H2O.TotalPrecipitableWater(:), [], 'omitnan'), ...
+        %     max(AMSR.H2O.TotalPrecipitableWater(:), [], 'omitnan'));
+        % fprintf('  LWP: [%.2f, %.2f] g/m^2\n', min(AMSR.cloud.LiquidWaterPath(:), [], 'omitnan'), ...
+        %     max(AMSR.cloud.LiquidWaterPath(:), [], 'omitnan'));
+        % fprintf('  Wind Speed: [%.2f, %.2f] m/s\n', min(AMSR.wind.WindSpeed(:), [], 'omitnan'), ...
+        %     max(AMSR.wind.WindSpeed(:), [], 'omitnan'));
+        % fprintf('  SST: [%.2f, %.2f] K\n', min(AMSR.SST.ReynoldsSST(:), [], 'omitnan'), ...
+        %     max(AMSR.SST.ReynoldsSST(:), [], 'omitnan'));
 
 
     end

@@ -9,13 +9,15 @@
 % measurements, such as wavelengths, solar and viewing geometry, and
 % spectral response information
 
+% ** Don't include pixel level attributes in this function **
+
 
 
 % By Andrew John Buggee
 
 %%
 
-function inputs = create_uvSpec_DISORT_inputs_for_EMIT(inputs, emit, print_libRadtran_err)
+function inputs = create_uvSpec_DISORT_inputs_for_EMIT_Aqua_overlap(inputs, emit, print_libRadtran_err)
 
 
 % ------------------------------------------------------------
@@ -510,61 +512,6 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 
-
-% -----------------------------
-% define the solar zenith angle
-% -----------------------------
-inputs.RT.sza = emit.obs.solar.zenith;           % degree
-
-
-
-% -------------------------------
-% define the solar azimuith angle
-% -------------------------------
-% this is how we map EMIT-defined solar azimuth to the LibRadTran
-% definition.
-% LibRadTran defines the solar azimuth clockwise from South.
-% So at 0deg the Sun is due south, 90deg the Sun is due West,
-% and so on. EMIT defines the solar azimuth clockwise from due North.
-% So we need to add 180deg to the EMIT values, but modulo 360, since it
-% needs to wrap around.
-inputs.RT.phi0 = mod(emit.obs.solar.azimuth + 180, 360);         % degree
-
-
-
-
-
-% --------------------------------
-% define the viewing azimuth angle
-% --------------------------------
-% we need the cosine of the zenith viewing angle
-% positive values solve for upwelling radiance, where the sensor is
-% defined to be looking down towrads the Earth's surface. negative
-% values solve for downwelling radiance, where the sensor is looking
-% upwards towards the sky
-
-% Define the cosine of the zenith viewing angle
-% ------------------------------------------------
-% define the viewing zenith angle
-inputs.RT.vza = double(emit.obs.sensor.zenith); % values are in degrees;                        % degree
-
-
-
-
-% --------------------------------
-% define the viewing azimuth angle
-% --------------------------------
-% LibRadTran defines the viewing azimuth clockwise from North.
-% So at 0deg the sensor is in the north looking south, at 90deg
-% the sensor is in the east looking West, and so on.
-% EMIT defines the sensor azimuth clockwise from due North.
-% So we don't need to change the emit values
-
-inputs.RT.vaz = emit.obs.sensor.azimuth;
-
-
-
-% --------------------------------------------------------------
 
 
 

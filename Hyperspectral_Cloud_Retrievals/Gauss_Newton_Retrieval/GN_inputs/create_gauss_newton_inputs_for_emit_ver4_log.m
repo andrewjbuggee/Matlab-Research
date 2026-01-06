@@ -136,9 +136,7 @@ GN_inputs.flags.plotMLS_figures = false; % this will tell the leasSquaresGridSea
 GN_inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
 
 
-GN_inputs = create_uvSpec_DISORT_inputs_for_EMIT(GN_inputs, emit, print_libRadtran_err);
-
-
+GN_inputs = create_uvSpec_DISORT_inputs_for_EMIT_Aqua_overlap(GN_inputs, emit, print_libRadtran_err);
 
 
 
