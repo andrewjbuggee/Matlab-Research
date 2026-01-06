@@ -154,8 +154,8 @@ options.show_rgb = true;
 options.rgb_image = rgb_img;
 options.rgb_lat = rgb_lat;
 options.rgb_lon = rgb_lon;
-% options.latlim = [-27, -22];  % Only show -30° to -20° latitude
-% options.lonlim = [-72, -67];  % Only show -75° to -65° longitude
+options.latlim = [-30, -25];  % Only show -30° to -20° latitude
+options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
 
 % ** Plot with RGB Image **
 % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);

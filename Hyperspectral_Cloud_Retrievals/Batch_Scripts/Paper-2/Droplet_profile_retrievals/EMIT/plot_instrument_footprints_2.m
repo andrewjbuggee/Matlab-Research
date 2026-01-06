@@ -66,7 +66,7 @@
 
 %%
 
-function fig_handle = plot_instrument_footprints(modis, emit, amsr, pixels, options)
+function fig_handle = plot_instrument_footprints_2(modis, emit, amsr, pixels, options)
 
 % Set default options
 if nargin < 5
@@ -547,6 +547,11 @@ if options.show_labels && ~isempty(legend_handles)
     legend(gx, legend_handles, legend_entries, 'Location', 'best', ...
         'FontSize', 12);
 end
+
+% Update tick label interpreter and font size
+gx.TickLabelInterpreter = "latex";
+gx.FontSize = 16;
+
 
 hold(gx, 'off');
 
