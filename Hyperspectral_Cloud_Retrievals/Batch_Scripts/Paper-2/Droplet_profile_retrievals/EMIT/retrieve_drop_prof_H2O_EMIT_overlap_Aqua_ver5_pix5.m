@@ -24,7 +24,7 @@ which_computer = folder_paths.which_computer;
 
 print_status_updates = true;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 
 %% Define the folder of the coincident data set between EMIT and Aqau
