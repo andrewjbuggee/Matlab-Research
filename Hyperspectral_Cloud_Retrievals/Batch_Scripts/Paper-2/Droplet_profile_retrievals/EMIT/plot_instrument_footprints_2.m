@@ -549,8 +549,29 @@ if options.show_labels && ~isempty(legend_handles)
 end
 
 % Update tick label interpreter and font size
-gx.TickLabelInterpreter = "latex";
-gx.FontSize = 16;
+if options.show_rgb == true
+    
+    gx.TickLabelInterpreter = "latex";
+    gx.FontSize = 16;
+
+else
+
+    % gx.LatitudeAxis.TickLabelInterpreter = "latex";
+    gx.LatitudeAxis.FontSize = 16;
+    gx.LatitudeLabel.FontSize = 24;
+    gx.LatitudeLabel.Interpreter = "latex";
+
+    % gx.LongitudeAxis.TickLabelInterpreter = "latex";
+    gx.LongitudeAxis.FontSize = 16;
+    gx.LongitudeLabel.FontSize = 24;
+    gx.LongitudeLabel.Interpreter = "latex";
+
+    gx.Title.Interpreter = "latex";
+    gx.Title.FontSize = 24;
+
+end
+
+
 
 
 hold(gx, 'off');

@@ -1,249 +1,12 @@
-%% Optimal estimation of a vertical droplet profile using EMIT data
 
-% Retrieve a droplet profile from EMIT data
-% Use spectral reflectances outside of water vapor bands
 
+function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = run_retrieval_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
+            modis, airs, overlap_pixels,...
+            folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
 
-% By Andrew John Buggee
 
-%% Load paths
 
-clear variables
-% add libRadTran libraries to the matlab path
-addLibRadTran_paths;
-scriptPlotting_wht;
-
-
-%% Define EMIT Data locations and LibRadTran paths
-
-folder_paths = define_EMIT_dataPath_and_saveFolders(2);
-which_computer = folder_paths.which_computer;
-
-
-%% Would you like to print status updates and/or the libRadtran error file?
-
-print_status_updates = true;
-
-print_libRadtran_err = true;
-
-
-%% Define the folder of the coincident data set between EMIT and Aqau
-
-% ---------------------------------------------
-% ---------- PICK COINCIDENT DATA SET  --------
-% ---------------------------------------------
-
-
-% Load simulated measurements
-if strcmp(which_computer,'anbu8374')==true
-
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
-
-    folder_paths.coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
-
-    folder_paths.coincident_dataFolder = '2024-09-12/';
-
-elseif strcmp(which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
-
-    % folder_paths.coincident_dataFolder = '2024-09-12/';
-
-    % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
-
-    % EMIT pixels masked out
-    % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
-
-    % 11 Pixels with H less than 1.6
-    % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
-
-    % 2 Pixels with H less than 1.1
-    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
-
-elseif strcmp(which_computer,'curc')==true
-
-
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
-
-    % add folders to the path
-    addpath(genpath('/projects/anbu8374/Matlab-Research'));
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
-    addLibRadTran_paths;
-
-    % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
-
-
-    % 2 Pixels with H less than 1.1
-    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
-
-end
-
-
-
-
-
-
-%% Open Aqau data and look for overlapping pixels between EMIT and Aqua that meet certain criteria
-
-criteria.cld_phase = 'water';
-criteria.cld_cvr = 1;   % cloud fraction
-criteria.cld_tau_min = 3;   % cloud optical depth
-criteria.cld_tau_max = 30;   % cloud optical depth
-criteria.H = 0.1;         % horizontal inhomogeneity index
-
-% plot flag
-plot_data = false;
-
-% TODO: Add temporal information to compute time difference between pixels
-% Will need:
-% - EMIT pixel acquisition time (if available in emit.radiance structure)
-% - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
-% - Then compute: overlap.time_difference_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
-
-[overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-    criteria, plot_data);
-
-% ** If there aren't any pixels found ... **
-% Increase the horizontal inhomogeneity index
-
-while isempty(overlap_pixels.modis.linear_idx) == true
-
-    disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
-    criteria.H = criteria.H + 0.25;         % horizontal inhomogeneity index
-
-    % recompute
-    [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-        criteria, plot_data);
-
-    if isempty(overlap_pixels.modis.linear_idx) == false
-
-        % print the H value used
-        disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
-
-    end
-
-end
-
-%% Plot all three swaths
-
-figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
-hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
-hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
-hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
-
-%% Plot the pixel footprints on the Earth to see the overlap
-% Add an RGB true color image for context
-clear options
-options.use_radiance = false;
-[rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
-
-options.show_rgb = true;
-options.rgb_image = rgb_img;
-options.rgb_lat = rgb_lat;
-options.rgb_lon = rgb_lon;
-options.latlim = [-30, -25];  % Only show -30° to -20° latitude
-options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
-
-% ** Plot with RGB Image **
-% fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
-fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-
-% ** Plot without RGB Image **
-options.show_rgb = false;
-fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-
-
-%% Remove data that is not needed
-
-emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
-
-modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
-
-airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
-
-amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
-
-
-
-
-%% Set libRadtran INP directory
-
-folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, 'EMIT_', folder_paths.coincident_dataFolder(1:end-1), '_',...
-    folder_paths.L1B_fileName_emit{1}(27:30),'/'];
-
-
-% If the folder path doesn't exit, create a new directory
-if ~exist(folder_paths.libRadtran_inp, 'dir')
-
-    mkdir(folder_paths.libRadtran_inp)
-
-end
-
-
-%%   Delete old files?
-
-% First, delete files in the HySICS folder
-delete([folder_paths.libRadtran_inp, '*.INP'])
-delete([folder_paths.libRadtran_inp, '*.OUT'])
-
-% delete old wc files
-delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
-
-% delete old atm files
-delete([folder_paths.atm_folder_path, '*.DAT'])
-
-% delete old mie files
-delete([folder_paths.libRadtran_mie_folder, '*.INP'])
-delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
-
-
-
-
-
-
-%% RUN FOR LOOP OVER ALL PIXELS
-
-for pp = 1:length(overlap_pixels.modis.linear_idx)
-
-
-    %% Check to see if all chosen EMIT pixels have been masked out
-
-    if all(isnan(emit.radiance.measurements(:, pp)))
-
-        warning([newline, 'EMIT pixels are masked out. Moving to pixel ', num2str(pp), '...', newline])
-
-        continue
-
-    else
-
-        disp([newline, 'Retrieving Profile for pixel ', num2str(pp), '...', newline])
-
-    end
-
-
-
-    if pp>1
-
-        clear GN_inputs GN_outputs spec_response
-
-    end
-
-
-    %% Create an input structure that helps write the INP files
+%% Create an input structure that helps write the INP files
 
     % this is a built-in function that is defined at the bottom of this script
     GN_inputs = create_gauss_newton_inputs_for_emit_ver4_log(emit, print_libRadtran_err);
@@ -257,7 +20,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % -----------------------------
     % define the solar zenith angle
     % -----------------------------
-    GN_inputs.RT.sza = emit.obs.solar.zenith(pp);           % degree
+    GN_inputs.RT.sza = emit.obs.solar.zenith(pixel_num);           % degree
 
 
 
@@ -271,7 +34,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % and so on. EMIT defines the solar azimuth clockwise from due North.
     % So we need to add 180deg to the EMIT values, but modulo 360, since it
     % needs to wrap around.
-    GN_inputs.RT.phi0 = mod(emit.obs.solar.azimuth(pp) + 180, 360);         % degree
+    GN_inputs.RT.phi0 = mod(emit.obs.solar.azimuth(pixel_num) + 180, 360);         % degree
 
 
 
@@ -289,7 +52,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % Define the cosine of the zenith viewing angle
     % ------------------------------------------------
     % define the viewing zenith angle
-    GN_inputs.RT.vza = double(emit.obs.sensor.zenith(pp)); % values are in degrees;                        % degree
+    GN_inputs.RT.vza = double(emit.obs.sensor.zenith(pixel_num)); % values are in degrees;                        % degree
 
 
 
@@ -303,7 +66,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % EMIT defines the sensor azimuth clockwise from due North.
     % So we don't need to change the emit values
 
-    GN_inputs.RT.vaz = emit.obs.sensor.azimuth(pp);
+    GN_inputs.RT.vaz = emit.obs.sensor.azimuth(pixel_num);
 
 
 
@@ -325,6 +88,16 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     %% Override input settings with MODIS derived values
 
 
+    % ** use the MODIS measurement closest to EMIT **
+    unique_modis_pix = unique(overlap_pixels.modis.linear_idx);
+    unique_modis_pix_idx = zeros(1, length(overlap_pixels.modis.linear_idx));
+    for xx = 1:length(unique_modis_pix_idx)
+
+        unique_modis_pix_idx(xx) = find(unique_modis_pix==overlap_pixels.modis.linear_idx(xx));
+
+    end
+
+
     % --------------------------------------------
     % *** Use MODIS Cloud Top Height Retrieval ***
     % --------------------------------------------
@@ -333,8 +106,8 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 
     % override the cloud top height
     % ** MODIS cloud top height listed in meters is the geopotential height **
-    GN_inputs.RT.z_topBottom = [modis.cloud.topHeight(pp)/1e3,...
-        (modis.cloud.topHeight(pp)/1e3 - GN_inputs.RT.H)];    % km
+    GN_inputs.RT.z_topBottom = [modis.cloud.topHeight(unique_modis_pix_idx(pixel_num))/1e3,...
+        (modis.cloud.topHeight(unique_modis_pix_idx(pixel_num))/1e3 - GN_inputs.RT.H)];    % km
 
     % Update the height vector based on the MODIS cloud top height
     GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2),...
@@ -348,9 +121,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % *** Use MODIS above cloud column water vapor ***
     % ------------------------------------------------
     % ** MODIS NIR above cloud column water vapor listed in cm **
-    GN_inputs.RT.waterVapor_column = modis.vapor.col_nir(pp) * 10;    % mm
+    GN_inputs.RT.waterVapor_column = modis.vapor.col_nir(unique_modis_pix_idx(pixel_num)) * 10;    % mm
 
 
+
+    %% Override input settings with AIRS derived values
 
     % ----------------------------------------------------
     % *** Use AIRS temp/press and water vapor profiles ***
@@ -361,10 +136,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     GN_inputs.RT.use_radiosonde_file = true;
     GN_inputs.RT.radiosonde_num_vars = 3;
 
-    GN_inputs.RT.radiosonde_file_T_P_RH = write_AIRS_radiosonde_DAT(airs, folder_paths, pp, [],...
-        GN_inputs.RT.radiosonde_num_vars);
-    GN_inputs.RT.radiosonde_file_T_P = write_AIRS_radiosonde_DAT(airs, folder_paths, pp, [],...
-        GN_inputs.RT.radiosonde_num_vars-1);
+    GN_inputs.RT.radiosonde_file_T_P_RH = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars, overlap_pixels);
+
+    GN_inputs.RT.radiosonde_file_T_P = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels);
 
 
 
@@ -386,7 +162,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     folder_paths.saveOutput_filename = [folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
         'Droplet_profile_retrievals/',...
         num2str(numel(GN_inputs.bands2run)),...
-        'bands_EMIT_dropRetrieval_pixel_', num2str(pp),...
+        'bands_EMIT_dropRetrieval_pixel_', num2str(pixel_num),...
         '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
@@ -419,7 +195,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 
     %% Convert radiance measurements to TOA reflectance for the desired pixels
 
-    if pp==1
+    if pixel_num==1
 
         emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
 
@@ -482,7 +258,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     use_MODIS_AIRS_data = true;
 
     tblut_retrieval = TBLUT_forEMIT_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
-        GN_inputs, use_MODIS_AIRS_data, pp);
+        GN_inputs, use_MODIS_AIRS_data, pixel_num);
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -501,7 +277,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     use_MODIS_AIRS_data = true;
 
     acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-        GN_inputs, print_libRadtran_err, print_status_updates, pp);
+        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num);
 
     if print_status_updates==true
         disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -514,7 +290,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     GN_inputs = create_model_prior_covariance_EMIT_top_bottom_ver4_log(GN_inputs, tblut_retrieval,...
         acpw_retrieval, use_TBLUT_estimate);
 
-    GN_inputs = create_EMIT_measurement_cov_ver4_log_no_FM_uncert_perPixel(GN_inputs, emit, pp);
+    GN_inputs = create_EMIT_measurement_cov_ver4_log_no_FM_uncert_perPixel(GN_inputs, emit, pixel_num);
 
 
     %% Create the forward model covariance matrix and transform it into measurement space
@@ -536,7 +312,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     disp([newline, 'Running Multispectral retrieval... ', newline])
 
     [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs, emit, spec_response,...
-        folder_paths, print_status_updates, pp);
+        folder_paths, print_status_updates, pixel_num);
 
 
     % --------------------------------------------------------------
@@ -563,13 +339,5 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     end
 
 
-    %% Make plot of the retrieved profile
-
-    % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-    % plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, [], amsr)
-
-
 
 end
-
-

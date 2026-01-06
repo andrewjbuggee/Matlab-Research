@@ -67,7 +67,10 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
     % 2 Pixels with H less than 1.1
-    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
+    % folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
+
+    % 14 Pixels with H less than 1.35
+    folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
 elseif strcmp(which_computer,'curc')==true
 
@@ -87,8 +90,8 @@ elseif strcmp(which_computer,'curc')==true
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
 
-    % 2 Pixels with H less than 1.1
-    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
+    % 14 Pixels with H less than 1.35
+    folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
 end
 
@@ -155,8 +158,8 @@ options.show_rgb = true;
 options.rgb_image = rgb_img;
 options.rgb_lat = rgb_lat;
 options.rgb_lon = rgb_lon;
-options.latlim = [-30, -25];  % Only show -30° to -20° latitude
-options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
+options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+% options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
 
 % ** Plot with RGB Image **
 % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);

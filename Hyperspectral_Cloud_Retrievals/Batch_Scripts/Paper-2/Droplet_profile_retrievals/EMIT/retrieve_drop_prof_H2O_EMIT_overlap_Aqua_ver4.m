@@ -152,8 +152,8 @@ options.show_rgb = true;
 options.rgb_image = rgb_img;
 options.rgb_lat = rgb_lat;
 options.rgb_lon = rgb_lon;
-% options.latlim = [-27, -22];  % Only show -30° to -20° latitude
-% options.lonlim = [-72, -67];  % Only show -75° to -65° longitude
+options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
 
 % ** Plot with RGB Image **
 % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
@@ -221,9 +221,13 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 
     if all(isnan(emit.radiance.measurements(:, pp)))
 
-        warning([newline, 'EMIT pixels are masked out. Moving to next pixel', newline])
+        warning([newline, 'EMIT pixels are masked out. Moving to pixel ', num2str(pp), '...', newline])
 
         continue
+
+    else
+
+        disp([newline, 'Retrieving Profile for pixel ', num2str(pp), '...', newline])
 
     end
 
@@ -318,6 +322,16 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     %% Override input settings with MODIS derived values
 
 
+    % ** use the MODIS measurement closest to EMIT **
+    unique_modis_pix = unique(overlap_pixels.modis.linear_idx);
+    unique_modis_pix_idx = zeros(1, length(overlap_pixels.modis.linear_idx));
+    for xx = 1:length(unique_modis_pix_idx)
+
+        unique_modis_pix_idx(xx) = find(unique_modis_pix==overlap_pixels.modis.linear_idx(xx));
+
+    end
+
+
     % --------------------------------------------
     % *** Use MODIS Cloud Top Height Retrieval ***
     % --------------------------------------------
@@ -326,8 +340,8 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 
     % override the cloud top height
     % ** MODIS cloud top height listed in meters is the geopotential height **
-    GN_inputs.RT.z_topBottom = [modis.cloud.topHeight(pp)/1e3,...
-        (modis.cloud.topHeight(pp)/1e3 - GN_inputs.RT.H)];    % km
+    GN_inputs.RT.z_topBottom = [modis.cloud.topHeight(unique_modis_pix_idx(pp))/1e3,...
+        (modis.cloud.topHeight(unique_modis_pix_idx(pp))/1e3 - GN_inputs.RT.H)];    % km
 
     % Update the height vector based on the MODIS cloud top height
     GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2),...
@@ -341,9 +355,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     % *** Use MODIS above cloud column water vapor ***
     % ------------------------------------------------
     % ** MODIS NIR above cloud column water vapor listed in cm **
-    GN_inputs.RT.waterVapor_column = modis.vapor.col_nir(pp) * 10;    % mm
+    GN_inputs.RT.waterVapor_column = modis.vapor.col_nir(unique_modis_pix_idx(pp)) * 10;    % mm
 
 
+
+    %% Override input settings with AIRS derived values
 
     % ----------------------------------------------------
     % *** Use AIRS temp/press and water vapor profiles ***
@@ -354,10 +370,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     GN_inputs.RT.use_radiosonde_file = true;
     GN_inputs.RT.radiosonde_num_vars = 3;
 
-    GN_inputs.RT.radiosonde_file_T_P_RH = write_AIRS_radiosonde_DAT(airs, folder_paths, pp, [],...
-        GN_inputs.RT.radiosonde_num_vars);
-    GN_inputs.RT.radiosonde_file_T_P = write_AIRS_radiosonde_DAT(airs, folder_paths, pp, [],...
-        GN_inputs.RT.radiosonde_num_vars-1);
+    GN_inputs.RT.radiosonde_file_T_P_RH = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pp, [],...
+        GN_inputs.RT.radiosonde_num_vars, overlap_pixels);
+
+    GN_inputs.RT.radiosonde_file_T_P = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pp, [],...
+        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels);
 
 
 
