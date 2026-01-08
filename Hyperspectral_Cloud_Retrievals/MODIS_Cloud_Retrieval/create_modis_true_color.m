@@ -67,7 +67,7 @@ end
 if options.use_radiance
     % Look for radiance data
     if isfield(modis.EV1km, 'radiance')==true
-        data_source = modis.EV_1KM_Emissive.radiance;
+        data_source = modis.EV1km.radiance;
 
     else
         error('Could not find radiance data in MODIS structure. Check field names.');

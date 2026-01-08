@@ -1,7 +1,7 @@
 %% Write AIRS atmospheric profile to libRadtran .DAT format
 
-% This function writes AIRS L2 retrieved atmospheric profiles to a 
-% libRadtran-compatible .DAT file with pressure, temperature, and 
+% This function writes AIRS L2 retrieved atmospheric profiles to a
+% libRadtran-compatible .DAT file with pressure, temperature, and
 % relative humidity
 
 % INPUTS:
@@ -49,27 +49,70 @@ pressure = double(airs.pressStd{1});  % (StdPressureLev = 28)
 unique_airs_pix = unique(overlap_pixels.airs.linear_idx);
 unique_pix_idx = zeros(1, length(overlap_pixels.airs.linear_idx));
 for xx = 1:length(unique_pix_idx)
-    
+
     unique_pix_idx(xx) = find(unique_airs_pix==overlap_pixels.airs.linear_idx(xx));
 
 end
 
 temperature = airs.temp.prof_std(unique_pix_idx(idx), :)';  % (StdPressureLev x 1)
 
-% Check to see if there are nan values. If so, spline fit the nan values
-if sum(isnan(temperature))==1
-    
-    % remove the nan value
-    idx_nan = isnan(temperature);
+% if all values are nan, throw an error
+if all(isnan(temperature))
 
-    temperature = exp(interp1(log(pressure(~idx_nan)), log(temperature(~idx_nan)),...
-        log(pressure), 'linear', 'extrap')); 
-
-elseif sum(isnan(relHum_H2O_levels))>1
-
-    error([newline, 'There are a lot of nans in the Relative humidity data!', newline])
+    error([newline, 'All values of AIRS temperature are NaN', newline])
 
 end
+
+% Check to see if there are nan values. If so, remove them and do a spline
+% fit to replace them
+if sum(isnan(temperature))>=1
+
+    % remove the nan value
+    idx_nan = isnan(temperature);
+    idx_nan_num = find(idx_nan);
+
+    new_temps = zeros(1, length(idx_nan_num));
+
+    for ii = 1:length(idx_nan_num)
+
+        % Check if we need to extrapolate
+        if idx_nan_num(ii)==1 || idx_nan_num(ii)==length(temperature)
+
+            % we could linearly extrapolate
+            new_temps(ii) = exp(interp1(log(pressure(~idx_nan)), log(temperature(~idx_nan)),...
+                log(pressure(idx_nan_num(ii))), 'linear', 'extrap'));
+
+            % Or we could just use the previous value it is is extrapolation
+            % temperature = [];
+
+        else
+
+            % We can interpolate
+            new_temps(ii) = exp(interp1(log(pressure(~idx_nan)), log(temperature(~idx_nan)),...
+                log(pressure(idx_nan_num(ii))), 'linear'));
+
+            % sometimes this value is right next to the first or last value
+            % and also needs extrapolation
+            if isnan(new_temps(ii))==true
+
+                new_temps(ii) = exp(interp1(log(pressure(~idx_nan)), log(temperature(~idx_nan)),...
+                    log(pressure(idx_nan_num(ii))), 'linear', 'extrap'));
+
+            end
+
+
+
+        end
+
+    end
+
+    % replace NaNs with the new temperatures
+    temperature(idx_nan) = new_temps;
+
+
+end
+
+
 
 % Extract relative humidity profile
 % After using remove_unwanted_airs_data, H2O.RelHum is (num_pixels x H2OPressureLev)
@@ -77,18 +120,63 @@ end
 relHum_H2O_levels = airs.H2O.RelHum(unique_pix_idx(idx), :)';  % (H2OPressureLev x 1)
 pressH2O = double(airs.pressH2O{1});  % (H2OPressureLev = 15)
 
-% Check to see if there are nan values. If so, spline fit the nan values
-if sum(isnan(relHum_H2O_levels))==1
-    
+
+
+if all(isnan(relHum_H2O_levels))
+
+    error([newline, 'All values of AIRS relative humidity are NaN', newline])
+
+end
+
+% Check to see if there are nan values. If so, remove them and do a spline
+% fit to replace them
+if sum(isnan(relHum_H2O_levels))>=1
+
     % remove the nan value
     idx_nan = isnan(relHum_H2O_levels);
+    idx_nan_num = find(idx_nan);
 
-    relHum_H2O_levels = exp(interp1(log(pressH2O(~idx_nan)), log(relHum_H2O_levels(~idx_nan)),...
-        log(pressH2O), 'linear', 'extrap')); 
+    new_RH = zeros(1, length(idx_nan_num));
 
-elseif sum(isnan(relHum_H2O_levels))>1
+    for ii = 1:length(idx_nan_num)
 
-    error([newline, 'There are a lot of nans in the Relative humidity data!', newline])
+        % Check if we need to extrapolate
+        if idx_nan_num(ii)==1 || idx_nan_num(ii)==length(relHum_H2O_levels)
+
+            % we could linearly extrapolate
+            new_RH(ii) = exp(interp1(log(pressH2O(~idx_nan)), log(relHum_H2O_levels(~idx_nan)),...
+                log(pressH2O(idx_nan_num(ii))), 'linear', 'extrap'));
+
+            % Or we could just use the previous value it is is extrapolation
+            % relHum_H2O_levels = [];
+
+        else
+
+            % We can interpolate
+            new_RH(ii) = exp(interp1(log(pressH2O(~idx_nan)), log(relHum_H2O_levels(~idx_nan)),...
+                log(pressH2O(idx_nan_num(ii))), 'linear'));
+
+            % sometimes this value is right next to the first or last value
+            % and also needs extrapolation
+            if isnan(new_RH(ii))==true
+
+                new_RH(ii) = exp(interp1(log(pressH2O(~idx_nan)), log(relHum_H2O_levels(~idx_nan)),...
+                    log(pressH2O(idx_nan_num(ii))), 'linear', 'extrap'));
+
+            end
+
+
+        end
+
+    end
+
+    % relative humidity cannot be above 100%
+    new_RH(new_RH>100) = 100;
+
+    % replace NaNs with the new temperatures
+    relHum_H2O_levels(idx_nan) = new_RH;
+
+
 
 end
 
@@ -119,7 +207,7 @@ if nargin < 4 || isempty(filename)
     % Generate automatic filename based on location and time
     lat = airs.geo.Latitude(unique_pix_idx(idx));
     lon = airs.geo.Longitude(unique_pix_idx(idx));
-    
+
     % Get time information
     if isfield(airs, 'metadata') && isfield(airs.metadata, 'start_year')
         year = airs.metadata.start_year{1};
@@ -135,7 +223,7 @@ if nargin < 4 || isempty(filename)
         end
 
     else
-        
+
         if num_vars==2
 
             filename = sprintf('AIRS_profile_T-P_lat%.2f_lon%.2f.dat', lat, lon);
@@ -156,7 +244,7 @@ end
 
 %% Prepare data for writing
 
-% libRadtran radiosonde files must have pressure increasing 
+% libRadtran radiosonde files must have pressure increasing
 % (altitude decreasing) from top to bottom of file
 % Check if pressure is in ascending or descending order
 if pressure(1) > pressure(end)

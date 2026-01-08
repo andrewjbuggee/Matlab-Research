@@ -81,11 +81,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % 2 Pixels with H less than 1.6
     % folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
 
-    % 2 Pixels with H less than 1.6
-    % folder_paths.coincident_dataFolder = '2024_5_17_T183918_1/';
-
-    % 10 Pixels with H less than 1.85
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % No pixels below an H value of 16!
+    folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -106,8 +103,8 @@ elseif strcmp(which_computer,'curc')==true
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
 
-    % 10 Pixels with H less than 1.85
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % 2 Pixels with H less than 1.6
+    folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
 
 end
 
@@ -193,20 +190,20 @@ options.rgb_lon = rgb_lon;
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% % save .fig file
-% if strcmp(which_computer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(which_computer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% ax1.Title.String = '';
-% exportgraphics(fig1,[folderpath_figs,...
-%     'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% save .fig file
+if strcmp(which_computer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+elseif strcmp(which_computer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+ax1.Title.String = '';
+exportgraphics(fig1,[folderpath_figs,...
+    'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
 % -------------------------------------
 % -------------------------------------
 
@@ -220,25 +217,24 @@ options.show_rgb = false;
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% % save .fig file
-% if strcmp(which_computer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(which_computer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and without AIRS - ',...
-%     folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% ax2.Title.String = '';
-% exportgraphics(fig2,[folderpath_figs,...
-%     'EMIT Scene and Aqua instrument overlap without MODIS context and without AIRS - ',...
-%     folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
+% save .fig file
+if strcmp(which_computer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+elseif strcmp(which_computer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
+    folder_paths.coincident_dataFolder(1:end-1), '.fig']);
 
+
+% save .png with 400 DPI resolution
+% remove title
+ax2.Title.String = '';
+exportgraphics(fig2,[folderpath_figs,...
+    'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
+    folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% -------------------------------------
+% -------------------------------------
 
 
 %% Remove data that is not needed
@@ -326,7 +322,26 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     %% Make plot of the retrieved profile
 
     % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-    % plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, [], amsr)
+    fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], amsr, pp);
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if strcmp(which_computer,'anbu8374')==true
+            error(['Where do I save the figure?'])
+    elseif strcmp(which_computer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+    
+    
+    % save .png with 400 DPI resolution
+    % remove title
+    exportgraphics(fig3,[folderpath_figs,...
+        'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+    % -------------------------------------
+    % -------------------------------------
 
 
 
