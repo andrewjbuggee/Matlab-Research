@@ -194,23 +194,19 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
 
     %% Convert radiance measurements to TOA reflectance for the desired pixels
-
-    if pixel_num==1
-
-        emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
-
-
-        %% Compute the radiance measurement uncertainty
-
-        [emit.radiance.uncertainty, emit.radiance.uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit);
-
-
-        %% Compute the reflectance uncertainty
-
-        emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, GN_inputs);
-
-
-    end
+    
+    
+    emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
+    
+    
+    %% Compute the radiance measurement uncertainty
+    
+    [emit.radiance.uncertainty, emit.radiance.uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit);
+    
+    
+    %% Compute the reflectance uncertainty
+    
+    emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, GN_inputs);
 
 
 

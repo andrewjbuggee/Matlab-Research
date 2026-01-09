@@ -9,14 +9,14 @@
 
 %%
 
-function fig_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR(GN_outputs, GN_inputs, modis, airs, amsr)
+function figure_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, airs, amsr, pixel_num)
 
 
 C = mySavedColors(1:2, 'fixed');
 
 % Plot the Gauss-Newton Retrieval
 
-fig_handle = figure;
+figure_handle = figure;
 
 title('Retrieved droplet profile using EMIT', 'Interpreter','latex',...
     'FontSize', 26)
@@ -75,7 +75,7 @@ annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
     'FitBoxToText','off');
 
 % Create textbox
-annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
+annotation('textbox',[0.00875 0.076825396825397 0.051 0.0777777777777779],...
     'String',{'Cloud','Bottom'},...
     'LineStyle','none',...
     'Interpreter','latex',...
@@ -92,15 +92,15 @@ annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
 
 % Plot the emit TBLUT droplet estimate as a constant vertical line
 
-xl0 = xline(modis.cloud.effRadius17,':',...
-    ['MODIS retreived $r_{e} = $',num2str(round(modis.cloud.effRadius17, 1)), '$\mu m$'], 'Fontsize',22,...
+xl0 = xline(modis.cloud.effRadius17(pixel_num),':',...
+    ['MODIS retreived $r_{e} = $',num2str(round(modis.cloud.effRadius17(pixel_num), 1)), '$\mu m$'], 'Fontsize',22,...
     'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
 xl0.LabelVerticalAlignment = 'top';
 xl0.LabelHorizontalAlignment = 'left';
 
 % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
-yl0 = yline(modis.cloud.optThickness17,':',...
-    ['MODIS retrieved $\tau_{c} = $',num2str(round(modis.cloud.optThickness17, 1))], 'Fontsize',22,...
+yl0 = yline(modis.cloud.optThickness17(pixel_num),':',...
+    ['MODIS retrieved $\tau_{c} = $',num2str(round(modis.cloud.optThickness17(pixel_num), 1))], 'Fontsize',22,...
     'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'right';
@@ -136,15 +136,22 @@ yl0.LabelHorizontalAlignment = 'right';
 % grab the hypersepctral retrieval estimate of LWP
 retrieved_LWP = GN_outputs.LWP;        % g/m^2
 
+% ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
+con = physical_constants;
+rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
+
+lwp_modis_WH = 5/9 * rho_h2o * modis.cloud.optThickness17(pixel_num) *...
+    (modis.cloud.effRadius17(pixel_num) * 1e-6);
+
 % Print this information on the figure
 
-dim = [.137 .45 .3 .3];
-str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp,1)),' $g/m^{2}$', newline,...
-    '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath,1)),' $g/m^{2}$', newline,...
-    '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
+dim = [.137 .50 .3 .3];
+str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+    '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
+    '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(pixel_num),1)),' $g/m^{2}$', newline,...
+    '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP(pixel_num),1)),' $g/m^{2}$'];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
-set(gcf,'Position',[0 0 1200 630])
 
 
 % Plot the MODIS measured above cloud column water vapor
@@ -162,7 +169,8 @@ if size(GN_outputs.retrieval, 1)>3
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
     
-    str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir * 10, 1)),' $mm$', newline,...
+    str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+        '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
         '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
 else
@@ -181,11 +189,10 @@ dim = [.137 .25 .3 .3];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
-set(gcf,'Position',[0 0 1200 630])
 
 
 % set figure size
-set(gcf,'Position',[0 0 1200 630])
+set(gcf,'Position',[0 0 800 700])
 
 
 
