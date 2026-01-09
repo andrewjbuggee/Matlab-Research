@@ -24,9 +24,9 @@
 #SBATCH --time=23:59:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_EMIT_log_newCov_allBands_rev_1_%A_%a
-#SBATCH --output=full_retrieval_EMIT_log_newCov_allBands_rev_1_%A_%a.out
-#SBATCH --error=full_retrieval_EMIT_log_newCov_allBands_rev_1_%A_%a.err
+#SBATCH --job-name=full_retrieval_EMIT_log_newCov_allBands_pix5_rev_2_%A_%a
+#SBATCH --output=full_retrieval_EMIT_log_newCov_allBands_pix5_rev_2_%A_%a.out
+#SBATCH --error=full_retrieval_EMIT_log_newCov_allBands_pix5_rev_2_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 #SBATCH --array=205       # 1 jobs × 1 files each = 1 files for subset folder
