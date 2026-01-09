@@ -24,7 +24,7 @@ which_computer = folder_paths.which_computer;
 
 print_status_updates = true;
 
-print_libRadtran_err = false;
+print_libRadtran_err = true;
 
 plot_figures = false;
 
@@ -143,7 +143,7 @@ end
 
 %% Plot all three swaths
 
-if plot_figures == ture
+if plot_figures == true
 
     figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
     hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
