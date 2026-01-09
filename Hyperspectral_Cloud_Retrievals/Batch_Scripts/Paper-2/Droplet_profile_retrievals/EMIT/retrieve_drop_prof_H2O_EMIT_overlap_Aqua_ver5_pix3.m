@@ -24,7 +24,7 @@ which_computer = folder_paths.which_computer;
 
 print_status_updates = true;
 
-print_libRadtran_err = false;
+print_libRadtran_err = true;
 
 plot_figures = false;
 
