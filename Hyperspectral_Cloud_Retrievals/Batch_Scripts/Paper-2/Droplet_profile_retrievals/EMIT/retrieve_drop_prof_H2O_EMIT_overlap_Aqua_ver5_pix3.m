@@ -26,6 +26,10 @@ print_status_updates = true;
 
 print_libRadtran_err = false;
 
+plot_figures = false;
+
+save_figures = false;
+
 
 %% Define the folder of the coincident data set between EMIT and Aqau
 
@@ -143,32 +147,40 @@ end
 
 %% Plot all three swaths
 
-figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
-hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
-hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
-hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+if plot_figures == true
+
+    figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
+    hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
+    hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
+    hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+
+end
 
 %% Plot the pixel footprints on the Earth to see the overlap
 % Add an RGB true color image for context
-clear options
-options.use_radiance = false;
-[rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-options.show_rgb = true;
-options.rgb_image = rgb_img;
-options.rgb_lat = rgb_lat;
-options.rgb_lon = rgb_lon;
-options.latlim = [-30, -20];  % Only show -30° to -20° latitude
-% options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
+if plot_figures == true
 
-% ** Plot with RGB Image **
-% fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
-fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    clear options
+    options.use_radiance = false;
+    [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-% ** Plot without RGB Image **
-options.show_rgb = false;
-fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    options.show_rgb = true;
+    options.rgb_image = rgb_img;
+    options.rgb_lat = rgb_lat;
+    options.rgb_lon = rgb_lon;
+    options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+    % options.lonlim = [-75, -65];  % Only show -75° to -65° longitude
 
+    % ** Plot with RGB Image **
+    % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
+    fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+
+    % ** Plot without RGB Image **
+    options.show_rgb = false;
+    fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+
+end
 
 %% Remove data that is not needed
 
@@ -242,11 +254,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
         disp([newline, 'Retrieving Profile for pixel ', num2str(pp), '...', newline])
 
     end
-    
+
 
     [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = run_retrieval_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
-            modis, airs, overlap_pixels,...
-            folder_paths, print_libRadtran_err, print_status_updates, pp);
+        modis, airs, overlap_pixels,...
+        folder_paths, print_libRadtran_err, print_status_updates, pp);
 
 
 
