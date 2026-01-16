@@ -1057,13 +1057,13 @@ title('$acpw$ statistics and fits', ...
 % ----- Make quantile-quantile plots of the data -----
 % -------------------------------------------------------------
 
-fnt_sz = 15;
+fnt_sz = 25;
 mrkr_sz = 10;
 line_width = 1.5;
 line_width_2 = 2.5;
-lgnd_fnt = 15;
+lgnd_fnt = 25;
 
-figure;
+fig1 = figure;
 
 % -- Linear state vector --
 
@@ -1073,8 +1073,10 @@ qp1 = qqplot(re_top_ensemble_trimmed);
 set(qp1(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp1(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
 title('Effective radius at cloud top', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp1))], 'location',...
@@ -1087,8 +1089,10 @@ qp2 = qqplot(re_bot_ensemble_trimmed);
 set(qp2(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp2(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
 title('Effective radius at cloud bottom', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp2))], 'location',...
@@ -1101,7 +1105,8 @@ qp3 = qqplot(tau_c);
 set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp3(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('Cloud optical depth', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
@@ -1116,8 +1121,9 @@ set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top en
 set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
-title('above cloud precipitable water', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
+title('Above-Cloud Precipitable Water', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
@@ -1136,8 +1142,10 @@ qp5 = qqplot(log(re_top_ensemble_trimmed));
 set(qp5(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp5(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
 title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp5))], 'location',...
@@ -1151,8 +1159,10 @@ qp6 = qqplot(log(re_bot_ensemble_trimmed));
 set(qp6(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp6(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
 title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp6))], 'location',...
@@ -1165,7 +1175,8 @@ qp7 = qqplot(log(tau_c));
 set(qp7(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp7(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
-xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('')
 ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
@@ -1181,14 +1192,35 @@ set(qp8(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top en
 set(qp8(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
-title('$\ln($above cloud precipitable water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('')
+title('$\ln($Above-Cloud Precipitable Water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp8))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
 
 set(gcf, 'Position', [0,0, 1700, 950])
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 400);
+% -------------------------------------
+% -------------------------------------
+
 
 
 
@@ -1280,11 +1312,12 @@ prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_ab
 prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
 
 
-prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
+% prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
+% 
+% prior_cov_log_noACPW = cov(log([re_top_sample, re_bot_sample, tau_c]));
 
-prior_cov_log_noACPW = cov(log([re_top_sample, re_bot_sample, tau_c]));
 
-
+fnt_sz = 25;
 
 % The prior covariance must be symmetric positive definite
 try chol(prior_cov_lin)
@@ -1292,16 +1325,23 @@ try chol(prior_cov_lin)
 
     % plot heat maps of the covariance matrix
     % Plot heat map for linear covariance matrix
-    figure;
+    fig2 = figure;
     imagesc(prior_cov_lin);
     colormap("hot")
-    colorbar;
+    cb = colorbar;
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = fnt_sz;
+    cb.TickLabelInterpreter = 'latex';
+    cb.FontSize = fnt_sz;
+
+
     title('Heat Map of Linear Covariance Matrix', 'Interpreter', 'latex', 'FontSize', fnt_sz);
     % define the variable names along the x and y axis
     % Define variable names for the heat map axes
-    variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
+    % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
+    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$pw_{ac}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
-        'YTickLabel', variableNames);
+        'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
     % display to covariance matrix values on the heat map
     % Display covariance matrix values on the heat map
@@ -1316,6 +1356,7 @@ try chol(prior_cov_lin)
     % map
     % Update the font size of the covariance values displayed on the heat map
     set(hStrings, 'FontSize', fnt_sz);
+    
     % the color of the covaraince matrix values in the last two columns of
     % the last two rows needs to be white to show up better against the
     % background color
@@ -1326,23 +1367,53 @@ try chol(prior_cov_lin)
     % row needs to be black to show up better against the background
     set(hStrings(end-5, :), 'Color', 'black');
 
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+    elseif strcmp(whatComputer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.fig']);
+
+
+    % save .png with 400 DPI resolution
+    % remove title
+    title('');
+    exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.jpg'],'Resolution', 400);
+    % -------------------------------------
+    % -------------------------------------
+
+
+
+
     
+
     % Plot heat map for logarithmic covariance matrix
-    figure;
+    fig3 = figure;
     imagesc(prior_cov_log);
     colormap("hot")
-    colorbar;
+    cb = colorbar;
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = fnt_sz;
+    cb.TickLabelInterpreter = 'latex';
+    cb.FontSize = fnt_sz;
+
+
     title('Heat Map of Logarithmic Covariance Matrix', 'Interpreter', 'latex', 'FontSize', fnt_sz);
     % define the variable names along the x and y axis
     % Define variable names for the heat map axes
-    variableNames = {'log(Effective Radius Top)', 'log(Effective Radius Bottom)',...
-        'log(Optical Depth)', 'log(Above Cloud PW)'};
+    % variableNames = {'log(Effective Radius Top)', 'log(Effective Radius Bottom)',...
+    %     'log(Optical Depth)', 'log(Above Cloud PW)'};
+    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(pw_{ac})}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
-        'YTickLabel', variableNames);
+        'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
     % display to covariance matrix values on the heat map
     % Display covariance matrix values on the heat map
-    textStrings = num2str(prior_cov_log(:), '%.2f'); % Create strings from the matrix values
+    textStrings = num2str(prior_cov_log(:), '%.3f'); % Create strings from the matrix values
     textStrings = strtrim(cellstr(textStrings)); % Remove any space padding
     [xPos, yPos] = meshgrid(1:size(prior_cov_log, 2), 1:size(prior_cov_log, 1)); % Create x and y coordinates
     hStrings = text(xPos(:), yPos(:), textStrings(:), 'HorizontalAlignment', 'center'); % Create text objects
@@ -1363,6 +1434,27 @@ try chol(prior_cov_lin)
     % The color of the covaraince matrix value for the 3rd column and 3rd
     % row needs to be black to show up better against the background
     set(hStrings(end-5, :), 'Color', 'black');
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+    elseif strcmp(whatComputer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.fig']);
+
+
+    % save .png with 400 DPI resolution
+    % remove title
+    title('');
+    exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.jpg'],'Resolution', 400);
+    % -------------------------------------
+    % -------------------------------------
+
+
 
 
 
@@ -1394,9 +1486,14 @@ end
 
 combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 
-save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-    'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
-    'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+% save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
+%     'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
+%     'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+
+
+% ** save the cloud top height **
+save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
+    'cloudTopHeight')
 
 
 %% Clear variables

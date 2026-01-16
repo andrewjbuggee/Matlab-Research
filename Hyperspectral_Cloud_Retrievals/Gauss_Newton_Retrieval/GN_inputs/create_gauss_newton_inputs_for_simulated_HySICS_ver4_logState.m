@@ -71,8 +71,22 @@ elseif isfield(simulated_measurements.inputs.RT, 're')
 
     end
 
-    GN_inputs.measurement.lwc_prof = simulated_measurements.inputs.RT.lwc;   % in-situ lwc profile
-    GN_inputs.measurement.z = simulated_measurements.inputs.RT.z;            % altidue vector for in-situ measurements
+    GN_inputs.measurement.lwc_prof = simulated_measurements.inputs.RT.lwc;   % g/m^3 - in-situ lwc profile
+    GN_inputs.measurement.z = simulated_measurements.inputs.RT.z;            % km - altidue vector for in-situ measurements
+
+    % compute the LWP
+    % determine direction of flight
+    if (simulated_measurements.inputs.RT.z(2) - simulated_measurements.inputs.RT.z(1)) < 0
+        % the plane is descending
+        GN_inputs.measurement.lwp = (-1) * trapz( 1e3 .* simulated_measurements.inputs.RT.z, simulated_measurements.inputs.RT.lwc); % g/m^2
+
+    else
+
+        % the plane is ascending
+        GN_inputs.measurement.lwp = trapz( 1e3 .* simulated_measurements.inputs.RT.z, simulated_measurements.inputs.RT.lwc);
+
+    end
+    
 end
 
 GN_inputs.measurement.tau_c = simulated_measurements.inputs.RT.tau_c;      % optical depth

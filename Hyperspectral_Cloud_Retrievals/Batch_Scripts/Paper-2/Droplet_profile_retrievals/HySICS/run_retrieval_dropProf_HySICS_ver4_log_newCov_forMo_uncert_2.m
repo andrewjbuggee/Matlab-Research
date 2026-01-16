@@ -228,7 +228,7 @@ for ff = 1:length(filenames)
     GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
 
     % update depenent variables
-    GN_inputs.RT.cloud_depth = 0.3230;                % kilometers
+    GN_inputs.RT.cloud_depth = 0.230;                % kilometers
     GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
     GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
     GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector

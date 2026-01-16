@@ -1,4 +1,4 @@
-function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, measurement_idx)
+function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_4(folder_paths, measurement_idx)
 %% Generate measurements from VOCALS-REx in-situ data
 
 % The following VOCALS-REx in-situ measured values are used create
@@ -7,6 +7,11 @@ function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, m
 %   (1) in-situ derived droplet profile - measured by the CDP
 %   (2) in-situ derived optical depth - measured by the CDP
 %   (3) in-situ derived cloud top and base - defined using the CDP
+%   (4) in-situ measured T, P and RH for within cloud - defined by...
+%   (5) radiosonde measured T, P, and RH for outside cloud - defined from closest
+%       radiosonde
+%   (6) in-situ derived droplet distribution effective variance - derived
+%       from CDP
 %
 % INPUT:
 %   measurement_idx - integer index (1-73) specifying which measurement to process
@@ -101,7 +106,7 @@ elseif strcmp(which_computer,'curc')==true
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
     % ** 69 profiles that met the criteria of without_precip,
-    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5
+    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
@@ -1364,7 +1369,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_3/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
 
 
 
