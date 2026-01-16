@@ -2,7 +2,9 @@
 
 % By Andrew John Buggee
 
-%% Plot the in-situ measurement used to make the measurement and the retrieval
+%% Plot the HySICS retrieval along with the in-situ measurement
+
+% ** only considering re_profile uncertainty **
 
 clear variables
 
@@ -17,6 +19,10 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
+    % define the folder where the Vocals-Rex in-situ derived measurements
+    % are located
+    folder_paths.retrieval = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1/'];
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -64,8 +70,21 @@ end
 filenames_retrieval(idx_2delete) = [];
 
 
+% ------------------------------------------------------------
+% -- For full_retrieval_logSpace_newCov_VR_meas_allBands_3 ---
+% ------------------------------------------------------------
 % profile_indexes for paper = [3, 6, 7, 9, 18]
-plt_idx = 17;
+%plt_idx = 17;
+% ------------------------------------------------------------
+
+
+% -------------------------------------------------------------------------------
+% -- For full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1 ---
+% -------------------------------------------------------------------------------
+% profile_indexes for paper = [3, 6, 7, 9, 18]
+plt_idx = 4;
+% ------------------------------------------------------------
+
 
 fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_retrieval(plt_idx).name);
 

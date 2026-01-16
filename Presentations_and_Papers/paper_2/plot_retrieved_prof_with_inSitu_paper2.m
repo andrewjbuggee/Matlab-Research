@@ -29,32 +29,74 @@ hold(axes1,'on');
 title('In-situ vs. Retrieved droplet profile', 'Interpreter','latex',...
     'FontSize', 26)
 
-if ds.GN_inputs.measurement.tau(end) ~= ds.GN_inputs.measurement.tau_c
+if isfield(ds.GN_inputs.measurement, 'tau')
 
-    % check the length
-    if length(ds.GN_inputs.measurement.tau) ~= length(ds.GN_inputs.measurement.re_prof)
+    if ds.GN_inputs.measurement.tau(end) ~= ds.GN_inputs.measurement.tau_c
 
-        warning([newline, 'Tau vector length doesnt match radius profile length', newline])
+        % check the length
+        if length(ds.GN_inputs.measurement.tau) ~= length(ds.GN_inputs.measurement.re_prof)
 
-        if ds.GN_inputs.measurement.tau(length(ds.GN_inputs.measurement.re_prof)) == ds.GN_inputs.measurement.tau_c
+            warning([newline, 'Tau vector length doesnt match radius profile length', newline])
 
-            plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau(1:length(ds.GN_inputs.measurement.re_prof)),...
-                'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
-                'Color', 'k', 'MarkerFaceColor', 'k')
+            if ds.GN_inputs.measurement.tau(length(ds.GN_inputs.measurement.re_prof)) == ds.GN_inputs.measurement.tau_c
 
+                plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau(1:length(ds.GN_inputs.measurement.re_prof)),...
+                    'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+                    'Color', 'k', 'MarkerFaceColor', 'k')
+
+
+            end
 
         end
 
+    else
+
+
+        plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
+            'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+            'Color', 'k', 'MarkerFaceColor', 'k')
+
     end
 
-else
 
 
-    plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
-        'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
-        'Color', 'k', 'MarkerFaceColor', 'k')
+
+
+
+elseif isfield(ds.GN_inputs.measurement, 'tau_prof')==true
+
+
+    if ds.GN_inputs.measurement.tau_prof(end) ~= ds.GN_inputs.measurement.tau_c
+
+        % check the length
+        if length(ds.GN_inputs.measurement.tau) ~= length(ds.GN_inputs.measurement.re_prof)
+
+            warning([newline, 'Tau vector length doesnt match radius profile length', newline])
+
+            if ds.GN_inputs.measurement.tau(length(ds.GN_inputs.measurement.re_prof)) == ds.GN_inputs.measurement.tau_c
+
+                plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau(1:length(ds.GN_inputs.measurement.re_prof)),...
+                    'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+                    'Color', 'k', 'MarkerFaceColor', 'k')
+
+
+            end
+
+        end
+
+    else
+
+
+        plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
+            'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+            'Color', 'k', 'MarkerFaceColor', 'k')
+
+    end
+
 
 end
+
+
 
 % flip y-axis and provide axes labels
 set(gca,'YDir','reverse')
@@ -178,7 +220,7 @@ title(['Retrievel using all 636 HySICS spectral channels'],...
 
 legend('In-Situ', 'Hyperspectral Retrieval', 'Interpreter','latex', 'Position',...
     [0.191290035273543 0.536882716049383 0.335733019871267 0.0648148148148148], 'FontSize', 20,...
-            'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 
 
 % set figure size
