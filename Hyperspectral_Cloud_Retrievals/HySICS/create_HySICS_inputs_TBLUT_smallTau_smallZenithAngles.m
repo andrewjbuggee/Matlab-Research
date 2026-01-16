@@ -43,8 +43,9 @@ inputs.compute_weighting_functions = false;
 % band 50 has a center wavelength of 502 nm
 % band 435 has a center wavelength of 1680 nm
 % band 582 has a center wavelength of 2131 nm
-% band 607 has a center wavelength of 2220 nm
-inputs.bands2run = [50, 435, 582, 607]; % these are the bands that we will run uvspec with
+% band 607 has a center wavelength of 2208 nm
+% band 611 has a center wavelength of 2220 nm
+inputs.bands2run = [50, 435, 582, 611]; % these are the bands that we will run uvspec with
 inputs.bands2plot = inputs.bands2run;
 
 % We're running calculations over spectral bands

@@ -138,14 +138,14 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % all bands - failed during compute_HySICS_forwardModel
-    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
-    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-    %     '04-Nov-2008_13.7864UTC_prof-nn_36_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
-
-    % all bands - failed during TBLUT small drops
     filenames = dir([folder_paths.HySICS_simulated_spectra,...
         'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-        '02-Nov-2008_6.9625UTC_prof-nn_25_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
+        '04-Nov-2008_13.7864UTC_prof-nn_36_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
+
+    % all bands - failed during TBLUT small drops
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '02-Nov-2008_6.9625UTC_prof-nn_25_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
 
 elseif strcmp(which_computer,'curc')==true
