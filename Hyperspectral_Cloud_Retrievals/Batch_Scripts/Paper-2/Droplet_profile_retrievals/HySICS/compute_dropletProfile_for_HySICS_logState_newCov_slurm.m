@@ -116,7 +116,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     '21-Oct-2008_6.0819UTC_prof-nn_11_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']);
 
 
-    % using only 66 bands 
+    % using only 66 bands
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
     %     '15-Oct-2008_18.4297UTC_prof-nn_1_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-29-Nov-2025.mat']);
@@ -125,7 +125,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % 66 bands - ensemble profile 35
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-    %     '04-Nov-2008_6.09UTC_prof-nn_35_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']); 
+    %     '04-Nov-2008_6.09UTC_prof-nn_35_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']);
 
 
 
@@ -136,7 +136,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
         'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
         'log_newCov_all636Bands_VR_inSitu_2/'];
 
-    
+
     % all bands - failed during compute_HySICS_forwardModel
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
     %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
@@ -158,7 +158,7 @@ elseif strcmp(which_computer,'curc')==true
 
     % load measurements from curc storage
     folder_paths.HySICS_simulated_spectra = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
 
     % add folders to the path
     addpath(genpath('/projects/anbu8374/Matlab-Research'));
@@ -170,18 +170,15 @@ elseif strcmp(which_computer,'curc')==true
     % specific block of text
 
 
+    % all bands - failed during compute_HySICS_forwardModel
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+        'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+        '04-Nov-2008_13.7864UTC_prof-nn_36_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
+
+    % all bands - failed during TBLUT small drops
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
-    %     'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_5_tcwv_20_vza_7*.mat']);
-
-
-
-%     filenames = dir([folder_paths.HySICS_simulated_spectra,...
-%         'simulated_spectra_HySICS_reflectance_66bands_0.001%_uncert_rTop_10_rBot_5_tauC_11_tcwv_14_vza_7*.mat']);
-
-
-filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_rTop_9.2516_rBot_5.3192_tauC_6.1312_tcwv_14',...
-        '_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-16-Sep-2025.mat']);
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '02-Nov-2008_6.9625UTC_prof-nn_25_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
 
 end
@@ -214,7 +211,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
 
-end 
+end
 
 %% Run the droplet profile retrieval
 
