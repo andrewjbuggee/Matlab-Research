@@ -101,7 +101,7 @@ elseif strcmp(which_computer,'curc')==true
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
     % ** 69 profiles that met the criteria of without_precip,
-    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
+    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
@@ -1364,7 +1364,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_3/'];
 
 
 
