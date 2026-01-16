@@ -91,9 +91,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % define the folder where the Vocals-Rex in-situ derived measurements
     % are located
-    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
-        'log_newCov_subset_allBands_VR_inSitu_2/'];
+    % folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
+    %     'log_newCov_subset_allBands_VR_inSitu_2/'];
 
     % all bands
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -106,9 +106,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     '15-Oct-2008_19.1883UTC_prof-nn_2_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
     % all bands
-    filenames = dir([folder_paths.HySICS_simulated_spectra,...
-        'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
-        '18-Oct-2008_19.2278UTC_prof-nn_10_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
+    % filenames = dir([folder_paths.HySICS_simulated_spectra,...
+    %     'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+    %     '18-Oct-2008_19.2278UTC_prof-nn_10_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
     % all bands - testing failed file
     % filenames = dir([folder_paths.HySICS_simulated_spectra,...
@@ -127,6 +127,20 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     'simulated_spectra_HySICS_reflectance_66bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
     %     '04-Nov-2008_6.09UTC_prof-nn_35_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-30-Nov-2025.mat']); 
 
+
+
+
+    % define the folder where the Vocals-Rex in-situ derived measurements
+    % are located
+    folder_paths.HySICS_simulated_spectra = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
+        'log_newCov_all636Bands_VR_inSitu_2/'];
+
+    
+    % all bands
+    filenames = dir([folder_paths.HySICS_simulated_spectra,...
+        'simulated_spectra_HySICS_reflectance_636bands_0.3%_uncert_vocalsRex_inSitu_re_lwc_tauC_z_',...
+        '02-Nov-2008_11.4561UTC_prof-nn_27_vza_4_vaz_257_sza_31_saz_96_sim-ran-on-27-Dec-2025.mat']);
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -209,8 +223,8 @@ files{1} = filenames.name;
 % *** Retrieve r_top, r_bot, tau_c, and cwvs ***
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
-% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(...
-%     files,folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(...
+    files,folder_paths, print_status_updates, print_libRadtran_err);
 
 
 
@@ -218,7 +232,7 @@ files{1} = filenames.name;
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
 % (2) Cloud top height assumption
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(...
-    files,folder_paths, print_status_updates, print_libRadtran_err);
+% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(...
+%     files,folder_paths, print_status_updates, print_libRadtran_err);
 
 

@@ -1,4 +1,4 @@
-function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, measurement_idx)
+function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_2(folder_paths, measurement_idx)
 %% Generate measurements from VOCALS-REx in-situ data
 
 % The following VOCALS-REx in-situ measured values are used create
@@ -7,6 +7,8 @@ function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, m
 %   (1) in-situ derived droplet profile - measured by the CDP
 %   (2) in-situ derived optical depth - measured by the CDP
 %   (3) in-situ derived cloud top and base - defined using the CDP
+%   (4) radiosonde measured temp, pressure, and RH - defined from closest
+%       radiosonde
 %
 % INPUT:
 %   measurement_idx - integer index (1-73) specifying which measurement to process
