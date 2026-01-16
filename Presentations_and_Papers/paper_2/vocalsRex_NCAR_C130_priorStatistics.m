@@ -72,14 +72,21 @@ end
 % the vertical extent so that all profiles lie between values [0,1]. Then
 % we break up the vertical component in n discrete bins.
 
-n_bins = 30; % number of segments the noramlized vertical component is broken up into
+% n_bins = 30; % number of segments the noramlized vertical component is broken up into
+% ** USE 20 BINS FOR SAME NUMBER OF VERTICAL LAYERS AS RETRIEVAL FORWARD MODEL **
+n_bins = 20; % number of segments the noramlized vertical component is broken up into
+
 
 bin_edges = 0:1/n_bins:1;
 
 % set up an empty cell array for all the values of each variable of interest
-% within each segment boundaries. Let's do this for droplet size, total
-% number concentration and liquid water content
-vertically_segmented_attributes = cell(n_bins, 3);
+% within each segment boundaries. Let's do this for:
+%   (1) droplet size
+%   (2) liquid water content
+%   (3) total number concentration
+%   (4) drop distribution alpha paramter (related to effective variance)
+
+vertically_segmented_attributes = cell(n_bins, 54);
 
 % Store all cloud optical depths
 tau_c = zeros(length(ensemble_profiles),1);
@@ -87,6 +94,7 @@ tau_c = zeros(length(ensemble_profiles),1);
 % Store all cloud top heights and geometric depths
 cloudTopHeight = zeros(length(ensemble_profiles),1);
 cloudDepth = zeros(length(ensemble_profiles),1);
+
 
 
 normalized_altitude = cell(1, length(ensemble_profiles));
@@ -149,6 +157,7 @@ for nn = 1:length(ensemble_profiles)
 
     lwc = ensemble_profiles{nn}.lwc;
     Nc_total = sum(ensemble_profiles{nn}.Nc, 1);
+    alpha_param = ensemble_profiles{nn}.gammaFit.alpha;
 
     % check to see if any values are 0
     if sum(re==0)>=1
@@ -174,6 +183,36 @@ for nn = 1:length(ensemble_profiles)
         Nc_total(Nc_total==0) = 0.1; % microns;
 
     end
+
+    if sum(alpha_param==0)>=1 
+
+        % Sometimes there isn't a good fit. Set it to the default
+        % libRadtran value of 7
+        alpha_param(alpha_param==0) = 7;
+
+    end
+
+    if sum(isnan(alpha_param))>=1
+
+        % Sometimes there isn't a good fit. Use the previous value
+        idx_nan = find(isnan(alpha_param));
+        idx_nonNan = find(~isnan(alpha_param));
+
+        for aa = 1:numel(idx_nan)
+
+            % find closest non-nan index
+            [~, min_idx] = min( abs( idx_nan(aa) - idx_nonNan ));
+                
+             alpha_param(idx_nan(aa)) = alpha_param(idx_nonNan(min_idx));
+             
+        end
+
+    end
+
+
+
+
+
 
 
 
@@ -228,6 +267,11 @@ for nn = 1:length(ensemble_profiles)
 
         % store the total number concentration
         vertically_segmented_attributes{bb, 3} = [vertically_segmented_attributes{bb, 3}; reshape(Nc_total(index_segment), [],1)];
+
+        % store the gamma droplet distirbution alpha parameter (related to
+        % the effective variance)
+        vertically_segmented_attributes{bb, 4} = [vertically_segmented_attributes{bb, 4}; reshape(alpha_param(index_segment), [],1)];
+
 
 
         % ------------------- For the covariance matrix -------------------
@@ -391,6 +435,33 @@ Nc_p_lognormal = zeros(1, size(vertically_segmented_attributes,1));
 Nc_reject_gamma = zeros(1, size(vertically_segmented_attributes,1));
 Nc_p_gamma = zeros(1, size(vertically_segmented_attributes,1));
 
+
+
+
+alpha_reject_normal = zeros(1, size(vertically_segmented_attributes,1));
+alpha_p_normal = zeros(1, size(vertically_segmented_attributes,1));
+
+alpha_reject_lognormal = zeros(1, size(vertically_segmented_attributes,1));
+alpha_p_lognormal = zeros(1, size(vertically_segmented_attributes,1));
+
+alpha_reject_gamma = zeros(1, size(vertically_segmented_attributes,1));
+alpha_p_gamma = zeros(1, size(vertically_segmented_attributes,1));
+
+
+
+
+effVariance_reject_normal = zeros(1, size(vertically_segmented_attributes,1));
+effVariance_p_normal = zeros(1, size(vertically_segmented_attributes,1));
+
+effVariance_reject_lognormal = zeros(1, size(vertically_segmented_attributes,1));
+effVariance_p_lognormal = zeros(1, size(vertically_segmented_attributes,1));
+
+effVariance_reject_gamma = zeros(1, size(vertically_segmented_attributes,1));
+effVariance_p_gamma = zeros(1, size(vertically_segmented_attributes,1));
+
+
+
+
 for bb = 1:size(vertically_segmented_attributes, 1)
 
 
@@ -443,6 +514,107 @@ for bb = 1:size(vertically_segmented_attributes, 1)
 
 
 
+
+
+
+
+
+
+    % -----------------------------------------------------------
+    % ------- ALPHA PARAMETER (EFFECTIVE VARIANCE) FITTING ------
+    % -----------------------------------------------------------
+
+
+    % fit the effective radius data to a normal distribution
+    alpha_fit_normal(bb) = fitdist(vertically_segmented_attributes{bb,4}, 'normal');
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [alpha_reject_normal(bb), alpha_p_normal(bb)] = kstest(vertically_segmented_attributes{bb,4}, 'CDF', alpha_fit_normal(bb),...
+        'alpha', significance_lvl);
+
+
+    % fit the effective radius data to a log-normal distribution
+    alpha_fit_lognormal(bb) = fitdist(vertically_segmented_attributes{bb,4}, 'lognormal');
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [alpha_reject_lognormal(bb), alpha_p_lognormal(bb)] = kstest(vertically_segmented_attributes{bb,4}, 'CDF', alpha_fit_lognormal(bb),...
+        'alpha', significance_lvl);
+
+
+    % fit the effective radius data to a gamma distribution - use my custom
+    % libRadtran gamma distribution
+    alpha_fit_gamma(bb) = prob.GammaDistribution_libRadtran.fit(vertically_segmented_attributes{bb,4});
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [alpha_reject_gamma(bb), alpha_p_gamma(bb)] = kstest(vertically_segmented_attributes{bb,4}, 'CDF', alpha_fit_gamma(bb),...
+        'alpha', significance_lvl);
+
+
+
+
+
+
+
+
+    % -----------------------------------------------------------
+    % --------------- TRUE EFFECTIVE VARIANCE FITTING -----------
+    % -----------------------------------------------------------
+    
+
+    % ** store the alpha parameter as the effective variance! **
+    eff_variance = 1./(vertically_segmented_attributes{bb,4} + 3);
+
+
+    % fit the effective radius data to a normal distribution
+    effVariance_fit_normal(bb) = fitdist(eff_variance, 'normal');
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [effVariance_reject_normal(bb), effVariance_p_normal(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_normal(bb),...
+        'alpha', significance_lvl);
+
+
+    % fit the effective radius data to a log-normal distribution
+    effVariance_fit_lognormal(bb) = fitdist(eff_variance, 'lognormal');
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [effVariance_reject_lognormal(bb), effVariance_p_lognormal(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_lognormal(bb),...
+        'alpha', significance_lvl);
+
+
+    % fit the effective radius data to a gamma distribution - use my custom
+    % libRadtran gamma distribution
+    effVariance_fit_gamma(bb) = prob.GammaDistribution_libRadtran.fit(eff_variance);
+
+    % *** Chi-squared doesn't work well ***
+    % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+    % which is more robust to outliers
+    % [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb),...
+    %     'alpha', significance_lvl, 'NParams', 2);
+    [effVariance_reject_gamma(bb), effVariance_p_gamma(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_gamma(bb),...
+        'alpha', significance_lvl);
+
+
+        
 
 
 
@@ -588,8 +760,17 @@ title('Cloud Depth statistics and fits', ...
 % distribution to within 5% uncertainty
 
 bin_names = {'Normal', 'Log-Normal', 'Gamma'};
-cloudTop_idx = 21:30;
-cloudBot_idx = 1:10;
+if n_bins==30
+
+    cloudTop_idx = 21:30;
+    cloudBot_idx = 1:10;
+
+elseif n_bins == 20
+    cloudTop_idx = 16:20;
+    cloudBot_idx = 1:5;
+
+end
+
 % ------------------------------------------------------------
 % ------- EFFECTIVE DROPLET RADIUS AT CLOUD TOP FITTING ------
 % ------------------------------------------------------------
@@ -615,26 +796,37 @@ title('Number of distribution rejections of $r_{bot}$ data', 'interpreter', 'lat
 % ------------------------------------------
 % ------- CLOUD OPTICAL DEPTH FITTING ------
 % ------------------------------------------
-
-figure; histogram('Categories', bin_names, 'BinCounts', [tauC_reject_normal, tauC_reject_lognormal, tauC_reject_gamma]);
-title('Number of distribution rejections of $\tau_{C}$ data', 'interpreter', 'latex'); ylabel('Counts')
+% 
+% figure; histogram('Categories', bin_names, 'BinCounts', [tauC_reject_normal, tauC_reject_lognormal, tauC_reject_gamma]);
+% title('Number of distribution rejections of $\tau_{C}$ data', 'interpreter', 'latex'); ylabel('Counts')
 
 
 % ------------------------------------------
 % ---------- CLOUD TOP HEIGHT FITTING ------
 % ------------------------------------------
-
-figure; histogram('Categories', bin_names, 'BinCounts', [cloudTopHeight_reject_normal, cloudTopHeight_reject_lognormal,...
-    cloudTopHeight_reject_gamma]);
-title('Number of distribution rejections of cloud top height data', 'interpreter', 'latex'); ylabel('Counts')
+% 
+% figure; histogram('Categories', bin_names, 'BinCounts', [cloudTopHeight_reject_normal, cloudTopHeight_reject_lognormal,...
+%     cloudTopHeight_reject_gamma]);
+% title('Number of distribution rejections of cloud top height data', 'interpreter', 'latex'); ylabel('Counts')
 
 
 % ------------------------------------------
 % ----------- CLOUD DEPTH FITTING ----------
 % ------------------------------------------
 
-figure; histogram('Categories', bin_names, 'BinCounts', [cloudDepth_reject_normal, cloudDepth_reject_lognormal, cloudDepth_reject_gamma]);
-title('Number of distribution rejections of cloud depth data', 'interpreter', 'latex'); ylabel('Counts')
+% figure; histogram('Categories', bin_names, 'BinCounts', [cloudDepth_reject_normal, cloudDepth_reject_lognormal, cloudDepth_reject_gamma]);
+% title('Number of distribution rejections of cloud depth data', 'interpreter', 'latex'); ylabel('Counts')
+% 
+
+
+% ---------------------------------------------------------------
+% ------- ALPHA PARAMETER (EFFECTIVE VARIANCE) FITTING ------
+% ---------------------------------------------------------------
+num_rejects_alpha = sum([alpha_reject_normal; alpha_reject_lognormal;...
+    alpha_reject_gamma], 2, "omitnan");
+
+figure; histogram('Categories', bin_names, 'BinCounts', num_rejects_alpha);
+title('Number of distribution rejections of $\alpha$ data', 'interpreter', 'latex'); ylabel('Counts')
 
 
 % ----------------------------------------------------------------------
@@ -656,8 +848,18 @@ lgnd_fnt = 20;
 % cloudTop_idx = 26:30;
 % cloudBot_idx = 6:10;
 
-cloudTop_idx = 26:30;
-cloudBot_idx = 1:5;
+
+if n_bins==30
+
+    cloudTop_idx = 26:30;
+    cloudBot_idx = 1:5;
+
+elseif n_bins == 20
+
+    cloudTop_idx = 18:20;
+    cloudBot_idx = 1:3;
+
+end
 
 % cloudTop_idx = 27;
 % cloudBot_idx = 3;
@@ -1206,18 +1408,18 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 400);
+% % save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%         error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 400);
 % -------------------------------------
 % -------------------------------------
 
@@ -1371,18 +1573,18 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-    elseif strcmp(whatComputer,'andrewbuggee')==true
-        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    end
-    saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.fig']);
-
-
-    % save .png with 400 DPI resolution
-    % remove title
-    title('');
-    exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.jpg'],'Resolution', 400);
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.fig']);
+    % 
+    % 
+    % % save .png with 400 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.jpg'],'Resolution', 400);
     % -------------------------------------
     % -------------------------------------
 
@@ -1439,18 +1641,18 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-    elseif strcmp(whatComputer,'andrewbuggee')==true
-        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    end
-    saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.fig']);
-
-
-    % save .png with 400 DPI resolution
-    % remove title
-    title('');
-    exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.jpg'],'Resolution', 400);
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.fig']);
+    % 
+    % 
+    % % save .png with 400 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.jpg'],'Resolution', 400);
     % -------------------------------------
     % -------------------------------------
 
@@ -1490,10 +1692,17 @@ combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndS
 %     'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
 %     'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
 
+%% Save variables for the forward model covariance matrix
 
 % ** save the cloud top height **
-save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
-    'cloudTopHeight')
+% save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
+%     'cloudTopHeight')
+
+% ** save the effective variance (alpha parameter) values for each prof **
+% alpha parameter (effective variance) best fits a log-normal distribution
+alpha_byLvls_20 = vertically_segmented_attributes{:, 4};
+save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_', char(datetime("today")),'.mat'],...
+    'alpha_fit_lognormal', 'alpha_fit_normal')
 
 
 %% Clear variables
