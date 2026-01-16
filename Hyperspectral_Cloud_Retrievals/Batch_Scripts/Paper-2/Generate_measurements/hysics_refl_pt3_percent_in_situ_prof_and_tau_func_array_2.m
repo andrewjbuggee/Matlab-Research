@@ -54,7 +54,7 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    % Location of ensemble data
+    % Location of droplet profile data
     folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -70,7 +70,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    % Location of ensemble data
+    % Location of droplet profile data
     folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -78,6 +78,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
 
+    % ** 69 profiles that met the criteria of without_precip,
+    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
@@ -95,7 +97,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    % Location of ensemble data
+    % Location of droplet profile data
     folderpath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
