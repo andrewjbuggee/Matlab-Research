@@ -2,7 +2,7 @@
 
 % By Andrew John Buggee
 
-function plot_retrieved_prof_with_inSitu_paper2(mat_file_path, mat_file_name)
+function fig1 = plot_retrieved_prof_with_inSitu_paper2(mat_file_path, mat_file_name)
 
 
 % Load the data from the file
@@ -20,7 +20,11 @@ C_idx = 5;
 
 % Plot the in-situ profile
 
-figure;
+fig1 = figure;
+
+% Create axes
+axes1 = axes('Parent',fig1,'Position',[0.175438596491228 0.11 0.804561403508772 0.815]);
+hold(axes1,'on');
 
 title('In-situ vs. Retrieved droplet profile', 'Interpreter','latex',...
     'FontSize', 26)
@@ -79,7 +83,7 @@ errorbar(ds.GN_outputs.re_profile(end), ds.GN_outputs.tau_vector(end), sqrt(ds.G
 
 % Label cloud top and cloud bottom
 % Create textbox
-annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
+annotation('textbox',[0.0109176753017712 0.862655122655124 0.0509999999999998 0.0777777777777779],...
     'String',{'Cloud','Top'},...
     'LineStyle','none',...
     'Interpreter','latex',...
@@ -87,7 +91,7 @@ annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
     'FitBoxToText','off');
 
 % Create textbox
-annotation('textbox',[0.02,0.096825396825397,0.051,0.077777777777778],...
+annotation('textbox',[0.0109176753017712 0.0834920634920637 0.051 0.0777777777777779],...
     'String',{'Cloud','Bottom'},...
     'LineStyle','none',...
     'Interpreter','latex',...
@@ -108,14 +112,19 @@ xl0.LabelHorizontalAlignment = 'left';
 yl0 = yline(ds.tblut_retrieval.minTau,':',...
     ['TBLUT $\tau_{c} = $',num2str(round(ds.tblut_retrieval.minTau, 1))], 'Fontsize',24,...
     'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(C_idx,:));
-yl0.LabelVerticalAlignment = 'top';
-yl0.LabelHorizontalAlignment = 'right';
+yl0.LabelVerticalAlignment = 'bottom';
+yl0.LabelHorizontalAlignment = 'left';
 
 
 % compute the LWP estimate using the TBLUT retrieval
-rho_liquid_water = 10^6;        % g/m^3
+con = physical_constants;
+rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 
-lwp_tblut = (2*rho_liquid_water*(ds.tblut_retrieval.minRe/1e6) * ds.tblut_retrieval.minTau)/3; % g/m^2
+lwp_tblut = (2 * rho_h2o * (ds.tblut_retrieval.minRe/1e6) * ds.tblut_retrieval.minTau)/3; % g/m^2
+
+% ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
+lwp_tblut_WH = 5/9 * rho_h2o * ds.tblut_retrieval.minTau * (ds.tblut_retrieval.minRe/1e6);
+
 
 % grab the hypersepctral retrieval estimate of LWP
 retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
@@ -125,8 +134,9 @@ LWP_true = ds.GN_inputs.measurement.lwp;   % g/m^2
 
 % Print this information on the figure
 
-dim = [0.141166666666667 0.71690449790349 0.293506310780843 0.157698676699684];
+dim = [0.185672925359295 0.770354933354154 0.477184217497848 0.122654526321976];
 str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_tblut,1)),' $g/m^{2}$', newline,...
+    '$LWP_{TBLUT-WH} = \,$',num2str(round(lwp_tblut_WH,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$', newline...
     '$LWP_{true} = \,$',num2str(round(LWP_true,1)),' $g/m^{2}$'];
 
@@ -158,7 +168,7 @@ else
 end
 
 
-dim = [0.141166666666667 0.571252065991597 0.238002173105876 0.103351108611576];
+dim = [0.185672925359295 0.633859831990577 0.385755646069276 0.0803841955867814];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
@@ -166,12 +176,21 @@ annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex',
 title(['Retrievel using all 636 HySICS spectral channels'],...
     'Fontsize', 25, 'Interpreter', 'latex');
 
-legend('In-Situ', 'Hyperspectral Retrieval', 'Interpreter','latex', 'Location','best', 'FontSize', 20,...
+legend('In-Situ', 'Hyperspectral Retrieval', 'Interpreter','latex', 'Position',...
+    [0.191290035273543 0.536882716049383 0.335733019871267 0.0648148148148148], 'FontSize', 20,...
             'Color', 'white', 'TextColor', 'k')
 
 
 % set figure size
-set(gcf,'Position',[0 0 1200 630])
+set(gcf,'Position',[0 0 700 810])
+
+box(axes1,'on');
+grid(axes1,'on');
+axis(axes1,'ij');
+hold(axes1,'off');
+
+% set x axis limits
+xlim([min(ds.GN_inputs.measurement.re_prof) - 0.5, max(ds.GN_inputs.measurement.re_prof) + 0.5])
 
 
 end
