@@ -240,17 +240,26 @@ if print_status_updates==true
         a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
+        % -----------------------------------------------------------
         % let's find the new guesses that satisfy the following
-        % constraints: r_bot< r_top + new_direction <inf  and
-        % 0< r_bot + new_direction <r_top
+        % constraints: 
+        % (1) r_bot < (r_top + new_direction)
+        % (2) 1 <= (r_bot + new_direction) < r_top
+        % (3) tau_c >= 1
+        % (4) acpw > 0
+
         % the first row is r_top. This has to be greater than r_bot which
         % is the value of the second row.
+        
+        % ** the acceptable range of effective radii is [1,25] for
+        % wc.sol.mie.cdf **
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=log(25) & ...
-            constrained_guesses(2,:)>log(1e-5)   & ...
-            constrained_guesses(3,:)>log(1e-5)   & ...
+            constrained_guesses(1,:)<=log(25) & constrained_guesses(1,:) >= log(1) &...
+            constrained_guesses(2,:)<=log(25) & constrained_guesses(2,:) >= log(1) &...
+            constrained_guesses(3,:)>log(1)   & ...
             constrained_guesses(4,:)>log(1e-5)));
+        % -----------------------------------------------------------
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
@@ -271,11 +280,11 @@ if print_status_updates==true
             disp([newline, 'The Gauss-Newton direction causes r_top<r_bot.',newline, ...
                 'Trying a different inital guess...', newline])
 
-            % Check to see if both guesses are 3.5, the lower limit of our
+            % Check to see if both guesses are 1 micron, the lower limit of our
             % lookup table
-            if current_guess(1)==3.5 && current_guess(2)==3.5
+            if current_guess(1)==log(1) && current_guess(2)==log(1)
 
-                new_guess = [9, 5, current_guess(3), current_guess(4)];
+                new_guess = [log([9, 5]), current_guess(3), current_guess(4)];
 
             else
 
@@ -334,6 +343,15 @@ if print_status_updates==true
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
+            % % ** Check the constrained guess **
+            % % Are any values outside the acceptable range limit for the
+            % % effective radius? What about the optical depth?
+            % if any(exp(constrained_guesses(1,:)) >= 25) || any(exp(constrained_guesses(2,:)) <= 1)
+            % 
+            %     warning([newline, 'There effective radius values in the set of constrained state vector estimates',...
+            %         ' that are either larger than 25 microns, or smaller than 1 micron.', newline,...
+            %         'Changing the ma'])
+            % end
 
 
             % We need to compute the measurement estimate of the constrained
@@ -351,8 +369,8 @@ if print_status_updates==true
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>log(1e-5) && constrained_guesses(1,mm)<log(25) && ...
-                        constrained_guesses(2,mm)>log(1e-5) && constrained_guesses(2,mm)<log(25)
+                if constrained_guesses(1,mm)>log(1) && constrained_guesses(1,mm)<log(25) && ...
+                        constrained_guesses(2,mm)>log(1) && constrained_guesses(2,mm)<log(25)
 
                     disp([newline, 'Estimating spectral measurements...', newline])
                     constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
@@ -360,7 +378,8 @@ if print_status_updates==true
 
                 else
 
-                    constrained_measurement_estimate(:,mm) = 0;
+                    error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
+                        'computed mie table.', newline])
                 end
 
             end
@@ -420,19 +439,27 @@ if print_status_updates==true
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
         if new_guess(1)>log(25)
+           
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 15 \mum'])
             new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<log(3.5)
+        
+        elseif new_guess(1)<log(1)
+            
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 3.5 \mum'])
             new_guess(1) = log(3.5); % microns
+        
         end
 
         if new_guess(2)>log(25)
+            
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 20 \mum'])
             new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<log(3.5)
+       
+        elseif new_guess(2)<log(1)
+            
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 3.5 \mum'])
             new_guess(2) = log(3.5); % microns
+        
         end
 
 
@@ -627,17 +654,26 @@ else
         a = linspace(0, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
+        % -----------------------------------------------------------
         % let's find the new guesses that satisfy the following
-        % constraints: r_bot< r_top + new_direction <inf  and
-        % 0< r_bot + new_direction <r_top
+        % constraints: 
+        % (1) r_bot < (r_top + new_direction)
+        % (2) 1 <= (r_bot + new_direction) < r_top
+        % (3) tau_c >= 1
+        % (4) acpw > 0
+        
         % the first row is r_top. This has to be greater than r_bot which
         % is the value of the second row.
+        
+        % ** the acceptable range of effective radii is [1,25] for
+        % wc.sol.mie.cdf **
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=log(25) & ...
-            constrained_guesses(2,:)>log(1e-5)   & ...
-            constrained_guesses(3,:)>log(1e-5)   & ...
+            constrained_guesses(1,:)<=log(25) & constrained_guesses(1,:) >= log(1) &...
+            constrained_guesses(2,:)<=log(25) & constrained_guesses(2,:) >= log(1) &...
+            constrained_guesses(3,:)>log(1)   & ...
             constrained_guesses(4,:)>log(1e-5)));
+        % -----------------------------------------------------------
 
         % if the maximum value of a is 0, then there is no solution space
         % with the current Gauss-Newton direction that will result in r_top
@@ -657,11 +693,11 @@ else
 
 
 
-            % Check to see if both guesses are 3.5, the lower limit of our
+            % Check to see if both guesses are 1, the lower limit of our
             % lookup table
-            if current_guess(1)==3.5 && current_guess(2)==3.5
+            if current_guess(1)==log(1) && current_guess(2)==log(1)
 
-                new_guess = [9, 5, current_guess(3), current_guess(4)];
+                new_guess = [log([9, 5]), current_guess(3), current_guess(4)];
 
             else
 
@@ -728,15 +764,16 @@ else
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>log(1e-5) && constrained_guesses(1,mm)<log(25) && ...
-                        constrained_guesses(2,mm)>log(1e-5) && constrained_guesses(2,mm)<log(25)
+                if constrained_guesses(1,mm)>log(1) && constrained_guesses(1,mm)<log(25) && ...
+                        constrained_guesses(2,mm)>log(1) && constrained_guesses(2,mm)<log(25)
 
                     constrained_measurement_estimate(:,mm)= log(compute_forward_model_HySICS_ver2(exp(constrained_guesses(:,mm)),...
                         GN_inputs, spec_response, folder_paths));
 
                 else
 
-                    constrained_measurement_estimate(:,mm) = 0;
+                    error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
+                        'computed mie table.', newline])
                 end
 
             end
@@ -789,14 +826,20 @@ else
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
         if new_guess(1)>log(25)
+
             new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<log(3.5)
+        
+        elseif new_guess(1)<log(1)
+
             new_guess(1) = log(3.5); % microns
         end
 
         if new_guess(2)>log(25)
+
             new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<log(3.5)
+        
+        elseif new_guess(2)<log(1)
+
             new_guess(2) = log(3.5); % microns
         end
 
