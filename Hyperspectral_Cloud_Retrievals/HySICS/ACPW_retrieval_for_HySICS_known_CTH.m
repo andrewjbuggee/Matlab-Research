@@ -1,11 +1,14 @@
 %% Estimate the above cloud precipitable water amount using Simualted HySICS measurements
 
 
+% *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
+% (1) Adiabatic droplet profile assumption
+
 % By Andrew John Buggee
 
 %%
 
-function [acpw_retrieval] = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths,...
+function [acpw_retrieval] = ACPW_retrieval_for_HySICS_known_CTH(simulated_measurements, tblut_retrieval, folder_paths,...
     print_status_updates, print_libRadtran_err)
 
 
@@ -33,41 +36,6 @@ which_computer = folder_paths.which_computer;
 
 % this is a built-in function that is defined at the bottom of this script
 inputs_acpw = create_HySICS_inputs_ACPW(simulated_measurements.inputs, tblut_retrieval, print_libRadtran_err);
-
-
-
-%% Update the cloud top height!
-% ** VOCALS-REx in-situ measurements result in a mean cloud top height
-% of 1203 meters and a mean cloud depth of about 230 meters
-% ** testing the retrieval when I lack knowledge of cloud top precisely **
-
-% load the set of VOCALS-REx in-situ observations
-if strcmp(GN_inputs.which_computer, 'anbu8374')==true
-
-    cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
-
-    cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'curc')==true
-
-    cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-end
-
-cth_mean = mean(cloud_top_obs.cloudTopHeight)/1e3;                  % km
-cld_depth_mean = mean(cloud_top_obs.cloudDepth)/1e3;                % km
-
-inputs_acpw.RT.z_topBottom = [cth_mean, (cth_mean - cld_depth_mean)];         % kilometers
-
-% update depenent variables
-inputs_acpw.RT.cloud_depth = cld_depth_mean;                % kilometers
-inputs_acpw.RT.H = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
-
 
 
 %% Find the measurements closest to the bands to run

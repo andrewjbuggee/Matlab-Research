@@ -182,7 +182,7 @@ for ff = 1:length(filenames)
     end
 
 
-    tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err);
+    tblut_retrieval = TBLUT_for_HySICS_ver2_known_CTH(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err);
 
 
     if print_status_updates==true
@@ -198,7 +198,7 @@ for ff = 1:length(filenames)
     end
 
 
-    acpw_retrieval = ACPW_retrieval_for_HySICS(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
+    acpw_retrieval = ACPW_retrieval_for_HySICS_known_CTH(simulated_measurements, tblut_retrieval, folder_paths, print_status_updates, print_libRadtran_err);
 
 
     if print_status_updates==true

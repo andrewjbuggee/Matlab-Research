@@ -1695,14 +1695,14 @@ combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndS
 %% Save variables for the forward model covariance matrix
 
 % ** save the cloud top height **
-% save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
-%     'cloudTopHeight')
+save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
+    'cloudTopHeight', 'cloudDepth')
 
 % ** save the effective variance (alpha parameter) values for each prof **
 % alpha parameter (effective variance) best fits a log-normal distribution
-alpha_byLvls_20 = vertically_segmented_attributes{:, 4};
-save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_', char(datetime("today")),'.mat'],...
-    'alpha_fit_lognormal', 'alpha_fit_normal')
+% alpha_byLvls_20 = vertically_segmented_attributes{:, 4};
+% save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_', char(datetime("today")),'.mat'],...
+%     'alpha_fit_lognormal', 'alpha_fit_normal')
 
 
 %% Clear variables

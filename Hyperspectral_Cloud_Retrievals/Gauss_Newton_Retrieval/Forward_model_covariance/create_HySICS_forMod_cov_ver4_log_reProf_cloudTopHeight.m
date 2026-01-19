@@ -1,5 +1,8 @@
 %% Create forward model covariance matrix
 
+% *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
+% (1) Adiabatic droplet profile assumption
+% (2) Cloud top height assumption
 
 % There are many components that could be taken into account when
 % considering the forward model uncertainty. Here is an incomplete list of
@@ -104,36 +107,43 @@ end
 % --------------- Uncertainty of Cloud Top Height ---------------
 %----------------------------------------------------------------
 
-% % load the set of VOCALS-REx in-situ observations
-% if strcmp(GN_inputs.which_computer, 'anbu8374')==true
-% 
-%     cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-%         'Presentations_and_Papers/paper_2/prior_covarance_matrix_12-Nov-2025.mat']);
-% 
-% elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
-% 
-%     cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-%         'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_14-Jan-2026.mat']);
-% 
-% elseif strcmp(GN_inputs.which_computer, 'curc')==true
-% 
-%     cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-%         'paper_2/VR_cloud_top_height_obs_14-Jan-2026.mat']);
-% 
-% end
+% ** VOCALS-REx in-situ measurements result in a mean cloud top height
+% of 1203 meters and a mean cloud depth of about 230 meters
+% ** testing the retrieval when I lack knowledge of cloud top precisely **
+
+% load the set of VOCALS-REx in-situ observations
+if strcmp(GN_inputs.which_computer, 'anbu8374')==true
+
+    cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
+
+    cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+elseif strcmp(GN_inputs.which_computer, 'curc')==true
+
+    cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
+        'paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+end
 
 
 % Define the uncertainty due incorrect knowledge of cloud top height
 % create a droplet profile using the a priori values and the number of
 % layers assumed in our forward model
 % re is a column vector that starts at cloud base and grows towards cloud top
-GN_inputs.model.forward_model.cloudTopHeight.mean = GN_inputs.RT.z_topBottom(1);    % km - cloud top height
+% GN_inputs.model.forward_model.cloudTopHeight.mean = GN_inputs.RT.z_topBottom(1);    % km - cloud top height
+GN_inputs.model.forward_model.cloudTopHeight.mean = mean(cloud_top_obs.cloudTopHeight)/1e3;                  % km
+
 
 % Define the standard deviation. This
 % reflects the uncertainty between the assumed value and the true value
 % Set the standard deviation to 218 meters, which is the value determined from the
 % VOCALS-REx in-situ data
-GN_inputs.model.forward_model.cloudTopHeight.std = 0.218;  % km
+% GN_inputs.model.forward_model.cloudTopHeight.std = 0.218;  % km
+GN_inputs.model.forward_model.cloudTopHeight.std = std( cloud_top_obs.cloudTopHeight)/1e3;  % km
 
 % check to make sure the cloud top height is larger than the std. If not,
 % reduce the cloud top height std to a value less than the cloud top height
@@ -164,6 +174,9 @@ std_log = sqrt( log( (GN_inputs.model.forward_model.cloudTopHeight.std^2 / GN_in
 logNorm_dist = makedist("Lognormal", mu_log, std_log);
 
 samples_cloudTopHeight = logNorm_dist.random(1, n_samples);
+
+
+
 
 
 

@@ -1,9 +1,7 @@
 %% Compute the Two-Wavelength Estimate of Effective radius and optical depth using simulated HySICS data
 
-
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
-% (2) Cloud top height assumption
 
 % ---------------- INPUTS ---------------
 % ---------------------------------------
@@ -26,7 +24,7 @@
 
 %%
 
-function tblut_retrieval = TBLUT_for_HySICS_ver2(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err)
+function tblut_retrieval = TBLUT_for_HySICS_ver2_known_CTH(simulated_measurements, folder_paths, print_status_updates, print_libRadtran_err)
 
 
 %% unpack folder_paths
@@ -39,40 +37,6 @@ which_computer = folder_paths.which_computer;
 % this is a built-in function that is defined at the bottom of this script
 inputs_tblut = create_HySICS_inputs_TBLUT(simulated_measurements.inputs, print_libRadtran_err);
 
-
-
-
-%% Update the cloud top height!
-% ** VOCALS-REx in-situ measurements result in a mean cloud top height
-% of 1203 meters and a mean cloud depth of about 230 meters
-% ** testing the retrieval when I lack knowledge of cloud top precisely **
-
-% load the set of VOCALS-REx in-situ observations
-if strcmp(GN_inputs.which_computer, 'anbu8374')==true
-
-    cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
-
-    cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'curc')==true
-
-    cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
-
-end
-
-cth_mean = mean(cloud_top_obs.cloudTopHeight)/1e3;                  % km
-cld_depth_mean = mean(cloud_top_obs.cloudDepth)/1e3;                % km
-
-inputs_tblut.RT.z_topBottom = [cth_mean, (cth_mean - cld_depth_mean)];         % kilometers
-
-% update depenent variables
-inputs_tblut.RT.cloud_depth = cld_depth_mean;                % kilometers
-inputs_tblut.RT.H = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
 
 %% Find the measurements closest to the bands to run
@@ -411,7 +375,7 @@ if tblut_retrieval.minRe<=5 && tblut_retrieval.minTau<=10
 
     % Lets compute reflectance at two additional weakly absorbing
     % channels using the minimum solution and see how it compares
-    tblut_retrieval_2 = TBLUT_for_HySICS_smallDrops_smallTau_ver2(simulated_measurements, folder_paths,...
+    tblut_retrieval_2 = TBLUT_for_HySICS_smallDrops_smallTau_ver2_known_CTH(simulated_measurements, folder_paths,...
         tblut_retrieval, print_status_updates, print_libRadtran_err);
 
     % replace the minimum solution from the first tblut retrieval with the

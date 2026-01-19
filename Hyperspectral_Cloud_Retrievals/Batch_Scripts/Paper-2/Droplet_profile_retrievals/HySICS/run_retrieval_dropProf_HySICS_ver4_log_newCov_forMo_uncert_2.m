@@ -221,14 +221,37 @@ for ff = 1:length(filenames)
 
     % what was the assumed above cloud column water vapor path?
 
+
     %% Update the cloud top height!
     % ** VOCALS-REx in-situ measurements result in a mean cloud top height
     % of 1203 meters and a mean cloud depth of about 230 meters
     % ** testing the retrieval when I lack knowledge of cloud top precisely **
-    GN_inputs.RT.z_topBottom = [1.203, (1.203 - 0.230)];         % kilometers
+
+    % load the set of VOCALS-REx in-situ observations
+    if strcmp(GN_inputs.which_computer, 'anbu8374')==true
+
+        cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+            'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+    elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
+
+        cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+            'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+    elseif strcmp(GN_inputs.which_computer, 'curc')==true
+
+        cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
+            'paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
+
+    end
+
+    cth_mean = mean(cloud_top_obs.cloudTopHeight)/1e3;                  % km
+    cld_depth_mean = mean(cloud_top_obs.cloudDepth)/1e3;                % km
+
+    GN_inputs.RT.z_topBottom = [cth_mean, (cth_mean - cld_depth_mean)];         % kilometers
 
     % update depenent variables
-    GN_inputs.RT.cloud_depth = 0.230;                % kilometers
+    GN_inputs.RT.cloud_depth = cld_depth_mean;                % kilometers
     GN_inputs.RT.H = GN_inputs.RT.z_topBottom(1) - GN_inputs.RT.z_topBottom(2);                                % km - geometric thickness of cloud
     GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers+1);   % km - the edges of each layer
     GN_inputs.RT.z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), GN_inputs.RT.n_layers);        % km - altitude above ground vector
