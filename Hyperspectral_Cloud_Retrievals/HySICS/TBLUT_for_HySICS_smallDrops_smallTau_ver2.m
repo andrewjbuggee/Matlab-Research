@@ -49,17 +49,17 @@ inputs_tblut_2 = create_HySICS_inputs_TBLUT_smallTau_smallZenithAngles(simulated
 % ** testing the retrieval when I lack knowledge of cloud top precisely **
 
 % load the set of VOCALS-REx in-situ observations
-if strcmp(GN_inputs.which_computer, 'anbu8374')==true
+if strcmp(which_computer, 'anbu8374')==true
 
     cloud_top_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
         'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
 
-elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
+elseif strcmp(which_computer, 'andrewbuggee')==true
 
     cloud_top_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Presentations_and_Papers/paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);
 
-elseif strcmp(GN_inputs.which_computer, 'curc')==true
+elseif strcmp(which_computer, 'curc')==true
 
     cloud_top_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
         'paper_2/VR_cloud_top_height_obs_19-Jan-2026.mat']);

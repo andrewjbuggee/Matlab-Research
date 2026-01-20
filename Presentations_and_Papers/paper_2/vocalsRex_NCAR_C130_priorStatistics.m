@@ -86,7 +86,10 @@ bin_edges = 0:1/n_bins:1;
 %   (3) total number concentration
 %   (4) drop distribution alpha paramter (related to effective variance)
 
-vertically_segmented_attributes = cell(n_bins, 54);
+% ** Vertically_segmented_attributes are defined base to top **
+% The first cell is at and near cloud base. 
+% The final cell is at or near cloud top
+vertically_segmented_attributes = cell(n_bins, 4);
 
 % Store all cloud optical depths
 tau_c = zeros(length(ensemble_profiles),1);
@@ -94,6 +97,9 @@ tau_c = zeros(length(ensemble_profiles),1);
 % Store all cloud top heights and geometric depths
 cloudTopHeight = zeros(length(ensemble_profiles),1);
 cloudDepth = zeros(length(ensemble_profiles),1);
+
+% store the effective variance
+eff_variance = cell(n_bins, 1);
 
 
 
@@ -461,7 +467,7 @@ effVariance_p_gamma = zeros(1, size(vertically_segmented_attributes,1));
 
 
 
-
+% Step through vertically_segmented_attributes from cloud base to cloud top
 for bb = 1:size(vertically_segmented_attributes, 1)
 
 
@@ -574,43 +580,37 @@ for bb = 1:size(vertically_segmented_attributes, 1)
     
 
     % ** store the alpha parameter as the effective variance! **
-    eff_variance = 1./(vertically_segmented_attributes{bb,4} + 3);
+    eff_variance{bb} = 1./(vertically_segmented_attributes{bb,4} + 3);
 
 
     % fit the effective radius data to a normal distribution
-    effVariance_fit_normal(bb) = fitdist(eff_variance, 'normal');
+    effVariance_fit_normal(bb) = fitdist(eff_variance{bb}, 'normal');
 
     % *** Chi-squared doesn't work well ***
     % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
     % which is more robust to outliers
-    % [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb),...
-    %     'alpha', significance_lvl, 'NParams', 2);
-    [effVariance_reject_normal(bb), effVariance_p_normal(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_normal(bb),...
+    [effVariance_reject_normal(bb), effVariance_p_normal(bb)] = kstest(eff_variance{bb}, 'CDF', effVariance_fit_normal(bb),...
         'alpha', significance_lvl);
 
 
     % fit the effective radius data to a log-normal distribution
-    effVariance_fit_lognormal(bb) = fitdist(eff_variance, 'lognormal');
+    effVariance_fit_lognormal(bb) = fitdist(eff_variance{bb}, 'lognormal');
 
     % *** Chi-squared doesn't work well ***
     % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
     % which is more robust to outliers
-    % [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb),...
-    %     'alpha', significance_lvl, 'NParams', 2);
-    [effVariance_reject_lognormal(bb), effVariance_p_lognormal(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_lognormal(bb),...
+    [effVariance_reject_lognormal(bb), effVariance_p_lognormal(bb)] = kstest(eff_variance{bb}, 'CDF', effVariance_fit_lognormal(bb),...
         'alpha', significance_lvl);
 
 
     % fit the effective radius data to a gamma distribution - use my custom
     % libRadtran gamma distribution
-    effVariance_fit_gamma(bb) = prob.GammaDistribution_libRadtran.fit(eff_variance);
+    effVariance_fit_gamma(bb) = prob.GammaDistribution_libRadtran.fit(eff_variance{bb});
 
     % *** Chi-squared doesn't work well ***
     % chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
     % which is more robust to outliers
-    % [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb),...
-    %     'alpha', significance_lvl, 'NParams', 2);
-    [effVariance_reject_gamma(bb), effVariance_p_gamma(bb)] = kstest(eff_variance, 'CDF', effVariance_fit_gamma(bb),...
+    [effVariance_reject_gamma(bb), effVariance_p_gamma(bb)] = kstest(eff_variance{bb}, 'CDF', effVariance_fit_gamma(bb),...
         'alpha', significance_lvl);
 
 
@@ -759,6 +759,9 @@ title('Cloud Depth statistics and fits', ...
 % which means the chi-squared test is confident in the choice of
 % distribution to within 5% uncertainty
 
+% ** Cloud base is the first idx **
+% ** Cloud top is the final idx **
+
 bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 if n_bins==30
 
@@ -827,6 +830,19 @@ num_rejects_alpha = sum([alpha_reject_normal; alpha_reject_lognormal;...
 
 figure; histogram('Categories', bin_names, 'BinCounts', num_rejects_alpha);
 title('Number of distribution rejections of $\alpha$ data', 'interpreter', 'latex'); ylabel('Counts')
+
+
+
+
+
+% ---------------------------------------------------------------
+% ------------------- EFFECTIVE VARIANCE FITTING ----------------
+% ---------------------------------------------------------------
+num_rejects_effVar = sum([effVariance_reject_normal; effVariance_reject_lognormal;...
+    effVariance_reject_gamma], 2, "omitnan");
+
+figure; histogram('Categories', bin_names, 'BinCounts', num_rejects_effVar);
+title('Number of distribution rejections of $v_e$ data', 'interpreter', 'latex'); ylabel('Counts')
 
 
 % ----------------------------------------------------------------------
@@ -1686,7 +1702,7 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 end
 
 
-combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
+% combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 
 % save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
 %     'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
@@ -1695,14 +1711,18 @@ combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndS
 %% Save variables for the forward model covariance matrix
 
 % ** save the cloud top height **
-save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
-    'cloudTopHeight', 'cloudDepth')
+% save([folderpath_2save,'VR_cloud_top_height_obs_', char(datetime("today")),'.mat'],...
+%     'cloudTopHeight', 'cloudDepth')
 
 % ** save the effective variance (alpha parameter) values for each prof **
 % alpha parameter (effective variance) best fits a log-normal distribution
+% (0 rejects) compared to the gamma dist (9 rejects)
+
+% Effective variance best fits a log-normal distribution or a gamma
+% distribution (1 reject and 0 rejects respectively)
 % alpha_byLvls_20 = vertically_segmented_attributes{:, 4};
-% save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_', char(datetime("today")),'.mat'],...
-%     'alpha_fit_lognormal', 'alpha_fit_normal')
+save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_20-levels_', char(datetime("today")),'.mat'],...
+    'alpha_fit_lognormal', 'alpha_fit_normal', 'effVariance_fit_lognormal', 'effVariance_fit_normal')
 
 
 %% Clear variables
