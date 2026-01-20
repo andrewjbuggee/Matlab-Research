@@ -61,13 +61,18 @@
 %   (9) mie_folder_path - Used to define where the mie calculations are
 %   stored
 
+%   (10) create_netCDF - if true, the mie file will set the output to
+%   'netcdf' and create a file that can be used by libRadtran to convert
+%    microphysical properties to optical properties
+
 
 % By Andrew John Buggee
 
 %%
 
 function [input_filename, output_filename] = write_mie_file(mie_program, index_refraction,...
-            re, wavelength, distribution, err_msg_str, index1, indexRadius, mie_folder_path)
+            re, wavelength, distribution, err_msg_str, index1, indexRadius, mie_folder_path,...
+            create_netCDF)
 
 % ------------------------------------------------------------
 % ---------------------- CHECK INPUTS ------------------------
@@ -76,7 +81,7 @@ function [input_filename, output_filename] = write_mie_file(mie_program, index_r
 % Check to make sure there are 9 inputs
 
 
-if nargin~=9
+if nargin<9 || nargin>10
     error([newline,'Not enough inputs. Need 8: mie program type, index of refraction, droplet effective radius,',...
         [' wavelength, droplet distribution width, the error message command, the computer name,',...
          'the file number, and the radius for the file naming system'], newline])
@@ -350,20 +355,56 @@ for ff = 1:numFiles
     % Define the output variables
     % ---------------------------
 
-    % But first make a comment
-    fprintf(fileID,'\n%s \n', comments{7});
-    fprintf(fileID,'%11s  %s %s %s %s %s %s %s %s \n', 'output_user','lambda', 'r_eff', 'refrac_real',...
-        'refrac_imag', 'qext', 'omega', 'gg', 'qsca');
+    if exist("create_netCDF", "var") == false
+
+        % But first make a comment
+        fprintf(fileID,'\n%s \n', comments{7});
+        fprintf(fileID,'%11s  %s %s %s %s %s %s %s %s \n', 'output_user','lambda', 'r_eff', 'refrac_real',...
+            'refrac_imag', 'qext', 'omega', 'gg', 'qsca');
+
+    elseif exist("create_netCDF", "var") == true && create_netCDF == false
 
 
+        % But first make a comment
+        fprintf(fileID,'\n%s \n', comments{7});
+        fprintf(fileID,'%11s  %s %s %s %s %s %s %s %s \n', 'output_user','lambda', 'r_eff', 'refrac_real',...
+            'refrac_imag', 'qext', 'omega', 'gg', 'qsca');
+
+    elseif exist("create_netCDF", "var") == true && create_netCDF == true
 
 
+        % First, set the number of stokes parameters, the number of angles
+        % used in the phase function, the number of legendre moments
+        % computed, and the multiplicative factor the sets the distribution
+        % upper limit
+        fprintf(fileID,'\n \n');
 
+        % define the number of stokes parametesr
+        fprintf(fileID,'%s %i \n', 'nstokes', 1);
+
+        % define the maximum number of scattering angles to consider
+        fprintf(fileID,'%s %i \n', 'nthetamax', 1000);
+
+        % define the number of legendre moments
+        fprintf(fileID,'%s %i \n', 'nmom', 1000);
+
+        % define the scaling factor that determines the maximum value in
+        % the dsitribtuion
+        fprintf(fileID,'%s %i \n', 'n_r_max', 5);
+
+        fprintf(fileID,'\n \n');
+        fprintf(fileID,'%s  %s \n', 'output_user','netcdf');
+
+    end
+
+    
     % -----------------------
     % Print the error message
     % -----------------------
-    fprintf(fileID, '%s          %s', err_msg_str, comments{8});
-
+    if strcmp(err_msg_str, 'verbose')==true
+        
+        fprintf(fileID, '%s          %s', err_msg_str, comments{8});
+    end
 
     % Close the file!
     fclose(fileID);
