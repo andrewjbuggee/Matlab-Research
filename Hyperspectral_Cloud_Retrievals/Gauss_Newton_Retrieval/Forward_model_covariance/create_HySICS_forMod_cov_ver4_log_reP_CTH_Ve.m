@@ -274,9 +274,11 @@ end
 
 % you need to take the log of the data!
 % ** Combine both data sets! **
-GN_inputs.model.forward_model.covariance = diag(var( log( [samples_effective_radius; samples_cloudTopHeight] ), [], 2));     %  log space covaraince
+GN_inputs.model.forward_model.covariance = diag(var( log( [samples_effective_radius; samples_cloudTopHeight;...
+    samples_effective_variance] ), [], 2));     %  log space covaraince
 
-GN_inputs.model.forward_model.covariance_lin = diag( var( [samples_effective_radius; samples_cloudTopHeight], [], 2));     %  log space covaraince
+GN_inputs.model.forward_model.covariance_lin = diag( var( [samples_effective_radius; samples_cloudTopHeight;...
+    samples_effective_variance], [], 2));     %  log space covaraince
 
 %----------------------------------------------------
 % ------ Define the Variance of each Variable  ------

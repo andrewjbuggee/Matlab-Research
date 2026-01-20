@@ -66,7 +66,8 @@ wl_perturb = GN_inputs.RT.source_file_resolution/3;   % nm
 
 % re is a column vector that starts at cloud base and grows towards cloud top
 re = create_droplet_profile2([r_top, r_bottom], GN_inputs.RT.z, GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
-
+% ** the distribution variance should be defined the same way. **
+ 
 
 
 % -----------------------------------
