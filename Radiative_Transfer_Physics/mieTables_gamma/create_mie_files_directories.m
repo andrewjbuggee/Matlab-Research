@@ -69,6 +69,8 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
+    folder_path = ['/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/',...
+        'mieTables_gamma/netCDF_gammaDist/'];
 
 end
 

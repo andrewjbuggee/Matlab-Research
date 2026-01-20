@@ -390,7 +390,7 @@ for ff = 1:numFiles
 
         % define the scaling factor that determines the maximum value in
         % the dsitribtuion
-        fprintf(fileID,'%s %i \n', 'n_r_max', 5);
+        fprintf(fileID,'%s %i \n', 'n_r_max', 7);
 
         fprintf(fileID,'\n \n');
         fprintf(fileID,'%s  %s \n', 'output_user','netcdf');
