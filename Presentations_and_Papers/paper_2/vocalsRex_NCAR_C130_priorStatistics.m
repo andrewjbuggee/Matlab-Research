@@ -1720,9 +1720,8 @@ end
 
 % Effective variance best fits a log-normal distribution or a gamma
 % distribution (1 reject and 0 rejects respectively)
-% alpha_byLvls_20 = vertically_segmented_attributes{:, 4};
-save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_20-levels_', char(datetime("today")),'.mat'],...
-    'alpha_fit_lognormal', 'alpha_fit_normal', 'effVariance_fit_lognormal', 'effVariance_fit_normal')
+% save([folderpath_2save,'VR_effective_variance_at_normalized_altitudes_20-levels_', char(datetime("today")),'.mat'],...
+%     'alpha_fit_lognormal', 'alpha_fit_normal', 'effVariance_fit_lognormal', 'effVariance_fit_normal')
 
 
 %% Clear variables

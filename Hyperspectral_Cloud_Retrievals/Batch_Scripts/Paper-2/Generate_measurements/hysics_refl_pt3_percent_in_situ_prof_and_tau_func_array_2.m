@@ -7,9 +7,9 @@ function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_2(folder_paths,
 %   (1) in-situ derived droplet profile - measured by the CDP
 %   (2) in-situ derived optical depth - measured by the CDP
 %   (3) in-situ derived cloud top and base - defined using the CDP
-%   (4) radiosonde measured temp, pressure, and RH - defined from closest
-%       radiosonde
+%   (4) in-situ derived droplet distribution effective variance - defined using the CDP
 %
+
 % INPUT:
 %   measurement_idx - integer index (1-73) specifying which measurement to process
 
@@ -54,7 +54,7 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    % Location of droplet profile data
+    % Location of ensemble data
     folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -70,7 +70,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    % Location of droplet profile data
+    % Location of ensemble data
     folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -78,8 +78,6 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
 
-    % ** 69 profiles that met the criteria of without_precip,
-    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
@@ -97,7 +95,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    % Location of droplet profile data
+    % Location of ensemble data
     folderpath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -105,7 +103,7 @@ elseif strcmp(which_computer,'curc')==true
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
     % ** 69 profiles that met the criteria of without_precip,
-    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
+    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
@@ -756,6 +754,7 @@ re = cell(num_meas, 1);
 lwc = cell(num_meas, 1);
 z = cell(num_meas, 1);
 tau = cell(num_meas, 1);
+alpha_param = cell(num_meas, 1);
 
 
 % --------------------------------------------------------
@@ -776,6 +775,9 @@ tau{nn} = ds.ensemble_profiles{measurement_idx}.tau';
 date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
 % grab the time of flight
 time_of_flight(nn) = ds.ensemble_profiles{measurement_idx}.time_utc(round(length(ds.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
+% Grab the alpha parameter that was found when fitting a gamma distribution
+% to the droplet size distribution data
+alpha_param{nn} = ds.ensemble_profiles{measurement_idx}.gammaFit.alpha;
 
 % store the optical depth of each profile
 tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end);
@@ -795,6 +797,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
         lwc{nn} = flipud(lwc{nn});
         re{nn} = flipud(re{nn});
         tau{nn} = flipud(tau{nn});
+        alpha_param{nn} = flipud(alpha_param{nn});
     end
 
     % Sometimes droplets will be larger than 25 microns. If there are droplets
@@ -835,11 +838,12 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
+            alpha_param{nn}(idx_remove) = [];
 
             tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
 
-            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                date_of_flight{nn}, time_of_flight(nn),...
+            wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, alpha_param{nn},...
+                campaign_name, date_of_flight{nn}, time_of_flight(nn),...
                 inputs.compute_weighting_functions, which_computer,...
                 measurement_idx, wc_folder_path);
 
@@ -1052,11 +1056,11 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             lwc{nn}(idx_0) = [];
             z{nn}(idx_0) = [];
             tau{nn}(idx_0) = [];
-
+            alpha_param{nn}(idx_0) = [];
         end
 
-        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-            date_of_flight{nn}, time_of_flight(nn),...
+        wc_filename{nn} = write_wc_file_from_in_situ_2(re{nn}, lwc{nn}, z{nn}, alpha_param{nn},...
+            campaign_name, date_of_flight{nn}, time_of_flight(nn),...
             inputs.compute_weighting_functions, which_computer,...
             measurement_idx, wc_folder_path);
 
@@ -1368,7 +1372,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_3/'];
 
 
 

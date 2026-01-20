@@ -459,7 +459,7 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
             % define the index of refraction
             index_of_refraction = 'water';
 
-            size_distribution = {'gamma', distribution_var(1)};           % droplet distribution
+            % size_distribution = {'gamma', distribution_var(1)};           % droplet distribution
 
             % Do you want a long or short error file?
             err_msg_str = 'verbose';
@@ -475,6 +475,8 @@ elseif ((size(re,1)==1 && size(re,2)>1) || (size(re,1)>1 && size(re,2)==1)) &&..
             for rr = 1:length(re)
 
                 mie_radius = [re(rr), re(rr), 0];    % microns
+
+                size_distribution = {'gamma', distribution_var(rr)};           % droplet distribution
 
 
                 % Create a mie file

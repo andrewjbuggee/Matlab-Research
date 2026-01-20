@@ -342,7 +342,7 @@ for ff = 1:length(filenames)
     % --------------------------------------------------------------
     % ---------------- Retrieve Vertical Profile! ------------------
     % --------------------------------------------------------------
-    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_2(GN_inputs,...
+    [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_HySICS_ver4_log_forMo_uncert_3(GN_inputs,...
         simulated_measurements, folder_paths, print_status_updates);
     % --------------------------------------------------------------
     % --------------------------------------------------------------
