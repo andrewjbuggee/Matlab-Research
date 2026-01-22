@@ -7,7 +7,8 @@
 
 clear variables
 
-wl = 300:10:2500;    % 221 different wavelengths
+% wl = 300:10:2500;    % 221 different wavelengths
+wl = 300;    % 221 different wavelengths
 
 % from the VOCALS-REx in-situ measurements, we looked at all alpha
 % parameters measured for 73 in-situ measured droplet profiles. The mean
@@ -16,7 +17,8 @@ wl = 300:10:2500;    % 221 different wavelengths
 
 alpha_param = [1:30, 35:5:60, 80, 100, 125, 150];   % 40 different alpha values
 
-r_eff = 1:1:25;           % microns
+% r_eff = 1:1:25;           % microns
+r_eff = 1:1:35;           % microns
 % r_eff = 1:1:5;           % microns
 
 
@@ -59,7 +61,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
     % ------ Folders on my Macbook --------
     % -------------------------------------
-
+    folder_path = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Radiative_Transfer_Physics/mieTables_gamma/netCDF_gammaDist/'];
 
 
 elseif strcmp(which_computer,'curc')==true

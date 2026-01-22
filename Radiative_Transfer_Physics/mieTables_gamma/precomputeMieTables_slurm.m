@@ -39,6 +39,6 @@ parfor nn = 1:length(inpFiles)
 
 end
 
-disp([newline, 'Total time to run ', num2str(length(inpFiles)), ' files was: ', toc, ' seconds.', newline])
+disp([newline, 'Total time to run ', num2str(length(inpFiles)), ' files was: ', num2str(toc), ' seconds.', newline])
 
 end
