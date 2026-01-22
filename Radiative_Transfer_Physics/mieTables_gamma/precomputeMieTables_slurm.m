@@ -51,6 +51,7 @@ inpFiles = dir(fullfile(folder_path, '*.INP'));
 % using runMie
 outputFileName = cell(size(inpFiles));
 
+tic
 parfor nn = 1:length(inpFiles)
 
     % Can i set the output name? I don't think it's used when output_user
@@ -63,5 +64,6 @@ parfor nn = 1:length(inpFiles)
 
 end
 
+disp([newline, 'Total time to run ', num2str(length(inpFiles)), ' files was: ', toc, ' seconds.', newline])
 
 end
