@@ -13,33 +13,8 @@ which_computer = whatComputer;
 
 %% Start parallel pool
 
-% *** Start parallel pool ***
-% Is parpool running?
-p = gcp('nocreate');
-if isempty(p)==true
+start_parallel_pool(which_computer)
 
-    % first read the local number of workers avilabile.
-    p = parcluster('local');
-    % start the cluster with the number of workers available
-    if p.NumWorkers>64
-        % Likely the amilan128c partition with 2.1 GB per core
-        % Leave some cores for overhead
-        parpool(p.NumWorkers - 8);
-
-    elseif p.NumWorkers<=64 && p.NumWorkers>10
-
-        % Leave a core for overhead
-        parpool(p.NumWorkers -1);
-
-    elseif p.NumWorkers<=10
-
-        % Leave a core for overhead
-        parpool(p.NumWorkers -1);
-
-
-    end
-
-end
 
 %% Find all INP files and run them in a parallel for loop!
 
