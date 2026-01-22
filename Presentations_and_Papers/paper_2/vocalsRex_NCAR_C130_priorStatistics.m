@@ -851,6 +851,41 @@ title('Number of distribution rejections of $v_e$ data', 'interpreter', 'latex')
 
 
 
+
+%% fit a PDF to all the alpha parameter data and determine what range, from 1 to X, results in 75% of the measurements
+
+all_alpha = [];
+for nn = 1:size(vertically_segmented_attributes, 1)
+    all_alpha = [all_alpha; vertically_segmented_attributes{nn, 4}];
+end
+
+all_alpha_fit = fitdist(all_alpha, 'lognormal');
+[all_alpha_reject, all_alpha_p] = kstest(all_alpha, 'CDF', all_alpha_fit,...
+        'alpha', significance_lvl);
+
+figure; histogram(all_alpha, 100);
+title('All Alpha Parameter measurements', 'interpreter', 'latex'); ylabel('Counts')
+figure; plot(all_alpha_fit)
+title('PDF from all alpha parameter measurements', 'interpreter', 'latex'); ylabel('PDF')
+
+% Plot the CDF
+% create a range of x values from the minimum to the maximum of your data
+x = linspace(min(all_alpha), max(all_alpha), 1000);
+y_cdf = cdf(all_alpha_fit, x); % Calculate the CDF values
+
+plot(x, y_cdf);
+xlabel('Alpha Parameter');
+ylabel('Cumulative Probability (F(x))');
+title('Cumulative Distribution Function');
+grid on; grid minor
+
+% At alpha = 50, we've covered ~85% of all observations.
+% At alpha = 30, we've covered ~68% of all observations.
+
+
+
+
+
 %% What if we fit statistics for cloud the ensemble of all effective radius values at the
 % upper regions of the cloud for cloud top, and the lower regions of the
 % cloud for cloud bottom?

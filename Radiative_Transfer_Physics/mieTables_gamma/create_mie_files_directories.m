@@ -7,15 +7,16 @@
 
 clear variables
 
-% wl = 300:10:2500;    % 221 different wavelengths
-wl = 300;    % 221 different wavelengths
+wl = 300:10:2500;    % 221 different wavelengths
+% wl = 300;    % 221 different wavelengths
 
 % from the VOCALS-REx in-situ measurements, we looked at all alpha
 % parameters measured for 73 in-situ measured droplet profiles. The mean
 % value was 26.7, the median was 18.9, and the mode was 11.1. We exluced
 % nan's in this calculation. 
 
-alpha_param = [1:30, 35:5:60, 80, 100, 125, 150];   % 40 different alpha values
+% alpha_param = [1:30, 35:5:60, 80, 100, 125, 150];   % 40 different alpha values
+alpha_param = [1:40, 45:5:60, 80, 100, 125, 150];   % 40 different alpha values
 
 % r_eff = 1:1:25;           % microns
 r_eff = 1:1:35;           % microns
@@ -73,7 +74,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
     folder_path = ['/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/',...
-        'mieTables_gamma/netCDF_gammaDist/'];
+        'mieTables_gamma/netCDF_gammaDist_more_rEffs_moreAlpha/'];
 
 end
 
