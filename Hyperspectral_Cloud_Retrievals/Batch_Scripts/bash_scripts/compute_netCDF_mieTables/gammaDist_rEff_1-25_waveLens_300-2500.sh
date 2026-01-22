@@ -19,15 +19,15 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --mem=50G
-#SBATCH --time=1:30:00     # Longer time for multiple files
+#SBATCH --time=10:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=coompute_mieTable_for_libRadtran_gammaDist_wavelength_idx_%A_%a
-#SBATCH --output=compute_mieTable_for_libRadtran_gammaDist_wavelength_idx_%A_%a.out
-#SBATCH --error=compute_mieTable_for_libRadtran_gammaDist_wavelength_idx_%A_%a.err
+#SBATCH --job-name=compute_mieTable_for_libRadtran_gammaDist_rev2_wavelength_idx_%A_%a
+#SBATCH --output=compute_mieTable_for_libRadtran_gammaDist_rev2_wavelength_idx_%A_%a.out
+#SBATCH --error=compute_mieTable_for_libRadtran_gammaDist_rev2_wavelength_idx_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1002       # 2 jobs × 1 files each = 2 files for subset folder
+#SBATCH --array=1001-1221       # 221 jobs × 1 files each = 221 files for subset folder
 
 # Load modules
 ml purge
@@ -55,11 +55,11 @@ module load matlab/R2024b
 
 
 
-# Define the directory that contains the 2 subdirectories
+# Define the directory that contains the 221 subdirectories
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/mieTables_gamma/netCDF_gammaDist_TEST"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/mieTables_gamma/netCDF_gammaDist_more_rEffs_moreAlpha"
 # ----------------------------------------------------------
 
 
@@ -93,30 +93,30 @@ echo "SLURM_CPUS_PER_TASK: ${SLURM_CPUS_PER_TASK}"
 echo "Processing directories ${START_IDX} to ${END_IDX}"
 
 
-# Build the directory path array for this job
+# Build the directory path string for this job
 DIRECTORY_PATHS=""
 for (( i=START_IDX; i<=END_IDX; i++ )); do
     if [ $i -lt ${#ALL_SUBDIRS[@]} ]; then
         CURRENT_SUBDIR=${ALL_SUBDIRS[$i]}
-        FULL_PATH="${INPUT_DIR}/${CURRENT_SUBDIR}"
+        FULL_PATH="${INPUT_DIR}/${CURRENT_SUBDIR}/"
         
-        if [[ ! -d "${FULL_PATH}" ]]; then
-            echo "WARNING: Directory ${FULL_PATH} does not exist!"
+        if [[ ! -d "${FULL_PATH%/}" ]]; then
+            echo "WARNING: Directory ${FULL_PATH%/} does not exist!"
             continue
         fi
         
-        # Add directory path to array string (MATLAB cell array format)
+        # Add directory path to string with trailing slash
         if [ -z "$DIRECTORY_PATHS" ]; then
-            DIRECTORY_PATHS="'${FULL_PATH}'"
+            DIRECTORY_PATHS="${FULL_PATH}"
         else
-            DIRECTORY_PATHS="${DIRECTORY_PATHS}, '${FULL_PATH}'"
+            DIRECTORY_PATHS="${DIRECTORY_PATHS}${FULL_PATH}"
         fi
         echo "Added to processing list: ${FULL_PATH}"
     fi
 done
 
 echo " "
-echo "Total directories to process in this job: $(echo $DIRECTORY_PATHS | tr ',' '\n' | wc -l)"
+echo "Total directories to process in this job: $(( END_IDX - START_IDX + 1 ))"
 
 # -------------------------------------------------------------
 # Debugging section to check if directory array is defined correctly
@@ -149,7 +149,7 @@ fi
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; precomputeMieTables_slurm({${DIRECTORY_PATHS}}); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; precomputeMieTables_slurm('${DIRECTORY_PATHS}'); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"

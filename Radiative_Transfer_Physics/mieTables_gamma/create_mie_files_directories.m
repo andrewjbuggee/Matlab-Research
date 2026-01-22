@@ -16,7 +16,7 @@ wl = 300:10:2500;    % 221 different wavelengths
 % nan's in this calculation. 
 
 % alpha_param = [1:30, 35:5:60, 80, 100, 125, 150];   % 40 different alpha values
-alpha_param = [1:40, 45:5:60, 80, 100, 125, 150];   % 40 different alpha values
+alpha_param = [1:40, 45:5:60, 80, 100, 125, 150];     % 48 different alpha values
 
 % r_eff = 1:1:25;           % microns
 r_eff = 1:1:35;           % microns
