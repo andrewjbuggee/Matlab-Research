@@ -685,7 +685,7 @@ end
 % Add legend if requested
 if options.show_labels && ~isempty(legend_handles)
     legend(gx, legend_handles, legend_entries, 'Location', 'best', ...
-        'FontSize', 12, 'Interpreter', 'latex');
+        'FontSize', 18, 'Interpreter', 'latex');
 end
 
 % Update tick label interpreter and font size

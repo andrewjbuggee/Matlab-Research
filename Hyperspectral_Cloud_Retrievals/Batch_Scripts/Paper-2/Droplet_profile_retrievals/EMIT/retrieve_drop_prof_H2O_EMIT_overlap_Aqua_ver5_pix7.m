@@ -16,7 +16,7 @@ scriptPlotting_wht;
 
 %% Define EMIT Data locations and LibRadTran paths
 
-folder_paths = define_EMIT_dataPath_and_saveFolders(2);
+folder_paths = define_EMIT_dataPath_and_saveFolders(200);
 which_computer = folder_paths.which_computer;
 
 
@@ -25,6 +25,10 @@ which_computer = folder_paths.which_computer;
 print_status_updates = true;
 
 print_libRadtran_err = false;
+
+plot_figures = false;
+
+save_figures = false;
 
 
 %% Define the folder of the coincident data set between EMIT and Aqau
@@ -60,29 +64,36 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
 
-    % EMIT pixels masked out
+    % EMIT pixels masked out   
     % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
 
-    % 11 Pixels with H less than 1.6
+    % 11 Pixels with H less than 1.6     ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
-    % 2 Pixels with H less than 1.1
+    % 2 Pixels with H less than 1.1      ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
 
-    % 14 Pixels with H less than 1.35
+    % 14 Pixels with H less than 1.35    ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
-    % 2 Pixels with H less than 1.35
+    % 2 Pixels with H less than 1.35     ** Use this data set **
     % folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
-    % 1 Pixel with H less than 2.1
+    % 1 Pixel with H less than 2.1       ** Don't use this data set. H value too large **
     % folder_paths.coincident_dataFolder = '2024_1_13_T194710_1/';
 
-    % 2 Pixels with H less than 1.6
+    % 2 Pixels with H less than 1.6      ** Use this data set **
     % folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
 
-    % No pixels below an H value of 16!
-    folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
+    % 2 Pixels with H less than 1.6      ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183918_1/';
+
+    % 10 Pixels with H less than 1.85      ** Use this data set **
+    % But only 2 aren't masked out by EMIT cloud filter!
+    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+
+    % No pixels below an H value of 16!   ** Don't use this data set **
+    % folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -103,8 +114,9 @@ elseif strcmp(which_computer,'curc')==true
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
 
-    % 2 Pixels with H less than 1.6
-    folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
+    % 10 Pixels with H less than 1.85      ** Use this data set **
+    % But only 2 aren't masked out by EMIT cloud filter!
+    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
 
 end
 
@@ -156,85 +168,105 @@ end
 
 %% Plot all three swaths
 
-figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
-hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
-hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
-hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+if plot_figures == true
+
+    figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
+    hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
+    hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
+    hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+
+end
 
 %% Plot the pixel footprints on the Earth to see the overlap
 % Add an RGB true color image for context
-clear options
-% options.use_radiance = false;
-% options.rgb_image_type = 'modis';
-% [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-options.convert_to_reflectance = false;
-options.rgb_image_type = 'emit';
-[rgb_img, rgb_lat, rgb_lon, band_indices] = create_emit_true_color(emit, options);
+if plot_figures == true
 
+    clear options
+    % options.use_radiance = false;
+    % options.rgb_image_type = 'modis';
+    % [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-options.show_rgb = true;
-options.rgb_image = rgb_img;
-options.rgb_lat = rgb_lat;
-options.rgb_lon = rgb_lon;
-% options.latlim = [-30, -20];  % Only show -30° to -20° latitude
-% options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
-
-% ** Plot with RGB Image **
-% fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
-% fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-% [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
-[fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+    options.convert_to_reflectance = false;
+    options.rgb_image_type = 'emit';
+    [rgb_img, rgb_lat, rgb_lon, band_indices] = create_emit_true_color(emit, options);
 
 
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-if strcmp(which_computer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    options.show_rgb = true;
+    options.rgb_image = rgb_img;
+    options.rgb_lat = rgb_lat;
+    options.rgb_lon = rgb_lon;
+    % options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+    % options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
+
+    % ** Plot with RGB Image **
+    % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
+    % fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    % [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if save_figures==true
+
+        if strcmp(which_computer,'anbu8374')==true
+            error(['Where do I save the figure?'])
+        elseif strcmp(which_computer,'andrewbuggee')==true
+            folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+        end
+        f = gcf;
+        saveas(f,[folderpath_figs,'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+        % save .png with 400 DPI resolution
+        % remove title
+        ax1.Title.String = '';
+        exportgraphics(f,[folderpath_figs,...
+            'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+
+    end
+    % -------------------------------------
+    % -------------------------------------
+
+
+    % ** Plot without RGB Image **
+    options.show_rgb = false;
+    % fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    fig2 = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    if save_figures==true
+
+        % save .fig file
+        if strcmp(which_computer,'anbu8374')==true
+            error(['Where do I save the figure?'])
+        elseif strcmp(which_computer,'andrewbuggee')==true
+            folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+        end
+        % remove title
+        ax1.Title.String = '';
+        f = gcf;
+        saveas(f,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context - ',...
+            folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+        % save .png with 400 DPI resolution
+        % remove title
+        ax1.Title.String = '';
+        exportgraphics(f,[folderpath_figs,...
+            'EMIT Scene and Aqau instrument overlap without MODIS context - ',...
+            folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+
+    end
+    % -------------------------------------
+    % -------------------------------------
+
 end
-saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
 
-
-% save .png with 400 DPI resolution
-% remove title
-ax1.Title.String = '';
-exportgraphics(fig1,[folderpath_figs,...
-    'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
-
-
-% ** Plot without RGB Image **
-options.show_rgb = false;
-% fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-[fig2, ax2] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
-% [fig2, ax2] = plot_instrument_footprints_3(modis, emit, [], amsr, overlap_pixels, options);
-
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-if strcmp(which_computer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-    folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-ax2.Title.String = '';
-exportgraphics(fig2,[folderpath_figs,...
-    'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-    folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
 
 
 %% Remove data that is not needed

@@ -16,7 +16,7 @@ scriptPlotting_wht;
 
 %% Define EMIT Data locations and LibRadTran paths
 
-folder_paths = define_EMIT_dataPath_and_saveFolders(2);
+folder_paths = define_EMIT_dataPath_and_saveFolders(100);
 which_computer = folder_paths.which_computer;
 
 
@@ -24,7 +24,7 @@ which_computer = folder_paths.which_computer;
 
 print_status_updates = true;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 plot_figures = false;
 
@@ -175,7 +175,8 @@ if plot_figures == true
     % ** Plot with RGB Image **
     % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
     % fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-    [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    % [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
 
     % ** Paper Worthy **
     % -------------------------------------
