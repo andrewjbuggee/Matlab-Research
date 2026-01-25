@@ -16,7 +16,7 @@ scriptPlotting_wht;
 
 %% Define EMIT Data locations and LibRadTran paths
 
-folder_paths = define_EMIT_dataPath_and_saveFolders(2);
+folder_paths = define_EMIT_dataPath_and_saveFolders(107);
 which_computer = folder_paths.which_computer;
 
 
@@ -25,6 +25,10 @@ which_computer = folder_paths.which_computer;
 print_status_updates = true;
 
 print_libRadtran_err = false;
+
+plot_figures = false;
+
+save_figures = false;
 
 
 %% Define the folder of the coincident data set between EMIT and Aqau
@@ -60,29 +64,36 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
 
-    % EMIT pixels masked out
+    % EMIT pixels masked out   
     % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
 
-    % 11 Pixels with H less than 1.6
+    % 11 Pixels with H less than 1.6     ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
-    % 2 Pixels with H less than 1.1
+    % 2 Pixels with H less than 1.1      ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
 
-    % 14 Pixels with H less than 1.35
+    % 14 Pixels with H less than 1.35    ** Use this data set **
     % folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
-    % 2 Pixels with H less than 1.35
+    % 2 Pixels with H less than 1.35     ** Use this data set **
     % folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
-    % 1 Pixel with H less than 2.1
+    % 1 Pixel with H less than 2.1       ** Don't use this data set. H value too large **
     % folder_paths.coincident_dataFolder = '2024_1_13_T194710_1/';
 
-    % 2 Pixels with H less than 1.6
+    % 2 Pixels with H less than 1.6      ** Use this data set **
     % folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
 
-    % No pixels below an H value of 16!
-    folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
+    % 2 Pixels with H less than 1.6      ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183918_1/';
+
+    % 10 Pixels with H less than 1.85      ** Use this data set **
+    % But only 2 aren't masked out by EMIT cloud filter!
+    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+
+    % No pixels below an H value of 16!   ** Don't use this data set **
+    % folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -103,8 +114,9 @@ elseif strcmp(which_computer,'curc')==true
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
 
-    % 2 Pixels with H less than 1.6
-    folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
+    % 10 Pixels with H less than 1.85      ** Use this data set **
+    % But only 2 aren't masked out by EMIT cloud filter!
+    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
 
 end
 
@@ -191,19 +203,19 @@ options.rgb_lon = rgb_lon;
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(which_computer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-ax1.Title.String = '';
-exportgraphics(fig1,[folderpath_figs,...
-    'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% if strcmp(which_computer,'anbu8374')==true
+%         error(['Where do I save the figure?'])
+% elseif strcmp(which_computer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% ax1.Title.String = '';
+% exportgraphics(fig1,[folderpath_figs,...
+%     'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
 % -------------------------------------
 % -------------------------------------
 
@@ -211,28 +223,28 @@ exportgraphics(fig1,[folderpath_figs,...
 % ** Plot without RGB Image **
 options.show_rgb = false;
 % fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-[fig2, ax2] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+[fig2, ax2] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
 % [fig2, ax2] = plot_instrument_footprints_3(modis, emit, [], amsr, overlap_pixels, options);
 
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(which_computer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-    folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-ax2.Title.String = '';
-exportgraphics(fig2,[folderpath_figs,...
-    'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-    folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% if strcmp(which_computer,'anbu8374')==true
+%         error(['Where do I save the figure?'])
+% elseif strcmp(which_computer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
+%     folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% ax2.Title.String = '';
+% exportgraphics(fig2,[folderpath_figs,...
+%     'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
+%     folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
 % -------------------------------------
 % -------------------------------------
 

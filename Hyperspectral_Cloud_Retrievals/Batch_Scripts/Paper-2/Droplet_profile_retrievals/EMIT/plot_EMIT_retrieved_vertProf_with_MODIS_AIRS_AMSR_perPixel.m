@@ -67,7 +67,7 @@ end
 
 % Label cloud top and cloud bottom
 % Create textbox
-annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
+annotation('textbox',[0.00857142857142857 0.884832451499119 0.051 0.0777777777777779],...
     'String',{'Cloud','Top'},...
     'LineStyle','none',...
     'Interpreter','latex',...
@@ -75,7 +75,7 @@ annotation('textbox',[0.02,0.865079365079366,0.051,0.077777777777778],...
     'FitBoxToText','off');
 
 % Create textbox
-annotation('textbox',[0.00875 0.076825396825397 0.051 0.0777777777777779],...
+annotation('textbox',[0.00857142857142857 0.0262081128747797 0.051 0.077777777777778],...
     'String',{'Cloud','Bottom'},...
     'LineStyle','none',...
     'Interpreter','latex',...
@@ -115,7 +115,7 @@ yl0.LabelHorizontalAlignment = 'right';
 %     'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
 % xl0.LabelVerticalAlignment = 'top';
 % xl0.LabelHorizontalAlignment = 'left';
-% 
+%
 % % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
 % yl0 = yline(tblut_retrieval.minTau,':',...
 %     ['Two-Band Look-up Table $\tau_{c} = $',num2str(round(tblut_retrieval.minTau, 1))], 'Fontsize',22,...
@@ -126,7 +126,7 @@ yl0.LabelHorizontalAlignment = 'right';
 
 % % compute the LWP estimate using the TBLUT retrieval
 % rho_liquid_water = 10^6;        % g/m^3
-% 
+%
 % lwp_emit_tblut = (2*rho_liquid_water*(tblut_retrieval.minRe/1e6) * tblut_retrieval.minTau)/3; % g/m^2
 
 
@@ -144,12 +144,25 @@ lwp_modis_WH = 5/9 * rho_h2o * modis.cloud.optThickness17(pixel_num) *...
     (modis.cloud.effRadius17(pixel_num) * 1e-6);
 
 % Print this information on the figure
+dim = [0.137 0.727962757628641 0.481571428571429 0.159691563359013];
 
-dim = [.137 .50 .3 .3];
-str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
-    '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
-    '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(pixel_num),1)),' $g/m^{2}$', newline,...
-    '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP(pixel_num),1)),' $g/m^{2}$'];
+if isnan(amsr.cloud.LiquidWaterPath(pixel_num))
+
+    disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
+
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+        '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
+        '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
+
+
+else
+
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+        '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
+        '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(pixel_num),1)),' $g/m^{2}$', newline,...
+        '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
+
+end
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 
@@ -168,10 +181,22 @@ if size(GN_outputs.retrieval, 1)>3
     % Print the simulated value and the retrieved value
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
-    
-    str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
-        '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
-        '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+
+    if isnan(amsr.H2O.TotalPrecipitableWater(pixel_num))
+
+        disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
+
+        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+
+    else
+
+
+        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+            '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
+            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+
+    end
 
 else
 
@@ -185,14 +210,14 @@ else
 end
 
 
-dim = [.137 .25 .3 .3];
+dim = [0.137 0.559773612316743 0.475857142857143 0.118621449411651];
 
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 
 
 % set figure size
-set(gcf,'Position',[0 0 800 700])
+set(gcf,'Position',[0 0 700 810])
 
 
 

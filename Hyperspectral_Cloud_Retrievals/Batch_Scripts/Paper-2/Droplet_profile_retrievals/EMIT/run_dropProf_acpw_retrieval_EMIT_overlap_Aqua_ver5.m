@@ -1,34 +1,12 @@
-%% Optimal estimation of a vertical droplet profile using EMIT data
-
-% Retrieve a droplet profile from EMIT data
-% Use spectral reflectances outside of water vapor bands
+%% Run EMIT retireval SLURM function
 
 
-% By Andrew John Buggee
-
-%% Load paths
-
-clear variables
-% add libRadTran libraries to the matlab path
-addLibRadTran_paths;
-scriptPlotting_wht;
+function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] =...
+    run_dropProf_acpw_retrieval_EMIT_overlap_Aqua_ver5(folder_paths, print_status_updates, print_libRadtran_err,...
+    plot_figures, save_figures)
 
 
-%% Define EMIT Data locations and LibRadTran paths
-
-folder_paths = define_EMIT_dataPath_and_saveFolders(100);
 which_computer = folder_paths.which_computer;
-
-
-%% Would you like to print status updates and/or the libRadtran error file?
-
-print_status_updates = true;
-
-print_libRadtran_err = false;
-
-plot_figures = false;
-
-save_figures = false;
 
 
 %% Define the folder of the coincident data set between EMIT and Aqau
@@ -45,10 +23,6 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    folder_paths.coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
-
-    folder_paths.coincident_dataFolder = '2024-09-12/';
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -56,19 +30,6 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
-
-    % folder_paths.coincident_dataFolder = '2024-09-12/';
-
-    % folder_paths.coincident_dataFolder = '2024_05_17-T1835/';
-
-    % EMIT pixels masked out
-    % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
-
-    % 11 Pixels with H less than 1.6
-    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -82,14 +43,7 @@ elseif strcmp(which_computer,'curc')==true
     addpath(genpath('/projects/anbu8374/Matlab-Research'));
     addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
     addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
-    addLibRadTran_paths;
 
-    % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
-
-
-    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
 end
 
@@ -332,3 +286,11 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 end
 
 
+
+
+
+
+
+
+
+end
