@@ -16,7 +16,7 @@ scriptPlotting_wht;
 
 %% Define EMIT Data locations and LibRadTran paths
 
-folder_paths = define_EMIT_dataPath_and_saveFolders(2);
+folder_paths = define_EMIT_dataPath_and_saveFolders(201);
 which_computer = folder_paths.which_computer;
 
 
@@ -24,7 +24,7 @@ which_computer = folder_paths.which_computer;
 
 print_status_updates = true;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 plot_figures = false;
 
@@ -76,7 +76,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
     % 2 Pixels with H less than 1.35
-    % folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
+    folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
     % 1 Pixel with H less than 2.1
     % folder_paths.coincident_dataFolder = '2024_1_13_T194710_1/';
@@ -88,7 +88,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2024_5_17_T183918_1/';
 
     % 10 Pixels with H less than 1.85
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
 
 
 elseif strcmp(which_computer,'curc')==true
@@ -109,8 +109,8 @@ elseif strcmp(which_computer,'curc')==true
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
 
-    % 10 Pixels with H less than 1.85
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % 2 Pixels with H less than 1.35
+    folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
 end
 

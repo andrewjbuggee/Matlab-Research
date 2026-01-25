@@ -16,7 +16,7 @@ scriptPlotting_wht;
 
 %% Define EMIT Data locations and LibRadTran paths
 
-folder_paths = define_EMIT_dataPath_and_saveFolders(107);
+folder_paths = define_EMIT_dataPath_and_saveFolders(200);
 which_computer = folder_paths.which_computer;
 
 
@@ -168,85 +168,105 @@ end
 
 %% Plot all three swaths
 
-figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
-hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
-hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
-hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+if plot_figures == true
+
+    figure; geoscatter(modis.geo.lat(:), modis.geo.long(:), 10, reshape(modis.cloud.effRadius17,[],1),'.');
+    hold on; geoscatter(emit.radiance.geo.lat(:), emit.radiance.geo.long(:), 10, 'r.')
+    hold on; geoscatter(airs.geo.Latitude(:), airs.geo.Longitude(:), 10, 'c.')
+    hold on; geoscatter(amsr.geo.Latitude(:), amsr.geo.Longitude(:), 10, 'k.')
+
+end
 
 %% Plot the pixel footprints on the Earth to see the overlap
 % Add an RGB true color image for context
-clear options
-% options.use_radiance = false;
-% options.rgb_image_type = 'modis';
-% [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-options.convert_to_reflectance = false;
-options.rgb_image_type = 'emit';
-[rgb_img, rgb_lat, rgb_lon, band_indices] = create_emit_true_color(emit, options);
+if plot_figures == true
 
+    clear options
+    % options.use_radiance = false;
+    % options.rgb_image_type = 'modis';
+    % [rgb_img, rgb_lat, rgb_lon] = create_modis_true_color(modis, options);
 
-options.show_rgb = true;
-options.rgb_image = rgb_img;
-options.rgb_lat = rgb_lat;
-options.rgb_lon = rgb_lon;
-% options.latlim = [-30, -20];  % Only show -30° to -20° latitude
-% options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
-
-% ** Plot with RGB Image **
-% fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
-% fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-% [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
-[fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+    options.convert_to_reflectance = false;
+    options.rgb_image_type = 'emit';
+    [rgb_img, rgb_lat, rgb_lon, band_indices] = create_emit_true_color(emit, options);
 
 
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-% if strcmp(which_computer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(which_computer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% ax1.Title.String = '';
-% exportgraphics(fig1,[folderpath_figs,...
-%     'EMIT and Aqua footprints with EMIT scene context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
+    options.show_rgb = true;
+    options.rgb_image = rgb_img;
+    options.rgb_lat = rgb_lat;
+    options.rgb_lon = rgb_lon;
+    % options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+    % options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
+
+    % ** Plot with RGB Image **
+    % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
+    % fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    % [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if save_figures==true
+
+        if strcmp(which_computer,'anbu8374')==true
+            error(['Where do I save the figure?'])
+        elseif strcmp(which_computer,'andrewbuggee')==true
+            folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+        end
+        f = gcf;
+        saveas(f,[folderpath_figs,'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
 
 
-% ** Plot without RGB Image **
-options.show_rgb = false;
-% fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-[fig2, ax2] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
-% [fig2, ax2] = plot_instrument_footprints_3(modis, emit, [], amsr, overlap_pixels, options);
+        % save .png with 400 DPI resolution
+        % remove title
+        ax1.Title.String = '';
+        exportgraphics(f,[folderpath_figs,...
+            'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
 
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-% if strcmp(which_computer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(which_computer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig2,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-%     folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% ax2.Title.String = '';
-% exportgraphics(fig2,[folderpath_figs,...
-%     'EMIT Scene and Aqua instrument overlap without MODIS context and with AIRS - ',...
-%     folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
+    end
+    % -------------------------------------
+    % -------------------------------------
+
+
+    % ** Plot without RGB Image **
+    options.show_rgb = false;
+    % fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
+    fig2 = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    if save_figures==true
+
+        % save .fig file
+        if strcmp(which_computer,'anbu8374')==true
+            error(['Where do I save the figure?'])
+        elseif strcmp(which_computer,'andrewbuggee')==true
+            folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+        end
+        % remove title
+        ax1.Title.String = '';
+        f = gcf;
+        saveas(f,[folderpath_figs,'EMIT Scene and Aqua instrument overlap without MODIS context - ',...
+            folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+        % save .png with 400 DPI resolution
+        % remove title
+        ax1.Title.String = '';
+        exportgraphics(f,[folderpath_figs,...
+            'EMIT Scene and Aqau instrument overlap without MODIS context - ',...
+            folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+
+    end
+    % -------------------------------------
+    % -------------------------------------
+
+end
+
 
 
 %% Remove data that is not needed
