@@ -248,9 +248,13 @@ for nn = 1:length(ensemble_profiles)
 
     end
 
-
-
-
+    % -------------------------------------------------------------------
+    % *********************** IMPORTANT!!!! *****************************
+    % -------------------------------------------------------------------
+    % The vertically segmented profiles organize data from cloud base
+    % to cloud top. It starts with bin edge at 0 and goes to 1
+    % -------------------------------------------------------------------
+    % -------------------------------------------------------------------
     % for each profile, we need to segment the variables of interest into n
     % bins.
 

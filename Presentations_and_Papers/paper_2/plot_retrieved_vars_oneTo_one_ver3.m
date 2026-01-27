@@ -226,8 +226,8 @@ acpw_true(idx_nan) = [];
 
 
 
-% *** Plot LWP ***
-subplot(1,3,1)
+% *** Plot retrieved LWP vs in-situ LWP ***
+subplot(1,5,1)
 plot(LWP_true, lwp_newCalc, '.',...
     'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
 hold on
@@ -254,16 +254,68 @@ legend('', 'one-to-one', 'linear fit', 'Interpreter','latex',...
     'Color', 'white', 'TextColor', 'k')
 
 
-% *** Plot Tau ***
-subplot(1,3,2)
 
 
-plot(tau_true, tau_retrieved, '.',...
+% *** Plot TBLUT LWP vs in-situ LWP ***
+subplot(1,5,2)
+plot(LWP_true, lwp_tblut, '.',...
     'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
-
 hold on
 % plot a one to one line
-subplot(1,3,2)
+ax_lim = [0.9 * min(lwp_tblut), 1.1 * max(lwp_tblut)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_lwp = polyfit(LWP_true, lwp_tblut, 1);
+lwp_fit = polyval(p_lwp, ax_lim);
+plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('True LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('TBLUT LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_tblut = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+text(0.05, 0.95, eq_str_tblut, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+% *** Plot TBLUT-WH LWP vs in-situ LWP ***
+subplot(1,5,3)
+plot(LWP_true, lwp_tblut_WH, '.',...
+    'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(lwp_tblut_WH), 1.1 * max(lwp_tblut_WH)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_lwp = polyfit(LWP_true, lwp_tblut_WH, 1);
+lwp_fit = polyval(p_lwp, ax_lim);
+plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('True LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('$TBLUT_{WH}$ LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_tblut_wh = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+text(0.05, 0.95, eq_str_tblut_wh, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+% *** Plot Tau ***
+subplot(1,5,4)
+plot(tau_true, tau_retrieved, '.',...
+    'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
+hold on
+% plot a one to one line
 ax_lim = [0.9 * min(tau_retrieved), 1.1 * max(tau_retrieved)];
 plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
 % Compute and plot linear fit
@@ -280,19 +332,19 @@ eq_str_tau = sprintf('y = %.3fx + %.3f', p_tau(1), p_tau(2));
 text(0.05, 0.95, eq_str_tau, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
     'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
     'Position', [0.284442970682927 0.0479339227309894 0])
-% plot legend
-% legend('', 'one-to-one', 'linear fit', 'Interpreter','latex', 'Location','best', 'FontSize', 20,...
-%     'Color', 'white', 'TextColor', 'k')
+
+
+
+
 
 
 % *** Plot ACPW ***
-subplot(1,3,3)
+subplot(1,5,5)
 
 plot(acpw_true, acpw_retrieved, '.',...
     'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
 hold on
 % plot a one to one line
-subplot(1,3,3)
 ax_lim = [0.9 * min(acpw_retrieved), 1.1 * max(acpw_retrieved)];
 plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
 % Compute and plot linear fit
@@ -309,13 +361,12 @@ eq_str_acpw = sprintf('y = %.3fx + %.3f', p_acpw(1), p_acpw(2));
 text(0.05, 0.95, eq_str_acpw, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
     'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
     'Position', [0.284442970682927 0.0479339227309894 0])
-% plot legend
-% legend('', 'one-to-one', 'linear fit', 'Interpreter','latex', 'Location','best', 'FontSize', 20,...
-%     'Color', 'white', 'TextColor', 'k')
 
 
 
-set(gcf,'Position',[0 0 1150 750])
+
+
+set(gcf,'Position',[0 0 1350 750])
 
 
 
