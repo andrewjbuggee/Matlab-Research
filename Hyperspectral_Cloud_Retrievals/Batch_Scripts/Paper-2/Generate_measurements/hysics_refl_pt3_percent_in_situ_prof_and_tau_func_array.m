@@ -376,7 +376,6 @@ inputs.RT.band_parameterization = 'reptran coarse';
 
 % ------------------------------------------------------------------------
 % define the atmospheric data file
-
 inputs.RT.atm_file = 'afglus.dat';
 
 

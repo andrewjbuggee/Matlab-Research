@@ -6,14 +6,13 @@ function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_4(folder_paths,
 
 %   (1) in-situ derived droplet profile - measured by the CDP
 %   (2) in-situ derived optical depth - measured by the CDP
-%   (3) in-situ derived cloud top and base - defined using the CDP
-%   (4) in-situ measured T, P and RH for within cloud - defined by...
-%   (5) radiosonde measured T, P, and RH for outside cloud - defined from closest
-%       radiosonde
+%   (3) radiosonde derived cloud top - cloud depth defined by CDP
+%   (4) radiosonde measured T, P, and RH defined from closest
+%       radiosonde to each CDP measured profile
 
 %
 % INPUT:
-%   measurement_idx - integer index (1-73) specifying which measurement to process
+%   measurement_idx - integer index (1-69) specifying which measurement to process
 
 % Note: Don't clear variables or call addLibRadTran_paths / define_folderPaths_for_HySICS
 % These should already be set by the calling script
@@ -56,14 +55,38 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    % Location of ensemble data
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    % Location of VOCALS-REx airborne ensemble data
+    folderpath_air = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+        '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
 
-    ds = load([folderpath,...
-        'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_02-Nov-2025.mat']);
+
+    % Location of VOCALS-REx Radiosonde ensemble data
+    folderpath_radiosonde = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+    
+    % --- Radiosonde profile closest to the CDP measurement ----
+    saved_radiosonde_filename = 'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_27-Jan-2026.mat';
+
+
+        
+
+
+    
+    % Load the airborne data
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
+
+    % Load the airborne data
+    ds_radSonde = load([folderpath_radiosonde, saved_radiosonde_filename]);
+
+
 
 
 elseif strcmp(which_computer,'andrewbuggee')==true
@@ -73,20 +96,20 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % Location of ensemble data
-    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+    folderpath_air = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
     % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
     %     '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
-
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
 
 
-    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
-    ds = load([folderpath, saved_profiles_filename]);
+    
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
 
 
 
@@ -98,7 +121,7 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
 
     % Location of ensemble data
-    folderpath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+    folderpath_air = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
     % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
@@ -111,7 +134,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     % --- non-precip profiles only, LWC>0.03, Nc>25 ----
-    ds = load([folderpath, saved_profiles_filename]);
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
 
 end
 
@@ -122,7 +145,7 @@ campaign_name = 'vocalsRex';
 %% Validate measurement_idx input
 
 % Check that measurement_idx is valid
-total_measurements = length(ds.ensemble_profiles);
+total_measurements = length(ds_cdp.ensemble_profiles);
 
 if measurement_idx < 1 || measurement_idx > total_measurements
     error('measurement_idx must be between 1 and %d', total_measurements);
@@ -243,7 +266,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -265,11 +288,11 @@ inputs.bands2run = (1:1:636)';
 % Using almost all 35 spectral channels above that avoid water vapor and other
 % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
 % features for a total of 66 bands
-% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-%     198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
-%     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-%     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-%     543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
+inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+    198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+    543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
 
 
 
@@ -377,13 +400,30 @@ inputs.RT.band_parameterization = 'reptran coarse';
 % ------------------------------------------------------------------------
 
 
-
-% ------------------------------------------------------------------------
 % define the atmospheric data file
-
+% Values above the radiosond file will be defined using the atm file
+% provided.
 inputs.RT.atm_file = 'afglus.dat';
 
 
+% ------------------------------------------------------------------------
+% define the vertical profiles of temperature, pressure and relative
+% humidity using radiosonde data
+% ------------------------------------------------------------------------
+inputs.RT.use_radiosonde_file = true;
+% Define the pressure, temperature and RH
+inputs.RT.radiosonde_num_vars = 3;
+
+% convert radiosonde temperature data from celcius to Kelvin
+% Convert temperature from Celsius to Kelvin
+temp_kelvin = ds_radSonde.temp_prof{measurement_idx} + 273.15;
+
+inputs.RT.radiosonde_file = write_VR_radiosonde_DAT_for_libRadtran(temp_kelvin,...
+    ds_radSonde.pressure_prof{measurement_idx}, ds_radSonde.watVap_prof{measurement_idx},...
+    ds_radSonde.anicllary_info, folder_paths, measurement_idx, inputs.RT.radiosonde_num_vars);
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
 
 
 % define the surface albedo
@@ -604,7 +644,7 @@ inputs.RT.modify_aboveCloud_columnWaterVapor = true;
 % 400 ppm = 1.0019 * 10^23 molecules/cm^2
 inputs.RT.modify_CO2 = true;
 
-inputs.RT.CO2_mixing_ratio = 416;       % ppm
+inputs.RT.CO2_mixing_ratio = 418;       % ppm
 % inputs.RT.CO2_mixing_ratio = 0;       % ppm
 % ------------------------------------------------------------------------
 
@@ -767,24 +807,24 @@ nn = 1;
 
 % define lwc, re, and z as column vectors
 % grab the LWC vector
-lwc{nn} = ds.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
+lwc{nn} = ds_cdp.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
 % grab the altitude vector
-z{nn} = (ds.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the optical depth vector
-tau{nn} = ds.ensemble_profiles{measurement_idx}.tau';
+tau{nn} = ds_cdp.ensemble_profiles{measurement_idx}.tau';
 % grab the date of flight
-date_of_flight{nn} = ds.ensemble_profiles{measurement_idx}.dateOfFlight;
+date_of_flight{nn} = ds_cdp.ensemble_profiles{measurement_idx}.dateOfFlight;
 % grab the time of flight
-time_of_flight(nn) = ds.ensemble_profiles{measurement_idx}.time_utc(round(length(ds.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
+time_of_flight(nn) = ds_cdp.ensemble_profiles{measurement_idx}.time_utc(round(length(ds_cdp.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
 
 % store the optical depth of each profile
-tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end);
+tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end);
 
 
-if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
+if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
     % define the effective radius profile
-    re{nn} = ds.ensemble_profiles{measurement_idx}.re';        % microns
+    re{nn} = ds_cdp.ensemble_profiles{measurement_idx}.re';        % microns
 
     % rearrange z, lwc, and re so that all profiles are stored from cloud
     % top to bottom. Therefore, the first value in the column vector is
@@ -816,8 +856,11 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-2);
 
+            % writing a water-cloud file from in-situ doesn't require mie
+            % calculations because the LWC doesn't need to be computed from
+            % optical thickness and effective radius. It is measured!
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
                 inputs.compute_weighting_functions, which_computer,...
@@ -836,7 +879,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -857,7 +900,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -878,7 +921,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-12);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-12);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -918,7 +961,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -938,7 +981,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -960,7 +1003,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -1001,7 +1044,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-1);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-1);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -1023,7 +1066,7 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
             z{nn}(idx_remove) = [];
             tau{nn}(idx_remove) = [];
 
-            tau_c(nn) = ds.ensemble_profiles{measurement_idx}.tau(end-2);
+            tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end-2);
 
             wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
                 date_of_flight{nn}, time_of_flight(nn),...
@@ -1065,11 +1108,11 @@ if isfield(ds.ensemble_profiles{measurement_idx}, 're') == true
 
 
 
-elseif isfield(ds.ensemble_profiles{measurement_idx}, 're_CDP') == true
+elseif isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're_CDP') == true
 
 
     % define the effective radius profile
-    re{nn} = ds.ensemble_profiles{measurement_idx}.re_CDP';        % microns
+    re{nn} = ds_cdp.ensemble_profiles{measurement_idx}.re_CDP';        % microns
 
     % rearrange z, lwc, and re so that all profiles are stored from cloud
     % top to bottom. Therefore, the first value in the column vector is
@@ -1122,7 +1165,7 @@ end
 
 
 % *** we dont' need the ensemble profiles anymore ***
-clear ds
+clear ds_cdp
 
 % changing variable steps through each wavelength for this single measurement
 % in for loop speak, it would be:
@@ -1240,7 +1283,7 @@ parfor nn = 1:num_INP_files
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
+    [ds_cdp,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
 
 
@@ -1250,7 +1293,7 @@ parfor nn = 1:num_INP_files
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver2(inputs, ds,...
+    [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver2(inputs, ds_cdp,...
         source_flux(idx_wl), spec_response_value(changing_variables_allStateVectors{end}(nn),:));
 
 

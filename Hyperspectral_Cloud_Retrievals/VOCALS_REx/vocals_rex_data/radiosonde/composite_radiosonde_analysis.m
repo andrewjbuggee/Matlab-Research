@@ -13,7 +13,7 @@ which_computer = whatComputer;
 if strcmp(which_computer,'anbu8374')==true
 
 
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+    folderpath_radioSonde = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/allSoundings_composite_5mb/'];
 
     % ***** Define the ensemble profiles folder *****
@@ -24,7 +24,7 @@ if strcmp(which_computer,'anbu8374')==true
 elseif strcmp(which_computer,'andrewbuggee')==true
 
 
-    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    folderpath_radioSonde = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/radiosonde/allSoundings_composite_5mb/'];
 
 
@@ -40,7 +40,8 @@ end
 
 % ---------------------
 % define the ensemble filename
-profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat';
+% profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat';
+profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat';
 
 
 
@@ -62,7 +63,7 @@ load([vocalsRexFolder, profiles]);
 
 %% extract the filenames of each sounding composite file
 
-sounding_files = dir(folderpath);
+sounding_files = dir(folderpath_radioSonde);
 
 % extract the names
 % sounding_file_names = {sounding_files.name};
@@ -78,6 +79,17 @@ sounding_files = dir(folderpath);
 
 total_column_pw = zeros(length(ensemble_profiles), 1);
 above_cloud_pw = zeros(length(ensemble_profiles), 1);
+
+cloud_topHeight = zeros(length(ensemble_profiles), 1);
+cloud_baseHeight = zeros(length(ensemble_profiles), 1);
+
+cloud_topPressure = zeros(length(ensemble_profiles), 1);
+cloud_basePressure = zeros(length(ensemble_profiles), 1);
+
+temp_prof = cell(length(ensemble_profiles), 1);
+watVap_prof = cell(length(ensemble_profiles), 1);
+pressure_prof = cell(length(ensemble_profiles), 1);
+altitude = cell(length(ensemble_profiles), 1);
 
 
 for nn = 1:length(ensemble_profiles)
@@ -118,7 +130,7 @@ for nn = 1:length(ensemble_profiles)
 
 
     % Load the radiosonde data
-    radiosonde = read_cls_file([folderpath, sounding_files(mm).name]);
+    radiosonde = read_cls_file([folderpath_radioSonde, sounding_files(mm).name]);
 
     % % each radiosonde cls file contains multiple radiosondes each day. Find
     % % which profile is closest in space to the vertical profile
@@ -253,78 +265,78 @@ for nn = 1:length(ensemble_profiles)
     % % store the MODIS latitude and longitude
     % radiosonde_lat = [radiosonde.latitude];
     % radiosonde_long = [radiosonde.longitude];
-    % 
-    % 
+    %
+    %
     % % we will be computing the arclength between points on an ellipsoid
     % % Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
     % wgs84 = wgs84Ellipsoid("m");
-    % 
-    % 
+    %
+    %
     % % Step through each vertical profile and find the MODIS pixel that overlaps
     % % with the mid point of the in-situ sample
-    % 
+    %
     % dist_btwn_C130_radiosonde = distance(radiosonde_lat, radiosonde_long, ensemble_profiles{nn}.latitude(round(end/2)),...
     %     ensemble_profiles{nn}.longitude(round(end/2)), wgs84);                                  % m - minimum distance
-    % 
+    %
     % [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    % 
-    % 
+    %
+    %
     % % Check that the radiosonde profile selected is over ocean
     % % But some days don't have any radiosondes over the ocean. In that
     % % case, just use the radiosonde closest in time
     % % Also, the soundings taken at Paposo seem lousy. Don't use them
     % if strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
     %         strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    % 
+    %
     %     release_sites = {radiosonde.release_site};
     %     onShip = zeros(1, length(release_sites));
-    % 
+    %
     %     for rr = 1:length(release_sites)
-    % 
+    %
     %         if strcmp(release_sites{rr}(1:3), 'R/V')==true
-    % 
+    %
     %             onShip(rr) = true;
-    % 
+    %
     %         end
-    % 
+    %
     %     end
-    % 
+    %
     %     % if there are radiosondes released over the ocean, then I will find
     %     % the radiosonde launched closest in time to the measurement time of
     %     % the vertical profile
-    % 
+    %
     %     if sum(onShip)>0
-    % 
+    %
     %         while strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
     %                 strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    % 
+    %
     %             % this radiosonde is over land, find the radiosonde closest
     %             % in space
     %             % to the vertical profile over ocean
     %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
     %             % Find the minimum
     %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    % 
+    %
     %         end
-    % 
+    %
     %     elseif sum(onShip)==0 && strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    % 
+    %
     %         % Find the closest time the isn't at the Paposo site
     %         while strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    % 
+    %
     %             % this radiosonde is over land, find the radiosonde closest
     %             % in space
     %             % to the vertical profile over ocean
     %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
     %             % Find the minimum
     %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    % 
+    %
     %         end
-    % 
-    % 
+    %
+    %
     %     end
-    % 
-    % 
+    %
+    %
     % end
 
 
@@ -332,9 +344,10 @@ for nn = 1:length(ensemble_profiles)
 
     %%
     % check that the radiosonde selected has a cloud
-    % Using Wang et al. 1995, to detect cloud base and top
+    % Using Wang et al. 1995, (actually Wang and Rossow 1995) to detect
+    % cloud base and top
     % relative humidity is the 5th column, altitude of the balloon is the
-    % 15th column
+    % 15th column.
 
     % -------------------------------------------------------------------
     % --------------------- DETECTING CLOUD BASE ------------------------
@@ -536,7 +549,7 @@ for nn = 1:length(ensemble_profiles)
 
         idx_above_base_lessThan_84 = radiosonde(idx_min).sounding_data(idx_2Check,5) < 84;
 
-         % numbered indicies
+        % numbered indicies
         % num_idx = find(idx_above_base_lessThan_84);
 
         % find the first index above cloud bottom that is below a relative
@@ -550,9 +563,9 @@ for nn = 1:length(ensemble_profiles)
 
         end
 
-       
 
-        
+
+
         idx_top2Check(bb) = cloud_base(bb) + cc;
 
 
@@ -618,8 +631,16 @@ for nn = 1:length(ensemble_profiles)
     % altitude to the cloud top height measured by the CDP
     if length(cloud_top)>1
 
-        [~, idx_cld_layer] = min(radiosonde(idx_min).sounding_data(cloud_top, 15) - ...
+        [~, idx_cldTop_layer] = min(radiosonde(idx_min).sounding_data(cloud_top, 15) - ...
             max(ensemble_profiles{nn}.altitude));
+
+        % Do the same for cloud base, if needed
+        if length(cloud_base)>1
+
+            [~, idx_cldBase_layer] = min(radiosonde(idx_min).sounding_data(cloud_base, 15) - ...
+                min(ensemble_profiles{nn}.altitude));
+
+        end
 
         % Compute the mass of water vapor per unit volume at all altitudes
         % above the cloud top
@@ -634,7 +655,20 @@ for nn = 1:length(ensemble_profiles)
 
 
         % compute the above cloud precipitable water amount
-        above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cld_layer):end,15), rho(cloud_top(idx_cld_layer):end));            % kg / m^2
+        above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer):end,15), rho(cloud_top(idx_cldTop_layer):end));            % kg / m^2
+
+
+
+        % ---------------------------------------------------------------
+        % ------- Save the cloud base and top height and pressure -------
+        % ---------------------------------------------------------------
+        cloud_topHeight(nn) = radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer), 15);   % meters
+        cloud_topPressure(nn) = radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer), 15);   % meters
+
+        cloud_baseHeight(nn) = radiosonde(idx_min).sounding_data(cloud_base(idx_cldBase_layer), 15);   % meters
+        cloud_basePressure(nn) = radiosonde(idx_min).sounding_data(cloud_base(idx_cldBase_layer), 15);   % meters
+
+        % --------------------------------------------------
 
 
     else
@@ -660,6 +694,31 @@ for nn = 1:length(ensemble_profiles)
 
 
     end
+
+
+    % --------------------------------------------------
+    % --- Store the vertical profiles of T, P and RH ---
+    % --------------------------------------------------
+    pressure_prof{nn} = radiosonde(idx_min).sounding_data(:, 2);   % mb
+    temp_prof{nn} = radiosonde(idx_min).sounding_data(:, 3);   % C
+    watVap_prof{nn} = radiosonde(idx_min).sounding_data(:, 5);   % % - Relative humidity
+    altitude{nn} = radiosonde(idx_min).sounding_data(:, 15);   % meters
+
+    % --------------------------------------------------
+
+
+    % --------------------------------------------------------------
+    % --- Store the name, date and start time of this radiosonde ---
+    % --------------------------------------------------------------
+    anicllary_info.lat_release(nn) = radiosonde(idx_min).latitude; % degrees latitude
+    anicllary_info.long_release(nn) = radiosonde(idx_min).longitude; % degrees latitude
+
+    anicllary_info.dateTime_release{nn} = radiosonde(idx_min).release_time; % degrees latitude
+
+    % --------------------------------------------------------------
+
+
+
 
     % plot results
     % plot_radiosonde_wvConcentration_with_US_STD_ATM(waterVapor_concentration_cm3, radiosonde(idx_min).sounding_data(:,15))
@@ -699,18 +758,43 @@ end
 
 
 
+% ----- Save Paper 2 prior stats -------
+% if exist("dist_btwn_C130_radiosonde", "var")==1
+% 
+%     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_space_',...
+%         char(datetime("today")),'.mat'],...
+%         'total_column_pw', 'above_cloud_pw')
+% 
+% 
+% elseif exist("time_diff_C130_radiosonde", "var")==1
+% 
+%     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_time_',...
+%         char(datetime("today")),'.mat'],...
+%         'total_column_pw', 'above_cloud_pw')
+% 
+% 
+% end
+
+
+
+
+% ----- Save Radiosonde profiles and prior stats -------
 if exist("dist_btwn_C130_radiosonde", "var")==1
 
-    save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_space_',...
+    save([folderpath_2save,'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_space_',...
         char(datetime("today")),'.mat'],...
-        'total_column_pw', 'above_cloud_pw')
+        'total_column_pw', 'above_cloud_pw', 'watVap_prof', "temp_prof", "pressure_prof",...
+        "cloud_topHeight", "cloud_topPressure", "cloud_baseHeight", "cloud_basePressure",...
+        "altitude", 'anicllary_info')
 
 
 elseif exist("time_diff_C130_radiosonde", "var")==1
 
-    save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_time_',...
+    save([folderpath_2save,'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_',...
         char(datetime("today")),'.mat'],...
-        'total_column_pw', 'above_cloud_pw')
+        'total_column_pw', 'above_cloud_pw', 'watVap_prof', "temp_prof", "pressure_prof",...
+        "cloud_topHeight", "cloud_topPressure", "cloud_baseHeight", "cloud_basePressure",...
+        "altitude", 'anicllary_info')
 
 
 end
@@ -756,6 +840,6 @@ plot(xVals, pdf(acpw_fit_gamma, xVals))
 grid on; grid minor
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
+    'Color', 'white', 'TextColor', 'k')
 title('$acpw$ statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+    'FontSize', 20, 'Interpreter', 'latex')
