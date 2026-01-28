@@ -73,7 +73,7 @@ if strcmp(which_computer,'anbu8374')==true
         'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
     
     % --- Radiosonde profile closest to the CDP measurement ----
-    saved_radiosonde_filename = 'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_27-Jan-2026.mat';
+    saved_radiosonde_filename = 'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_28-Jan-2026.mat';
 
 
         
@@ -808,8 +808,30 @@ nn = 1;
 % define lwc, re, and z as column vectors
 % grab the LWC vector
 lwc{nn} = ds_cdp.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
-% grab the altitude vector
-z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+
+% --------------------------------------------------------
+% *** We will use the radiosonde data to define cloud top and base height ***
+% We will then create an altitude vector that matches the length of the CDP
+% measurements
+z_top = ds_radSonde.cloud_topHeight(measurement_idx) ./ 1e3;                 % km
+z_base = ds_radSonde.cloud_baseHeight(measurement_idx) ./ 1e3;                 % km
+
+dz = mean(diff( ds_cdp.ensemble_profiles{measurement_idx}.altitude ./1e3 )); % km - using CDP data
+
+% grab the altitude vector - this defines the cloud deck within the model.
+% Cloud base and top are defined from this vector
+% z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+if dz < 0
+    error([newline, 'Check this!', newline])
+    % the the plane was descending. Start with cloud top
+    z{nn} = linspace(z_top, z_base, length(lwc{nn}))';   % kilometers
+
+elseif dz >0
+    % the the plane was ascending. Start with cloud bottom
+    z{nn} = linspace(z_base, z_top, length(lwc{nn}))';   % kilometers
+end
+% --------------------------------------------------------
+
 % grab the optical depth vector
 tau{nn} = ds_cdp.ensemble_profiles{measurement_idx}.tau';
 % grab the date of flight

@@ -376,6 +376,9 @@ for nn = 1:length(ensemble_profiles)
 
                     cloud_base = [cloud_base; lvls_87(ll)];
 
+                    % mark cloud-base as found
+                    cloud_base_determined_radSonde = true;
+
                 end
 
 
@@ -403,6 +406,9 @@ for nn = 1:length(ensemble_profiles)
 
                         cloud_base = [cloud_base; lvls_87(ll)];
 
+                        % mark cloud-base as found
+                        cloud_base_determined_radSonde = true;
+
                     end
 
 
@@ -429,53 +435,15 @@ for nn = 1:length(ensemble_profiles)
 
 
 
-        for ll = 1:length(lvls_84)
-            % the first lvl will always count as a cloud layer
-            if ll==1
+        if numel(lvls_84) > 0
 
-                % compute the difference between the RH at the current level
-                % and the mean RH of the previous 3 levels. If this is a moist
-                % layer, the difference is positive and at least 3
-                if lvls_84(ll)>3
+            for ll = 1:length(lvls_84)
+                % the first lvl will always count as a cloud layer
+                if ll==1
 
-                    change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
-                        mean(radiosonde(idx_min).sounding_data((lvls_84(ll)-3):(lvls_84(ll)-1), 5));
-
-                    if change_in_RH > 3
-                        % Mark this level as a cloud base
-                        cloud_base = [cloud_base; lvls_84(ll)];
-
-                    end
-
-
-                else
-
-                    % (c) the RH is at least 84 if this is a surface level
-                    % So if this is at level 1 2 or 3, is the RH at least 84?
-
-                    % Mark this level as a cloud base
-                    cloud_base = [cloud_base; lvls_84(ll)];
-
-
-                end
-
-
-
-
-
-            else
-
-                % check to see if this level is adjacent to the one before
-                if lvls_84(ll)-lvls_84(ll-1) <= 2
-
-                    % store as moist layer
-
-
-                    % continue to the next level
-
-                else
-
-                    % Then this is a different moist layer to check
+                    % compute the difference between the RH at the current level
+                    % and the mean RH of the previous 3 levels. If this is a moist
+                    % layer, the difference is positive and at least 3
                     if lvls_84(ll)>3
 
                         change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
@@ -484,6 +452,9 @@ for nn = 1:length(ensemble_profiles)
                         if change_in_RH > 3
                             % Mark this level as a cloud base
                             cloud_base = [cloud_base; lvls_84(ll)];
+
+                            % mark cloud-base as found
+                            cloud_base_determined_radSonde = true;
 
                         end
 
@@ -496,6 +467,9 @@ for nn = 1:length(ensemble_profiles)
                         % Mark this level as a cloud base
                         cloud_base = [cloud_base; lvls_84(ll)];
 
+                        % mark cloud-base as found
+                        cloud_base_determined_radSonde = true;
+
 
                     end
 
@@ -503,12 +477,74 @@ for nn = 1:length(ensemble_profiles)
 
 
 
+                else
+
+                    % check to see if this level is adjacent to the one before
+                    if lvls_84(ll)-lvls_84(ll-1) <= 2
+
+                        % store as moist layer
+
+
+                        % continue to the next level
+
+                    else
+
+                        % Then this is a different moist layer to check
+                        if lvls_84(ll)>3
+
+                            change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
+                                mean(radiosonde(idx_min).sounding_data((lvls_84(ll)-3):(lvls_84(ll)-1), 5));
+
+                            if change_in_RH > 3
+                                % Mark this level as a cloud base
+                                cloud_base = [cloud_base; lvls_84(ll)];
+
+                                % mark cloud-base as found
+                                cloud_base_determined_radSonde = true;
+
+                            end
+
+
+                        else
+
+                            % (c) the RH is at least 84 if this is a surface level
+                            % So if this is at level 1 2 or 3, is the RH at least 84?
+
+                            % Mark this level as a cloud base
+                            cloud_base = [cloud_base; lvls_84(ll)];
+
+                            % mark cloud-base as found
+                            cloud_base_determined_radSonde = true;
+
+
+                        end
+
+
+
+
+
+
+
+                    end
 
 
                 end
 
 
             end
+
+
+        else
+
+            % how else can we define cloud top?
+            % for now, let's use the vocals-rex CDP measurement to define
+            % cloud base in the the radiosonde data
+            [~, cloud_base] = min( abs( min(ensemble_profiles{nn}.altitude) -...
+                radiosonde(idx_min).sounding_data(:,15)));
+
+
+            % mark cloud-base as NOT found
+            cloud_base_determined_radSonde = false;
 
 
         end
@@ -543,83 +579,96 @@ for nn = 1:length(ensemble_profiles)
 
     cloud_top = zeros(length(cloud_base), 1);
 
-    for bb = 1:length(cloud_base)
+    if cloud_base_determined_radSonde == true
 
-        idx_2Check = (cloud_base(bb)+1):size(radiosonde(idx_min).sounding_data,1);
+        for bb = 1:length(cloud_base)
 
-        idx_above_base_lessThan_84 = radiosonde(idx_min).sounding_data(idx_2Check,5) < 84;
+            idx_2Check = (cloud_base(bb)+1):size(radiosonde(idx_min).sounding_data,1);
 
-        % numbered indicies
-        % num_idx = find(idx_above_base_lessThan_84);
+            idx_above_base_lessThan_84 = radiosonde(idx_min).sounding_data(idx_2Check,5) < 84;
 
-        % find the first index above cloud bottom that is below a relative
-        % humidity of 84 for at least 4 levels
-        cc = 1;
-        while (idx_above_base_lessThan_84(cc)==0 &&...
-                all(idx_above_base_lessThan_84((cc+1):(cc+3))==1)) ~= true
+            % numbered indicies
+            % num_idx = find(idx_above_base_lessThan_84);
 
-
-            cc = cc + 1;
-
-        end
+            % find the first index above cloud bottom that is below a relative
+            % humidity of 84 for at least 4 levels
+            cc = 1;
+            while (idx_above_base_lessThan_84(cc)==0 &&...
+                    all(idx_above_base_lessThan_84((cc+1):(cc+3))==1)) ~= true
 
 
+                cc = cc + 1;
 
-
-        idx_top2Check(bb) = cloud_base(bb) + cc;
+            end
 
 
 
 
-        % (a)  where the RH is at least 87%
-        % is the topmost layer at least 87?
-        if radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) >= 87
-
-            % Mark this level as the cloud top
-            cloud_top(bb) = idx_top2Check(bb);
+            idx_top2Check(bb) = cloud_base(bb) + cc;
 
 
 
 
+            % (a)  where the RH is at least 87%
+            % is the topmost layer at least 87?
+            if radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) >= 87
 
-
-
-
-            % (b) RH is at least 84 but less than 87%, and there is at least a 3%
-            % between the current layer and the higher layer (3% decrease)
-        elseif (idx_top2Check(bb)+3) < size(radiosonde(idx_min).sounding_data,1)
-
-            idx_aboveCloud = (idx_top2Check(bb)+1):(idx_top2Check(bb)+3);
-
-            change_in_RH = radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) - ...
-                mean(radiosonde(idx_min).sounding_data(idx_aboveCloud, 5));
-
-            if change_in_RH > 3
-                % Mark this level as a cloud base
+                % Mark this level as the cloud top
                 cloud_top(bb) = idx_top2Check(bb);
+
+
+
+
+
+
+
+
+                % (b) RH is at least 84 but less than 87%, and there is at least a 3%
+                % between the current layer and the higher layer (3% decrease)
+            elseif (idx_top2Check(bb)+3) < size(radiosonde(idx_min).sounding_data,1)
+
+                idx_aboveCloud = (idx_top2Check(bb)+1):(idx_top2Check(bb)+3);
+
+                change_in_RH = radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) - ...
+                    mean(radiosonde(idx_min).sounding_data(idx_aboveCloud, 5));
+
+                if change_in_RH > 3
+                    % Mark this level as a cloud base
+                    cloud_top(bb) = idx_top2Check(bb);
+
+
+                else
+
+                    % set cloud top with NaN
+                    cloud_top(bb) = NaN;
+
+
+                end
 
 
             else
 
-                % set cloud top with NaN
-                cloud_top(bb) = NaN;
+                % (c) the RH is at least 84 if this is a surface level
+                % So if this is at level 1 2 or 3, is the RH at least 84?
+
+                % Mark this level as a cloud base
+                cloud_top(bb) = idx_top2Check(bb);
 
 
             end
 
 
-        else
-
-            % (c) the RH is at least 84 if this is a surface level
-            % So if this is at level 1 2 or 3, is the RH at least 84?
-
-            % Mark this level as a cloud base
-            cloud_top(bb) = idx_top2Check(bb);
-
 
         end
 
+    else
 
+
+        % how else can we define cloud top?
+        % for now, let's use the vocals-rex CDP measurement to define
+        % cloud base in the the radiosonde data
+        [~, cloud_top] = min( abs( max(ensemble_profiles{nn}.altitude) -...
+            radiosonde(idx_min).sounding_data(:,15)));
 
     end
     % ------------------------------------------------------------------
@@ -693,6 +742,19 @@ for nn = 1:length(ensemble_profiles)
 
 
 
+        % ---------------------------------------------------------------
+        % ------- Save the cloud base and top height and pressure -------
+        % ---------------------------------------------------------------
+        cloud_topHeight(nn) = radiosonde(idx_min).sounding_data(cloud_top, 15);   % meters
+        cloud_topPressure(nn) = radiosonde(idx_min).sounding_data(cloud_top, 15);   % meters
+
+        cloud_baseHeight(nn) = radiosonde(idx_min).sounding_data(cloud_base, 15);   % meters
+        cloud_basePressure(nn) = radiosonde(idx_min).sounding_data(cloud_base, 15);   % meters
+
+        % --------------------------------------------------
+
+
+
     end
 
 
@@ -760,19 +822,19 @@ end
 
 % ----- Save Paper 2 prior stats -------
 % if exist("dist_btwn_C130_radiosonde", "var")==1
-% 
+%
 %     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_space_',...
 %         char(datetime("today")),'.mat'],...
 %         'total_column_pw', 'above_cloud_pw')
-% 
-% 
+%
+%
 % elseif exist("time_diff_C130_radiosonde", "var")==1
-% 
+%
 %     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_time_',...
 %         char(datetime("today")),'.mat'],...
 %         'total_column_pw', 'above_cloud_pw')
-% 
-% 
+%
+%
 % end
 
 
