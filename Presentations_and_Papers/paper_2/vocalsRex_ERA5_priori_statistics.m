@@ -14,12 +14,15 @@ if strcmp(which_computer,'anbu8374')==true
 
 
     % ***** Define the ERA5 data directory *****
-    folderpath_era5 = [''];
+    folderpath_era5 = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/ERA5_reanalysis/ERA5_data/VOCALS_REx_overlap/'];
 
 
     % ***** Define the ensemble profiles folder *****
     vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+
+
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -51,6 +54,13 @@ profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc
 load([vocalsRexFolder, profiles]);
 
 
+
+%% Some notes on the ERA5 variables
+
+% Specific humidity (q) is the mass of water vapor per unit mass of moist air - 
+% typically expressed in kg/kg or g/kg. It's one of several ways to express 
+% atmospheric moisture content, and it has the advantage of being conserved
+%  during adiabatic processes (unlike relative humidity).
 
 
 
@@ -165,7 +175,7 @@ for nn = 1:length(ensemble_profiles)
     % -----------------------------------------------------------------------------------
 
     % extract pressure levels
-    pressure = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 'pressure_level');            % hPa
+    p = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 'pressure_level');            % hPa
 
     % Extract temperature data from the netCDF file
     temperature = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 't');                      % K
@@ -191,13 +201,38 @@ for nn = 1:length(ensemble_profiles)
     q_2keep = reshape( q(r, c, :, idx_time), [], 1);
     clear q
 
-
+    % -----------------------------------------------------------------------------------
     % Compute cloud liquid water content from specific cloud LWC
     clwc_2keep = (clwc_2keep .* p) ./...
         (computeMoistAirGasConstant(q_2keep) .* T);        % kg of liquid water droplets/ m^3 of air
     
     % convert to grams per m^3
     clwc_2keep = clwc_2keep * 1000; % Convert to grams per m^3
+    % -----------------------------------------------------------------------------------
+
+
+    % -----------------------------------------------------------------------------------
+    % compute the above cloud total precipitable water
+    % Compute the mass of water vapor per unit volume at all altitudes
+    % convert pressure from hPa to Pa
+    use_virtual_temp = true;   % more accurate estimate, but the improvement is on the order of 1%
+    [rho_v, waterVapor_concentration_cm3] = specificHumidity2waterVaporDensity(q_2keep, T, p.*100, use_virtual_temp);
+
+
+    % compute the geopotential height for each layer;
+    % we are only using data over ocean, so set Z_surface to 0
+    Z_sfc = 0;         % meters
+    Z = computeGeopotentialHeight(T, q_2keep, p, Z_sfc);
+
+    % check total column amount
+    total_column_pw(nn) = trapz(radiosonde(idx_min).sounding_data(:,15), rho);            % kg / m^2
+    % total_column_pw = trapz(radiosonde(idx_minTime).sounding_data(:,15), waterVapor_concentration_cm3.*1e6 .* (con.Mol_mass_h2o_vap/con.N_A))            % kg / m^2
+
+
+    % compute the above cloud precipitable water amount
+    above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer):end,15), rho(cloud_top(idx_cldTop_layer):end));
+
+    % -----------------------------------------------------------------------------------
 
 
 
@@ -221,44 +256,10 @@ end
 
 %%
 
-% read in ERA5 data
-
-info = ncinfo([foldername, filename]);
-
-% read the time
-time = double(ncread([foldername, filename], 'valid_time'));            % seconds since 1970
-% Convert to UTC datetime
-utcTime = datetime(time, 'ConvertFrom', 'posixtime', 'TimeZone', 'UTC');
-
-% read the lat, long
-lat = ncread([foldername, filename], 'latitude');                                                        % Meausred in degrees North
-long = ncread([foldername, filename], 'longitude');
-
-% Extract temperature data from the netCDF file
-temperature = ncread([foldername, filename], 't');                      % K
-
-% Extract cloud liquid water content data from the netCDF file
-clwc_specific = ncread([foldername, filename], 'clwc');               % kg of water droplets / kg of total mass of moist air - The 'total mass of moist air' is the sum of the dry air, water vapour, cloud liquid, cloud ice, rain and falling snow.
 
 
-% extract pressure level, the independent variable
-pressure = ncread([foldername, filename], 'pressure_level');            % hPa
 
 
-% extract relative humidity
-RH = ncread([foldername, filename], 'r');
-
-% extract specific humidity
-q = ncread([foldername, filename], 'q');
-
-
-%% Compute cloud liquid water content from specific LWC
-
-clwc = clwc_specific .* repmat(reshape(pressure.*100, 1,1, [], 1), length(lat), length(long), 1, length(time)) ./...
-    (computeMoistAirGasConstant(q) .* temperature);        % kg of liquid water droplets/ m^3 of air
-
-% convert to grams per m^3
-clwc = clwc * 1000; % Convert to grams per m^3
 
 %% Convert temperature from Kelvin to Celcius
 
@@ -281,7 +282,7 @@ fnt_sz = 20;
 % Plot temperature
 subplot(1,3,1)
 semilogy(reshape(temperature(lat_idx, long_idx, :, time_idx), [], 1),...
-    pressure, 'Color', mySavedColors(61,'fixed'));
+    p, 'Color', mySavedColors(61,'fixed'));
 xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 grid on; grid minor
@@ -295,7 +296,7 @@ set(gca, 'YDir', 'reverse')
 % Plot specific cloud liquid water content
 subplot(1,3,2)
 semilogy(reshape(clwc(lat_idx, long_idx, :, time_idx), [], 1),...
-    pressure, 'Color', mySavedColors(61,'fixed'));
+    p, 'Color', mySavedColors(61,'fixed'));
 % plot(reshape(clwc_specific(lat_idx, long_idx, :, time_idx), [], 1),...
 %     pressure, 'Color', mySavedColors(61,'fixed'));
 xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
@@ -310,7 +311,7 @@ set(gca, 'YDir', 'reverse')
 % Plot relative humidity
 subplot(1,3,3)
 semilogy(reshape(RH(lat_idx, long_idx, :, time_idx), [], 1),...
-    pressure, 'Color', mySavedColors(61,'fixed'));
+    p, 'Color', mySavedColors(61,'fixed'));
 xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 grid on; grid minor
@@ -450,7 +451,7 @@ for nn = 1:length(vert_prof)
     % Plot temperature
     subplot(2,3,1)
     semilogy(reshape(temperature(lat_idx, long_idx, :, closestIndex), [], 1),...
-        pressure, 'Color', 'k');
+        p, 'Color', 'k');
     xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 
@@ -469,7 +470,7 @@ for nn = 1:length(vert_prof)
     % Plot CLWC
     subplot(2,3,2)
     semilogy(reshape(clwc(lat_idx, long_idx, :, closestIndex), [], 1),...
-        pressure, 'Color', era5_clr);
+        p, 'Color', era5_clr);
     xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 
@@ -494,7 +495,7 @@ for nn = 1:length(vert_prof)
     % Plot relative humidity
     subplot(2,3,3)
     semilogy(reshape(RH(lat_idx, long_idx, :, closestIndex), [], 1),...
-        pressure, 'Color', era5_clr);
+        p, 'Color', era5_clr);
     xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
     grid on; grid minor

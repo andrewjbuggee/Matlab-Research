@@ -1,13 +1,12 @@
-%% Retreive vertical profiles using simulated HySICS reflectance measurements
-% This is a function that retrieves a vertical droplet profile and the
-% integrated column water vapor amount above cloud
+%% This function computes the mass of water vapor per cubic meter of air
+% also computes the number of water molecules per cubic centimeter of air
 
-% This script retrieves 4 variables: ln(r_top), ln(r_bot), ln(tau_c), and acpw
 
 
 % INPUTS
 
-% (1) 
+% (1) dew_poit_temperature
+% (2) environment temperature
 
 
 % By Andrew John Buggee
