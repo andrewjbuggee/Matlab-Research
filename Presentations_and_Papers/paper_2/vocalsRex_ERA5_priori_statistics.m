@@ -85,10 +85,14 @@ cloud_basePressure = zeros(length(ensemble_profiles), 1);
 temp_prof = cell(length(ensemble_profiles), 1);
 watVap_prof = cell(length(ensemble_profiles), 1);
 pressure_prof = cell(length(ensemble_profiles), 1);
-altitude = cell(length(ensemble_profiles), 1);
+altitude_prof = cell(length(ensemble_profiles), 1);
+rho_v_prof = cell(length(ensemble_profiles), 1);
+watVap_concentration_prof = cell(length(ensemble_profiles), 1);
+clwc_prof = cell(length(ensemble_profiles), 1);
 
 
-
+dist_2_VR = zeros(length(ensemble_profiles), 1);
+time_2_VR = cell(length(ensemble_profiles), 1);
 
 
 for nn = 1:length(ensemble_profiles)
@@ -216,26 +220,85 @@ for nn = 1:length(ensemble_profiles)
     % Compute the mass of water vapor per unit volume at all altitudes
     % convert pressure from hPa to Pa
     use_virtual_temp = true;   % more accurate estimate, but the improvement is on the order of 1%
+    % rho_v = [kg/m^3]
+    % waterVapor_concentration_cm3 = [#/cm^3]
     [rho_v, waterVapor_concentration_cm3] = specificHumidity2waterVaporDensity(q_2keep, T, p.*100, use_virtual_temp);
 
 
-    % compute the geopotential height for each layer;
-    % we are only using data over ocean, so set Z_surface to 0
-    Z_sfc = 0;         % meters
-    Z = computeGeopotentialHeight(T, q_2keep, p, Z_sfc);
+    % % compute the geopotential height for each layer;
+    % ** my estiamtes vary from the ERA 5 estimates. Use theirs **
+    % % we are only using data over ocean, so set Z_surface to 0
+    % Z_sfc = 0;         % meters
+    % Z = computeGeopotentialHeight(T, q_2keep, p, Z_sfc);   % meters
+
+    % read in the geopotential and convert it to geopotential height 
+    Z = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 'z');            % m^2/s^2
+    Z = reshape( Z(r, c, :, idx_time), [], 1) ./ 9.80665;       % meters
+
+    % From ERA5's website, convert geopotential height to geometric height
+    % (https://confluence.ecmwf.int/display/CKB/ERA5%3A+compute+pressure+and+geopotential+on+model+levels%2C+geopotential+height+and+geometric+height)
+    % This is likely to be very similar since geopotential height is close
+    % to the geometric height in the lower atmosphere
+    con = physical_constants;
+    alt = con.R_earth * Z ./(con.R_earth - Z);       % meters - geometric height
 
     % check total column amount
-    total_column_pw(nn) = trapz(radiosonde(idx_min).sounding_data(:,15), rho);            % kg / m^2
-    % total_column_pw = trapz(radiosonde(idx_minTime).sounding_data(:,15), waterVapor_concentration_cm3.*1e6 .* (con.Mol_mass_h2o_vap/con.N_A))            % kg / m^2
+    total_column_pw(nn) = trapz(alt, rho_v);            % kg / m^2
+
+    % ----------------------------------------------------
+    % Find the altitude level where CLWC is greater than 0
+    is_cloud_idx = find(clwc_2keep > 0);
+
+    if isempty(is_cloud_idx) == true
+
+        error([newline, 'No cloud found for profile ', num2str(nn), newline])
+
+    end
 
 
     % compute the above cloud precipitable water amount
-    above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer):end,15), rho(cloud_top(idx_cldTop_layer):end));
+    above_cloud_pw(nn) = trapz( alt( (is_cloud_idx(end) +1) : end ), rho_v( (is_cloud_idx(end) +1) : end ));            % kg / m^2
 
     % -----------------------------------------------------------------------------------
 
 
+    % ----------------------------------------------------
+    % Define the cloud top and base height and pressure
 
+    cloud_topHeight = alt(is_cloud_idx(end)+1);       % meters - altitude above detected cloud without CLWC > 0
+    cloud_topPressure = p(is_cloud_idx(end)+1);       % meters - pressure above detected cloud without CLWC > 0
+    
+    % check if cloud was detected at the lowest pressure level
+    if is_cloud_idx(1)==1
+
+        cloud_baseHeight = alt(is_cloud_idx(1));        % meters - altitude below detected cloud without CLWC > 0
+        cloud_basePressure = p(is_cloud_idx(1));        % meters - pressure below detected cloud without CLWC > 0
+
+    elseif is_cloud_idx(1)>1
+        
+        cloud_baseHeight = alt(is_cloud_idx(1)-1);        % meters - altitude below detected cloud without CLWC > 0
+        cloud_basePressure = p(is_cloud_idx(1)-1);        % meters - pressure below detected cloud without CLWC > 0
+    end
+
+    
+    
+    % ----------------------------------------------------
+
+    % store the temperature, pressure and RH profiles 
+    temp_prof{nn} = T;   % K
+    pressure_prof{nn} = p;  % mb
+    watVap_prof{nn} = RH_2keep;  % percent
+    rho_v_prof{nn} = rho_v;     % kg/m^3 
+    watVap_concentration_prof{nn} = waterVapor_concentration_cm3;   %  #/cm^3
+    clwc_prof{nn} = clwc_2keep;       % g/m^3
+    altitude_prof{nn} = alt;          % meters
+
+
+    
+    % ----------------------------------------------------
+    % Keep the spatial distance and temporal differences
+    dist_2_VR(nn) = min_spatialDiff;      % meters
+    time_2_VR{nn} = min_timeDiff;       % duration object
 
 end
 
@@ -246,9 +309,30 @@ end
 
 
 
+%% Save the outputs to a mat file
+
+if strcmp(which_computer,'anbu8374')==true
+
+
+    folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/'];
 
 
 
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+
+    folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
+
+
+end
+
+
+
+save([folderpath_2save,'ERA5_profiles_closest_to_VR_profiles', char(datetime("today")),'.mat'],...
+    "total_column_pw", "above_cloud_pw", "cloud_topHeight", "cloud_baseHeight", "cloud_basePressure",...
+    "cloud_topPressure", "temp_prof", "watVap_prof", "pressure_prof", "altitude_prof", "rho_v_prof",...
+    "watVap_concentration_prof", "clwc_prof", "dist_2_VR", "time_2_VR")
 
 
 
@@ -258,296 +342,6 @@ end
 
 
 
-
-
-
-%% Convert temperature from Kelvin to Celcius
-
-temperature = temperature - 273.15; % Convert temperature to Celsius
-
-%% Plot just the ERA5 data
-
-% Create a figure for the vertical profile
-figure;
-hold on;
-
-time_idx = 10;
-lat_idx = 10;
-long_idx = 10;
-
-fnt_sz = 20;
-
-
-
-% Plot temperature
-subplot(1,3,1)
-semilogy(reshape(temperature(lat_idx, long_idx, :, time_idx), [], 1),...
-    p, 'Color', mySavedColors(61,'fixed'));
-xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-grid on; grid minor
-
-% flip y axis
-set(gca, 'YDir', 'reverse')
-
-
-
-
-% Plot specific cloud liquid water content
-subplot(1,3,2)
-semilogy(reshape(clwc(lat_idx, long_idx, :, time_idx), [], 1),...
-    p, 'Color', mySavedColors(61,'fixed'));
-% plot(reshape(clwc_specific(lat_idx, long_idx, :, time_idx), [], 1),...
-%     pressure, 'Color', mySavedColors(61,'fixed'));
-xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-
-grid on; grid minor
-% flip y axis
-set(gca, 'YDir', 'reverse')
-
-
-
-% Plot relative humidity
-subplot(1,3,3)
-semilogy(reshape(RH(lat_idx, long_idx, :, time_idx), [], 1),...
-    p, 'Color', mySavedColors(61,'fixed'));
-xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-grid on; grid minor
-
-% flip y axis
-set(gca, 'YDir', 'reverse')
-
-
-
-
-%% LOAD VOCALS-REx data in-situ aircraft data
-
-
-% ----- November 9 data -----
-%vocalsRexFile = 'RF11.20081109.125700_213600.PNI.nc';
-
-
-% ----- November 11 data -----
-vocalsRexFile = 'RF12.20081111.125000_214500.PNI.nc';
-
-
-
-
-% ---------------------------------------------------------------------
-% ------------ Do you want to load VOCALS-REx data? -------------------
-% ---------------------------------------------------------------------
-
-
-loadVOCALSdata = true;
-
-% % ---------------------------------------------------------------------
-% % ----------- Do you want to use VOCALS-REx pixels? -------------------
-% % ---------------------------------------------------------------------
-%
-% % If flag below is true, only suitable pixels within the VOCALS-REx data set
-% % will be used
-% useVOCALS_pixelLocations = true;
-
-
-
-if loadVOCALSdata==true
-    vocalsRex = readVocalsRex([vocalsRexFolder,vocalsRexFile]);
-
-end
-
-
-%% Find vertical profiles
-
-% ------------------------------------------------
-% ----- We dont need all of this data ------------
-% ------------------------------------------------
-
-% ----- Find all vertical profiles within VOCALS-REx data ------
-% find all vertical profiles in the vocals-REx data set. Vertical profiles
-% qualify if the total number concentration is above 10^0 and relatively
-% flat, the plane is climbing in altitude, and clears the cloud deck from
-% bottom to top. If this is all true, save the vocals rex data
-lwc_threshold = 0.03;           % g/m^3
-stop_at_max_lwc = false;         % truncate profile after the maximum lwc value
-Nc_threshold = 25;               % # droplets/cm^3
-
-% ----- Find all vertical profiles within VOCALS-REx data ------
-vert_prof = find_verticalProfiles_VOCALS_REx_ver2(vocalsRex, lwc_threshold, stop_at_max_lwc,...
-    Nc_threshold, whatComputer);
-
-clear vocalsRex
-
-
-%% First find the reanalysis data point closest to the VOCALS-Rex measurement
-
-% Let's step through each vertical profile and find the closest point to
-% the reanalysis data
-
-
-
-% we will be computing the arclength between points on an ellipsoid
-% Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
-wgs84 = wgs84Ellipsoid("m");
-
-% Set up an empty array for each vocals-rex profile
-era5_minDist = zeros(1, length(vert_prof));
-time_diff_era5_VR = zeros(1, length(vert_prof));
-
-% Step through each vertical profile and find the MODIS pixel that overlaps
-% with the mid point of the in-situ sample
-for nn = 1:length(vert_prof)
-
-
-
-
-    dist_btwn_era5_and_VR = distance(lat, long, vert_prof(nn).latitude(round(end/2)),...
-        vert_prof(nn).longitude(round(end/2)), wgs84);
-
-    [era5_minDist(nn), index_minDist] = min(dist_btwn_era5_and_VR, [], 'all');            % m - minimum distance
-
-    %
-    % % compute the time between the modis pixel closest to the VR sampled
-    % % path and the time VOCALS was recorded
-    % time_diff_era5_VR(nn) = abs(utcTime - vert_prof(nn).time_utc(round(end/2))) * 60;                         % minutes
-
-
-end
-
-
-%% Let's plot an example vertical profile from the same day as one of my retrievals from paper 1
-% find the radiosonde closest in time
-
-% step through each vertical profile and plot the radiosonde measurements
-% closest in time
-
-fnt_sz = 26;
-lgnd_fnt = 20;
-
-era5_clr = 'k';
-C130_clr = 61;
-
-
-
-for nn = 1:length(vert_prof)
-
-    % Find the index of the closest launch time to a specific retrieval time
-    targetTime = datetime(2008, 11, 11, floor(vert_prof(nn).time_utc(1)),...
-        round(60*(vert_prof(nn).time_utc(1) - floor(vert_prof(nn).time_utc(1)))), 0,...
-        'TimeZone', 'UTC'); % Example target time
-
-    [~, closestIndex] = min(abs(utcTime - targetTime));
-
-
-    % plot the temperature, pressure and relative humidity as a function of
-    % height for the index determined above
-
-
-    % Create a figure for the vertical profile
-    figure;
-    hold on;
-
-    % Plot temperature
-    subplot(2,3,1)
-    semilogy(reshape(temperature(lat_idx, long_idx, :, closestIndex), [], 1),...
-        p, 'Color', 'k');
-    xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-
-    grid on; grid minor
-    % flip y axis
-    set(gca, 'YDir', 'reverse')
-
-    hold on
-    plot(vert_prof(nn).temp, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('ERA-5', 'Aircraft','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-        'Color', 'white', 'TextColor', 'k')
-
-
-
-
-    % Plot CLWC
-    subplot(2,3,2)
-    semilogy(reshape(clwc(lat_idx, long_idx, :, closestIndex), [], 1),...
-        p, 'Color', era5_clr);
-    xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-
-    grid on; grid minor
-    % flip y axis
-    set(gca, 'YDir', 'reverse')
-
-    hold on
-    plot(vert_prof(nn).lwc, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-        'Color', 'white', 'TextColor', 'k')
-
-
-    % title(['Radiosonde - (', num2str(lat(closestIndex)), ',', num2str(long(closestIndex)),...
-    %     ') - ', num2str(month(closestIndex)), '/', num2str(day(closestIndex)), '/2008 - ',...
-    %     num2str(hour(closestIndex)), ':', num2str(minute(closestIndex)), ' UTC'], ...
-    %     'FontSize', 20, 'Interpreter', 'latex')
-
-
-
-
-    % Plot relative humidity
-    subplot(2,3,3)
-    semilogy(reshape(RH(lat_idx, long_idx, :, closestIndex), [], 1),...
-        p, 'Color', era5_clr);
-    xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    grid on; grid minor
-
-    % flip y axis
-    set(gca, 'YDir', 'reverse')
-
-    hold on
-    plot(vert_prof(nn).relative_humidity, vert_prof(nn).pres, 'Color', mySavedColors(C130_clr, 'fixed'))
-    legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-        'Color', 'white', 'TextColor', 'k')
-
-
-
-
-
-    % Plot the effective radius
-    subplot(2,3,4)
-    plot(vert_prof(nn).re, vert_prof(nn).altitude, 'Color', mySavedColors(C130_clr, 'fixed'));
-    xlabel('Effective Radius ($\mu m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    ylabel('Altitude ($m$)', 'Interpreter','latex', 'FontSize', fnt_sz)
-    title('In-situ droplet size - aircraft', 'Interpreter','latex', 'FontSize', fnt_sz)
-    grid on; grid minor
-    % ylim([0, altitude(end)])
-
-
-    % Show the position of the radiosonde launch and the airplane when
-    % sampling the cloud
-    subplot(2,3,5)
-    % Plot the location of the radiosonde launch
-    geoscatter(lat(closestIndex), long(closestIndex), 100, 'k', 'filled', 'DisplayName', 'ERA-5 Reanalysis');
-    hold on;
-
-    % Plot the location of the sampled cloud
-    geoscatter(vert_prof(nn).latitude(1), vert_prof(nn).longitude(1), 100, 'b', 'filled', 'DisplayName', 'Sampled Cloud');
-    legend('show', 'Location', 'best', 'FontSize', lgnd_fnt, 'Interpreter', 'latex');
-
-
-    set(gcf, 'Position', [0,0, 2200, 1000])
-
-
-
-
-
-    % ---- Second plot --------
-    % Make geoscatter plot showing the location of the radiosonde launch and
-    % the location of the sampled cloud (vertical profile)
-    % figure;
-    % geoscatter()
-
-
-end
 
 
 

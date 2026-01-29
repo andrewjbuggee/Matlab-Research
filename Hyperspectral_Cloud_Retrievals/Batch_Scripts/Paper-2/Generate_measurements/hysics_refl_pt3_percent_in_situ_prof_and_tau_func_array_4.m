@@ -481,15 +481,6 @@ inputs.RT.lambda_forTau = 500;            % nm
 
 
 
-
-% Define the parameterization scheme used to comptue the optical quantities
-% within the INP file, i.e. what function call that tells libRadtran how to
-% compute scattering and optical quantities
-
-% inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
-inputs.RT.wc_parameterization = 'mie interpolate';
-
-
 % --------------------------------------------------------------
 % --------------------------------------------------------------
 
@@ -796,6 +787,8 @@ re = cell(num_meas, 1);
 lwc = cell(num_meas, 1);
 z = cell(num_meas, 1);
 tau = cell(num_meas, 1);
+alpha_param = cell(num_meas, 1);
+
 
 
 % --------------------------------------------------------
@@ -841,6 +834,26 @@ time_of_flight(nn) = ds_cdp.ensemble_profiles{measurement_idx}.time_utc(round(le
 
 % store the optical depth of each profile
 tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end);
+
+
+% ------------------------------------------------------------------------------
+% --- Define the assumed effective variance of the droplet size distribution ---
+% ------------------------------------------------------------------------------
+% store the alpha parameter that best first the gamma distribution
+
+
+
+% Define the parameterization scheme used to comptue the optical quantities
+% within the INP file, i.e. what function call that tells libRadtran how to
+% compute scattering and optical quantities
+% inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+
+inputs.RT.wc_parameterization = 'mie interpolate';
+
+
+
+
+
 
 
 if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true

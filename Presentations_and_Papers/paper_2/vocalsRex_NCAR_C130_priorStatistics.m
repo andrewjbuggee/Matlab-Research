@@ -1226,8 +1226,8 @@ title('$r_{bot}$ trimmed statistics and fits', ...
 
 
 
-%% Load Above cloud precipitable water data drom VOCALS-REx radisonde data
-
+%% Load Above cloud precipitable water data from VOCALS-REx radisonde data
+% ------------------------------------------------------------------------
 
 if strcmp(whatComputer,'anbu8374')==true
 
@@ -1302,6 +1302,112 @@ legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'Color', 'white', 'TextColor', 'k')
 title('$acpw$ statistics and fits', ...
     'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
+
+
+
+
+%%
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Load Above cloud precipitable water data from ERA5 Reanalysis Data
+% ------------------------------------------------------------------------
+
+if strcmp(whatComputer,'anbu8374')==true
+
+
+    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+
+
+elseif strcmp(whatComputer,'andrewbuggee')==true
+
+
+    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+
+end
+
+radiosonde = load([folderpath,...
+    'precipitable_water_stats_for_paper2_combined_12-Nov-2025.mat']);
+
+% --------------------------------------------------------
+% ------- ABOVE CLOUD PRECIPITABLE WATER FITTING ---------
+% --------------------------------------------------------
+% Let's also fit these three distributions to the optical depth data
+significance_lvl = 0.05;    % 5% risk of false rejection
+
+
+% Kolmogorov test is better for this data set because of the outliers
+
+% if p < significance_lvl:
+%     h = 1 (true)  → REJECT the null hypothesis → Distribution is a BAD fit
+% else:
+%     h = 0 (false) → FAIL TO REJECT → Distribution is a GOOD fit (or at least acceptable)
+
+
+% fit the number concentration data to a normal distribution
+acpw_fit_normal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'normal');
+% [acpw_reject_normal, acpw_p_normal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_normal,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_normal, acpw_p_normal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_normal,'alpha', significance_lvl);
+
+
+% fit the number concentration content data to a log-normal distribution
+acpw_fit_lognormal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'lognormal');
+% [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_lognormal,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_lognormal, acpw_p_lognormal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_lognormal,'alpha', significance_lvl);
+
+
+% fit the total number concentration data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+% [acpw_reject_gamma, acpw_p_gamma] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+%     'CDF', acpw_fit_gamma,'alpha', significance_lvl, 'NParams', 2);
+[acpw_reject_gamma, acpw_p_gamma] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+    'CDF', acpw_fit_gamma,'alpha', significance_lvl);
+
+% Plot results
+lgnd_fnt = 20;
+
+figure; histogram(radiosonde.combined_aboveCloud_pw_timeAndSpace,'NumBins', 30, 'Normalization','pdf')
+hold on
+xVals = linspace(min(radiosonde.combined_aboveCloud_pw_timeAndSpace),...
+    max(radiosonde.combined_aboveCloud_pw_timeAndSpace), 1000);
+plot(xVals, pdf(acpw_fit_normal, xVals))
+plot(xVals, pdf(acpw_fit_lognormal, xVals))
+plot(xVals, pdf(acpw_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('$acpw$ statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
+
 
 
 
