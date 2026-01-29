@@ -183,20 +183,104 @@ for nn = 1:length(ensemble_profiles)
     % % multiply these two together and find the smallest value.
     % [~, idx_min] = min(time_diff_sort.*dist_btwn_sort);
 
+    
 
     %% Find the radiosonde closest in time to the profile
+     
+    % % compute the time between the radiosonde launch and the C130 measured
+    % % profile
+    % time_diff_C130_radiosonde = datetime(ensemble_profiles{nn}.dateOfFlight.Year, ensemble_profiles{nn}.dateOfFlight.Month,...
+    %     ensemble_profiles{nn}.dateOfFlight.Day, floor(ensemble_profiles{nn}.time_utc(round(end/2))),...
+    %     floor(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2))))),...
+    %     round(60*(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2)))) - ...
+    %     floor(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2))))))),...
+    %     'TimeZone','UTC') - [radiosonde.release_time];
+    % 
+    % % Find the minimum
+    % [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % duration object - minimum time
+    % 
+    % % Check that the radiosonde profile selected is over ocean
+    % % But some days don't have any radiosondes over the ocean. In that
+    % % case, just use the radiosonde closest in time
+    % % Also, the soundings taken at Paposo seem lousy. Don't use them
+    % if strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
+    %         strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
+    % 
+    %     release_sites = {radiosonde.release_site};
+    %     onShip = zeros(1, length(release_sites));
+    % 
+    %     for rr = 1:length(release_sites)
+    % 
+    %         if strcmp(release_sites{rr}(1:3), 'R/V')==true
+    % 
+    %             onShip(rr) = true;
+    % 
+    %         end
+    % 
+    %     end
+    % 
+    %     % if there are radiosondes released over the ocean, then I will find
+    %     % the radiosonde launched closest in time to the measurement time of
+    %     % the vertical profile
+    % 
+    %     if sum(onShip)>0
+    % 
+    %         while strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
+    %                 strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
+    % 
+    %             % this radiosonde is over land, find the radiosonde closest in time
+    %             % to the vertical profile over ocean
+    %             time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
+    %             % Find the minimum
+    %             [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+    % 
+    %         end
+    % 
+    %     elseif sum(onShip)==0 && strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
+    % 
+    %         % Find the closest time the isn't at the Paposo site
+    %         while strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
+    % 
+    %             % this radiosonde is over land, find the radiosonde closest in time
+    %             % to the vertical profile over ocean
+    %             time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
+    %             % Find the minimum
+    %             [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+    % 
+    %         end
+    % 
+    % 
+    %     end
+    % 
+    % 
+    % end
 
-    % compute the time between the radiosonde launch and the C130 measured
-    % profile
-    time_diff_C130_radiosonde = datetime(ensemble_profiles{nn}.dateOfFlight.Year, ensemble_profiles{nn}.dateOfFlight.Month,...
-        ensemble_profiles{nn}.dateOfFlight.Day, floor(ensemble_profiles{nn}.time_utc(round(end/2))),...
-        floor(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2))))),...
-        round(60*(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2)))) - ...
-        floor(60*(ensemble_profiles{nn}.time_utc(round(end/2)) - floor(ensemble_profiles{nn}.time_utc(round(end/2))))))),...
-        'TimeZone','UTC') - [radiosonde.release_time];
 
-    % Find the minimum
-    [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % duration object - minimum time
+
+    %% Find the radiosonde closest in space to the C130 sampled profile
+
+
+
+    % each radiosonde cls file contains multiple radiosondes each day. Find
+    % which profile is closest in space to the vertical profile
+    % store the MODIS latitude and longitude
+    radiosonde_lat = [radiosonde.latitude];
+    radiosonde_long = [radiosonde.longitude];
+
+
+    % we will be computing the arclength between points on an ellipsoid
+    % Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
+    wgs84 = wgs84Ellipsoid("m");
+
+
+    % Step through each vertical profile and find the MODIS pixel that overlaps
+    % with the mid point of the in-situ sample
+
+    dist_btwn_C130_radiosonde = distance(radiosonde_lat, radiosonde_long, ensemble_profiles{nn}.latitude(round(end/2)),...
+        ensemble_profiles{nn}.longitude(round(end/2)), wgs84);                                  % m - minimum distance
+
+    [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
+
 
     % Check that the radiosonde profile selected is over ocean
     % But some days don't have any radiosondes over the ocean. In that
@@ -227,11 +311,12 @@ for nn = 1:length(ensemble_profiles)
             while strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
                     strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
 
-                % this radiosonde is over land, find the radiosonde closest in time
+                % this radiosonde is over land, find the radiosonde closest
+                % in space
                 % to the vertical profile over ocean
-                time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
+                dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
                 % Find the minimum
-                [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+                [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
 
             end
 
@@ -240,11 +325,12 @@ for nn = 1:length(ensemble_profiles)
             % Find the closest time the isn't at the Paposo site
             while strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
 
-                % this radiosonde is over land, find the radiosonde closest in time
+                % this radiosonde is over land, find the radiosonde closest
+                % in space
                 % to the vertical profile over ocean
-                time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
+                dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
                 % Find the minimum
-                [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+                [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
 
             end
 
@@ -253,91 +339,6 @@ for nn = 1:length(ensemble_profiles)
 
 
     end
-
-
-
-    %% Find the radiosonde closest in space to the C130 sampled profile
-
-
-
-    % % each radiosonde cls file contains multiple radiosondes each day. Find
-    % % which profile is closest in space to the vertical profile
-    % % store the MODIS latitude and longitude
-    % radiosonde_lat = [radiosonde.latitude];
-    % radiosonde_long = [radiosonde.longitude];
-    %
-    %
-    % % we will be computing the arclength between points on an ellipsoid
-    % % Create a World Geodetic System of 1984 (WGS84) reference ellipsoid with units of meters.
-    % wgs84 = wgs84Ellipsoid("m");
-    %
-    %
-    % % Step through each vertical profile and find the MODIS pixel that overlaps
-    % % with the mid point of the in-situ sample
-    %
-    % dist_btwn_C130_radiosonde = distance(radiosonde_lat, radiosonde_long, ensemble_profiles{nn}.latitude(round(end/2)),...
-    %     ensemble_profiles{nn}.longitude(round(end/2)), wgs84);                                  % m - minimum distance
-    %
-    % [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    %
-    %
-    % % Check that the radiosonde profile selected is over ocean
-    % % But some days don't have any radiosondes over the ocean. In that
-    % % case, just use the radiosonde closest in time
-    % % Also, the soundings taken at Paposo seem lousy. Don't use them
-    % if strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
-    %         strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    %
-    %     release_sites = {radiosonde.release_site};
-    %     onShip = zeros(1, length(release_sites));
-    %
-    %     for rr = 1:length(release_sites)
-    %
-    %         if strcmp(release_sites{rr}(1:3), 'R/V')==true
-    %
-    %             onShip(rr) = true;
-    %
-    %         end
-    %
-    %     end
-    %
-    %     % if there are radiosondes released over the ocean, then I will find
-    %     % the radiosonde launched closest in time to the measurement time of
-    %     % the vertical profile
-    %
-    %     if sum(onShip)>0
-    %
-    %         while strcmp(radiosonde(idx_min).release_site(1:3), 'R/V') ~= true ||...
-    %                 strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    %
-    %             % this radiosonde is over land, find the radiosonde closest
-    %             % in space
-    %             % to the vertical profile over ocean
-    %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
-    %             % Find the minimum
-    %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    %
-    %         end
-    %
-    %     elseif sum(onShip)==0 && strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    %
-    %         % Find the closest time the isn't at the Paposo site
-    %         while strcmp(radiosonde(idx_min).release_site(1:4), 'SCQN') == true
-    %
-    %             % this radiosonde is over land, find the radiosonde closest
-    %             % in space
-    %             % to the vertical profile over ocean
-    %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
-    %             % Find the minimum
-    %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
-    %
-    %         end
-    %
-    %
-    %     end
-    %
-    %
-    % end
 
 
 
@@ -545,6 +546,8 @@ for nn = 1:length(ensemble_profiles)
 
             % mark cloud-base as NOT found
             cloud_base_determined_radSonde = false;
+
+            warning([newline, 'No cloud base detected for profile ', num2str(nn), newline])
 
 
         end
@@ -875,33 +878,33 @@ end
 % Let's also fit these three distributions to the optical depth data
 
 % fit the number concentration data to a normal distribution
-acpw_fit_normal = fitdist(combined_aboveCloud_pw_timeAndSpace, 'normal');
-[acpw_reject_normal, acpw_p_normal] = chi2gof(tau_c, 'CDF', acpw_fit_normal,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% fit the number concentration content data to a log-normal distribution
-acpw_fit_lognormal = fitdist(tau_c, 'lognormal');
-[acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(tau_c, 'CDF', acpw_fit_lognormal,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% fit the total number concentration data to a gamma distribution - use my custom
-% libRadtran gamma distribution
-acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(tau_c);
-[acpw_reject_gamma, acpw_p_gamma] = chi2gof(tau_c, 'CDF', acpw_fit_gamma,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% Plot results
-lgnd_fnt = 20;
-
-figure; histogram(tau_c,'NumBins', 30, 'Normalization','pdf')
-hold on
-xVals = linspace(min(tau_c), max(tau_c), 1000);
-plot(xVals, pdf(acpw_fit_normal, xVals))
-plot(xVals, pdf(acpw_fit_lognormal, xVals))
-plot(xVals, pdf(acpw_fit_gamma, xVals))
-grid on; grid minor
-legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
-    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-    'Color', 'white', 'TextColor', 'k')
-title('$acpw$ statistics and fits', ...
-    'FontSize', 20, 'Interpreter', 'latex')
+% acpw_fit_normal = fitdist(combined_aboveCloud_pw_timeAndSpace, 'normal');
+% [acpw_reject_normal, acpw_p_normal] = chi2gof(tau_c, 'CDF', acpw_fit_normal,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % fit the number concentration content data to a log-normal distribution
+% acpw_fit_lognormal = fitdist(tau_c, 'lognormal');
+% [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(tau_c, 'CDF', acpw_fit_lognormal,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % fit the total number concentration data to a gamma distribution - use my custom
+% % libRadtran gamma distribution
+% acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(tau_c);
+% [acpw_reject_gamma, acpw_p_gamma] = chi2gof(tau_c, 'CDF', acpw_fit_gamma,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % Plot results
+% lgnd_fnt = 20;
+% 
+% figure; histogram(tau_c,'NumBins', 30, 'Normalization','pdf')
+% hold on
+% xVals = linspace(min(tau_c), max(tau_c), 1000);
+% plot(xVals, pdf(acpw_fit_normal, xVals))
+% plot(xVals, pdf(acpw_fit_lognormal, xVals))
+% plot(xVals, pdf(acpw_fit_gamma, xVals))
+% grid on; grid minor
+% legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+%     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% title('$acpw$ statistics and fits', ...
+%     'FontSize', 20, 'Interpreter', 'latex')
