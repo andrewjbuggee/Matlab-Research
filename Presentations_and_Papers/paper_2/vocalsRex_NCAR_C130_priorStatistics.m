@@ -1206,25 +1206,46 @@ title('$r_{bot}$ trimmed statistics and fits', ...
 
 
 %%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
 
 %% Load Above cloud precipitable water data from VOCALS-REx radisonde data
 % ------------------------------------------------------------------------
@@ -1297,6 +1318,10 @@ plot(xVals, pdf(acpw_fit_normal, xVals))
 plot(xVals, pdf(acpw_fit_lognormal, xVals))
 plot(xVals, pdf(acpw_fit_gamma, xVals))
 grid on; grid minor
+
+xlabel('$pw_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize', lgnd_fnt+3)
+ylabel('Counts', 'Interpreter','latex', 'FontSize', lgnd_fnt+3)
+
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
@@ -1311,20 +1336,46 @@ title('$acpw$ statistics and fits', ...
 
 
 %%
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
 
 
 %% Load Above cloud precipitable water data from ERA5 Reanalysis Data
@@ -1333,20 +1384,22 @@ title('$acpw$ statistics and fits', ...
 if strcmp(whatComputer,'anbu8374')==true
 
 
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+    folderpath_era5 = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
 
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
+    error([newline, 'Need path!', newline])
 
-    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
+    folderpath_era5 = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
 
 end
 
-radiosonde = load([folderpath,...
-    'precipitable_water_stats_for_paper2_combined_12-Nov-2025.mat']);
+% load ERA5 data
+era5 = load([folderpath_era5,...
+    'ERA5_profiles_closest_to_VR_profiles_30-Jan-2026.mat']);
+
+
 
 % --------------------------------------------------------
 % ------- ABOVE CLOUD PRECIPITABLE WATER FITTING ---------
@@ -1364,40 +1417,44 @@ significance_lvl = 0.05;    % 5% risk of false rejection
 
 
 % fit the number concentration data to a normal distribution
-acpw_fit_normal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'normal');
+acpw_fit_normal = fitdist(era5.above_cloud_pw, 'normal');
 % [acpw_reject_normal, acpw_p_normal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_normal,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_normal, acpw_p_normal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+[acpw_reject_normal, acpw_p_normal] = kstest(era5.above_cloud_pw,...
     'CDF', acpw_fit_normal,'alpha', significance_lvl);
 
 
 % fit the number concentration content data to a log-normal distribution
-acpw_fit_lognormal = fitdist(radiosonde.combined_aboveCloud_pw_timeAndSpace, 'lognormal');
+acpw_fit_lognormal = fitdist(era5.above_cloud_pw, 'lognormal');
 % [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_lognormal,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_lognormal, acpw_p_lognormal] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+[acpw_reject_lognormal, acpw_p_lognormal] = kstest(era5.above_cloud_pw,...
     'CDF', acpw_fit_lognormal,'alpha', significance_lvl);
 
 
 % fit the total number concentration data to a gamma distribution - use my custom
 % libRadtran gamma distribution
-acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(era5.above_cloud_pw);
 % [acpw_reject_gamma, acpw_p_gamma] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_gamma,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_gamma, acpw_p_gamma] = kstest(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
+[acpw_reject_gamma, acpw_p_gamma] = kstest(era5.above_cloud_pw,...
     'CDF', acpw_fit_gamma,'alpha', significance_lvl);
 
 % Plot results
 lgnd_fnt = 20;
 
-figure; histogram(radiosonde.combined_aboveCloud_pw_timeAndSpace,'NumBins', 30, 'Normalization','pdf')
+figure; histogram(era5.above_cloud_pw,'NumBins', 30, 'Normalization','pdf')
 hold on
-xVals = linspace(min(radiosonde.combined_aboveCloud_pw_timeAndSpace),...
-    max(radiosonde.combined_aboveCloud_pw_timeAndSpace), 1000);
+xVals = linspace(min(era5.above_cloud_pw),...
+    max(era5.above_cloud_pw), 1000);
 plot(xVals, pdf(acpw_fit_normal, xVals))
 plot(xVals, pdf(acpw_fit_lognormal, xVals))
 plot(xVals, pdf(acpw_fit_gamma, xVals))
 grid on; grid minor
+
+xlabel('$pw_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize', lgnd_fnt+3)
+ylabel('Counts', 'Interpreter','latex', 'FontSize', lgnd_fnt+3)
+
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
