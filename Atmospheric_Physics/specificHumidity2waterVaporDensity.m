@@ -132,8 +132,8 @@ if ~isequal(size(q), size(T)) || ~isequal(size(q), size(p))
 end
 
 % Physical constants
-R_d = 287.05;        % Specific gas constant for dry air [J/(kg·K)]
-R_v = 461.5;         % Specific gas constant for water vapor [J/(kg·K)]
+R_d = 287.052874;        % Specific gas constant for dry air [J/(kg·K)]
+R_v = 461.52;         % Specific gas constant for water vapor [J/(kg·K)]
 epsilon = R_d / R_v; % Ratio of gas constants ≈ 0.622 [dimensionless]
 
 % Check if specific humidity is in g/kg and convert to kg/kg if needed

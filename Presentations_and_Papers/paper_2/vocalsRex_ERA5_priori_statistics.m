@@ -90,9 +90,12 @@ rho_v_prof = cell(length(ensemble_profiles), 1);
 watVap_concentration_prof = cell(length(ensemble_profiles), 1);
 clwc_prof = cell(length(ensemble_profiles), 1);
 
-
 dist_2_VR = zeros(length(ensemble_profiles), 1);
 time_2_VR = cell(length(ensemble_profiles), 1);
+
+
+test = zeros(length(ensemble_profiles), 1);
+
 
 
 for nn = 1:length(ensemble_profiles)
@@ -202,7 +205,7 @@ for nn = 1:length(ensemble_profiles)
     clear RH
 
     % extract specific humidity
-    q = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 'q');
+    q = ncread([folderpath_era5, era5_month_folderpath, era5_filename], 'q');    % [kg/kg]
     % grab only the data you need and delete the extra
     q_2keep = reshape( q(r, c, :, idx_time), [], 1);
     clear q
@@ -224,7 +227,9 @@ for nn = 1:length(ensemble_profiles)
 
 
     % -----------------------------------------------------------------------------------
-    % compute the above cloud total precipitable water
+    % -----------------------------------------------------------------------------------
+    % ---------------- compute the above cloud total precipitable water -----------------
+    % -----------------------------------------------------------------------------------
     % Compute the mass of water vapor per unit volume at all altitudes
     % convert pressure from hPa to Pa
     use_virtual_temp = true;   % more accurate estimate, but the improvement is on the order of 1%
@@ -253,7 +258,12 @@ for nn = 1:length(ensemble_profiles)
     % check total column amount
     total_column_pw(nn) = trapz(alt, rho_v);            % kg / m^2
 
-    % ----------------------------------------------------
+    test(nn) = -1/con.g0 .* trapz(p.*100, q_2keep);     % kg / m^2
+
+    % -----------------------------------------------------------------------------------
+
+
+
     % Find the altitude level where CLWC is greater than 0
     is_cloud_idx = find(clwc > 0);
 
@@ -271,7 +281,9 @@ for nn = 1:length(ensemble_profiles)
 
 
     % ----------------------------------------------------
+    % ----------------------------------------------------
     % Define the cloud top and base height and pressure
+    % ----------------------------------------------------
 
     cloud_topHeight(nn) = alt(is_cloud_idx(end)+1);       % meters - altitude above detected cloud without CLWC > 0
     cloud_topPressure(nn) = p(is_cloud_idx(end)+1);       % meters - pressure above detected cloud without CLWC > 0
@@ -291,6 +303,10 @@ for nn = 1:length(ensemble_profiles)
 
 
     % ----------------------------------------------------
+
+
+
+
 
     % store the temperature, pressure and RH profiles
     temp_prof{nn} = T;   % K
@@ -367,18 +383,18 @@ if strcmp(whatComputer,'anbu8374')==true
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
-    error([newline, 'Need path!', newline])
-
-    folderpath_era5 = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
+    % ***** Define the EAR5 paper 2 data folder *****
+    folderpath_era5 = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
 
     % ***** Define the ensemble profiles folder *****
-    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
 end
 
 era5 = load([folderpath_era5,...
     'ERA5_profiles_closest_to_VR_profiles_30-Jan-2026.mat']);
+
 
 % ---------------------
 % define the ensemble filename
@@ -400,15 +416,123 @@ lgnd_fnt = 20;
 era5_clr = 'k';
 C130_clr = 61;
 
-% Create a figure for the vertical profile
-figure;
-hold on;
+% % Create a figure for the vertical profile
+% fig1 = figure;
+% hold on;
+% 
+% 
+% 
+% 
+% % Plot temperature
+% ax1 = subplot(1,4,1);
+% semilogy(era5.temp_prof{idx_2plt} - 273.15, era5.pressure_prof, 'Color', 'k');
+% xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% 
+% grid on; grid minor
+% % flip y axis
+% set(gca, 'YDir', 'reverse')
+% 
+% hold on
+% plot(ensemble_profiles{idx_2plt}.temp, ensemble_profiles{idx_2plt}.pres, 'Color', mySavedColors(62, 'fixed'))
+% 
+% legend('ERA-5', 'Aircraft','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% 
+% 
+% 
+% 
+% % Plot CLWC
+% ax2 = subplot(1,4,2);
+% semilogy(era5.clwc_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
+% xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% 
+% grid on; grid minor
+% % flip y axis
+% set(gca, 'YDir', 'reverse')
+% 
+% hold on
+% plot(ensemble_profiles{idx_2plt}.lwc, ensemble_profiles{idx_2plt}.pres, 'Color', mySavedColors(62, 'fixed'))
+% 
+% legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% 
+% 
+% % title(['Radiosonde - (', num2str(lat(closestIndex)), ',', num2str(long(closestIndex)),...
+% %     ') - ', num2str(month(closestIndex)), '/', num2str(day(closestIndex)), '/2008 - ',...
+% %     num2str(hour(closestIndex)), ':', num2str(minute(closestIndex)), ' UTC'], ...
+% %     'FontSize', 20, 'Interpreter', 'latex')
+% 
+% 
+% 
+% 
+% % Plot relative humidity
+% ax3 = subplot(1,4,3);
+% semilogy(era5.RH_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
+% xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% grid on; grid minor
+% 
+% % flip y axis
+% set(gca, 'YDir', 'reverse')
+% 
+% hold on
+% plot(ensemble_profiles{idx_2plt}.relative_humidity, ensemble_profiles{idx_2plt}.pres, 'Color', mySavedColors(62, 'fixed'))
+% 
+% legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% 
+% 
+% 
+% 
+% % Plot water vapor number concentration
+% ax4 = subplot(1,4,4);
+% semilogy(era5.watVap_concentration_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
+% xlabel('Vapor ($cm^{-3}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% grid on; grid minor
+% 
+% % flip y axis
+% set(gca, 'YDir', 'reverse')
+% 
+% hold on
+% plot(ensemble_profiles{idx_2plt}.Nc_vapor, ensemble_profiles{idx_2plt}.pres, 'Color', mySavedColors(62, 'fixed'))
+% 
+% legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% 
+% 
+% 
+% % Link the y-axes of the specified axes handles
+% linkaxes([ax1, ax2, ax3, ax4], 'y');
+% 
+% % set the yaxis limits to be a region close to the surface
+% ylim([700, 1000])
+% 
+% set(gcf, 'Position', [0,0, 1400, 850])
 
+
+
+
+
+
+
+
+
+
+
+
+% Create a figure for the vertical profile
+fig1 = figure;
 
 
 
 % Plot temperature
-ax1 = subplot(1,3,1);
+% Create axes
+ax1 = axes('Parent',fig1,'Position',[0.0885714285714286 0.11 0.165607902735562 0.815]);
+hold(ax1,'on');
+
 semilogy(era5.temp_prof{idx_2plt} - 273.15, era5.pressure_prof, 'Color', 'k');
 xlabel('Temperature ($C$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
@@ -427,7 +551,10 @@ legend('ERA-5', 'Aircraft','Interpreter','latex', 'Location','best', 'FontSize',
 
 
 % Plot CLWC
-ax2 = subplot(1,3,2);
+% Create axes
+ax2 = axes('Parent',fig1,'Position',[0.328571428571429 0.11 0.165607902735562 0.815]);
+hold(ax2,'on');
+
 semilogy(era5.clwc_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
 xlabel('cloud LWC ($g/m^3$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
@@ -452,7 +579,10 @@ legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize'
 
 
 % Plot relative humidity
-ax3 = subplot(1,3,3);
+% Create axes
+ax3 = axes('Parent',fig1,'Position',[0.563900247870048 0.11 0.165607902735562 0.815]);
+hold(ax3,'on');
+
 semilogy(era5.RH_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
 xlabel('Relative Humidity ($\%$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
@@ -469,11 +599,45 @@ legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize'
 
 
 
+
+% Plot water vapor number concentration
+% Create axes
+ax4 = axes('Parent',fig1,'Position',[0.800017269146644 0.11 0.165607902735562 0.815]);
+hold(ax4,'on');
+
+semilogy(era5.watVap_concentration_prof{idx_2plt}, era5.pressure_prof, 'Color', 'k');
+xlabel('Vapor ($cm^{-3}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+ylabel('Pressure ($hPa$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+grid on; grid minor
+
+% flip y axis
+set(gca, 'YDir', 'reverse')
+
+hold on
+plot(ensemble_profiles{idx_2plt}.Nc_vapor, ensemble_profiles{idx_2plt}.pres, 'Color', mySavedColors(62, 'fixed'))
+
+legend('ERA-5', 'Aircraft', 'Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+
+
+
 % Link the y-axes of the specified axes handles
-linkaxes([ax1, ax2, ax3], 'y');
+linkaxes([ax1, ax2, ax3, ax4], 'y');
 
 % set the yaxis limits to be a region close to the surface
-ylim([700, 1000])
+% ylim([700, 1000])
+
+set(gcf, 'Position', [0,0, 1400, 850])
+
+
+
+
+
+
+
+
+
+
 
 
 % % Plot the effective radius
