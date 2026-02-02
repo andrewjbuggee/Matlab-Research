@@ -1246,6 +1246,43 @@ title('$r_{bot}$ trimmed statistics and fits', ...
 % *
 % *
 % *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
 
 %% Load Above cloud precipitable water data from VOCALS-REx radisonde data
 % ------------------------------------------------------------------------
@@ -1376,6 +1413,43 @@ title('$acpw$ statistics and fits', ...
 % *
 % *
 % *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
+% *
 
 
 %% Load Above cloud precipitable water data from ERA5 Reanalysis Data
@@ -1389,15 +1463,13 @@ if strcmp(whatComputer,'anbu8374')==true
 
 elseif strcmp(whatComputer,'andrewbuggee')==true
 
-    error([newline, 'Need path!', newline])
-
-    folderpath_era5 = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
+    folderpath_era5 = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/'];
 
 end
 
 % load ERA5 data
 era5 = load([folderpath_era5,...
-    'ERA5_profiles_closest_to_VR_profiles_30-Jan-2026.mat']);
+    'ERA5_profiles_closest_to_73-VR_profiles_01-Feb-2026.mat']);
 
 
 
@@ -1417,36 +1489,36 @@ significance_lvl = 0.05;    % 5% risk of false rejection
 
 
 % fit the number concentration data to a normal distribution
-acpw_fit_normal = fitdist(era5.above_cloud_pw, 'normal');
+acpw_fit_normal = fitdist(era5.above_cloud_pw_usingVR, 'normal');
 % [acpw_reject_normal, acpw_p_normal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_normal,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_normal, acpw_p_normal] = kstest(era5.above_cloud_pw,...
+[acpw_reject_normal, acpw_p_normal] = kstest(era5.above_cloud_pw_usingVR,...
     'CDF', acpw_fit_normal,'alpha', significance_lvl);
 
 
 % fit the number concentration content data to a log-normal distribution
-acpw_fit_lognormal = fitdist(era5.above_cloud_pw, 'lognormal');
+acpw_fit_lognormal = fitdist(era5.above_cloud_pw_usingVR, 'lognormal');
 % [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_lognormal,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_lognormal, acpw_p_lognormal] = kstest(era5.above_cloud_pw,...
+[acpw_reject_lognormal, acpw_p_lognormal] = kstest(era5.above_cloud_pw_usingVR,...
     'CDF', acpw_fit_lognormal,'alpha', significance_lvl);
 
 
 % fit the total number concentration data to a gamma distribution - use my custom
 % libRadtran gamma distribution
-acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(era5.above_cloud_pw);
+acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(era5.above_cloud_pw_usingVR);
 % [acpw_reject_gamma, acpw_p_gamma] = chi2gof(radiosonde.combined_aboveCloud_pw_timeAndSpace,...
 %     'CDF', acpw_fit_gamma,'alpha', significance_lvl, 'NParams', 2);
-[acpw_reject_gamma, acpw_p_gamma] = kstest(era5.above_cloud_pw,...
+[acpw_reject_gamma, acpw_p_gamma] = kstest(era5.above_cloud_pw_usingVR,...
     'CDF', acpw_fit_gamma,'alpha', significance_lvl);
 
 % Plot results
 lgnd_fnt = 20;
 
-figure; histogram(era5.above_cloud_pw,'NumBins', 30, 'Normalization','pdf')
+figure; histogram(era5.above_cloud_pw_usingVR,'NumBins', 30, 'Normalization','pdf')
 hold on
-xVals = linspace(min(era5.above_cloud_pw),...
-    max(era5.above_cloud_pw), 1000);
+xVals = linspace(min(era5.above_cloud_pw_usingVR),...
+    max(era5.above_cloud_pw_usingVR), 1000);
 plot(xVals, pdf(acpw_fit_normal, xVals))
 plot(xVals, pdf(acpw_fit_lognormal, xVals))
 plot(xVals, pdf(acpw_fit_gamma, xVals))
@@ -1458,7 +1530,7 @@ ylabel('Counts', 'Interpreter','latex', 'FontSize', lgnd_fnt+3)
 legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
-title('$acpw$ statistics and fits', ...
+title('$acpw$ from ERA5 w/ VR Adjustment', ...
     'FontSize', 20, 'Interpreter', 'latex')
 
 
@@ -1502,6 +1574,7 @@ title('Effective radius at cloud top', 'Interpreter','latex', 'FontSize', fnt_sz
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp1))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 % --- Plot for the droplet size at cloud bottom ---
 subplot(4,2,3)
@@ -1518,6 +1591,7 @@ title('Effective radius at cloud bottom', 'Interpreter','latex', 'FontSize', fnt
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp2))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 % --- Plot for cloud optical depth ---
 subplot(4,2,5)
@@ -1533,22 +1607,39 @@ title('Cloud optical depth', 'Interpreter','latex', 'FontSize', fnt_sz)
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 % --- Plot for the above cloud precipitable water ---
+% % ** using radiosonde data **
+% subplot(4,2,7)
+% qp4 = qqplot(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+% set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+% set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+% grid on; grid minor;
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+% % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('')
+% title('Above-Cloud Precipitable Water', 'Interpreter','latex', 'FontSize', fnt_sz)
+% % compute the R^2 value from the figure handle and print this in the legend
+% legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
+%     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+
+% ** using ERA5 data with VR adjustment **
 subplot(4,2,7)
-qp4 = qqplot(radiosonde.combined_aboveCloud_pw_timeAndSpace);
+qp4 = qqplot(era5.above_cloud_pw_usingVR);
 set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
 set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('')
-title('Above-Cloud Precipitable Water', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Above Cloud Precipitable Water', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
-
+% ------------------------------------------------------------------------
 
 
 
@@ -1571,6 +1662,7 @@ title('$\ln($Effective radius at cloud top$)$', 'Interpreter','latex', 'FontSize
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp5))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 
 % --- Plot for the droplet size at cloud bottom ---
@@ -1588,6 +1680,7 @@ title('$\ln($Effective radius at cloud bottom$)$', 'Interpreter','latex', 'FontS
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp6))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 % --- Plot for cloud optical depth ---
 subplot(4,2,6)
@@ -1603,22 +1696,41 @@ title('$\ln($Cloud optical depth$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp7))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
 
 
 % --- Plot for the above cloud precipitable water ---
+% % ** using radiosonde data **
+% subplot(4,2,8)
+% qp4 = qqplot(log(radiosonde.combined_aboveCloud_pw_timeAndSpace));
+% set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+% set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+% grid on; grid minor;
+% xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
+% % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
+% ylabel('')
+% title('$\ln($Above Cloud Precipitable Water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+% % compute the R^2 value from the figure handle and print this in the legend
+% legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
+%     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+
+% ** using ERA5 data with VR adjustment **
 subplot(4,2,8)
-qp8 = qqplot(log(radiosonde.combined_aboveCloud_pw_timeAndSpace));
-set(qp8(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
-set(qp8(3), 'LineStyle', '--', 'LineWidth', line_width_2);
+qp4 = qqplot(log(era5.above_cloud_pw_usingVR));
+set(qp4(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
+set(qp4(3), 'LineStyle', '--', 'LineWidth', line_width_2);
 grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('')
-title('$\ln($Above-Cloud Precipitable Water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Above Cloud Precipitable Water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
-legend(['$R^2 = $', num2str(compute_qqplot_R2(qp8))], 'location',...
+legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
+% ------------------------------------------------------------------------
+
 
 set(gcf, 'Position', [0,0, 1700, 950])
 
@@ -1626,18 +1738,18 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% % save .fig file
-% if strcmp(whatComputer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(whatComputer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 400);
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -1664,7 +1776,7 @@ legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
 
-% --- Plot for cloud top height ---
+% --- Plot for cloud Depth ---
 subplot(2,2,2)
 qp3 = qqplot(cloudDepth);
 set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
@@ -1694,7 +1806,7 @@ legend(['$R^2 = $', num2str(compute_qqplot_R2(qp3))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
     'Color', 'white', 'TextColor', 'k')
 
-% --- Plot for cloud top height ---
+% --- Plot for cloud Depth ---
 subplot(2,2,4)
 qp3 = qqplot(log(cloudDepth));
 set(qp3(1), 'MarkerSize', mrkr_sz, 'LineWidth', line_width); % Update for top ensemble
@@ -1714,6 +1826,7 @@ set(gcf, 'Position', [0,0, 1700, 950])
 
 
 
+
 %% Compute the covariance matrix
 
 % Each column represents the samples of a random variable, and each row are
@@ -1727,9 +1840,14 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % I have 73 vertical profiles. How should I arrange the data to take 1
 % value of r_top r_bot and optical depth?
 
-prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
+% ****!!!! Using Radiosonde data !!!!***
+% prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
+% prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
 
-prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
+
+% ****!!!! Using ERA5 data w/ VR adjustment !!!!***
+prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]);
+prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]));
 
 
 % prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
@@ -1781,8 +1899,11 @@ try chol(prior_cov_lin)
     % the last two rows needs to be white to show up better against the
     % background color
     % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
-    set(hStrings(end-1:end, :), 'Color', 'white');
-    set(hStrings(end-4, :), 'Color', 'white');
+    
+    % set(hStrings(end-1:end, :), 'Color', 'white');
+    % set(hStrings(end-4, :), 'Color', 'white');
+    set(hStrings(:, :), 'Color', 'white');
+   
     % The color of the covaraince matrix value for the 3rd column and 3rd
     % row needs to be black to show up better against the background
     set(hStrings(end-5, :), 'Color', 'black');
@@ -1791,18 +1912,19 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    % if strcmp(whatComputer,'anbu8374')==true
-    %     error(['Where do I save the figure?'])
-    % elseif strcmp(whatComputer,'andrewbuggee')==true
-    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    % end
-    % saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.fig']);
-    % 
-    % 
-    % % save .png with 400 DPI resolution
-    % % remove title
-    % title('');
-    % exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix.jpg'],'Resolution', 400);
+    if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+    elseif strcmp(whatComputer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
+
+
+    % save .png with 400 DPI resolution
+    % remove title
+    title('');
+    exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],...
+        'Resolution', 500);
     % -------------------------------------
     % -------------------------------------
 
@@ -1848,9 +1970,15 @@ try chol(prior_cov_lin)
     % the last two rows needs to be white to show up better against the
     % background color
     % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
-    set(hStrings(end-1, :), 'Color', 'white');
-    set(hStrings(end-4, :), 'Color', 'white');
-    set(hStrings(end, :), 'Color', 'black');
+    
+    % set(hStrings(end-1, :), 'Color', 'white');
+    % set(hStrings(end-4, :), 'Color', 'white');
+    % set(hStrings(end, :), 'Color', 'black');
+
+    set(hStrings(:), 'Color', 'white');
+    set(hStrings(11), 'Color', 'black');
+    set(hStrings(end), 'Color', 'black');
+
     % The color of the covaraince matrix value for the 3rd column and 3rd
     % row needs to be black to show up better against the background
     set(hStrings(end-5, :), 'Color', 'black');
@@ -1859,19 +1987,19 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    % if strcmp(whatComputer,'anbu8374')==true
-    %     error(['Where do I save the figure?'])
-    % elseif strcmp(whatComputer,'andrewbuggee')==true
-    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    % end
-    % saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.fig']);
-    % 
-    % 
-    % % save .png with 400 DPI resolution
-    % % remove title
-    % title('');
-    % exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix.jpg'],'Resolution', 400);
-    % -------------------------------------
+    if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+    elseif strcmp(whatComputer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
+
+
+    % save .png with 400 DPI resolution
+    % remove title
+    title('');
+    exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
+    % % -------------------------------------
     % -------------------------------------
 
 
@@ -1904,11 +2032,16 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
 end
 
 
-% combined_aboveCloud_pw_timeAndSpace = radiosonde.combined_aboveCloud_pw_timeAndSpace;
+% acpw = radiosonde.combined_aboveCloud_pw_timeAndSpace;
+acpw = era5.above_cloud_pw_usingVR;
 
 % save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
 %     'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
-%     'tau_c', 'combined_aboveCloud_pw_timeAndSpace')
+%     'tau_c', 'acpw')
+
+save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
+    'prior_cov_lin', 'prior_cov_log','re_top_sample', 're_bot_sample',...
+    'tau_c', 'acpw')
 
 %% Save variables for the forward model covariance matrix
 

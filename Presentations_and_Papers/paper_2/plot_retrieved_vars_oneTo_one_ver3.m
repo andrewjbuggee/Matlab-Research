@@ -1,4 +1,4 @@
-%% Plot three variables - truth vs retrieved with the one-to-one line
+%% Plot five variables - truth vs retrieved with the one-to-one line
 
 clear variables
 
