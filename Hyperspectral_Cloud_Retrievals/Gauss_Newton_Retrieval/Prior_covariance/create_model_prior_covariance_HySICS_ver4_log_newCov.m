@@ -31,17 +31,17 @@ function [GN_inputs] = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_i
 if strcmp(GN_inputs.which_computer, 'anbu8374')==true
 
     prior_stats = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_12-Nov-2025.mat']);
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
 
     prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_14-Nov-2025.mat']);
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'curc')==true
 
     prior_stats = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/prior_covarance_matrix_14-Nov-2025.mat']);
+        'paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
 
 end
 
