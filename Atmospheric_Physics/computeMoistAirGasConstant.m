@@ -5,6 +5,11 @@
 %   (1) Specific_humidity
 
 
+% OUTPUTS
+
+%   (1) R_air_moist - J/kg/K
+
+
 % By Andrew John Buggee
 
 

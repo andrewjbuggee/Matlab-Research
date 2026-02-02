@@ -13,7 +13,7 @@ which_computer = whatComputer;
 if strcmp(which_computer,'anbu8374')==true
 
 
-    folderpath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+    folderpath_radioSonde = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/allSoundings_composite_5mb/'];
 
     % ***** Define the ensemble profiles folder *****
@@ -24,7 +24,7 @@ if strcmp(which_computer,'anbu8374')==true
 elseif strcmp(which_computer,'andrewbuggee')==true
 
 
-    folderpath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    folderpath_radioSonde = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'VOCALS_REx/vocals_rex_data/radiosonde/allSoundings_composite_5mb/'];
 
 
@@ -40,7 +40,8 @@ end
 
 % ---------------------
 % define the ensemble filename
-profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat';
+% profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat';
+profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat';
 
 
 
@@ -62,7 +63,7 @@ load([vocalsRexFolder, profiles]);
 
 %% extract the filenames of each sounding composite file
 
-sounding_files = dir(folderpath);
+sounding_files = dir(folderpath_radioSonde);
 
 % extract the names
 % sounding_file_names = {sounding_files.name};
@@ -78,6 +79,22 @@ sounding_files = dir(folderpath);
 
 total_column_pw = zeros(length(ensemble_profiles), 1);
 above_cloud_pw = zeros(length(ensemble_profiles), 1);
+
+cloud_topHeight = zeros(length(ensemble_profiles), 1);
+cloud_baseHeight = zeros(length(ensemble_profiles), 1);
+
+cloud_topPressure = zeros(length(ensemble_profiles), 1);
+cloud_basePressure = zeros(length(ensemble_profiles), 1);
+
+temp_prof = cell(length(ensemble_profiles), 1);
+watVap_prof = cell(length(ensemble_profiles), 1);
+pressure_prof = cell(length(ensemble_profiles), 1);
+altitude = cell(length(ensemble_profiles), 1);
+
+
+radiosonde_minDist = zeros(length(ensemble_profiles), 1);
+radiosonde_minTime = duration.empty(length(ensemble_profiles), 0);
+
 
 
 for nn = 1:length(ensemble_profiles)
@@ -118,7 +135,7 @@ for nn = 1:length(ensemble_profiles)
 
 
     % Load the radiosonde data
-    radiosonde = read_cls_file([folderpath, sounding_files(mm).name]);
+    radiosonde = read_cls_file([folderpath_radioSonde, sounding_files(mm).name]);
 
     % % each radiosonde cls file contains multiple radiosondes each day. Find
     % % which profile is closest in space to the vertical profile
@@ -171,9 +188,10 @@ for nn = 1:length(ensemble_profiles)
     % % multiply these two together and find the smallest value.
     % [~, idx_min] = min(time_diff_sort.*dist_btwn_sort);
 
+    
 
     %% Find the radiosonde closest in time to the profile
-
+     
     % compute the time between the radiosonde launch and the C130 measured
     % profile
     time_diff_C130_radiosonde = datetime(ensemble_profiles{nn}.dateOfFlight.Year, ensemble_profiles{nn}.dateOfFlight.Month,...
@@ -184,7 +202,7 @@ for nn = 1:length(ensemble_profiles)
         'TimeZone','UTC') - [radiosonde.release_time];
 
     % Find the minimum
-    [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % duration object - minimum time
+    [radiosonde_minTime(nn), idx_min] = min(abs(time_diff_C130_radiosonde));            % duration object - minimum time
 
     % Check that the radiosonde profile selected is over ocean
     % But some days don't have any radiosondes over the ocean. In that
@@ -219,7 +237,7 @@ for nn = 1:length(ensemble_profiles)
                 % to the vertical profile over ocean
                 time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
                 % Find the minimum
-                [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+                [radiosonde_minTime(nn), idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
 
             end
 
@@ -232,7 +250,7 @@ for nn = 1:length(ensemble_profiles)
                 % to the vertical profile over ocean
                 time_diff_C130_radiosonde(idx_min) = duration(48,0,0);                     % set to 24 hours
                 % Find the minimum
-                [radiosonde_min, idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
+                [radiosonde_minTime(nn), idx_min] = min(abs(time_diff_C130_radiosonde));            % m - minimum distance
 
             end
 
@@ -247,7 +265,7 @@ for nn = 1:length(ensemble_profiles)
     %% Find the radiosonde closest in space to the C130 sampled profile
 
 
-
+    % 
     % % each radiosonde cls file contains multiple radiosondes each day. Find
     % % which profile is closest in space to the vertical profile
     % % store the MODIS latitude and longitude
@@ -266,7 +284,7 @@ for nn = 1:length(ensemble_profiles)
     % dist_btwn_C130_radiosonde = distance(radiosonde_lat, radiosonde_long, ensemble_profiles{nn}.latitude(round(end/2)),...
     %     ensemble_profiles{nn}.longitude(round(end/2)), wgs84);                                  % m - minimum distance
     % 
-    % [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
+    % [radiosonde_minDist(nn), idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
     % 
     % 
     % % Check that the radiosonde profile selected is over ocean
@@ -303,7 +321,7 @@ for nn = 1:length(ensemble_profiles)
     %             % to the vertical profile over ocean
     %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
     %             % Find the minimum
-    %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
+    %             [radiosonde_minDist(nn), idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
     % 
     %         end
     % 
@@ -317,7 +335,7 @@ for nn = 1:length(ensemble_profiles)
     %             % to the vertical profile over ocean
     %             dist_btwn_C130_radiosonde(idx_min) = 1e10;                     % set to 10 million meters
     %             % Find the minimum
-    %             [radiosonde_min, idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
+    %             [radiosonde_minDist(nn), idx_min] = min(dist_btwn_C130_radiosonde, [], 'all');            % m - minimum distance
     % 
     %         end
     % 
@@ -332,9 +350,10 @@ for nn = 1:length(ensemble_profiles)
 
     %%
     % check that the radiosonde selected has a cloud
-    % Using Wang et al. 1995, to detect cloud base and top
+    % Using Wang et al. 1995, (actually Wang and Rossow 1995) to detect
+    % cloud base and top
     % relative humidity is the 5th column, altitude of the balloon is the
-    % 15th column
+    % 15th column.
 
     % -------------------------------------------------------------------
     % --------------------- DETECTING CLOUD BASE ------------------------
@@ -363,6 +382,9 @@ for nn = 1:length(ensemble_profiles)
 
                     cloud_base = [cloud_base; lvls_87(ll)];
 
+                    % mark cloud-base as found
+                    cloud_base_determined_radSonde = true;
+
                 end
 
 
@@ -390,6 +412,9 @@ for nn = 1:length(ensemble_profiles)
 
                         cloud_base = [cloud_base; lvls_87(ll)];
 
+                        % mark cloud-base as found
+                        cloud_base_determined_radSonde = true;
+
                     end
 
 
@@ -416,53 +441,15 @@ for nn = 1:length(ensemble_profiles)
 
 
 
-        for ll = 1:length(lvls_84)
-            % the first lvl will always count as a cloud layer
-            if ll==1
+        if numel(lvls_84) > 0
 
-                % compute the difference between the RH at the current level
-                % and the mean RH of the previous 3 levels. If this is a moist
-                % layer, the difference is positive and at least 3
-                if lvls_84(ll)>3
+            for ll = 1:length(lvls_84)
+                % the first lvl will always count as a cloud layer
+                if ll==1
 
-                    change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
-                        mean(radiosonde(idx_min).sounding_data((lvls_84(ll)-3):(lvls_84(ll)-1), 5));
-
-                    if change_in_RH > 3
-                        % Mark this level as a cloud base
-                        cloud_base = [cloud_base; lvls_84(ll)];
-
-                    end
-
-
-                else
-
-                    % (c) the RH is at least 84 if this is a surface level
-                    % So if this is at level 1 2 or 3, is the RH at least 84?
-
-                    % Mark this level as a cloud base
-                    cloud_base = [cloud_base; lvls_84(ll)];
-
-
-                end
-
-
-
-
-
-            else
-
-                % check to see if this level is adjacent to the one before
-                if lvls_84(ll)-lvls_84(ll-1) <= 2
-
-                    % store as moist layer
-
-
-                    % continue to the next level
-
-                else
-
-                    % Then this is a different moist layer to check
+                    % compute the difference between the RH at the current level
+                    % and the mean RH of the previous 3 levels. If this is a moist
+                    % layer, the difference is positive and at least 3
                     if lvls_84(ll)>3
 
                         change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
@@ -471,6 +458,9 @@ for nn = 1:length(ensemble_profiles)
                         if change_in_RH > 3
                             % Mark this level as a cloud base
                             cloud_base = [cloud_base; lvls_84(ll)];
+
+                            % mark cloud-base as found
+                            cloud_base_determined_radSonde = true;
 
                         end
 
@@ -483,6 +473,9 @@ for nn = 1:length(ensemble_profiles)
                         % Mark this level as a cloud base
                         cloud_base = [cloud_base; lvls_84(ll)];
 
+                        % mark cloud-base as found
+                        cloud_base_determined_radSonde = true;
+
 
                     end
 
@@ -490,12 +483,76 @@ for nn = 1:length(ensemble_profiles)
 
 
 
+                else
+
+                    % check to see if this level is adjacent to the one before
+                    if lvls_84(ll)-lvls_84(ll-1) <= 2
+
+                        % store as moist layer
+
+
+                        % continue to the next level
+
+                    else
+
+                        % Then this is a different moist layer to check
+                        if lvls_84(ll)>3
+
+                            change_in_RH = radiosonde(idx_min).sounding_data(lvls_84(ll), 5) - ...
+                                mean(radiosonde(idx_min).sounding_data((lvls_84(ll)-3):(lvls_84(ll)-1), 5));
+
+                            if change_in_RH > 3
+                                % Mark this level as a cloud base
+                                cloud_base = [cloud_base; lvls_84(ll)];
+
+                                % mark cloud-base as found
+                                cloud_base_determined_radSonde = true;
+
+                            end
+
+
+                        else
+
+                            % (c) the RH is at least 84 if this is a surface level
+                            % So if this is at level 1 2 or 3, is the RH at least 84?
+
+                            % Mark this level as a cloud base
+                            cloud_base = [cloud_base; lvls_84(ll)];
+
+                            % mark cloud-base as found
+                            cloud_base_determined_radSonde = true;
+
+
+                        end
+
+
+
+
+
+
+
+                    end
 
 
                 end
 
 
             end
+
+
+        else
+
+            % how else can we define cloud top?
+            % for now, let's use the vocals-rex CDP measurement to define
+            % cloud base in the the radiosonde data
+            [~, cloud_base] = min( abs( min(ensemble_profiles{nn}.altitude) -...
+                radiosonde(idx_min).sounding_data(:,15)));
+
+
+            % mark cloud-base as NOT found
+            cloud_base_determined_radSonde = false;
+
+            warning([newline, 'No cloud base detected for profile ', num2str(nn), newline])
 
 
         end
@@ -530,83 +587,96 @@ for nn = 1:length(ensemble_profiles)
 
     cloud_top = zeros(length(cloud_base), 1);
 
-    for bb = 1:length(cloud_base)
+    if cloud_base_determined_radSonde == true
 
-        idx_2Check = (cloud_base(bb)+1):size(radiosonde(idx_min).sounding_data,1);
+        for bb = 1:length(cloud_base)
 
-        idx_above_base_lessThan_84 = radiosonde(idx_min).sounding_data(idx_2Check,5) < 84;
+            idx_2Check = (cloud_base(bb)+1):size(radiosonde(idx_min).sounding_data,1);
 
-         % numbered indicies
-        % num_idx = find(idx_above_base_lessThan_84);
+            idx_above_base_lessThan_84 = radiosonde(idx_min).sounding_data(idx_2Check,5) < 84;
 
-        % find the first index above cloud bottom that is below a relative
-        % humidity of 84 for at least 4 levels
-        cc = 1;
-        while (idx_above_base_lessThan_84(cc)==0 &&...
-                all(idx_above_base_lessThan_84((cc+1):(cc+3))==1)) ~= true
+            % numbered indicies
+            % num_idx = find(idx_above_base_lessThan_84);
+
+            % find the first index above cloud bottom that is below a relative
+            % humidity of 84 for at least 4 levels
+            cc = 1;
+            while (idx_above_base_lessThan_84(cc)==0 &&...
+                    all(idx_above_base_lessThan_84((cc+1):(cc+3))==1)) ~= true
 
 
-            cc = cc + 1;
+                cc = cc + 1;
 
-        end
-
-       
-
-        
-        idx_top2Check(bb) = cloud_base(bb) + cc;
+            end
 
 
 
 
-        % (a)  where the RH is at least 87%
-        % is the topmost layer at least 87?
-        if radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) >= 87
-
-            % Mark this level as the cloud top
-            cloud_top(bb) = idx_top2Check(bb);
+            idx_top2Check(bb) = cloud_base(bb) + cc;
 
 
 
 
+            % (a)  where the RH is at least 87%
+            % is the topmost layer at least 87?
+            if radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) >= 87
 
-
-
-
-            % (b) RH is at least 84 but less than 87%, and there is at least a 3%
-            % between the current layer and the higher layer (3% decrease)
-        elseif (idx_top2Check(bb)+3) < size(radiosonde(idx_min).sounding_data,1)
-
-            idx_aboveCloud = (idx_top2Check(bb)+1):(idx_top2Check(bb)+3);
-
-            change_in_RH = radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) - ...
-                mean(radiosonde(idx_min).sounding_data(idx_aboveCloud, 5));
-
-            if change_in_RH > 3
-                % Mark this level as a cloud base
+                % Mark this level as the cloud top
                 cloud_top(bb) = idx_top2Check(bb);
+
+
+
+
+
+
+
+
+                % (b) RH is at least 84 but less than 87%, and there is at least a 3%
+                % between the current layer and the higher layer (3% decrease)
+            elseif (idx_top2Check(bb)+3) < size(radiosonde(idx_min).sounding_data,1)
+
+                idx_aboveCloud = (idx_top2Check(bb)+1):(idx_top2Check(bb)+3);
+
+                change_in_RH = radiosonde(idx_min).sounding_data(idx_top2Check(bb), 5) - ...
+                    mean(radiosonde(idx_min).sounding_data(idx_aboveCloud, 5));
+
+                if change_in_RH > 3
+                    % Mark this level as a cloud base
+                    cloud_top(bb) = idx_top2Check(bb);
+
+
+                else
+
+                    % set cloud top with NaN
+                    cloud_top(bb) = NaN;
+
+
+                end
 
 
             else
 
-                % set cloud top with NaN
-                cloud_top(bb) = NaN;
+                % (c) the RH is at least 84 if this is a surface level
+                % So if this is at level 1 2 or 3, is the RH at least 84?
+
+                % Mark this level as a cloud base
+                cloud_top(bb) = idx_top2Check(bb);
 
 
             end
 
 
-        else
-
-            % (c) the RH is at least 84 if this is a surface level
-            % So if this is at level 1 2 or 3, is the RH at least 84?
-
-            % Mark this level as a cloud base
-            cloud_top(bb) = idx_top2Check(bb);
-
 
         end
 
+    else
 
+
+        % how else can we define cloud top?
+        % for now, let's use the vocals-rex CDP measurement to define
+        % cloud base in the the radiosonde data
+        [~, cloud_top] = min( abs( max(ensemble_profiles{nn}.altitude) -...
+            radiosonde(idx_min).sounding_data(:,15)));
 
     end
     % ------------------------------------------------------------------
@@ -618,8 +688,16 @@ for nn = 1:length(ensemble_profiles)
     % altitude to the cloud top height measured by the CDP
     if length(cloud_top)>1
 
-        [~, idx_cld_layer] = min(radiosonde(idx_min).sounding_data(cloud_top, 15) - ...
+        [~, idx_cldTop_layer] = min(radiosonde(idx_min).sounding_data(cloud_top, 15) - ...
             max(ensemble_profiles{nn}.altitude));
+
+        % Do the same for cloud base, if needed
+        if length(cloud_base)>1
+
+            [~, idx_cldBase_layer] = min(radiosonde(idx_min).sounding_data(cloud_base, 15) - ...
+                min(ensemble_profiles{nn}.altitude));
+
+        end
 
         % Compute the mass of water vapor per unit volume at all altitudes
         % above the cloud top
@@ -634,7 +712,20 @@ for nn = 1:length(ensemble_profiles)
 
 
         % compute the above cloud precipitable water amount
-        above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cld_layer):end,15), rho(cloud_top(idx_cld_layer):end));            % kg / m^2
+        above_cloud_pw(nn) = trapz(radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer):end,15), rho(cloud_top(idx_cldTop_layer):end));            % kg / m^2
+
+
+
+        % ---------------------------------------------------------------
+        % ------- Save the cloud base and top height and pressure -------
+        % ---------------------------------------------------------------
+        cloud_topHeight(nn) = radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer), 15);   % meters
+        cloud_topPressure(nn) = radiosonde(idx_min).sounding_data(cloud_top(idx_cldTop_layer), 15);   % meters
+
+        cloud_baseHeight(nn) = radiosonde(idx_min).sounding_data(cloud_base(idx_cldBase_layer), 15);   % meters
+        cloud_basePressure(nn) = radiosonde(idx_min).sounding_data(cloud_base(idx_cldBase_layer), 15);   % meters
+
+        % --------------------------------------------------
 
 
     else
@@ -659,7 +750,45 @@ for nn = 1:length(ensemble_profiles)
 
 
 
+        % ---------------------------------------------------------------
+        % ------- Save the cloud base and top height and pressure -------
+        % ---------------------------------------------------------------
+        cloud_topHeight(nn) = radiosonde(idx_min).sounding_data(cloud_top, 15);   % meters
+        cloud_topPressure(nn) = radiosonde(idx_min).sounding_data(cloud_top, 15);   % meters
+
+        cloud_baseHeight(nn) = radiosonde(idx_min).sounding_data(cloud_base, 15);   % meters
+        cloud_basePressure(nn) = radiosonde(idx_min).sounding_data(cloud_base, 15);   % meters
+
+        % --------------------------------------------------
+
+
+
     end
+
+
+    % --------------------------------------------------
+    % --- Store the vertical profiles of T, P and RH ---
+    % --------------------------------------------------
+    pressure_prof{nn} = radiosonde(idx_min).sounding_data(:, 2);   % mb
+    temp_prof{nn} = radiosonde(idx_min).sounding_data(:, 3);   % C
+    watVap_prof{nn} = radiosonde(idx_min).sounding_data(:, 5);   % % - Relative humidity
+    altitude{nn} = radiosonde(idx_min).sounding_data(:, 15);   % meters
+
+    % --------------------------------------------------
+
+
+    % --------------------------------------------------------------
+    % --- Store the name, date and start time of this radiosonde ---
+    % --------------------------------------------------------------
+    anicllary_info.lat_release(nn) = radiosonde(idx_min).latitude; % degrees latitude
+    anicllary_info.long_release(nn) = radiosonde(idx_min).longitude; % degrees latitude
+
+    anicllary_info.dateTime_release{nn} = radiosonde(idx_min).release_time; % degrees latitude
+
+    % --------------------------------------------------------------
+
+
+
 
     % plot results
     % plot_radiosonde_wvConcentration_with_US_STD_ATM(waterVapor_concentration_cm3, radiosonde(idx_min).sounding_data(:,15))
@@ -699,18 +828,43 @@ end
 
 
 
+% ----- Save Paper 2 prior stats -------
+% if exist("dist_btwn_C130_radiosonde", "var")==1
+%
+%     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_space_',...
+%         char(datetime("today")),'.mat'],...
+%         'total_column_pw', 'above_cloud_pw')
+%
+%
+% elseif exist("time_diff_C130_radiosonde", "var")==1
+%
+%     save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_time_',...
+%         char(datetime("today")),'.mat'],...
+%         'total_column_pw', 'above_cloud_pw')
+%
+%
+% end
+
+
+
+
+% ----- Save Radiosonde profiles and prior stats -------
 if exist("dist_btwn_C130_radiosonde", "var")==1
 
-    save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_space_',...
+    save([folderpath_2save,'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_space_',...
         char(datetime("today")),'.mat'],...
-        'total_column_pw', 'above_cloud_pw')
+        'total_column_pw', 'above_cloud_pw', 'watVap_prof', "temp_prof", "pressure_prof",...
+        "cloud_topHeight", "cloud_topPressure", "cloud_baseHeight", "cloud_basePressure",...
+        "altitude", 'anicllary_info')
 
 
 elseif exist("time_diff_C130_radiosonde", "var")==1
 
-    save([folderpath_2save,'precipitable_water_stats_for_paper2_closest_radiosonde_in_time_',...
+    save([folderpath_2save,'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_',...
         char(datetime("today")),'.mat'],...
-        'total_column_pw', 'above_cloud_pw')
+        'total_column_pw', 'above_cloud_pw', 'watVap_prof', "temp_prof", "pressure_prof",...
+        "cloud_topHeight", "cloud_topPressure", "cloud_baseHeight", "cloud_basePressure",...
+        "altitude", 'anicllary_info')
 
 
 end
@@ -729,33 +883,33 @@ end
 % Let's also fit these three distributions to the optical depth data
 
 % fit the number concentration data to a normal distribution
-acpw_fit_normal = fitdist(combined_aboveCloud_pw_timeAndSpace, 'normal');
-[acpw_reject_normal, acpw_p_normal] = chi2gof(tau_c, 'CDF', acpw_fit_normal,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% fit the number concentration content data to a log-normal distribution
-acpw_fit_lognormal = fitdist(tau_c, 'lognormal');
-[acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(tau_c, 'CDF', acpw_fit_lognormal,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% fit the total number concentration data to a gamma distribution - use my custom
-% libRadtran gamma distribution
-acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(tau_c);
-[acpw_reject_gamma, acpw_p_gamma] = chi2gof(tau_c, 'CDF', acpw_fit_gamma,...
-    'alpha', significance_lvl, 'NParams', 2);
-
-% Plot results
-lgnd_fnt = 20;
-
-figure; histogram(tau_c,'NumBins', 30, 'Normalization','pdf')
-hold on
-xVals = linspace(min(tau_c), max(tau_c), 1000);
-plot(xVals, pdf(acpw_fit_normal, xVals))
-plot(xVals, pdf(acpw_fit_lognormal, xVals))
-plot(xVals, pdf(acpw_fit_gamma, xVals))
-grid on; grid minor
-legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
-    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
-             'Color', 'white', 'TextColor', 'k')
-title('$acpw$ statistics and fits', ...
-        'FontSize', 20, 'Interpreter', 'latex')
+% acpw_fit_normal = fitdist(combined_aboveCloud_pw_timeAndSpace, 'normal');
+% [acpw_reject_normal, acpw_p_normal] = chi2gof(tau_c, 'CDF', acpw_fit_normal,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % fit the number concentration content data to a log-normal distribution
+% acpw_fit_lognormal = fitdist(tau_c, 'lognormal');
+% [acpw_reject_lognormal, acpw_p_lognormal] = chi2gof(tau_c, 'CDF', acpw_fit_lognormal,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % fit the total number concentration data to a gamma distribution - use my custom
+% % libRadtran gamma distribution
+% acpw_fit_gamma = prob.GammaDistribution_libRadtran.fit(tau_c);
+% [acpw_reject_gamma, acpw_p_gamma] = chi2gof(tau_c, 'CDF', acpw_fit_gamma,...
+%     'alpha', significance_lvl, 'NParams', 2);
+% 
+% % Plot results
+% lgnd_fnt = 20;
+% 
+% figure; histogram(tau_c,'NumBins', 30, 'Normalization','pdf')
+% hold on
+% xVals = linspace(min(tau_c), max(tau_c), 1000);
+% plot(xVals, pdf(acpw_fit_normal, xVals))
+% plot(xVals, pdf(acpw_fit_lognormal, xVals))
+% plot(xVals, pdf(acpw_fit_gamma, xVals))
+% grid on; grid minor
+% legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+%     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+%     'Color', 'white', 'TextColor', 'k')
+% title('$acpw$ statistics and fits', ...
+%     'FontSize', 20, 'Interpreter', 'latex')

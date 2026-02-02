@@ -132,7 +132,7 @@ which_computer = folder_paths.which_computer;
 % Would you like to print status updates and/or the libRadtran error file?
 
 
-plot_figures = true;
+plot_figures = false;
 
 save_figures = false;
 
@@ -174,9 +174,28 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_9_16_T191106_2/';
 
     % 11 Pixels with H less than 1.6
-    % folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
+    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
-    folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % add folders to the path
+    addpath(genpath('/projects/anbu8374/Matlab-Research'));
+    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
+    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
+    addLibRadTran_paths;
+
+    % define the folder where the coincident data is stored
+    folder_paths.coincident_dataPath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+
+    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
 
 end
 
@@ -195,9 +214,8 @@ criteria.cld_tau_min = 3;   % cloud optical depth
 criteria.cld_tau_max = 30;   % cloud optical depth
 criteria.H = 0.1;         % horizontal inhomogeneity index
 
-
-
-
+% plot flag
+plot_data = false;
 
 % TODO: Add temporal information to compute time difference between pixels
 % Will need:
@@ -206,7 +224,7 @@ criteria.H = 0.1;         % horizontal inhomogeneity index
 % - Then compute: overlap.time_difference_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
 
 [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-    criteria, plot_figures);
+    criteria, plot_data);
 
 % ** If there aren't any pixels found ... **
 % Increase the horizontal inhomogeneity index
@@ -218,7 +236,7 @@ while isempty(overlap_pixels.modis.linear_idx) == true
 
     % recompute
     [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-        criteria, plot_figures);
+        criteria, plot_data);
 
     if isempty(overlap_pixels.modis.linear_idx) == false
 
@@ -265,18 +283,13 @@ if plot_figures == true
     options.rgb_image = rgb_img;
     options.rgb_lat = rgb_lat;
     options.rgb_lon = rgb_lon;
-
-    % Values for 2023_9_16_T191130_1 scene
-    % options.latlim = [-25.7, -25.46];  % Only show -30° to -20° latitude
-    % options.lonlim = [-71.15, -70.8];  % Only show -75° to -65° longitude
+    % options.latlim = [-30, -20];  % Only show -30° to -20° latitude
+    % options.lonlim = [-80, -67];  % Only show -75° to -65° longitude
 
     % ** Plot with RGB Image **
     % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
     % fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-    % [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
-    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
-    % [fig1a, ax1a] = plot_instrument_footprints_4(modis, emit, [], amsr, overlap_pixels, options);
-
+    [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
 
     % ** Paper Worthy **
     % -------------------------------------
@@ -293,16 +306,11 @@ if plot_figures == true
         saveas(f,[folderpath_figs,'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
 
 
-        % save .png with 500 DPI resolution
+        % save .png with 400 DPI resolution
         % remove title
         ax1.Title.String = '';
         exportgraphics(f,[folderpath_figs,...
-            'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 500);
-
-        f = gcf;
-        ax1a.Title.String = '';
-        exportgraphics(f,[folderpath_figs,...
-            'EMIT Scene with MODIS context - Zoom In version - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 500);
+            'EMIT Scene with MODIS context - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
 
     end
     % -------------------------------------
@@ -346,115 +354,63 @@ if plot_figures == true
 end
 
 
+%% Plot VOCALS-REx CDP and radiosonde data
 
-%% 
-
-% Remove data that is not needed
-
-emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
-
-modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
-
-airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
-
-amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
+% plot VOCALS-REx in-situ measured re, lwc, and Nc as a function of
+% altitude, along with the radiosonde measured temperature and RH
 
 
-
-%% Plot EMIT retrievals!
-
-% clear variables
+clear variables
 
 
+% Read all the file names
+
+which_computer = whatComputer;
+
+if strcmp(which_computer,'anbu8374')==true
 
 
-
-% Load simulated measurements
-if strcmp(whatComputer,'anbu8374')==true
-
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
-
-
-
-elseif strcmp(whatComputer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    % define the folder where the coincident data is stored
-    data_path.stored_retrievals = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/',...
-        'Paper_2/Droplet_profile_retrievals_take1/'];
-
-
-
-    % ------------------------------------------
-    % **********  2023_9_16_T191130  ***********
-    % ------------------------------------------
-    % 2023_9_16_T191130 pixel 1
-    % data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191130_pixel_1_ran-on-08-Jan-2026_rev1.mat';
+    % ***** Define the radiosonde profiles folder *****
+    folderpath_radioSonde = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
     
-    % 2023_9_16_T191130 pixel 2
-    data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191130_pixel_2_ran-on-09-Jan-2026_rev1.mat';
+    radiosonde_profs = 'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_27-Jan-2026.mat';
 
 
+    % ***** Define the ensemble profiles folder *****
 
-    % ------------------------------------------
-    % **********  2023_9_16_T191118  ***********
-    % ------------------------------------------
-    % 2023_9_16_T191118 pixel 1
-    % data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191118_pixel_1_ran-on-08-Jan-2026_rev1.mat';
+    vocalsRexFolder = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
-    % 2023_9_16_T191118 pixel 2 -
-    % data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191118_pixel_2_ran-on-09-Jan-2026_rev1.mat';
+    % define the ensemble filename
+    % profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat';
+    profiles = 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat';
 
-    % 2023_9_16_T191118 pixel 3 - 
-    % data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191118_pixel_3_ran-on-09-Jan-2026_rev1.mat';
+elseif strcmp(which_computer,'andrewbuggee')==true
 
-    % 2023_9_16_T191118 pixel 4 - 
-    % data_path.retrieval_name = '285bands_EMIT_dropRetrieval_2023_9_16_T191118_pixel_4_ran-on-09-Jan-2026_rev1.mat';
+
+    folderpath_radioSonde = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/radiosonde/allSoundings_composite_5mb/'];
+
+
+    % ***** Define the ensemble profiles folder *****
+
+    vocalsRexFolder = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
 
 
 end
 
-% make sure the MODIS, AIRS and AMSR-E data match the EMIT data used for
-% the above retrieval
-if strcmp(folder_paths.coincident_dataFolder(1:end-3),...
-        extractBetween(data_path.retrieval_name, "Retrieval_", "_pixel")) == false
 
-    error([newline, 'The MODIS, AIRS and AMSR-E data dont match the EMIT data time!', newline])
+% Load the ensemble profiles and the radisonde profiles
 
-end
-
-load([data_path.stored_retrievals, data_path.retrieval_name])
-
-% what pixel number is this?
-pixel_num_2Plot = str2double(extractBetween(data_path.retrieval_name, "pixel_", "_ran"));
-
-% Make plot of the retrieved profile
-
-% plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], amsr, pixel_num_2Plot);
-
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-% if strcmp(which_computer,'anbu8374')==true
-%     error(['Where do I save the figure?'])
-% elseif strcmp(which_computer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% exportgraphics(fig3,[folderpath_figs,...
-%     'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 500);
+airborne = load([vocalsRexFolder, profiles]);
+radSonde = load([folderpath_radioSonde, radiosonde_profs]);
 
 
+% define the vert prof to plot: [1, 69]
 
-%%
+plt_idx = 3;
+
+plot_VOCALS_insitu_re_lwc_nc_and_radioSonde(airborne.ensemble_profiles, radSonde, plt_idx, false)
+

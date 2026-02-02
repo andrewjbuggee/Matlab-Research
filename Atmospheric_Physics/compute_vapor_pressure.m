@@ -1,5 +1,5 @@
 % Function to compute the the vapor pressure, the partial pressure of water
-% vapor
+% vapor, from the dew point
 
 % INPUTS
 

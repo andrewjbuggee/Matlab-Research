@@ -296,6 +296,10 @@ if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==t
             formatSpec = '%s %s %s %5s %s \n\n';
             fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' H2O RH', ' ', '# Custom water vapor profile');
 
+        else
+
+            error([newline, 'Need to specify how many radiosonde variables you are defining', newline])
+
         end
 
 

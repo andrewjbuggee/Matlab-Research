@@ -5,6 +5,44 @@
 function fig1 = plot_retrieved_prof_with_inSitu_paper2(mat_file_path, mat_file_name)
 
 
+
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % mie folder location
+    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+end
+
+
+
+
+
+
 % Load the data from the file
 ds = load([mat_file_path, mat_file_name]);
 
@@ -66,35 +104,34 @@ if isfield(ds.GN_inputs.measurement, 'tau')
 elseif isfield(ds.GN_inputs.measurement, 'tau_prof')==true
 
 
-    if ds.GN_inputs.measurement.tau_prof(end) ~= ds.GN_inputs.measurement.tau_c
-
-        % check the length
-        if length(ds.GN_inputs.measurement.tau) ~= length(ds.GN_inputs.measurement.re_prof)
-
-            warning([newline, 'Tau vector length doesnt match radius profile length', newline])
-
-            if ds.GN_inputs.measurement.tau(length(ds.GN_inputs.measurement.re_prof)) == ds.GN_inputs.measurement.tau_c
-
-                plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau(1:length(ds.GN_inputs.measurement.re_prof)),...
-                    'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
-                    'Color', 'k', 'MarkerFaceColor', 'k')
+    % check the length
+    if length(ds.GN_inputs.measurement.tau_prof) == length(ds.GN_inputs.measurement.re_prof)
 
 
-            end
+        % ** tau_prof starts at the bottom and re_prof starts at cloud top
+        % **
 
-        end
-
-    else
-
-
-        plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
+        plot(ds.GN_inputs.measurement.re_prof, sort(ds.GN_inputs.measurement.tau_prof),...
             'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
             'Color', 'k', 'MarkerFaceColor', 'k')
 
+    else
+
+        error([newline, 'Tau vector length doesnt match radius profile length', newline])
+
     end
 
+else
+
+
+    plot(ds.GN_inputs.measurement.re_prof, ds.GN_inputs.measurement.tau,...
+        'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+        'Color', 'k', 'MarkerFaceColor', 'k')
 
 end
+
+
+
 
 
 
@@ -169,7 +206,68 @@ lwp_tblut_WH = 5/9 * rho_h2o * ds.tblut_retrieval.minTau * (ds.tblut_retrieval.m
 
 
 % grab the hypersepctral retrieval estimate of LWP
-retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
+% retrieved_LWP = ds.GN_outputs.LWP;        % g/m^2
+% -------------------------------------------------------
+% -------------------------------------------------------
+% ** Compute new updated LWP calc ***
+re_profile = create_droplet_profile2([ds.GN_outputs.retrieval(1,end), ds.GN_outputs.retrieval(2,end)],...
+    ds.GN_inputs.RT.z, 'altitude', ds.GN_inputs.model.profile.type);
+
+
+% define the z vector
+z = linspace(ds.GN_inputs.RT.z_topBottom(2), ds.GN_inputs.RT.z_topBottom(1), length(re_profile)+1)';                 % km - altitude vector
+
+% define the z midpoint at each layer and normalize it!
+z_norm = z - z(1);
+z_norm_mid = (diff(z_norm)/2 + z_norm(1:end-1));
+
+
+% The radius input is defined as [r_start, r_end, r_step].
+% where r_step is the interval between radii values (used only for
+% vectors of radii). A 0 tells the code there is no step. Finally, the
+% radius values have to be in increasing order.
+ext_bulk_coeff_per_LWC = zeros(length(re_profile), 1);
+
+for rr = 1:length(re_profile)
+
+    mie_radius = [re_profile(rr), re_profile(rr), 0];    % microns
+
+    size_distribution = {'gamma', ds.GN_inputs.RT.distribution_var(rr)};           % droplet distribution
+
+    % Create a mie file
+    [input_filename, output_filename] = write_mie_file('MIEV0', 'water',...
+        mie_radius, 500, size_distribution, 'verbose', rr, round(re_profile(rr), 4), mie_folder_path);
+
+    % run the mie file
+    [~] = runMIE(mie_folder_path, input_filename,output_filename, which_computer);
+
+    % Read the output of the mie file
+    [mie,~,~] = readMIE(mie_folder_path, output_filename);
+
+    ext_bulk_coeff_per_LWC(rr) = mie.Qext;       % km^-1 / (cm^3 / m^3)
+
+end
+
+
+% ** Assuming liquid water content increases linearly with depth **
+z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
+dz_km = z(2) - z(1);           % kilometers
+
+%slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
+slope = ds.GN_outputs.retrieval(3,end) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
+
+% solve for the linear liquid water content profile
+%lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+lwc = slope * z_kilometers_upper_boundary;                     % g/m^3 - grams of water per meter cubed of air
+
+
+retrieved_LWP = trapz( 1e3 .* z_norm_mid, lwc);    % g/m^2
+
+
+% -------------------------------------------------------
+% -------------------------------------------------------
+
+
 
 % What is the true LWP
 LWP_true = ds.GN_inputs.measurement.lwp;   % g/m^2

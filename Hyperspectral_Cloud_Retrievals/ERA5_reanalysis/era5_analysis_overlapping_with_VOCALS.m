@@ -54,16 +54,16 @@ lat = ncread([foldername, filename], 'latitude');                               
 long = ncread([foldername, filename], 'longitude');
 
 % Extract temperature data from the netCDF file
-temperature = ncread([foldername, filename], 't');                               % K
+temperature = ncread([foldername, filename], 't');                      % K
 
 % Extract cloud liquid water content data from the netCDF file
-clwc_specific = ncread([foldername, filename], 'clwc');                           % kg of water droplets / kg of total mass of moist air - The 'total mass of moist air' is the sum of the dry air, water vapour, cloud liquid, cloud ice, rain and falling snow.
+clwc_specific = ncread([foldername, filename], 'clwc');               % kg of water droplets / kg of total mass of moist air - The 'total mass of moist air' is the sum of the dry air, water vapour, cloud liquid, cloud ice, rain and falling snow.
 
 % Extract rain liquid water content data from the netCDF file
 rwc_specific = ncread([foldername, filename], 'crwc');
 
 % extract pressure level, the independent variable
-pressure = ncread([foldername, filename], 'pressure_level');                       % hPa
+pressure = ncread([foldername, filename], 'pressure_level');            % hPa
 
 
 % extract relative humidity

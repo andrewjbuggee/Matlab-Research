@@ -895,7 +895,7 @@ for nn = 1:num_files_2write
         dz_km = z(2) - z(1);           % kilometers
 
         %slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
-        slope = tau_c(nn) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/m - slope of the lwc profile
+        slope = tau_c(nn) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
 
         % solve for the linear liquid water content profile
         %lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
