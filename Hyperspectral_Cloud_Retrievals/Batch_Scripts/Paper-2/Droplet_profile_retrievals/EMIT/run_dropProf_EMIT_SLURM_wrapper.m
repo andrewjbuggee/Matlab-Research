@@ -18,7 +18,7 @@ folder_paths = define_EMIT_dataPath_and_saveFolders(2);
 % ---------- PICK COINCIDENT DATA SET  --------
 % ---------------------------------------------
 
-which_computer = whatComputer;
+which_computer = folder_paths.which_computer;
 
 % Load simulated measurements
 if strcmp(which_computer,'anbu8374')==true
