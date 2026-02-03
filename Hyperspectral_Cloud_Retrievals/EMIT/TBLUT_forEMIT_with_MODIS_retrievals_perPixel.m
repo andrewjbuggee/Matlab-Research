@@ -40,7 +40,6 @@ inputs_tblut = create_emit_inputs_TBLUT_with_MODIS_retrievals_perPixel(folder_pa
 
 if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
-    % Values for 27_Jan_2024 - ** pixel [1242, 973] **
     % override the cloud top height
     inputs_tblut.RT.z_topBottom = GN_inputs.RT.z_topBottom;  % km
 
@@ -60,6 +59,7 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
     % Use the same one defined for the full retrieval
     inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
     inputs_tblut.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
+
 
 end
 

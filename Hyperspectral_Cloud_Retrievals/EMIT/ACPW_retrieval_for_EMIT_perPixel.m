@@ -45,15 +45,20 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
     % change inputs that depend on z_topBottom
     % Water Cloud depth
-    inputs_acpw.RT.H = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+    inputs_acpw.RT.cloud_depth = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
+
+    inputs_acpw.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
+
+    inputs_acpw.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+
+    inputs_acpw.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
 
     inputs_acpw.RT.use_radiosonde_file = true;
 
-    % For the ACPW retrieval, we will use the just temperature and
-    % pressure from the radiosonde file
-    % ** only use temp and pres **
-    inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P;
+    % Use the same one defined for the full retrieval
+    inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+    inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 end
 
