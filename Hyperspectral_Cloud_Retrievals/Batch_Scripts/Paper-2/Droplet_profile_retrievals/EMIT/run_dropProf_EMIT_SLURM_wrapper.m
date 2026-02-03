@@ -39,8 +39,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
+    folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
     % folder_paths.coincident_dataFolder = '2024-09-12/';
 
