@@ -14,12 +14,11 @@
 # %a: Array Task ID
 
 # ----------------------------------------------------------
-# WHAT'S DIFFERENT: This retrieval used the new a priori covariance matrix, using ERA5 data for above-coud precipitable water.
+# WHAT'S DIFFERENT: This retrieval used the new a priori covariance matrix, using ERA5 data for above-coud precipitable water,
+# and using mean values from each vertical profile to provide 'obervations' of cloud top and bottom effective radii. I also lowered the CPU-per-task to 20
 
-# RESULTS: Several jobs ran out of time. Curiously, when I ran the same code with 20 cpus, they finished within the time limit.
-# Some files also failed due to trying to call the same job temp directory.
+# RESULTS: 
 # ----------------------------------------------------------
-
 
 # ----------------------------------------------------------
 # *** UPDATE JOB NAME, OUTPUT, AND ERROR FILE BASED ON SIM ***
@@ -28,7 +27,7 @@
 #SBATCH --account=ucb762_asc1                   # This is my account for an Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=25
+#SBATCH --cpus-per-task=20               # When only incorporating reProfiling uncert, 20 cpus is sufficient
 #SBATCH --mem=90G
 #SBATCH --time=23:59:00     # Longer time for multiple files
 #SBATCH --partition=amilan
@@ -78,7 +77,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_4/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/take_9_fullRetrieval_reProf_uncert/"
 # ----------------------------------------------------------
 
 # Get list of all files

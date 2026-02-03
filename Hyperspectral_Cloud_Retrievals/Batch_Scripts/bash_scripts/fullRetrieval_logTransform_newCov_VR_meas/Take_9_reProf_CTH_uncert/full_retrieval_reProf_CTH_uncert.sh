@@ -14,10 +14,10 @@
 # %a: Array Task ID
 
 # ----------------------------------------------------------
-# WHAT'S DIFFERENT: This retrieval used the new a priori covariance matrix, using ERA5 data for above-coud precipitable water.
+# WHAT'S DIFFERENT: This retrieval used the new a priori covariance matrix, using ERA5 data for above-coud precipitable water,
+# and using mean values from each vertical profile to provide 'obervations' of cloud top and bottom effective radii. I also lowered the CPU-per-task to 20
 
-# RESULTS: Several jobs ran out of time. Curiously, when I ran the same code with 20 cpus, they finished within the time limit.
-# Some files also failed due to trying to call the same job temp directory.
+# RESULTS: 
 # ----------------------------------------------------------
 
 
@@ -28,19 +28,17 @@
 #SBATCH --account=ucb762_asc1                   # This is my account for an Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=25
+#SBATCH --cpus-per-task=20
 #SBATCH --mem=90G
 #SBATCH --time=23:59:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_uncert_take_4_%A_%a
-#SBATCH --output=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_uncert_take_4_%A_%a.out
-#SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_uncert_take_4_%A_%a.err
+#SBATCH --job-name=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_cloudTopHeight_uncert_ver4_%A_%a
+#SBATCH --output=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_cloudTopHeight_uncert_ver4_%A_%a.out
+#SBATCH --error=full_retrieval_hysics_VR_meas_log_newCov_allBands_reProf_cloudTopHeight_uncert_ver4_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-69       # 69 jobs × 1 files each = 69 files for subset folder
-
-# ** Is there a way for the --array to read the number of files in a directory automatically? **
+#SBATCH --array=101-169       # 69 jobs × 1 files each = 69 files for subset folder
 
 # Load modules
 ml purge
@@ -63,6 +61,8 @@ export PATH=$GSL_BIN:$PATH
 
 cd /projects/anbu8374/
 
+
+
 # Load MATLAB
 module load matlab/R2024b
 
@@ -78,7 +78,7 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
-RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_4/"
+RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/take_9_fullRetrieval_reProf_CTH_uncert/"
 # ----------------------------------------------------------
 
 # Get list of all files
@@ -153,8 +153,6 @@ fi
 # ----------------------------------------------
 
 
-
-
 # Clean MATLAB temp directories
 # remove any existing MATLAB temp directories for this user
 echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
@@ -163,11 +161,12 @@ rm -rf /tmp/mathworks_${USER}_*
 
 
 
+
 # Run MATLAB once with all files for this job
 echo " "
 echo "Starting MATLAB at $(date)"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = true; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_with_forMo_uncert(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS('${SLURM_ARRAY_TASK_ID}'); folder_paths.HySICS_simulated_spectra = '${INPUT_DIR}/'; folder_paths.HySICS_retrievals = '${RETRIEVED_PROFS_DIR}'; print_status_updates = false; print_libRadtran_err = false; file_list = {${FILE_ARRAY}}; [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(file_list, folder_paths, print_status_updates, print_libRadtran_err); exit"
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"

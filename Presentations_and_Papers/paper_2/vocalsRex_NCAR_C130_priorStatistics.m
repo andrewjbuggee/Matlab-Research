@@ -98,6 +98,11 @@ tau_c = zeros(length(ensemble_profiles),1);
 cloudTopHeight = zeros(length(ensemble_profiles),1);
 cloudDepth = zeros(length(ensemble_profiles),1);
 
+% Try compute a mean cloud top and bottom for each profile
+re_bot_sample_mean = zeros(length(ensemble_profiles), 1);
+re_top_sample_mean = zeros(length(ensemble_profiles), 1);
+
+
 % store the effective variance
 eff_variance = cell(n_bins, 1);
 
@@ -393,6 +398,25 @@ for nn = 1:length(ensemble_profiles)
 
 
     end
+
+
+
+    % -------------------------------------------------------------------
+    % ******* Try taking the mean of rTop and rBot for each prof ********
+    % -------------------------------------------------------------------
+    % For each ensemble profile, compute the mean effective radius at cloud
+    % top and bottom by taking the average over the top and bottom 20% of
+    % the cloud, using the normalized altitudes
+    % Remember that cloud top is at a normalized altitude of 0, and cloud
+    % bottom is at a normalized altitude of 1.
+
+    % re_bot_sample_mean(nn) = mean( re(normalized_altitude{nn} >= 0.8));
+    % re_top_sample_mean(nn) = mean( re(normalized_altitude{nn} <= 0.2));
+    re_bot_sample_mean(nn) = mean( re(normalized_altitude{nn} >= 0.75));
+    re_top_sample_mean(nn) = mean( re(normalized_altitude{nn} <= 0.25));
+    % -------------------------------------------------------------------
+    % -------------------------------------------------------------------
+
 
 
 
@@ -856,6 +880,129 @@ title('Number of distribution rejections of $v_e$ data', 'interpreter', 'latex')
 
 
 
+
+%% Let's check the distirbution fits for the averaged r top and r bottom values
+
+significance_lvl = 0.04;
+
+
+
+% ------------------------------------------------------------
+% ------- EFFECTIVE DROPLET RADIUS AT CLOUD TOP FITTING ------
+% ------------------------------------------------------------
+
+% fit the effective radius data to a normal distribution
+re_top_fit_normal = fitdist(re_top_sample_mean, 'normal');
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_top_reject_normal, re_top_p_normal] = kstest(re_top_sample_mean, 'CDF', re_top_fit_normal,...
+    'alpha', significance_lvl);
+
+
+% fit the effective radius data to a log-normal distribution
+re_top_fit_lognormal = fitdist(re_top_sample_mean, 'lognormal');
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_top_reject_lognormal, re_top_p_lognormal] = kstest(re_top_sample_mean, 'CDF',re_top_fit_lognormal,...
+    'alpha', significance_lvl);
+
+
+% fit the effective radius data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+re_top_fit_gamma = prob.GammaDistribution_libRadtran.fit(re_top_sample_mean);
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_top_reject_gamma, re_top_p_gamma] = kstest(re_top_sample_mean, 'CDF', re_top_fit_gamma,...
+    'alpha', significance_lvl);
+
+
+% Plot results
+figure; histogram(re_top_sample_mean,'NumBins', 100, 'Normalization','pdf')
+hold on
+xVals = linspace(min(re_top_sample_mean), max(re_top_sample_mean), 1000);
+plot(xVals, pdf(re_top_fit_normal, xVals))
+plot(xVals, pdf(re_top_fit_lognormal, xVals))
+plot(xVals, pdf(re_top_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('$r_{top}$ trimmed statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
+% ------------------------------------------------------------
+% ------- EFFECTIVE DROPLET RADIUS AT CLOUD BOT FITTING ------
+% ------------------------------------------------------------
+
+% fit the effective radius data to a normal distribution
+re_bot_fit_normal = fitdist(re_bot_sample_mean, 'normal');
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_bot_reject_normal, re_bot_p_normal] = kstest(re_bot_sample_mean, 'CDF', re_bot_fit_normal,...
+    'alpha', significance_lvl);
+
+
+% fit the effective radius data to a log-normal distribution
+re_bot_fit_lognormal = fitdist(re_bot_sample_mean, 'lognormal');
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_bot_reject_lognormal, re_bot_p_lognormal] = kstest(re_bot_sample_mean, 'CDF',re_bot_fit_lognormal,...
+    'alpha', significance_lvl);
+
+
+% fit the effective radius data to a gamma distribution - use my custom
+% libRadtran gamma distribution
+re_bot_fit_gamma = prob.GammaDistribution_libRadtran.fit(re_bot_sample_mean);
+
+% *** Chi-squared doesn't work well ***
+% chi-squared method to fail. Try using the Kolmogorov-Smirnov test,
+% which is more robust to outliers
+% [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb),...
+%     'alpha', significance_lvl, 'NParams', 2);
+[re_bot_reject_gamma, re_bot_p_gamma] = kstest(re_bot_sample_mean, 'CDF', re_bot_fit_gamma,...
+    'alpha', significance_lvl);
+
+
+% Plot results
+figure; histogram(re_bot_sample_mean,'NumBins', 100, 'Normalization','pdf')
+hold on
+xVals = linspace(min(re_bot_sample_mean), max(re_bot_sample_mean), 1000);
+plot(xVals, pdf(re_bot_fit_normal, xVals))
+plot(xVals, pdf(re_bot_fit_lognormal, xVals))
+plot(xVals, pdf(re_bot_fit_gamma, xVals))
+grid on; grid minor
+legend('data', 'normal fit', 'lognormal fit', 'gamma fit', 'location',...
+    'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
+    'Color', 'white', 'TextColor', 'k')
+title('$r_{bot}$ trimmed statistics and fits', ...
+    'FontSize', 20, 'Interpreter', 'latex')
+
+
+
+
 %% fit a PDF to all the alpha parameter data and determine what range, from 1 to X, results in 75% of the measurements
 
 all_alpha = [];
@@ -890,7 +1037,7 @@ grid on; grid minor
 
 
 
-%% What if we fit statistics for cloud the ensemble of all effective radius values at the
+%% What if we fit statistics for ensemble of all effective radius values at the
 % upper regions of the cloud for cloud top, and the lower regions of the
 % cloud for cloud bottom?
 
@@ -1738,18 +1885,18 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 500);
+% % save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%         error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
+% 
+% 
+% % save .png with 400 DPI resolution
+% % remove title
+% exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -1832,6 +1979,10 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % Each column represents the samples of a random variable, and each row are
 % the observations
 
+
+% ---------------------------------------------------------------------
+% ----------- Compute the a priori covariance matrix ------------------
+% ---------------------------------------------------------------------
 % For the covariance matrix, the number of samples need to be the same for
 % each varaible. And if they have a relationship, it would be best to
 % sample the different variables at the same time (or location, or whatever
@@ -1844,15 +1995,53 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]);
 % prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, radiosonde.combined_aboveCloud_pw_timeAndSpace]));
 
+% prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
+% prior_cov_log_noACPW = cov(log([re_top_sample, re_bot_sample, tau_c]));
+
 
 % ****!!!! Using ERA5 data w/ VR adjustment !!!!***
-prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]);
-prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]));
-
+% prior_cov_lin = cov([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]);
+% prior_cov_log = cov(log([re_top_sample, re_bot_sample, tau_c, era5.above_cloud_pw_usingVR]));
 
 % prior_cov_lin_noACPW = cov([re_top_sample, re_bot_sample, tau_c]);
-% 
 % prior_cov_log_noACPW = cov(log([re_top_sample, re_bot_sample, tau_c]));
+
+
+% ****!!!! Using ERA5 data w/ VR adjustment !!!!***
+% *** And using mean r_top and r_bot for each profile ***
+prior_cov_lin = cov([re_top_sample_mean, re_bot_sample_mean, tau_c, era5.above_cloud_pw_usingVR]);
+prior_cov_log = cov(log([re_top_sample_mean, re_bot_sample_mean, tau_c, era5.above_cloud_pw_usingVR]));
+
+
+prior_cov_lin_noACPW = cov([re_top_sample_mean, re_bot_sample_mean, tau_c]);
+prior_cov_log_noACPW = cov(log([re_top_sample_mean, re_bot_sample_mean, tau_c]));
+% ---------------------------------------------------------------------
+% ---------------------------------------------------------------------
+
+
+
+
+% ---------------------------------------------------------------------
+% ------- Compute the correlation coefficient matrix ------------------
+% ---------------------------------------------------------------------
+% If you have your data matrix X with columns [rtop, rbot, tau_c, pw_ac]
+% Option 1: Compute correlation coefficient matrix
+% R = corrcoef(X);
+
+% Option 2: If you already have the covariance matrix
+% Extract standard deviations (sqrt of diagonal elements)
+sigma_lin = sqrt(diag(prior_cov_lin));
+% Compute correlation matrix
+correlation_coef_lin = prior_cov_lin ./ (sigma_lin * sigma_lin');
+
+sigma_log = sqrt(diag(prior_cov_log));
+% Compute correlation matrix
+correlation_coef_log = prior_cov_log ./ (sigma_log * sigma_log');
+% ---------------------------------------------------------------------
+% ---------------------------------------------------------------------
+
+
+
 
 
 fnt_sz = 25;
@@ -1861,8 +2050,9 @@ fnt_sz = 25;
 try chol(prior_cov_lin)
     disp('Matrix is symmetric positive definite.')
 
-    % plot heat maps of the covariance matrix
-    % Plot heat map for linear covariance matrix
+    % -------------------------------------------------------
+    % plot heat maps of the covariance matrix in linear space
+    % --------------------------------------------------------
     fig2 = figure;
     imagesc(prior_cov_lin);
     colormap("hot")
@@ -1931,9 +2121,90 @@ try chol(prior_cov_lin)
 
 
 
-    
 
+
+
+    % ---------------------------------------------------------------
+    % plot heat maps of the correlation coefficients in linear space 
+    % --------------------------------------------------------------
+    fig4 = figure;
+    imagesc(correlation_coef_lin);
+    colormap("hot")
+    cb = colorbar;
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = fnt_sz;
+    cb.TickLabelInterpreter = 'latex';
+    cb.FontSize = fnt_sz;
+
+
+    title('Heat Map of Linear Correlation Coefficients', 'Interpreter', 'latex', 'FontSize', fnt_sz);
+    % define the variable names along the x and y axis
+    % Define variable names for the heat map axes
+    % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
+    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$pw_{ac}$'};
+    set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
+        'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
+    
+    % display to covariance matrix values on the heat map
+    % Display covariance matrix values on the heat map
+    textStrings = num2str(correlation_coef_lin(:), '%.2f'); % Create strings from the matrix values
+    textStrings = strtrim(cellstr(textStrings)); % Remove any space padding
+    [xPos, yPos] = meshgrid(1:size(correlation_coef_lin, 2), 1:size(correlation_coef_lin, 1)); % Create x and y coordinates
+    hStrings = text(xPos(:), yPos(:), textStrings(:), 'HorizontalAlignment', 'center'); % Create text objects
+    midValue = mean(get(gca, 'CLim')); % Get the middle value of the color range
+    textColors = repmat(correlation_coef_lin(:) > midValue, 1, 3); % Choose white or black for the text color
+    set(hStrings, {'Color'}, num2cell(textColors, 2)); % Change the color of the text
+    % update the font size of the covaraince values displayed on the heat
+    % map
+    % Update the font size of the covariance values displayed on the heat map
+    set(hStrings, 'FontSize', fnt_sz);
+    
+    % the color of the covaraince matrix values in the last two columns of
+    % the last two rows needs to be white to show up better against the
+    % background color
+    % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
+    
+    set(hStrings(:, 1), 'Color', 'black');
+    set(hStrings(4, 1), 'Color', 'white');
+    set(hStrings(8, 1), 'Color', 'white');
+    set(hStrings(13, 1), 'Color', 'white');
+    set(hStrings(14, 1), 'Color', 'white');
+   
+
+    % ** Paper Worthy **
+    % -------------------------------------
+    % ---------- Save figure --------------
+    % save .fig file
+    if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+    elseif strcmp(whatComputer,'andrewbuggee')==true
+        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    end
+    saveas(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.fig']);
+
+
+    % save .png with 400 DPI resolution
+    % remove title
+    title('');
+    exportgraphics(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.jpg'],...
+        'Resolution', 500);
+    % -------------------------------------
+    % -------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+    
+    % -----------------------------------------------
     % Plot heat map for logarithmic covariance matrix
+    % -----------------------------------------------
     fig3 = figure;
     imagesc(prior_cov_log);
     colormap("hot")
@@ -1986,21 +2257,89 @@ try chol(prior_cov_lin)
     % ** Paper Worthy **
     % -------------------------------------
     % ---------- Save figure --------------
-    % save .fig file
-    if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-    elseif strcmp(whatComputer,'andrewbuggee')==true
-        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    end
-    saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
-
-
-    % save .png with 400 DPI resolution
-    % remove title
-    title('');
-    exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
+    % % save .fig file
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
+    % 
+    % 
+    % % save .png with 400 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
     % % -------------------------------------
+    % ----------------------------------------
+
+
+
+
+    % -----------------------------------------------------------
+    % plot heat maps of the correlation coefficients in log space
+    % ------------------------------------------------------------
+    fig5 = figure;
+    imagesc(correlation_coef_log);
+    colormap("hot")
+    cb = colorbar;
+    cb.Label.Interpreter = 'latex';
+    cb.Label.FontSize = fnt_sz;
+    cb.TickLabelInterpreter = 'latex';
+    cb.FontSize = fnt_sz;
+
+
+    title('Heat Map of Logarithmic Correlation Coefficients', 'Interpreter', 'latex', 'FontSize', fnt_sz);
+    % define the variable names along the x and y axis
+    % Define variable names for the heat map axes
+    % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
+    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(pw_{ac})}$'};
+    set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
+        'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
+    
+    % display to covariance matrix values on the heat map
+    % Display covariance matrix values on the heat map
+    textStrings = num2str(correlation_coef_log(:), '%.2f'); % Create strings from the matrix values
+    textStrings = strtrim(cellstr(textStrings)); % Remove any space padding
+    [xPos, yPos] = meshgrid(1:size(correlation_coef_log, 2), 1:size(correlation_coef_log, 1)); % Create x and y coordinates
+    hStrings = text(xPos(:), yPos(:), textStrings(:), 'HorizontalAlignment', 'center'); % Create text objects
+    midValue = mean(get(gca, 'CLim')); % Get the middle value of the color range
+    textColors = repmat(correlation_coef_log(:) > midValue, 1, 3); % Choose white or black for the text color
+    set(hStrings, {'Color'}, num2cell(textColors, 2)); % Change the color of the text
+    % update the font size of the covaraince values displayed on the heat
+    % map
+    % Update the font size of the covariance values displayed on the heat map
+    set(hStrings, 'FontSize', fnt_sz);
+    
+    % the color of the covaraince matrix values in the last two columns of
+    % the last two rows needs to be white to show up better against the
+    % background color
+    % The color of the covariance matrix values in the last two columns of the last two rows needs to be white to show up better against the background color
+    
+    set(hStrings(:, 1), 'Color', 'black');
+    set(hStrings(4, 1), 'Color', 'white');
+    set(hStrings(8, 1), 'Color', 'white');
+    set(hStrings(12, 1), 'Color', 'white');
+    set(hStrings(13:15, 1), 'Color', 'white');
+
+    % ** Paper Worthy **
     % -------------------------------------
+    % ---------- Save figure --------------
+    % % save .fig file
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig5,[folderpath_figs,'Logarithmic Correlation Coefficient matrix using acpw from ERA5 with VR adjustment.fig']);
+    % 
+    % 
+    % % save .png with 500 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig5,[folderpath_figs,'Logarithmic Correlation Coefficient matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
+    % % -------------------------------------
+    % ----------------------------------------
 
 
 
@@ -2035,13 +2374,13 @@ end
 % acpw = radiosonde.combined_aboveCloud_pw_timeAndSpace;
 acpw = era5.above_cloud_pw_usingVR;
 
-% save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-%     'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
-%     'tau_c', 'acpw')
-
 save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
-    'prior_cov_lin', 'prior_cov_log','re_top_sample', 're_bot_sample',...
+    'prior_cov_lin', 'prior_cov_log', 'prior_cov_lin_noACPW', "prior_cov_log_noACPW",'re_top_sample', 're_bot_sample',...
     'tau_c', 'acpw')
+
+% save([folderpath_2save,'prior_covarance_matrix_', char(datetime("today")),'.mat'],...
+%     'prior_cov_lin', 'prior_cov_log','re_top_sample', 're_bot_sample',...
+%     'tau_c', 'acpw')
 
 %% Save variables for the forward model covariance matrix
 

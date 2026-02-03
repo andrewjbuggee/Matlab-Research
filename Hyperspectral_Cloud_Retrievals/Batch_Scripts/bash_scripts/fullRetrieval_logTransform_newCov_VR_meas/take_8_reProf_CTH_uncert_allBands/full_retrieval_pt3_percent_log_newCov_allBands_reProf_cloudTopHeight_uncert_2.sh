@@ -53,6 +53,8 @@ export PATH=$GSL_BIN:$PATH
 
 cd /projects/anbu8374/
 
+
+
 # Load MATLAB
 module load matlab/R2024b
 
@@ -141,6 +143,16 @@ if [ -z "$FILE_ARRAY" ]; then
     exit 1
 fi
 # ----------------------------------------------
+
+
+# Clean MATLAB temp directories
+# remove any existing MATLAB temp directories for this user
+echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
+rm -rf ~/.matlab/local_cluster_jobs/R2024b/Job*
+rm -rf /tmp/mathworks_${USER}_*
+
+
+
 
 # Run MATLAB once with all files for this job
 echo " "

@@ -30,18 +30,55 @@ function [GN_inputs] = create_model_prior_covariance_HySICS_ver4_log_newCov(GN_i
 % **** load new a priori covariance statistics ****
 if strcmp(GN_inputs.which_computer, 'anbu8374')==true
 
-    prior_stats = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+    % ** 01-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to old method to sample N values of the radius at cloud top and
+    % bottom for each profile, which sampled values from the entire
+    % ensemble
+    % prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+
+
+    % ** 02-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to new method to define N values of the radius at cloud top and
+    % bottom for each profile by compute the mean over the top and bottom
+    % 25% of each cloud, with respect to the normalized altitude
+    prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_02-Feb-2026.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
 
+
+    % ** 01-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to old method to sample N values of the radius at cloud top and
+    % bottom for each profile, which sampled values from the entire
+    % ensemble
+    % prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+
+
+    % ** 02-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to new method to define N values of the radius at cloud top and
+    % bottom for each profile by compute the mean over the top and bottom
+    % 25% of each cloud, with respect to the normalized altitude
     prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_02-Feb-2026.mat']);
 
 elseif strcmp(GN_inputs.which_computer, 'curc')==true
 
-    prior_stats = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+    % ** 02-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to old method to sample N values of the radius at cloud top and
+    % bottom for each profile, which sampled values from the entire
+    % ensemble
+    % prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+    %     'Presentations_and_Papers/paper_2/prior_covarance_matrix_01-Feb-2026.mat']);
+
+
+    % ** 02-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % Uses to new method to define N values of the radius at cloud top and
+    % bottom for each profile by compute the mean over the top and bottom
+    % 25% of each cloud, with respect to the normalized altitude
+    prior_stats = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Presentations_and_Papers/paper_2/prior_covarance_matrix_02-Feb-2026.mat']);
 
 end
 
