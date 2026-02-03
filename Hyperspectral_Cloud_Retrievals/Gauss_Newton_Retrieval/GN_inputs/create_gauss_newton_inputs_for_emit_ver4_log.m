@@ -1,6 +1,8 @@
 %% ----- CREATE INPUTS NEEDED TO COMPUTE DROPLET RADIUS PROFILE USING HYPERSPECTRAL MEASUREMENTS FROM EMIT -----
 
-% ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv)
+% ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv) **
+
+
 
 % INPUTS:
 %   (1) emitDataFolder - 

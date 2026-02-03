@@ -2,13 +2,14 @@
 % ** Retrieving 4 variables: log(r_top), log(r_bot), log(tau_c), log(cwv) **
 
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
-% (1) Adiabatic droplet profile assumption
-% (2) Cloud top height assumption
+%   (1) Adiabatic droplet profile assumption
+%   (2) Cloud top height assumption
+%   (3) Droplet distribution effective variance assumption
 
 
 
 
-function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
+function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
             modis, airs, overlap_pixels,...
             folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
 
