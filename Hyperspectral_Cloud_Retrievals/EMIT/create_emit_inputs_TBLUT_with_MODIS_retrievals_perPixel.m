@@ -18,7 +18,7 @@
 % By Andrew John Buggee
 %%
 
-function inputs = create_emit_inputs_TBLUT_perPixel(folder_paths, emit, spec_response, print_libRadtran_err, pixel_num)
+function inputs = create_emit_inputs_TBLUT_with_MODIS_retrievals_perPixel(folder_paths, emit, spec_response, print_libRadtran_err, pixel_num)
 
 
 %%

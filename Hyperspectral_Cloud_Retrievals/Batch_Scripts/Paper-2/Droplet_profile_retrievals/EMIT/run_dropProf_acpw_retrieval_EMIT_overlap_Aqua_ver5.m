@@ -251,7 +251,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
 
     if all(isnan(emit.radiance.measurements(:, pp)))
 
-        warning([newline, 'EMIT pixels are masked out. Moving to pixel ', num2str(pp), '...', newline])
+        warning([newline, 'EMIT pixel ', num2str(pp), ' is masked out. Moving to pixel ', num2str(pp+1), '...', newline])
 
         continue
 
@@ -268,7 +268,7 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     end
 
 
-    [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = run_retrieval_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
+    [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
         modis, airs, overlap_pixels,...
         folder_paths, print_libRadtran_err, print_status_updates, pp);
 

@@ -1,6 +1,6 @@
 
 
-function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = run_retrieval_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
+function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
             modis, airs, overlap_pixels,...
             folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
 
@@ -102,12 +102,12 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % *** Use MODIS Cloud Top Height Retrieval ***
     % --------------------------------------------
     % Override the cloud depth
-    GN_inputs.RT.H = 0.3;           % km
+    GN_inputs.RT.cloud_depth = 0.3;           % km
 
     % override the cloud top height
     % ** MODIS cloud top height listed in meters is the geopotential height **
     GN_inputs.RT.z_topBottom = [modis.cloud.topHeight(unique_modis_pix_idx(pixel_num))/1e3,...
-        (modis.cloud.topHeight(unique_modis_pix_idx(pixel_num))/1e3 - GN_inputs.RT.H)];    % km
+        (modis.cloud.topHeight(unique_modis_pix_idx(pixel_num))/1e3 - GN_inputs.RT.cloud_depth)];    % km
 
     % Update the height vector based on the MODIS cloud top height
     GN_inputs.RT.z_edges = linspace(GN_inputs.RT.z_topBottom(2),...
@@ -163,7 +163,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         'southEast_pacific/Droplet_profile_retrievals_take2/',...
         num2str(numel(GN_inputs.bands2run)),...
         'bands_EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3),...
-        pixel_', num2str(pixel_num),...
+        '_pixel_', num2str(pixel_num),...
         '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
@@ -254,7 +254,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     use_MODIS_AIRS_data = true;
 
-    tblut_retrieval = TBLUT_forEMIT_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
+    tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
         GN_inputs, use_MODIS_AIRS_data, pixel_num);
 
     if print_status_updates==true
