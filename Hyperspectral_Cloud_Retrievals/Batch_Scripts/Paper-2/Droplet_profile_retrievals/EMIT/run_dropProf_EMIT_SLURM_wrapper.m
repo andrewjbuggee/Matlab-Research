@@ -28,9 +28,40 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     folder_paths.coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/'];
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
-    folder_paths.coincident_dataFolder = '2024-09-12/';
+    % folder_paths.coincident_dataFolder = '2024-09-12/';
+
+
+    % 11 Pixels with H less than 1.6     ** Use this data set **
+    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
+
+    % 2 Pixels with H less than 1.1      ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2023_9_16_T191130_1/';
+
+    % 14 Pixels with H less than 1.35    ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
+
+    % 2 Pixels with H less than 1.35     ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
+
+    % 1 Pixel with H less than 2.1       ** Don't use this data set. H value too large **
+    % folder_paths.coincident_dataFolder = '2024_1_13_T194710_1/';
+
+    % 2 Pixels with H less than 1.6      ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183906_1/';
+
+    % 2 Pixels with H less than 1.6      ** Use this data set **
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183918_1/';
+
+    % 10 Pixels with H less than 1.85      ** Use this data set **
+    % But only 2 aren't masked out by EMIT cloud filter!
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+
+    % No pixels below an H value of 16!   ** Don't use this data set **
+    % folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
+
+
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 

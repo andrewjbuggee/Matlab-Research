@@ -155,6 +155,33 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
 
 
+    %% Override input settings to define the vertical profile of effective radius
+
+    % ** Computed mean vertical effective variance profile from VOCALS-REx data **
+
+    % load the set of VOCALS-REx in-situ observations
+    if strcmp(folder_paths.which_computer, 'anbu8374')==true
+
+        effVar_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+            'Presentations_and_Papers/paper_2/',...
+            'VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+
+    elseif strcmp(folder_paths.which_computer, 'andrewbuggee')==true
+
+        effVar_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+            'Presentations_and_Papers/paper_2/',...
+            'VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+
+    elseif strcmp(folder_paths.which_computer, 'curc')==true
+
+        effVar_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
+            'paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+
+    end
+
+    
+
+
 
     %% This retrieval does retrieve column water vapor.
 
