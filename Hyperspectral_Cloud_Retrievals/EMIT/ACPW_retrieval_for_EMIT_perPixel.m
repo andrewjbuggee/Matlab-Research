@@ -68,11 +68,11 @@ if size(emit.radiance.measurements, 1) == 285
 
     bands = 1:285;
 
-[~, idx_1] = min(abs(bands - inputs_acpw.bands2run(1)));
+    [~, idx_1] = min(abs(bands - inputs_acpw.bands2run(1)));
 
-[~, idx_2] = min(abs(bands - inputs_acpw.bands2run(2)));
+    [~, idx_2] = min(abs(bands - inputs_acpw.bands2run(2)));
 
-[~, idx_3] = min(abs(bands - inputs_acpw.bands2run(3)));
+    [~, idx_3] = min(abs(bands - inputs_acpw.bands2run(3)));
 
 else
 
@@ -168,7 +168,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+        % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -349,8 +349,8 @@ acpw_retrieval.min_nonInterpolated = inputs_acpw.acpw_sim(idx_min);
 inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.01:max(inputs_acpw.acpw_sim));
 
 Refl_model_acpw_interp1 = [interp1(inputs_acpw.acpw_sim, Refl_model_acpw(1:3:end)', inputs_acpw.acpw_interp1);...
-                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
-                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(3:3:end)', inputs_acpw.acpw_interp1)];
+    interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
+    interp1(inputs_acpw.acpw_sim, Refl_model_acpw(3:3:end)', inputs_acpw.acpw_interp1)];
 
 % Find the new minimum RMS
 

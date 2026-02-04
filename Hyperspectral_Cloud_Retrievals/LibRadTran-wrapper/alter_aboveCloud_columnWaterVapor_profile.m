@@ -33,7 +33,8 @@ position = strfind(atm_folder_path, 'atmmod');
 if isnumeric(position)==true
     % then the substring exists. Good! It should
     % stop at the end of atmmod, the base folder
-    atm = read_libRadtran_atm_dat_profiles([atm_folder_path(1:position+5),'/', inputs.RT.atm_file]);
+    % atm = read_libRadtran_atm_dat_profiles([atm_folder_path(1:position+5),'/', inputs.RT.atm_file]);
+    atm = read_libRadtran_atm_dat_profiles_ver2([atm_folder_path(1:position+5),'/', inputs.RT.atm_file]);
 
 elseif isempty(position)
 
