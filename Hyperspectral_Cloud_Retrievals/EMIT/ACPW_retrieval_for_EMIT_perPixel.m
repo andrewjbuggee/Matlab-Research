@@ -47,18 +47,13 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
     % Water Cloud depth
     inputs_acpw.RT.cloud_depth = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
-
-    inputs_acpw.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-
-    inputs_acpw.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
-
-    inputs_acpw.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
-
-    inputs_acpw.RT.use_radiosonde_file = true;
+    % Just use the US standard atmosphere for the initial guess
+    % Later, I can update this to edit radiosonde profiles
+    inputs_acpw.RT.use_radiosonde_file = false;
 
     % Use the same one defined for the full retrieval
-    inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
-    inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
+    % inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+    % inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 end
 
@@ -168,7 +163,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-        % for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
