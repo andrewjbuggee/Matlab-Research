@@ -28,7 +28,7 @@
 
 %%
 
-function [GN_inputs] = create_EMIT_forMod_cov_ver4_log_reProf_cloudTop(GN_inputs)
+function [GN_inputs] = create_EMIT_forMod_cov_ver4_log_reProf_CTH_effVar(GN_inputs)
 
 % -------------------------------------------------------------
 % -------------------------------------------------------------
@@ -150,6 +150,69 @@ std_log = sqrt( log( (GN_inputs.model.forward_model.cloudTopHeight.std^2 / GN_in
 logNorm_dist = makedist("Lognormal", mu_log, std_log);
 
 samples_cloudTopHeight = logNorm_dist.random(1, n_samples);
+
+
+
+
+
+
+
+
+
+%----------------------------------------------------------------
+% ------- Uncertainty due to varying effective variance ---------
+%----------------------------------------------------------------
+
+% Define the uncertainty due to assuming a constant effective variance of
+% the droplet size distribution. 
+
+GN_inputs.model.forward_model.re.mean{1} = create_droplet_profile2(exp([GN_inputs.model.apriori(1),...
+    GN_inputs.model.apriori(2)]), sort(GN_inputs.RT.z),...
+    GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+
+% These values are the mean, define the standard deviation. This
+% reflects the uncertainty between the theoretical value and the true
+% profile
+% Values at the top and bottom have more uncerainty due to low LWC and
+% entrainment at cloud top
+GN_inputs.model.forward_model.re.std = zeros(size(GN_inputs.model.forward_model.re.mean{1}));
+GN_inputs.model.forward_model.re.std(1:2) = 2; % microns
+GN_inputs.model.forward_model.re.std(end-1:end) = 2; % microns
+GN_inputs.model.forward_model.re.std(3:end-2) = 1; % microns
+
+
+% *** For computing the covariance of the logarithm of the parameters ***
+% Assume each assumed droplet effective radius along the profile follows a
+% lognormal distribution, where the mean is the assumed value and the std
+% is the value defined above
+
+% Take the log of these and compute the variance
+% The main diagonal is var(log(y))
+n_samples = 10000;
+samples_effective_radius = zeros(length(GN_inputs.model.forward_model.re.mean{1}), n_samples);
+
+for nn = 1:length(GN_inputs.model.forward_model.re.mean{1})
+
+    % convert mean and std from a normal distribution to a lognormal
+    % distribution
+    mu_log = log(GN_inputs.model.forward_model.re.mean{1}(nn)) -...
+        (1/2 * log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
+
+    std_log = sqrt( log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
+
+
+    logNorm_dist = makedist("Lognormal", mu_log, std_log);
+
+    samples_effective_radius(nn, :) = logNorm_dist.random(1, n_samples);
+
+
+end
+
+
+
+
+
+
 
 
 

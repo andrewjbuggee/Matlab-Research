@@ -65,7 +65,7 @@ elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
 
 elseif strcmp(GN_inputs.which_computer, 'curc')==true
 
-    % ** 02-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
+    % ** 01-Feb-2026 ** uses ERA5 data to define the ACPW for each profile
     % Uses to old method to sample N values of the radius at cloud top and
     % bottom for each profile, which sampled values from the entire
     % ensemble

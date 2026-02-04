@@ -233,6 +233,11 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         
     end
 
+    % Lastly, take a mean of the vertical profile of effective variance
+    % This is the value that will be used in all calculations, since only a
+    % single mie table can be used in the libRadtran uvSpec calculations
+    GN_inputs.RT.mean_distribution_var = mean(GN_inputs.RT.distribution_var);
+
 
 
 
@@ -398,7 +403,12 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf(GN_inputs);
 
     % Including re_profile and cloud top height uncertainty
-    GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf_cloudTop(GN_inputs);
+    % GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf_cloudTop(GN_inputs);
+
+    % Including re_profile, cloud top height, and effective variance uncertainty
+    GN_inputs = create_EMIT_forMod_cov_ver4_log_reProf_CTH_effVar(GN_inputs);
+
+
 
 
     %% Use the tblut retrieval as the initial guess for the hyperspectral retrieval
