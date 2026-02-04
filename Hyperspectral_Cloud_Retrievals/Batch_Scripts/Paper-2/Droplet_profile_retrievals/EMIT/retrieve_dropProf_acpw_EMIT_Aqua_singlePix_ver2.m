@@ -162,15 +162,22 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % load the set of VOCALS-REx in-situ observations
     if strcmp(folder_paths.which_computer, 'anbu8374')==true
 
+        % --- load the effective variance observations ---
         effVar_obs = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
             'Presentations_and_Papers/paper_2/',...
             'VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
 
+        % --- define the directory for where the custom pre-computed mie tables are ---
+        custom_mie_tables_dir = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/custom_mieTables/';
+
     elseif strcmp(folder_paths.which_computer, 'andrewbuggee')==true
 
+        % --- load the effective variance observations ---
         effVar_obs = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
             'Presentations_and_Papers/paper_2/',...
             'VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+
+        
 
     elseif strcmp(folder_paths.which_computer, 'curc')==true
 
@@ -179,7 +186,53 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     end
 
+
+    % set the directory for the custom mie tables
+     GN_inputs.RT.mie_table_directory = custom_mie_tables_dir;
+
+    % first, read all the filenames in the custom mie tables dir
+    mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*.cdf'));
     
+    % step through each filename and extract the alpha value, which is in
+    % the filename
+    % Extract alpha values from the filenames and store them
+    mie_table_alpha_values = zeros( length(mie_table_filenames), 1);
+
+    for ff = 1:length(mie_table_filenames)
+        
+        alpha_str = extractBetween(mie_table_filenames(ff).name, 'alpha_', '.cdf');
+
+        mie_table_alpha_values(ff) = str2double(alpha_str{1}); % Assuming alpha is in the filename
+
+    end
+
+    % update the effective variance assumption for each cloud layer using
+    % the fit using log-normal fit of alpha values
+
+    GN_inputs.RT.distribution_var = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.distribution_var_closest_2file = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.mie_table_filename = cell(GN_inputs.RT.n_layers, 1);
+
+    for ll = 1:GN_inputs.RT.n_layers
+
+        % convert the log normal mu and std parameter to the arithmetic
+        % mean
+        GN_inputs.RT.distribution_var(ll) = exp( effVar_obs.alpha_fit_lognormal(ll).mu +...
+            (effVar_obs.alpha_fit_lognormal(ll).sigma^2)/2 );
+
+        % for each value, find the pre-computed mie table with the closest
+        % alpha value. Save this filename
+        % find the closest alpha value in the pre-computed mie tables
+        [~, idx_min] = min( abs( GN_inputs.RT.distribution_var(ll) - mie_table_alpha_values ) );
+
+        % store the closest alpha value for use in the radiative transfer
+        GN_inputs.RT.distribution_var_closest_2file(ll) = mie_table_alpha_values(idx_min);
+
+        GN_inputs.RT.mie_table_filename{ll} = mie_table_filenames(idx_min).name;
+
+        
+    end
+
 
 
 
