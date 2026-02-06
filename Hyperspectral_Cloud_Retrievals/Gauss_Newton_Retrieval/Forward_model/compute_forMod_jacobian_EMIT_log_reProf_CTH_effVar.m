@@ -295,30 +295,31 @@ end
 
 if jacobian_barPlot_flag==true
 
-    % Define the measurement variance for the current pixel
-    measurement_variance = GN_inputs.measurement.variance_noLog;
+    % Define the measurement standard deviaiton for the current pixel
+    measurement_uncert_rad = GN_inputs.measurement.uncert_frac(GN_inputs.bands2run) .* meas_est_linear; % mW/m^2/micron/sr
 
-    spectral_bands = zeros(1,length(GN_inputs.spec_response));
-    for bb = 1:length(GN_inputs.spec_response)
-
-        spectral_bands(bb) = round(median(GN_inputs.spec_response{bb}(:,1)));
-    end
+    % spectral_bands = zeros(1,length(GN_inputs.spec_response));
+    % for bb = 1:length(GN_inputs.spec_response)
+    % 
+    %     spectral_bands(bb) = round(median(GN_inputs.spec_response{bb}(:,1)));
+    % end
+    spectral_bands = round(mean(changing_variables(1:num_wl, end-2:end-1), 2));
     [~, index_sort] = sort(spectral_bands);
     string_bands = string(spectral_bands(index_sort));
 
 
-    f = figure; bar(abs(change_in_measurement(index_sort,:)))
+    f = figure; bar(abs(change_in_measurement(index_sort, end-1:end)))
     hold on;
-    plot(sqrt(measurement_variance_ln(index_sort)), 'k--')
+    plot(measurement_uncert_rad(index_sort), 'k--')
     hold on
     xticklabels(string_bands);
     xlabel('Wavelength $(nm)$', 'Interpreter','latex')
     ylabel('$\triangle$ Reflectance','Interpreter','latex')
-    legend('$\triangle r_{top}$','$\triangle r_{bot}$', '$\triangle \tau_{c}$','$\sigma_\lambda$',...
+    legend('$\triangle CTH$','$\triangle \nu_{eff}$','$\sigma_\lambda$',...
         'interpreter', 'latex', 'Location','best','Fontsize',20);
     grid on; grid minor
     set(f, 'Position',[0 0 1000 500])
-    title('The Jacobian', 'Interpreter','latex')
+    title('Forward Model Jacobian', 'Interpreter','latex')
     dim = [.14 0.67 .3 .3];
     str = ['$r_{top} = $',num2str(r_top),', $r_{bot} = $ ',num2str(r_bottom),', $\tau_c = $ ',num2str(tau_c)];
     annotation('textbox',dim,'String',str,'FitBoxToText','on','Color','k',...
