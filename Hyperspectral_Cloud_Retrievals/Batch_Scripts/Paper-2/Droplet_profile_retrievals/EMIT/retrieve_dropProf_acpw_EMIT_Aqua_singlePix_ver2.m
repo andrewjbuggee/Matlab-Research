@@ -15,13 +15,16 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
 
 
-%% Create an input structure that helps write the INP files
+    %% Create an input structure that helps write the INP files
 
     % this is a built-in function that is defined at the bottom of this script
     GN_inputs = create_gauss_newton_inputs_for_emit_ver4_log(emit, print_libRadtran_err);
     %inputs = create_emit_inputs_hyperspectral_top_middle(emitDataFolder, folder2save, L1B_fileName, emit);
 
     % *** Check Inputs ***
+
+    %% Use the new custom mie tables created on 1 Feb 2026
+    GN_inputs.RT.use_custom_mie_calcs = true;
 
 
     %% Adjust inputs that vary per pixel
@@ -157,7 +160,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
 
 
-    %% Override input settings to define the vertical profile of effective radius
+    %% Override input settings to define the vertical profile of effective varaince
 
     % ** Computed mean vertical effective variance profile from VOCALS-REx data **
 
@@ -219,30 +222,30 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % the fit using log-normal fit of alpha values
     % the distribution variance fits start at cloud base and move towards
     % cloud top
-    GN_inputs.RT.distribution_var = zeros(GN_inputs.RT.n_layers, 1);
-    GN_inputs.RT.distribution_var_std = zeros(GN_inputs.RT.n_layers, 1);
-    GN_inputs.RT.distribution_var_closest_2file = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.distribution_var_profile = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.distribution_var_profile_std = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.distribution_var_profile_closest_2file = zeros(GN_inputs.RT.n_layers, 1);
     GN_inputs.RT.mie_table_filename = cell(GN_inputs.RT.n_layers, 1);
 
     for ll = 1:GN_inputs.RT.n_layers
 
         % convert the log normal mu and std parameter to the arithmetic
         % mean
-        GN_inputs.RT.distribution_var(ll) = exp( effVar_obs.alpha_fit_lognormal(ll).mu +...
+        GN_inputs.RT.distribution_var_profile(ll) = exp( effVar_obs.alpha_fit_lognormal(ll).mu +...
             (effVar_obs.alpha_fit_lognormal(ll).sigma^2)/2 );
 
         % convert the log normal mu and std parameter to the arithmetic
         % standard deviation
-        GN_inputs.RT.distribution_var_std(ll) = sqrt( (exp(effVar_obs.alpha_fit_lognormal(ll).sigma^2) -1)...
+        GN_inputs.RT.distribution_var_profile_std(ll) = sqrt( (exp(effVar_obs.alpha_fit_lognormal(ll).sigma^2) -1)...
             * exp(2*effVar_obs.alpha_fit_lognormal(ll).mu + effVar_obs.alpha_fit_lognormal(ll).sigma^2));
 
         % for each value, find the pre-computed mie table with the closest
         % alpha value. Save this filename
         % find the closest alpha value in the pre-computed mie tables
-        [~, idx_min] = min( abs( GN_inputs.RT.distribution_var(ll) - mie_table_alpha_values ) );
+        [~, idx_min] = min( abs( GN_inputs.RT.distribution_var_profile(ll) - mie_table_alpha_values ) );
 
         % store the closest alpha value for use in the radiative transfer
-        GN_inputs.RT.distribution_var_closest_2file(ll) = mie_table_alpha_values(idx_min);
+        GN_inputs.RT.distribution_var_profile_closest_2file(ll) = mie_table_alpha_values(idx_min);
 
         GN_inputs.RT.mie_table_filename{ll} = mie_table_filenames(idx_min).name;
 
@@ -251,14 +254,24 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     % flip the effective variance profile so the first value is cloud top
     % and the last value is cloud bottom
-    GN_inputs.RT.distribution_var = flipud( GN_inputs.RT.distribution_var);
-    GN_inputs.RT.distribution_var_std = flipud( GN_inputs.RT.distribution_var_std);
+    GN_inputs.RT.distribution_var_profile = flipud( GN_inputs.RT.distribution_var_profile);
+    GN_inputs.RT.distribution_var_profile_std = flipud( GN_inputs.RT.distribution_var_profile_std);
 
     % Lastly, take a mean of the vertical profile of effective variance
     % This is the value that will be used in all calculations, since only a
     % single mie table can be used in the libRadtran uvSpec calculations
-    GN_inputs.RT.mean_distribution_var = mean(GN_inputs.RT.distribution_var);
-    GN_inputs.RT.mean_distribution_var_std = mean(GN_inputs.RT.distribution_var_std);   % this is the average standard deviation of the alpha value for each cloud layer. 
+    GN_inputs.RT.mean_distribution_var = mean(GN_inputs.RT.distribution_var_profile);
+    GN_inputs.RT.mean_distribution_var_std = mean(GN_inputs.RT.distribution_var_profile_std);   % this is the average standard deviation of the alpha value for each cloud layer.
+
+    % find the pre-computed mie table with the closest
+    % alpha value to the mean value and save it
+    % find the closest alpha value in the pre-computed mie tables
+    [~, idx_min] = min( abs( GN_inputs.RT.mean_distribution_var - mie_table_alpha_values ) );
+
+    % store the closest alpha value for use in the radiative transfer
+    GN_inputs.RT.mean_distribution_var_closest_2file = mie_table_alpha_values(idx_min);
+    % store the filename of the closest alpha value
+    GN_inputs.RT.mean_distribution_var_closest_filename = [mie_table_filenames(idx_min).folder, '/', mie_table_filenames(idx_min).name];
 
 
 
