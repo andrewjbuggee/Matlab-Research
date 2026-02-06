@@ -38,6 +38,10 @@ if GN_inputs.RT.use_radiosonde_file==true
 
         GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
 
+    elseif isfield(GN_inputs.RT, 'radiosonde_file_T_P_WV')==true
+
+        GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
+
     else
 
         error([newline, 'No Radiosonde file defined', newline])

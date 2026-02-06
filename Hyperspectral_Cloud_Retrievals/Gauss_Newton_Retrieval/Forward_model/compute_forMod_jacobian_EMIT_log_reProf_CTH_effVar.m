@@ -18,7 +18,7 @@
 %%
 
 function jacobian_fm_ln = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar(state_vector, measurement_estimate_ln, GN_inputs,...
-    spec_response, jacobian_barPlot_flag, folder_paths)
+    spec_response, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num)
 
 
 % convert the measurement back to linear space
@@ -43,6 +43,10 @@ if GN_inputs.RT.use_radiosonde_file==true
     if isfield(GN_inputs.RT, 'radiosonde_file_T_P_RH')==true
 
         GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+
+    elseif isfield(GN_inputs.RT, 'radiosonde_file_T_P_WV')==true
+
+        GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
 
     else
 
@@ -91,9 +95,13 @@ num_wl = size(GN_inputs.RT.wavelengths2run,1);
 % within the cloud
 num_cloud_layers = GN_inputs.RT.n_layers;
 
-% unpack the forward model parameters - both droplet profile and cloud top height
+% unpack the forward model parameters 
+%   (1) Adiabatic droplet profile assumption
+%   (2) Cloud top height
+%   (3) Droplet distribution effective variance assumption
 forward_model_params = [ fliplr(GN_inputs.model.forward_model.re.mean{end}'),...
-    GN_inputs.model.forward_model.cloudTopHeight.mean];
+    GN_inputs.model.forward_model.cloudTopHeight.mean,...
+    GN_inputs.model.forward_model.alpha.mean];
 
 num_forward_model_params = length(forward_model_params);
 
@@ -104,7 +112,7 @@ num_forward_model_params = length(forward_model_params);
 % Define the fractional change the represents the partial derivative based
 % on the measurement uncertainty. Define the change for each variable.
 partial_diff_change = measurement_uncert .*...
-    [linspace(1/20, 1/5.7143, num_cloud_layers), 1/10];
+    [linspace(1/20, 1/5.7143, num_cloud_layers), 1/10, 1/10];
 
 % Compute the change in each parameter
 change_in_params = partial_diff_change .* forward_model_params;
@@ -140,7 +148,7 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_forward_model_
 % -----------------------------------------------------------
 % ** create file with original cloud top height **
 aboveCloud_waterVaporColumn_fileName_original_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path);
+    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
 
 % ** create file with new cloud top height **
 % Define the cloud top value
@@ -148,7 +156,7 @@ GN_inputs.RT.z_topBottom = [changing_variables(num_forward_model_params * num_wl
     changing_variables(num_forward_model_params * num_wl, num_cloud_layers+1) - GN_inputs.RT.H];
 
 aboveCloud_waterVaporColumn_fileName_new_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path);
+    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
 % -----------------------------------------------------------
 % -----------------------------------------------------------
 
