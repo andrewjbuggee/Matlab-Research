@@ -4,7 +4,7 @@
 %%
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, wc_folder_path, inputFileName, inputs,...
-    wavelengths, wc_filename, mc_basename, wc_modify_tau, waterVaporProfile_filename,...
+    wavelengths, wc_filename, mc_basename, wc_modify_tau, modified_waterVaporProfile_filename,...
     total_column_precipitable_water)
 
 
@@ -254,18 +254,67 @@ end
 % --------------------------------------------------------------------
 if isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_aboveCloud_columnWaterVapor==true
 
-    % check to make sure the input for this setting exists
-    if exist("waterVaporProfile_filename", "var")==false
+    % first, check if a radiosonde file is being used. If so, we should be
+    % using that file to modify above cloud PW
+    if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file == true
 
-        error([newline, 'No custom file defined for a water vapor density profile.', newline])
+        % Don't use mol_file update, just use the radiosonde function
+        if exist("modified_waterVaporProfile_filename", "var")==false
+
+            error([newline, 'No custom file defined for a water vapor density profile.', newline])
+
+        end
+
+
+        % check to make sure the input for this setting exists
+        if isfield(inputs.RT, 'radiosonde_file')==true || isfield(inputs.RT, 'radiosonde_file_T_P_WV')==true
+
+
+            % If true, check to see how many variables there are two define.
+            % If 2, we're only defining temperature and pressure
+            % If 3, we'll define temperature, pressure and relative humidity
+            % ----------------------------------------------------------------
+            if isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==2
+
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'radiosonde ', modified_waterVaporProfile_filename, ' ', '# Custom water vapor profile');
+
+            elseif isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==3
+
+                formatSpec = '%s %s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'radiosonde ', modified_waterVaporProfile_filename, ' H2O CM_3', ' ', '# Custom water vapor profile');
+
+            else
+
+                error([newline, 'Need to specify how many radiosonde variables you are defining', newline])
+
+            end
+
+
+        else
+
+            error([newline, 'No custom radiosonde file defined', newline])
+
+        end
+
+
+    else
+
+
+        % check to make sure the input for this setting exists
+        if exist("waterVaporProfile_filename", "var")==false
+
+            error([newline, 'No custom file defined for a water vapor density profile.', newline])
+
+        end
+
+        % If true, define the filename for the new custom column water vapor
+        % density profile
+        % ----------------------------------------------------------------
+        formatSpec = '%s %s %s %5s %s \n\n';
+        fprintf(fileID, formatSpec,'mol_file H2O ', modified_waterVaporProfile_filename, ' cm_3', ' ', '# Custom water vapor profile');
 
     end
-
-    % If true, define the filename for the new custom column water vapor
-    % density profile
-    % ----------------------------------------------------------------
-    formatSpec = '%s %s %s %5s %s \n\n';
-    fprintf(fileID, formatSpec,'mol_file H2O ', waterVaporProfile_filename, ' cm_3', ' ', '# Custom water vapor profile');
 
 
 end
@@ -278,34 +327,42 @@ end
 % --------------------------------------------------------------------
 if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==true
 
-    % check to make sure the input for this setting exists
-    if isfield(inputs.RT, 'radiosonde_file')==true
+    % Check to make sure that the anove-cloud precipitable water isn't
+    % being altered. If it is, we've already used the radiosonde function
+    if (isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_aboveCloud_columnWaterVapor == false) ...
+            || isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') == false
+
+        % check to make sure the input for this setting exists
+        if isfield(inputs.RT, 'radiosonde_file')==true
 
 
-        % If true, check to see how many variables there are two define.
-        % If 2, we're only defining temperature and pressure
-        % If 3, we'll define temperature, pressure and relative humidity
-        % ----------------------------------------------------------------
-        if isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==2
+            % If true, check to see how many variables there are two define.
+            % If 2, we're only defining temperature and pressure
+            % If 3, we'll define temperature, pressure and relative humidity
+            % ----------------------------------------------------------------
+            if isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==2
 
-            formatSpec = '%s %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' ', '# Custom water vapor profile');
+                formatSpec = '%s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' ', '# Custom water vapor profile');
 
-        elseif isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==3
+            elseif isfield(inputs.RT, 'radiosonde_num_vars')==true && inputs.RT.radiosonde_num_vars==3
 
-            formatSpec = '%s %s %s %5s %s \n\n';
-            fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' H2O RH', ' ', '# Custom water vapor profile');
+                formatSpec = '%s %s %s %5s %s \n\n';
+                fprintf(fileID, formatSpec,'radiosonde ', inputs.RT.radiosonde_file, ' H2O CM_3', ' ', '# Custom water vapor profile');
+
+            else
+
+                error([newline, 'Need to specify how many radiosonde variables you are defining', newline])
+
+            end
+
 
         else
 
-            error([newline, 'Need to specify how many radiosonde variables you are defining', newline])
+            error([newline, 'No custom radiosonde file defined', newline])
 
         end
 
-
-    else
-
-        error([newline, 'No custom radiosonde file defined', newline])
 
     end
 

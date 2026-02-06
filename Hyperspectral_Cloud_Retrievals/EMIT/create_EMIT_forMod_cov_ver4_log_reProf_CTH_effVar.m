@@ -166,47 +166,39 @@ samples_cloudTopHeight = logNorm_dist.random(1, n_samples);
 % Define the uncertainty due to assuming a constant effective variance of
 % the droplet size distribution. 
 
-GN_inputs.model.forward_model.re.mean{1} = create_droplet_profile2(exp([GN_inputs.model.apriori(1),...
-    GN_inputs.model.apriori(2)]), sort(GN_inputs.RT.z),...
-    GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
+GN_inputs.model.forward_model.alpha.mean(1) = GN_inputs.RT.mean_distribution_var;  % alpha values 
+
+% I must assume a single value in all of my libRadtran calculations. 
+% Define a standard deviation that provides uncertainty for the single
+% value that will be used.
+% Use the average standard deviation from the VOCALS-REx measurements
+GN_inputs.model.forward_model.alpha.std(1) = GN_inputs.RT.mean_distribution_var_std;
 
 % These values are the mean, define the standard deviation. This
-% reflects the uncertainty between the theoretical value and the true
-% profile
-% Values at the top and bottom have more uncerainty due to low LWC and
-% entrainment at cloud top
-GN_inputs.model.forward_model.re.std = zeros(size(GN_inputs.model.forward_model.re.mean{1}));
-GN_inputs.model.forward_model.re.std(1:2) = 2; % microns
-GN_inputs.model.forward_model.re.std(end-1:end) = 2; % microns
-GN_inputs.model.forward_model.re.std(3:end-2) = 1; % microns
+% reflects the uncertainty between the theoretical value assumed and the
+% possible values that the true measurements may be sampling
 
 
 % *** For computing the covariance of the logarithm of the parameters ***
-% Assume each assumed droplet effective radius along the profile follows a
-% lognormal distribution, where the mean is the assumed value and the std
+% Assume the cloud top height follows a lognormal distribution,
+% where the mean is the assumed value and the std
 % is the value defined above
 
 % Take the log of these and compute the variance
 % The main diagonal is var(log(y))
 n_samples = 10000;
-samples_effective_radius = zeros(length(GN_inputs.model.forward_model.re.mean{1}), n_samples);
 
-for nn = 1:length(GN_inputs.model.forward_model.re.mean{1})
+% convert mean and std from a normal distribution to a lognormal
+% distribution
+mu_log = log(GN_inputs.model.forward_model.alpha.mean) -...
+    (1/2 * log( (GN_inputs.model.forward_model.alpha.std^2 / GN_inputs.model.forward_model.alpha.mean^2) +1));
 
-    % convert mean and std from a normal distribution to a lognormal
-    % distribution
-    mu_log = log(GN_inputs.model.forward_model.re.mean{1}(nn)) -...
-        (1/2 * log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
-
-    std_log = sqrt( log( (GN_inputs.model.forward_model.re.std(nn)^2 / GN_inputs.model.forward_model.re.mean{1}(nn)^2) +1));
+std_log = sqrt( log( (GN_inputs.model.forward_model.alpha.std^2 / GN_inputs.model.forward_model.alpha.mean^2) +1));
 
 
-    logNorm_dist = makedist("Lognormal", mu_log, std_log);
+logNorm_dist = makedist("Lognormal", mu_log, std_log);
 
-    samples_effective_radius(nn, :) = logNorm_dist.random(1, n_samples);
-
-
-end
+samples_alpha = logNorm_dist.random(1, n_samples);
 
 
 
@@ -233,9 +225,11 @@ end
 
 % you need to take the log of the data!
 % ** Combine both data sets! **
-GN_inputs.model.forward_model.covariance = diag(var( log( [samples_effective_radius; samples_cloudTopHeight] ), [], 2));     %  log space covaraince
+GN_inputs.model.forward_model.covariance = diag(var( log(...
+    [samples_effective_radius; samples_cloudTopHeight; samples_alpha] ), [], 2));     %  log space covaraince
 
-GN_inputs.model.forward_model.covariance_lin = diag( var( [samples_effective_radius; samples_cloudTopHeight], [], 2));     %  log space covaraince
+GN_inputs.model.forward_model.covariance_lin = diag( var(...
+    [samples_effective_radius; samples_cloudTopHeight; samples_alpha], [], 2));     %  log space covaraince
 
 %----------------------------------------------------
 % ------ Define the Variance of each Variable  ------

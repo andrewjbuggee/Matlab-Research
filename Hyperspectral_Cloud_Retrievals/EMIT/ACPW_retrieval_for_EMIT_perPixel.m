@@ -6,7 +6,7 @@
 %%
 
 function [acpw_retrieval] = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num)
+    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs_datProfiles)
 
 
 
@@ -49,11 +49,11 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
     % Just use the US standard atmosphere for the initial guess
     % Later, I can update this to edit radiosonde profiles
-    inputs_acpw.RT.use_radiosonde_file = false;
+    inputs_acpw.RT.use_radiosonde_file = true;
 
     % Use the same one defined for the full retrieval
-    % inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
-    % inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
+    inputs_acpw.RT.radiosonde_file_T_P_WV = GN_inputs.RT.radiosonde_file_T_P_WV;
+    inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 end
 
@@ -163,7 +163,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+        % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -171,7 +171,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
         % create a custom water vapor profile
         custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs_acpw, changing_variables(nn,1),...
-            atm_folder_path);
+            atm_folder_path, airs_datProfiles, pixel_num);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----

@@ -2,7 +2,7 @@
 
 
 function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs,...
-    emit, spec_response, folder_paths, print_status_updates, pixel_num)
+    emit, spec_response, folder_paths, print_status_updates, pixel_num, airs_datProfiles)
 
 
 % ----- unpack inputs -----
@@ -174,7 +174,8 @@ if print_status_updates == true
             % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
             % *** Take the logarithm of the measurement estimate ***
             disp([newline, 'Estimating spectral measurements...', newline])
-            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs, spec_response.value, folder_paths));
+            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs,...
+                spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -195,7 +196,7 @@ if print_status_updates == true
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
         Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
-            jacobian_barPlot_flag, folder_paths);
+            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -211,8 +212,6 @@ if print_status_updates == true
         end
 
 
-        % --------------------------------------------------------------
-        % --------------------------------------------------------------
         disp([newline, 'Computing the Forward Model Jacobian...', newline])
 
         % ** For uncertainty with re profile **
@@ -220,7 +219,11 @@ if print_status_updates == true
         %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % ** For uncertainty with re profile and cloud top height **
-        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        %     spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % ** For uncertainty with re profile, cloud top height and effective varaince **
+        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
             spec_response.value, jacobian_barPlot_flag, folder_paths);
         % --------------------------------------------------------------
         % --------------------------------------------------------------

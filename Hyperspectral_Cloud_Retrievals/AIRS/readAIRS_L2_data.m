@@ -71,6 +71,15 @@ for ii = 1:length(files)
         airs.pressH2O = hdfread(fileName, 'pressH2O');  % (H2OPressureLev = 15)  % hpa
 
 
+        % ------ Geopotential heights ------
+        % Standard pressure levels for temperature and other retrievals
+        airs.Z.GP_Height = hdfread(fileName, 'GP_Height');  % (StdPressureLev = 28)   % meters above sea level
+        airs.Z.GP_Height_QC = hdfread(fileName, 'GP_Height_QC');  % (StdPressureLev = 28)   % quality control - 0: Highest Quality;   1: Good Quality;   2: Do Not Use
+        airs.Z.GP_Surface = hdfread(fileName, 'GP_Surface');  % (StdPressureLev = 28)   % meters above sea level
+        airs.Z.GP_Surface_QC = hdfread(fileName, 'GP_Surface_QC');  % (StdPressureLev = 28)   % quality control - 0: Highest Quality;   1: Good Quality;   2: Do Not Use
+
+
+
         % ------ Temperature Profiles ------
         % Air temperature at standard pressure levels (GeoTrack x GeoXTrack x StdPressureLev)
         airs.temp.prof_std = hdfread(fileName, 'TAirStd');         % K
@@ -93,7 +102,7 @@ for ii = 1:length(files)
         airs.H2O.MMR_StdErr = hdfread(fileName, 'H2OMMRStdErr');
 
         % Water vapor at pressure levels (not layers)
-        airs.H2O.MMR_LevStd = hdfread(fileName, 'H2OMMRLevStd');        % Layer water Vapor Mass Mixing Ratio (gm/kg dry air)  
+        airs.H2O.MMR_LevStd = hdfread(fileName, 'H2OMMRLevStd');        % Layer water Vapor Mass Mixing Ratio (g/kg dry air)  
         airs.H2O.MMR_LevStd_QC = hdfread(fileName, 'H2OMMRLevStd_QC');
 
         % Total column water vapor
@@ -102,7 +111,7 @@ for ii = 1:length(files)
 
         % Relative humidity
         airs.H2O.RelHum = hdfread(fileName, 'RelHum');           % % RH
-        airs.H2O.RelHum_QC = hdfread(fileName, 'RelHum_QC');
+        airs.H2O.RelHum_QC = hdfread(fileName, 'RelHum_QC');     % quality control - 0: Highest Quality;   1: Good Quality;   2: Do Not Use
 
 
         % ------ Methane Profiles ------

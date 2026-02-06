@@ -85,13 +85,13 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % This set has a total of 64 bands. They are not exactly the same set as
     % the 66 HySICS bands used to retrieve column water vapor because the
     % HySICS channels are more narrow.
-    % GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
-    %     94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
-    %     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
-    %     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
+    GN_inputs.bands2run = [17, 20, 25, 32, 39, 65, 66, 67, 68, 71, 74, 78, 86, 87, 88, 89, 90,...
+        94, 97, 99, 101, 105, 115, 116, 117, 139, 141, 142, 145, 147, 148, 149, 151, 156,...
+        157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
+        220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
     % --- Use all 285 spectral channels -
-    GN_inputs.bands2run = (1:285)';
+    % GN_inputs.bands2run = (1:285)';
 
 
     %% Override input settings with MODIS derived values
@@ -145,11 +145,13 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     GN_inputs.RT.use_radiosonde_file = true;
     GN_inputs.RT.radiosonde_num_vars = 3;
 
-    GN_inputs.RT.radiosonde_file_T_P_RH = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pixel_num, [],...
-        GN_inputs.RT.radiosonde_num_vars, overlap_pixels);
+    [GN_inputs.RT.radiosonde_file_T_P_WV, airs] = write_AIRS_radiosonde_DAT_with_multiPixels(airs,...
+        folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
 
-    GN_inputs.RT.radiosonde_file_T_P = write_AIRS_radiosonde_DAT_with_multiPixels(airs, folder_paths, pixel_num, [],...
-        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels);
+    [GN_inputs.RT.radiosonde_file_T_P, ~] = write_AIRS_radiosonde_DAT_with_multiPixels(airs,...
+        folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
 
 
 
@@ -170,6 +172,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         % --- define the directory for where the custom pre-computed mie tables are ---
         custom_mie_tables_dir = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/custom_mieTables/';
 
+
     elseif strcmp(folder_paths.which_computer, 'andrewbuggee')==true
 
         % --- load the effective variance observations ---
@@ -177,12 +180,18 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
             'Presentations_and_Papers/paper_2/',...
             'VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
 
+        % --- define the directory for where the custom pre-computed mie tables are ---
+        custom_mie_tables_dir = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/custom_mieTables/';
         
 
     elseif strcmp(folder_paths.which_computer, 'curc')==true
 
+        % --- load the effective variance observations ---
         effVar_obs = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
             'paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+
+        % --- define the directory for where the custom pre-computed mie tables are ---
+        custom_mie_tables_dir = '/projects/anbu8374/software/libRadtran-2.0.5/data/wc/custom_mieTables/';
 
     end
 
@@ -208,8 +217,10 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     % update the effective variance assumption for each cloud layer using
     % the fit using log-normal fit of alpha values
-
+    % the distribution variance fits start at cloud base and move towards
+    % cloud top
     GN_inputs.RT.distribution_var = zeros(GN_inputs.RT.n_layers, 1);
+    GN_inputs.RT.distribution_var_std = zeros(GN_inputs.RT.n_layers, 1);
     GN_inputs.RT.distribution_var_closest_2file = zeros(GN_inputs.RT.n_layers, 1);
     GN_inputs.RT.mie_table_filename = cell(GN_inputs.RT.n_layers, 1);
 
@@ -219,6 +230,11 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         % mean
         GN_inputs.RT.distribution_var(ll) = exp( effVar_obs.alpha_fit_lognormal(ll).mu +...
             (effVar_obs.alpha_fit_lognormal(ll).sigma^2)/2 );
+
+        % convert the log normal mu and std parameter to the arithmetic
+        % standard deviation
+        GN_inputs.RT.distribution_var_std(ll) = sqrt( (exp(effVar_obs.alpha_fit_lognormal(ll).sigma^2) -1)...
+            * exp(2*effVar_obs.alpha_fit_lognormal(ll).mu + effVar_obs.alpha_fit_lognormal(ll).sigma^2));
 
         % for each value, find the pre-computed mie table with the closest
         % alpha value. Save this filename
@@ -233,10 +249,16 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         
     end
 
+    % flip the effective variance profile so the first value is cloud top
+    % and the last value is cloud bottom
+    GN_inputs.RT.distribution_var = flipud( GN_inputs.RT.distribution_var);
+    GN_inputs.RT.distribution_var_std = flipud( GN_inputs.RT.distribution_var_std);
+
     % Lastly, take a mean of the vertical profile of effective variance
     % This is the value that will be used in all calculations, since only a
     % single mie table can be used in the libRadtran uvSpec calculations
     GN_inputs.RT.mean_distribution_var = mean(GN_inputs.RT.distribution_var);
+    GN_inputs.RT.mean_distribution_var_std = mean(GN_inputs.RT.distribution_var_std);   % this is the average standard deviation of the alpha value for each cloud layer. 
 
 
 
@@ -380,7 +402,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     use_MODIS_AIRS_data = true;
 
     acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num);
+        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs.datProfiles);
 
     if print_status_updates==true
         disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -420,7 +442,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     disp([newline, 'Running Multispectral retrieval... ', newline])
 
     [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs, emit, spec_response,...
-        folder_paths, print_status_updates, pixel_num);
+        folder_paths, print_status_updates, pixel_num, airs.datProfiles);
 
 
     % --------------------------------------------------------------

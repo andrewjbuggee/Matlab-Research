@@ -90,6 +90,38 @@ airs.pressure.SurfStd_QC = airs.pressure.SurfStd_QC(keep_airs_data_index);
 % Note: pressStd and pressH2O are 1D arrays (pressure levels), not spatial, so don't filter them
 
 
+%% Process Geopotential Height fields
+% Temperature profiles (GeoTrack x GeoXTrack x StdPressureLev)
+for layer = 1:size(airs.Z.GP_Height, 3)
+    
+    % Store the original 3D structure
+    if layer == 1
+        original_Z_prof = airs.Z.GP_Height;
+        airs.Z.GP_Height = [];
+    end
+    
+    Z_slice = original_Z_prof(:,:,layer);
+    airs.Z.GP_Height(:,layer) = Z_slice(keep_airs_data_index);
+    
+end
+
+% Z QC (GeoTrack x GeoXTrack x StdPressureLev)
+for layer = 1:size(airs.Z.GP_Height_QC, 3)
+    
+    if layer == 1
+        original_Z_QC = airs.Z.GP_Height_QC;
+        airs.Z.GP_Height_QC = [];
+    end
+    
+    Z_QC_slice = original_Z_QC(:,:,layer);
+    airs.Z.GP_Height_QC(:,layer) = Z_QC_slice(keep_airs_data_index);
+end
+
+% Surface geopotential height (GeoTrack x GeoXTrack)
+airs.Z.GP_Surface = airs.Z.GP_Surface(keep_airs_data_index);
+airs.Z.GP_Surface_QC = airs.Z.GP_Surface_QC(keep_airs_data_index);
+
+
 %% Process water vapor fields
 % Water vapor mass mixing ratio (GeoTrack x GeoXTrack x H2OPressureLay)
 for layer = 1:size(airs.H2O.MMR_Std, 3)

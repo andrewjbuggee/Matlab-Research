@@ -54,10 +54,12 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
     inputs_tblut.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
 
+    
+    % USE AIRS RADIOSONDE FILE
     inputs_tblut.RT.use_radiosonde_file = true;
-
+    
     % Use the same one defined for the full retrieval
-    inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+    inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
     inputs_tblut.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 

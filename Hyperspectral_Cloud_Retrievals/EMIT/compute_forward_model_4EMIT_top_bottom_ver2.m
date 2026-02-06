@@ -9,7 +9,8 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(current_guess, GN_inputs, spec_response, folder_paths)
+function measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(current_guess, GN_inputs, spec_response,...
+    folder_paths, airs_datProfiles, pixel_num)
 
 
 
@@ -105,7 +106,8 @@ wc_filename = wc_filename{1};
 
 
 % *** Set the above cloud column water vapor amount ***
-aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud, atm_folder_path);
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud,...
+    atm_folder_path, airs_datProfiles, pixel_num);
 % ------------------------------------------------------
 
 
