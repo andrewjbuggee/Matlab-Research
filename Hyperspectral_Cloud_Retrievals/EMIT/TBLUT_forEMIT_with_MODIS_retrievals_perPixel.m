@@ -35,7 +35,6 @@ inputs_tblut = create_emit_inputs_TBLUT_with_MODIS_retrievals_perPixel(folder_pa
 
 
 
-
 %% Update based on GN_inputs
 
 if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
@@ -61,6 +60,11 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
     % Use the same one defined for the full retrieval
     inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
     inputs_tblut.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
+
+
+    % *** Use custom precomputed mie table with a specific effective variance ***
+    inputs_tblut.RT.use_custom_mie_calcs = true;
+    inputs_tblut.RT.mean_distribution_var_closest_filename = GN_inputs.RT.mean_distribution_var_closest_filename;
 
 
 end

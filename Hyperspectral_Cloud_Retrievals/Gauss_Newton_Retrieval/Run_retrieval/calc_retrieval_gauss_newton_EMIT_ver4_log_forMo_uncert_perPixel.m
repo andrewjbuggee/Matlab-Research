@@ -27,6 +27,17 @@ convergence_limit = GN_inputs.convergence_limit;
 percent_change_limit = GN_inputs.percent_change_limit;
 
 
+% set the limits of the effective radius within the precomputed Mie table
+if GN_inputs.RT.use_custom_mie_calcs == true
+    % the files in custom_mieTables have a range of 1-35 microns
+    rEff_limits = [1, 35];
+else
+    % the default libRadtran file, wc.sol.mie.cdf has an effective radius
+    % range of 1 to 25 microns
+    rEff_limits = [1, 25];
+end
+
+
 
 % ** If the measurments used in the retrieval are smaller than the
 % measurement covariance, reduce the matrix
@@ -224,7 +235,7 @@ if print_status_updates == true
 
         % ** For uncertainty with re profile, cloud top height and effective varaince **
         jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths);
+            spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
         % --------------------------------------------------------------
         % --------------------------------------------------------------
 
@@ -276,9 +287,9 @@ if print_status_updates == true
         % wc.sol.mie.cdf **
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=log(25) & constrained_guesses(1,:) >= log(1) &...
-            constrained_guesses(2,:)<=log(25) & constrained_guesses(2,:) >= log(1) &...
-            constrained_guesses(3,:)>log(1)   & ...
+            constrained_guesses(1,:)<=log(rEff_limits(end)) & constrained_guesses(1,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(2,:)<=log(rEff_limits(end)) & constrained_guesses(2,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(3,:)>log(rEff_limits(1))   & ...
             constrained_guesses(4,:)>log(1e-5)));
         % --------------------------------------------------------
 
@@ -310,7 +321,8 @@ if print_status_updates == true
 
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(new_guess, GN_inputs, spec_response.value, folder_paths);
+            new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
+                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -369,18 +381,19 @@ if print_status_updates == true
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>log(1) && constrained_guesses(1,mm)<log(25) && ...
-                        constrained_guesses(2,mm)>log(1) && constrained_guesses(2,mm)<log(25)
+                if constrained_guesses(1,mm)>log(rEff_limits(1)) && constrained_guesses(1,mm)<log(rEff_limits(end)) && ...
+                        constrained_guesses(2,mm)>log(rEff_limits(1)) && constrained_guesses(2,mm)<log(rEff_limits(end))
 
                     disp([newline, 'Estimating spectral measurements...', newline])
                     constrained_measurement_estimate(:,mm) = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(constrained_guesses(:,mm)),...
-                        GN_inputs, spec_response.value, folder_paths));
+                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
 
                 else
 
                     error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
                         'computed mie table.', newline])
+
 
                 end
 
@@ -434,18 +447,18 @@ if print_status_updates == true
 
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
-        if new_guess(1)>log(25)
+        if new_guess(1)>log(rEff_limits(end))
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 15 \mum'])
             new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<log(1)
+        elseif new_guess(1)<log(rEff_limits(1))
             disp([newline,'r_top = ',num2str(exp(new_guess(1))),'. Set to 3.5 \mum'])
             new_guess(1) = log(3.5); % microns
         end
 
-        if new_guess(2)>log(25)
+        if new_guess(2)>log(rEff_limits(end))
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 20 \mum'])
             new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<log(1)
+        elseif new_guess(2)<log(rEff_limits(1))
             disp([newline,'r_bottom = ',num2str(exp(new_guess(2))),'. Set to 3.5 \mum'])
             new_guess(2) = log(3.5); % microns
         end
@@ -557,7 +570,8 @@ else
 
             % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
             % *** Take the logarithm of the measurement estimate ***
-            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs, spec_response.value, folder_paths));
+            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
+                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -577,7 +591,7 @@ else
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
-            jacobian_barPlot_flag, folder_paths);
+            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -602,7 +616,7 @@ else
 
         % ** For uncertainty with re profile and cloud top height **
         jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths);
+            spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
         % --------------------------------------------------------------
         % --------------------------------------------------------------
 
@@ -654,9 +668,9 @@ else
         % wc.sol.mie.cdf **
         % find the maximum a where this is satisfied
         [max_a, ~] = max(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
-            constrained_guesses(1,:)<=log(25) & constrained_guesses(1,:) >= log(1) &...
-            constrained_guesses(2,:)<=log(25) & constrained_guesses(2,:) >= log(1) &...
-            constrained_guesses(3,:)>log(1)   & ...
+            constrained_guesses(1,:)<=log(rEff_limits(end)) & constrained_guesses(1,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(2,:)<=log(rEff_limits(end)) & constrained_guesses(2,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(3,:)>log(rEff_limits(1))   & ...
             constrained_guesses(4,:)>log(1e-5)));
         % --------------------------------------------------------
 
@@ -683,7 +697,8 @@ else
 
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(new_guess, GN_inputs, spec_response.value, folder_paths);
+            new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess),...
+                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -740,11 +755,11 @@ else
                 % some guesses might be out of the appropriate range for
                 % the Mie Interpolation function. If so, set the
                 % constrained measurement estimates to 0
-                if constrained_guesses(1,mm)>log(1) && constrained_guesses(1,mm)<log(25) && ...
-                        constrained_guesses(2,mm)>log(1) && constrained_guesses(2,mm)<log(25)
+                if constrained_guesses(1,mm)>log(rEff_limits(1)) && constrained_guesses(1,mm)<log(rEff_limits(end)) && ...
+                        constrained_guesses(2,mm)>log(rEff_limits(1)) && constrained_guesses(2,mm)<log(rEff_limits(end))
 
                     constrained_measurement_estimate(:,mm) = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(constrained_guesses(:,mm)),...
-                        GN_inputs, spec_response.value, folder_paths));
+                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
 
                 else
@@ -804,15 +819,15 @@ else
 
         % If the new guess is outside the bounds of the pre-computed mie
         % table, then we must reset the value.
-        if new_guess(1)>log(25)
+        if new_guess(1)>log(rEff_limits(end))
             new_guess(1) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(1)<log(1)
+        elseif new_guess(1)<log(rEff_limits(1))
             new_guess(1) = log(3.5); % microns
         end
 
-        if new_guess(2)>log(25)
+        if new_guess(2)>log(rEff_limits(end))
             new_guess(2) = log(20); % microns - this may just bump back up to 60, but maybe not. The model prior should help with that
-        elseif new_guess(2)<log(1)
+        elseif new_guess(2)<log(rEff_limits(1))
             new_guess(2) = log(3.5); % microns
         end
 
@@ -932,7 +947,7 @@ retrieval = exp(retrieval);
 % *** CHECK THAT THE RETRIEVAL AND THE MEASUREMENTS ARE IN THE PROPER SPCAE
 % EITHER LOG OR LINEAR ***
 Jacobian_log = compute_jacobian_4EMIT_top_bottom_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    spec_response.value, jacobian_barPlot_flag, folder_paths);
+    spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 
 % --------------------------------------------------------------
@@ -946,8 +961,8 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2( [retri
     retrieval(2,end)], sort(GN_inputs.RT.z),...
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
-jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    spec_response.value, jacobian_barPlot_flag, folder_paths);
+jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( retrieval(:,end), new_measurement_estimate, GN_inputs,...
+    spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 % -----------------------------------------------------------------
 % --------- Update the total measurement covariance ---------------

@@ -35,6 +35,12 @@ which_computer = folder_paths.which_computer;
 % this is a built-in function that is defined at the bottom of this script
 inputs_acpw = create_emit_inputs_ACPW_perPixel(emit, tblut_retrieval, print_libRadtran_err, pixel_num);
 
+%% Use a custom mie table for defining the effective variance
+
+% *** Use custom precomputed mie table with a specific effective variance ***
+inputs_acpw.RT.use_custom_mie_calcs = true;
+inputs_acpw.RT.mean_distribution_var_closest_filename = GN_inputs.RT.mean_distribution_var_closest_filename;
+
 
 %% Update based on GN_inputs
 
