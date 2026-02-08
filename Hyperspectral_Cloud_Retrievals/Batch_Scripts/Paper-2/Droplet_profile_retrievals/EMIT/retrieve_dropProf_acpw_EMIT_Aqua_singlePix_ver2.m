@@ -93,8 +93,14 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     %     157, 158, 172, 175, 176, 187, 189, 190, 210, 212, 213, 214, 215, 216, 217, 218, 219,...
     %     220, 222, 231, 233, 234, 235, 236, 249, 250, 251, 252, 253, 254]';
 
-    % --- Use all 285 spectral channels -
-    GN_inputs.bands2run = (1:285)';
+    % --- Use all 285 spectral channels ---
+    % GN_inputs.bands2run = (1:285)';
+
+    % --- Mie tables don't go out far enough!! Can only use first 283 spectral channles ---
+    % (2/7/2026) - custom mie tables vary from 300 to 2500 nm, but the last
+    % two spectral channels of EMIT have non-zero spectral response
+    % functions beyond 2500 nm.
+    GN_inputs.bands2run = (1:283)';
 
 
     %% Override input settings with MODIS derived values
