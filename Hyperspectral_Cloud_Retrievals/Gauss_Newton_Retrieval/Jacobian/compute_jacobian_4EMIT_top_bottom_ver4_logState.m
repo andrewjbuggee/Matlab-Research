@@ -7,7 +7,7 @@
 %%
 
 function jacobian_ln = compute_jacobian_4EMIT_top_bottom_ver4_logState(state_vector, measurement_estimate_ln,...
-    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths)
+    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num)
 
 
 % convert the measurement back to linear space
@@ -34,6 +34,10 @@ if GN_inputs.RT.use_radiosonde_file==true
     if isfield(GN_inputs.RT, 'radiosonde_file_T_P_RH')==true
 
         GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+
+    elseif isfield(GN_inputs.RT, 'radiosonde_file_T_P_WV')==true
+
+        GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
 
     else
 
@@ -183,10 +187,10 @@ wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl 
 % create water vapor density profiles - there are only two!
 % -----------------------------------------------------------
 aboveCloud_waterVaporColumn_fileName_noChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path);
+    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
 
 aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    state_vectors_with_change(end,end), atm_folder_path);
+    state_vectors_with_change(end,end), atm_folder_path, airs_datProfiles, pixel_num);
 
 
 

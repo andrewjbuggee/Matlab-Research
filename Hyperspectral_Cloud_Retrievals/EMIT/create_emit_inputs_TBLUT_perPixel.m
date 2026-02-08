@@ -165,7 +165,7 @@ inputs.RT.yesCloud = true;
 
 
 % define the cloud geometric depth
-inputs.RT.cloud_depth = 500;                % meters
+inputs.RT.cloud_depth = 300;                % meters
 
 
 % define the geometric location of the cloud top and cloud bottom

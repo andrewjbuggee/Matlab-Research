@@ -9,7 +9,8 @@
 
 % By Andrew J. Buggee
 %%
-function measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(current_guess, GN_inputs, spec_response, folder_paths)
+function measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(current_guess, GN_inputs, spec_response,...
+    folder_paths, airs_datProfiles, pixel_num)
 
 
 
@@ -36,6 +37,10 @@ if GN_inputs.RT.use_radiosonde_file==true
     if isfield(GN_inputs.RT, 'radiosonde_file_T_P_RH')==true
 
         GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_RH;
+
+    elseif isfield(GN_inputs.RT, 'radiosonde_file_T_P_WV')==true
+
+        GN_inputs.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
 
     else
 
@@ -105,7 +110,8 @@ wc_filename = wc_filename{1};
 
 
 % *** Set the above cloud column water vapor amount ***
-aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud, atm_folder_path);
+aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile(GN_inputs, wv_col_aboveCloud,...
+    atm_folder_path, airs_datProfiles, pixel_num);
 % ------------------------------------------------------
 
 

@@ -154,11 +154,23 @@ fi
 
 
 
-# Clean MATLAB temp directories
-# remove any existing MATLAB temp directories for this user
-echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
-rm -rf ~/.matlab/local_cluster_jobs/R2024b/Job*
-rm -rf /tmp/mathworks_${USER}_*
+# CREATE ISOLATED MATLAB ENVIRONMENT FOR THIS JOB:
+echo " "
+echo "Setting up isolated MATLAB environment for task ${SLURM_ARRAY_TASK_ID}"
+
+# Use scratch space with job-specific directory
+export MATLAB_PREFDIR="/scratch/alpine/anbu8374/matlab_tmp/job_${SLURM_ARRAY_JOB_ID}_task_${SLURM_ARRAY_TASK_ID}"
+export TMPDIR="/scratch/alpine/anbu8374/matlab_tmp/job_${SLURM_ARRAY_JOB_ID}_task_${SLURM_ARRAY_TASK_ID}/tmp"
+
+# Clean up any stale files from previous failed runs of THIS specific job
+rm -rf $MATLAB_PREFDIR
+rm -rf $TMPDIR
+
+mkdir -p $MATLAB_PREFDIR
+mkdir -p $TMPDIR
+
+echo "MATLAB_PREFDIR: $MATLAB_PREFDIR"
+echo "TMPDIR: $TMPDIR"
 
 
 

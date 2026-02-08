@@ -222,7 +222,8 @@ for ff = 1:length(filenames)
     % what was the assumed above cloud column water vapor path?
 
 
-    %% Update the cloud top height!
+    %% *** Update the cloud top height! ***
+
     % ** VOCALS-REx in-situ measurements result in a mean cloud top height
     % of 1203 meters and a mean cloud depth of about 230 meters
     % ** testing the retrieval when I lack knowledge of cloud top precisely **

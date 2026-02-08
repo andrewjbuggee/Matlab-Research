@@ -6,7 +6,7 @@
 %%
 
 function [acpw_retrieval] = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num)
+    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs_datProfiles)
 
 
 
@@ -35,6 +35,12 @@ which_computer = folder_paths.which_computer;
 % this is a built-in function that is defined at the bottom of this script
 inputs_acpw = create_emit_inputs_ACPW_perPixel(emit, tblut_retrieval, print_libRadtran_err, pixel_num);
 
+%% Use a custom mie table for defining the effective variance
+
+% *** Use custom precomputed mie table with a specific effective variance ***
+inputs_acpw.RT.use_custom_mie_calcs = true;
+inputs_acpw.RT.mean_distribution_var_closest_filename = GN_inputs.RT.mean_distribution_var_closest_filename;
+
 
 %% Update based on GN_inputs
 
@@ -45,15 +51,15 @@ if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
 
     % change inputs that depend on z_topBottom
     % Water Cloud depth
-    inputs_acpw.RT.H = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
+    inputs_acpw.RT.cloud_depth = inputs_acpw.RT.z_topBottom(1) - inputs_acpw.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
-
+    % Just use the US standard atmosphere for the initial guess
+    % Later, I can update this to edit radiosonde profiles
     inputs_acpw.RT.use_radiosonde_file = true;
 
-    % For the ACPW retrieval, we will use the just temperature and
-    % pressure from the radiosonde file
-    % ** only use temp and pres **
-    inputs_acpw.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P;
+    % Use the same one defined for the full retrieval
+    inputs_acpw.RT.radiosonde_file_T_P_WV = GN_inputs.RT.radiosonde_file_T_P_WV;
+    inputs_acpw.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 end
 
@@ -63,11 +69,11 @@ if size(emit.radiance.measurements, 1) == 285
 
     bands = 1:285;
 
-[~, idx_1] = min(abs(bands - inputs_acpw.bands2run(1)));
+    [~, idx_1] = min(abs(bands - inputs_acpw.bands2run(1)));
 
-[~, idx_2] = min(abs(bands - inputs_acpw.bands2run(2)));
+    [~, idx_2] = min(abs(bands - inputs_acpw.bands2run(2)));
 
-[~, idx_3] = min(abs(bands - inputs_acpw.bands2run(3)));
+    [~, idx_3] = min(abs(bands - inputs_acpw.bands2run(3)));
 
 else
 
@@ -163,7 +169,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
     % Now write all the INP files
     parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+        % for nn = 1:num_INP_files
 
 
         % set the wavelengths for each file
@@ -171,7 +177,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
         % create a custom water vapor profile
         custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs_acpw, changing_variables(nn,1),...
-            atm_folder_path);
+            atm_folder_path, airs_datProfiles, pixel_num);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
@@ -344,8 +350,8 @@ acpw_retrieval.min_nonInterpolated = inputs_acpw.acpw_sim(idx_min);
 inputs_acpw.acpw_interp1 = (min(inputs_acpw.acpw_sim):0.01:max(inputs_acpw.acpw_sim));
 
 Refl_model_acpw_interp1 = [interp1(inputs_acpw.acpw_sim, Refl_model_acpw(1:3:end)', inputs_acpw.acpw_interp1);...
-                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
-                         interp1(inputs_acpw.acpw_sim, Refl_model_acpw(3:3:end)', inputs_acpw.acpw_interp1)];
+    interp1(inputs_acpw.acpw_sim, Refl_model_acpw(2:3:end)', inputs_acpw.acpw_interp1);...
+    interp1(inputs_acpw.acpw_sim, Refl_model_acpw(3:3:end)', inputs_acpw.acpw_interp1)];
 
 % Find the new minimum RMS
 

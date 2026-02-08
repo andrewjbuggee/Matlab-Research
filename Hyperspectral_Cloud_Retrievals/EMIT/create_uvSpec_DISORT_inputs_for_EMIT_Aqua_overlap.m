@@ -284,9 +284,12 @@ inputs.RT.modify_wc_opticalDepth = true;
 % ------------------------------------------------------------------------
 % --------------------- Various Cloud modeling inputs --------------------
 % ------------------------------------------------------------------------
-% Do you want use your custom mie calculation file?
+% Do you want use your custom mie tables to conver optical props?
 % If false, the default file is the precomputed mie table from libRadtran
-inputs.RT.use_custom_mie_calcs = false;
+% If true, it will use the 'custom_mieTables' folder to convert cloud
+% optical properties to mie properties in order to compute the radiative
+% transfer
+inputs.RT.use_custom_mie_calcs = true;
 
 
 % define how liquid water content will be computed in the write_wc_file
@@ -462,7 +465,9 @@ if inputs.RT.use_custom_mie_calcs==false
     %inputs.RT.wc_parameterization = 'hu';
 
 else
-    inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+    % inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+    warning([newline, 'Set the wc_parameterization with the directory and file for the custom mie table desired.', newline])
+    
 end
 
 % --------------------------------------------------------------

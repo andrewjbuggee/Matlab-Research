@@ -1,5 +1,9 @@
 %% Create forward model covariance matrix
 
+% *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
+% (1) Adiabatic droplet profile assumption
+% (2) Cloud top height assumption
+
 
 % There are many components that could be taken into account when
 % considering the forward model uncertainty. Here is an incomplete list of
@@ -112,7 +116,9 @@ GN_inputs.model.forward_model.cloudTopHeight.mean = GN_inputs.RT.z_topBottom(1);
 
 % Define the standard deviation. This
 % reflects the uncertainty between the assumed value and the true value
-% Set the standard deviation to 300 meters
+% Set the standard deviation to 300 meters, a value slightly higher than
+% the in situ statistics of 218 meters, according to vocals rex
+% measurements
 GN_inputs.model.forward_model.cloudTopHeight.std = 0.300;  % km
 
 % check to make sure the cloud top height is larger than the std. If not,
