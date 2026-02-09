@@ -23,8 +23,8 @@
 
 %%
 
-function tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
-    GN_inputs, use_MODIS_AIRS_data, pixel_num)
+function tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
+    print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_AIRS_data, pixel_num)
 
 
 

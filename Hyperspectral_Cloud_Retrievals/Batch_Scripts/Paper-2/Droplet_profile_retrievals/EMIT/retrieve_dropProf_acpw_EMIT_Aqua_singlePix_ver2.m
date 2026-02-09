@@ -100,8 +100,14 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % (2/7/2026) - custom mie tables vary from 300 to 2500 nm, but the last
     % two spectral channels of EMIT have non-zero spectral response
     % functions beyond 2500 nm.
-    GN_inputs.bands2run = (1:283)';
+    % GN_inputs.bands2run = (1:283)';
 
+    % *** There are calibration issues below 500 nm and order sorting
+    % filter seams to ignore ***
+    % index 17 has a center wavelength of 499
+    % skip the order sorting filter region between 1245 and 1320
+    % skip last two bands due to range of the new custom mie tables (2/9/2026)
+    GN_inputs.bands2run = [18:117, 127:283]';
 
     %% Override input settings with MODIS derived values
 
@@ -280,6 +286,11 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     GN_inputs.RT.mean_distribution_var_closest_filename = [mie_table_filenames(idx_min).folder, '/', mie_table_filenames(idx_min).name];
 
 
+    % *** Set the distribution variance that is used to compute mie
+    % calculations at the distribution profile ***
+    GN_inputs.RT.distribution_var = GN_inputs.RT.distribution_var_profile;
+
+
 
 
     %% This retrieval does retrieve column water vapor.
@@ -401,8 +412,8 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     use_MODIS_AIRS_data = true;
 
-    tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths, print_libRadtran_err, print_status_updates,...
-        GN_inputs, use_MODIS_AIRS_data, pixel_num);
+    tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
+        print_libRadtran_err, print_status_updates,GN_inputs, use_MODIS_AIRS_data, pixel_num);
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
