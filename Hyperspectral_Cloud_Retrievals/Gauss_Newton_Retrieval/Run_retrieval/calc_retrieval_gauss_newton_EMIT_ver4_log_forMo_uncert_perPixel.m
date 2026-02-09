@@ -357,8 +357,10 @@ if print_status_updates == true
             % Set the a vector to values between 0 and some fraction of the max a
             a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
             if max_a>1
-                % include a=1
-                a = sort([a, 1]);
+                % include a=1 if there a=1 isn't in the current vector
+                if isempty(find(a==1, 1))
+                    a = sort([a, 1]);
+                end
             end
             % a = 0:a_stepSize:max_a;
             % recompute the constrained guesses
