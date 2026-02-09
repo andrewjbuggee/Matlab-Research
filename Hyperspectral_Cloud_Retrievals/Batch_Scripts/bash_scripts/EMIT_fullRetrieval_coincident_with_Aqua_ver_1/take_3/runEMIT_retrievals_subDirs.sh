@@ -142,7 +142,7 @@ time matlab -nodesktop -nodisplay -r "\
     addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
     clear variables; \
     addLibRadTran_paths; \
-    print_status_updates = true; \
+    print_status_updates = false; \
     print_libRadtran_err = false; \
     plot_figures = false; \
     save_figures = false; \
