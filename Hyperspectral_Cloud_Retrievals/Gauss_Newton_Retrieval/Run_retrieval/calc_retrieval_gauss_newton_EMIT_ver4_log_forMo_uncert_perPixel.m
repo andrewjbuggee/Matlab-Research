@@ -617,7 +617,11 @@ else
         %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
 
         % ** For uncertainty with re profile and cloud top height **
-        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        % jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+        %     spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+        % ** For uncertainty with re profile, cloud top height and effective varaince **
+        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
             spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
         % --------------------------------------------------------------
         % --------------------------------------------------------------
@@ -963,8 +967,14 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2( [retri
     retrieval(2,end)], sort(GN_inputs.RT.z),...
     GN_inputs.RT.indVar, GN_inputs.RT.profile_type);     % microns - effective radius vector
 
+% ** For uncertainty with re profile and cloud top height **
+% jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+%     spec_response.value, jacobian_barPlot_flag, folder_paths);
+
+% ** For uncertainty with re profile, cloud top height and effective varaince **
 jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( retrieval(:,end), new_measurement_estimate, GN_inputs,...
     spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+
 
 % -----------------------------------------------------------------
 % --------- Update the total measurement covariance ---------------
