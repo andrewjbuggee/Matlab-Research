@@ -72,22 +72,21 @@ end
 
 % set the maximum scalar value used to create a set of scalar values that
 % will be multiplied along the direction of greatest change
-a_largestVal = 2;
+a_largestVal = -1.5;
+a_smallestVal = 1.5;
 
-% if trying to have specific values, like a=1, use a step size
-a_stepSize = 0.333;
 
 % define length of initial array used to check which state vectors meet the
 % defined constraints
 array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
-array_length_newMax = 10;
+array_length_newMax = 15;
 
 % We want to make sure the new step is within the feasible
 % range, not at the boundaries. So we only accept a values that
 % are less than the max a value.
-percent_of_maxA = 0.95;
+percent_of_maxA = 0.975;
 % --------------------------------------------
 
 
@@ -269,7 +268,7 @@ if print_status_updates == true
         % we want to compute the maximum non-negative feasible step within
         % our bounds
         % ** In log space, we need a larger maximum a value ** ??
-        a = linspace(0, a_largestVal, array_length_initialConstraints);
+        a = linspace(a_smallestVal, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
         % --------------------------------------------------------
@@ -322,7 +321,7 @@ if print_status_updates == true
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
-                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -355,14 +354,26 @@ if print_status_updates == true
 
 
             % Set the a vector to values between 0 and some fraction of the max a
-            a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
-            if max_a>1
-                % include a=1 if there a=1 isn't in the current vector
-                if isempty(find(a==1, 1))
-                    a = sort([a, 1]);
-                end
+            % a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
+
+            % Should the scalar value span negative values as well? Do I
+            % have the correct sign for the slope when computing the
+            % Jacobian in log-space?
+            a = linspace(a_smallestVal * percent_of_maxA, max_a * percent_of_maxA, array_length_newMax);
+
+            % include a=1 if a=0 isn't in the current vector
+            if isempty(find(a==1, 1))
+                a = sort([a, 1]);
             end
-            % a = 0:a_stepSize:max_a;
+
+            % include a=0 if a=0 isn't in the current vector
+            if isempty(find(a==0, 1))
+                a = sort([a, 0]);
+            end
+
+
+
+
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 
@@ -554,10 +565,6 @@ else
 
     for ii = 1:num_iterations
 
-        disp(['iteration: ',num2str(ii)]) % this tells the user where we are in the process
-
-        % at each iteration I need to compute the forward model at my current
-        % state vector estimate
 
 
         current_guess = retrieval(:,ii);
@@ -573,7 +580,7 @@ else
             % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
             % *** Take the logarithm of the measurement estimate ***
             measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
-                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -656,7 +663,7 @@ else
         % we want to compute the maximum non-negative feasible step within
         % our bounds
         % ** In log space, we need a larger maximum a value ** ??
-        a = linspace(0, a_largestVal, array_length_initialConstraints);
+        a = linspace(a_smallestVal, a_largestVal, array_length_initialConstraints);
         constrained_guesses = current_guess + new_direction*a;
 
         % --------------------------------------------------------
@@ -704,7 +711,7 @@ else
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess),...
-                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -735,12 +742,23 @@ else
 
 
             % Set the a vector to values between 0 and some fraction of the max a
-            a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
-            if max_a>1
-                % include a=1
+            % a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
+
+            % Should the scalar value span negative values as well? Do I
+            % have the correct sign for the slope when computing the
+            % Jacobian in log-space?
+            a = linspace(a_smallestVal * percent_of_maxA, max_a * percent_of_maxA, array_length_newMax);
+
+            % include a=1 if a=0 isn't in the current vector
+            if isempty(find(a==1, 1))
                 a = sort([a, 1]);
             end
-            % a = 0:a_stepSize:max_a;
+
+            % include a=0 if a=0 isn't in the current vector
+            if isempty(find(a==0, 1))
+                a = sort([a, 0]);
+            end
+
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
 

@@ -1,4 +1,4 @@
-%% SLURM wrapper for run_dropProf_EMIT
+%% SLURM wrapper for run_dropProf_EMIT with coincident EMIT and Aqua data
 
 
 

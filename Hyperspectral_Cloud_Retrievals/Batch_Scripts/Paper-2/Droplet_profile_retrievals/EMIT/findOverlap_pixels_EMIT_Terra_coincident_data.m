@@ -1,14 +1,13 @@
-%% Finding overlapping data between EMIT and MODIS, AIRS, and AMSR on the Aqua satellite
+%% Finding overlapping data between EMIT and MODIS on the Terra satellite
 %
-% This function identifies overlapping pixels between EMIT, Aqua/MODIS, AIRS, and AMSR
+% This function identifies overlapping pixels between EMIT and Terra/MODIS
 % datasets based on spatial proximity and user-defined cloud property criteria.
-% For each MODIS pixel meeting the criteria, it finds the closest EMIT pixel,
-% and for each EMIT pixel, it finds the closest AIRS and AMSR pixels.
+% For each MODIS pixel meeting the criteria, it finds the closest EMIT pixel
 %
 % INPUTS:
 %   folder_paths - Structure containing paths to data files with fields:
 %       .coincident_dataPath   - Base path to the coincident data directory
-%       .coincident_dataFolder - Folder name containing EMIT, MODIS, AIRS, and AMSR files
+%       .coincident_dataFolder - Folder name containing EMIT and MODIS files
 %
 %   criteria - Structure defining cloud filtering criteria with fields:
 %       .cld_phase    - Cloud phase to filter ('water' for liquid water clouds)
@@ -30,29 +29,15 @@
 %           .row           - Row indices in EMIT array (n_matches x 1)
 %           .col           - Column indices in EMIT array (n_matches x 1)
 %           .linear_idx    - Linear indices for EMIT array access (n_matches x 1)
-%       .airs - AIRS pixel information:
-%           .row           - Row indices in AIRS array (n_matches x 1)
-%           .col           - Column indices in AIRS array (n_matches x 1)
-%           .linear_idx    - Linear indices for AIRS array access (n_matches x 1)
-%       .amsr - AMSR pixel information:
-%           .row           - Row indices in AMSR array (n_matches x 1)
-%           .col           - Column indices in AMSR array (n_matches x 1)
-%           .linear_idx    - Linear indices for AMSR array access (n_matches x 1)
 %       .distance_modis_emit_km - Distance between MODIS and EMIT pixels (km)
-%       .distance_emit_airs_km  - Distance between EMIT and AIRS pixels (km)
-%       .distance_emit_amsr_km  - Distance between EMIT and AMSR pixels (km)
+
 %
 %   emit - Structure containing EMIT L1B radiance data
 %       (returned from retrieveEMIT_data function)
 %
-%   modis - Structure containing Aqua/MODIS L1B and L2 data
+%   modis - Structure containing Terra/MODIS L1B and L2 data
 %       (returned from retrieveMODIS_data function)
 %
-%   airs - Structure containing AIRS L2 atmospheric profile data
-%       (returned from readAIRS_L2_data function)
-%
-%   amsr - Structure containing AMSR-E/2 L2B ocean data
-%       (returned from readAMSR_L2_data function)
 %
 %   folder_paths - Updated structure with added fields:
 %       .L1B_fileName_emit  - Name of the EMIT L1B file processed
@@ -69,8 +54,6 @@
 %
 % MATCHING LOGIC:
 %   - For each MODIS pixel meeting criteria → find closest EMIT pixel
-%   - For each matched EMIT pixel → find closest AIRS pixel
-%   - For each matched EMIT pixel → find closest AMSR pixel
 %   - Distances calculated using WGS84 ellipsoid for geodetic accuracy
 %
 % EXAMPLE USAGE:
@@ -82,8 +65,8 @@
 %   criteria.cld_tau_max = 30;
 %   criteria.H = 0.3;
 %   
-%   [overlap, emit, modis, airs, amsr, folder_paths] = ...
-%       findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, true);
+%   [overlap, emit, modis, folder_paths] = ...
+%       findOverlap_pixels_EMIT_Terra_coincident_data(folder_paths, criteria, true);
 %
 % NOTES:
 %   - EMIT footprint detection uses convex hull boundary with inpolygon()
@@ -95,17 +78,15 @@
 % Will need:
 % - EMIT pixel acquisition time (if available in emit.radiance structure)
 % - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
-% - AIRS pixel acquisition time (available: airs.Time_UTC)
-% - AMSR pixel acquisition time (available: amsr.Time_UTC)
+
 % - Then compute: 
 %   overlap.time_difference_modis_emit_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
-%   overlap.time_difference_emit_airs_seconds(nn) = abs(emit_time(idx_emit) - airs_time(idx_airs))
-%   overlap.time_difference_emit_amsr_seconds(nn) = abs(emit_time(idx_emit) - amsr_time(idx_amsr))
+
 %
 % By Andrew John Buggee
 %%
 
-function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, plot_data)
+function [overlap, emit, modis, folder_paths] = findOverlap_pixels_EMIT_Terra_coincident_data(folder_paths, criteria, plot_data)
 
 
 
@@ -113,18 +94,10 @@ function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_E
 
 [emit, folder_paths.L1B_fileName_emit] = retrieveEMIT_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
 
-%% Load Aqua/MODIS Data
+%% Load Terra/MODIS Data
 
 [modis, folder_paths.L1B_fileName_modis] = retrieveMODIS_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
 
-%% Load AIRS data
-
-% Find which files are AIRS data
-airs = readAIRS_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
-
-%% Load AMSR-E/2 data
-
-amsr = readAMSR_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
 
 %% Get MODIS coordinates
 modis_lat = double(modis.geo.lat);
@@ -184,7 +157,7 @@ idx_combined_master = logical(idx_in_footprint .* idx_criteria);
 
 fprintf('Found %d MODIS pixels meeting all criteria within EMIT footprint\n', sum(idx_combined_master(:)));
 
-%% Find row/column indices for MODIS pixels and match with closest EMIT, AIRS, and AMSR pixels
+%% Find row/column indices for MODIS pixels and match with closest EMIT pixels
 
 n_matches = sum(idx_combined_master(:));
 
@@ -198,31 +171,19 @@ overlap.emit.row = zeros(n_matches, 1);
 overlap.emit.col = zeros(n_matches, 1);
 overlap.emit.linear_idx = zeros(n_matches, 1);     % Linear index for EMIT
 
-% Pre-allocate output arrays for AIRS
-overlap.airs.row = zeros(n_matches, 1);
-overlap.airs.col = zeros(n_matches, 1);
-overlap.airs.linear_idx = zeros(n_matches, 1);     % Linear index for AIRS
 
-% Pre-allocate output arrays for AMSR
-overlap.amsr.row = zeros(n_matches, 1);
-overlap.amsr.col = zeros(n_matches, 1);
-overlap.amsr.linear_idx = zeros(n_matches, 1);     % Linear index for AMSR
 
 % Pre-allocate distance arrays
 overlap.distance_modis_emit_km = zeros(n_matches, 1);  % Distance between MODIS and EMIT
-overlap.distance_emit_airs_km = zeros(n_matches, 1);   % Distance between EMIT and AIRS
-overlap.distance_emit_amsr_km = zeros(n_matches, 1);   % Distance between EMIT and AMSR
+
 
 % TODO: Add temporal information to compute time difference between pixels
 % Will need:
 % - EMIT pixel acquisition time (if available in emit.radiance structure)
 % - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
-% - AIRS pixel acquisition time (available: airs.Time_UTC)
-% - AMSR pixel acquisition time (available: amsr.Time_UTC)
 % - Then compute: 
 %   overlap.time_difference_modis_emit_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
-%   overlap.time_difference_emit_airs_seconds(nn) = abs(emit_time(idx_emit) - airs_time(idx_airs))
-%   overlap.time_difference_emit_amsr_seconds(nn) = abs(emit_time(idx_emit) - amsr_time(idx_amsr))
+
 
 % Setup WGS84 ellipsoid for accurate distance calculation
 wgs84 = wgs84Ellipsoid('kilometer');
@@ -231,17 +192,6 @@ wgs84 = wgs84Ellipsoid('kilometer');
 emit_lat_flat = emit_lat(:);
 emit_long_flat = emit_long(:);
 
-% Flatten AIRS coordinates for vectorized distance calculation
-airs_lat = double(airs.geo.Latitude);
-airs_long = double(airs.geo.Longitude);
-airs_lat_flat = airs_lat(:);
-airs_long_flat = airs_long(:);
-
-% Flatten AMSR coordinates for vectorized distance calculation
-amsr_lat = double(amsr.geo.Latitude);
-amsr_long = double(amsr.geo.Longitude);
-amsr_lat_flat = amsr_lat(:);
-amsr_long_flat = amsr_long(:);
 
 % Get linear indices of matching MODIS pixels
 modis_linear_idx = find(idx_combined_master);
@@ -280,46 +230,7 @@ for nn = 1:n_matches
         emit_lat_current, emit_long_current, wgs84);
     
     
-    % ====== Find Closest AIRS Pixel ======
-    % Use the EMIT pixel location (not MODIS) to find the closest AIRS pixel
-    % First do a quick squared-distance filter to reduce candidates
-    dist_sq_airs = (airs_lat_flat - emit_lat_current).^2 + (airs_long_flat - emit_long_current).^2;
-    [~, idx_airs] = min(dist_sq_airs);
     
-    % Store AIRS linear index
-    overlap.airs.linear_idx(nn) = idx_airs;
-    
-    % Convert linear index to row/col for AIRS
-    [overlap.airs.row(nn), overlap.airs.col(nn)] = ind2sub(size(airs_lat), idx_airs);
-    
-    % Get lat/lon for this AIRS pixel
-    airs_lat_current = airs_lat_flat(idx_airs);
-    airs_long_current = airs_long_flat(idx_airs);
-    
-    % Calculate accurate distance between EMIT and AIRS using WGS84 ellipsoid
-    overlap.distance_emit_airs_km(nn) = distance(emit_lat_current, emit_long_current, ...
-        airs_lat_current, airs_long_current, wgs84);
-    
-    
-    % ====== Find Closest AMSR Pixel ======
-    % Use the EMIT pixel location (not MODIS) to find the closest AMSR pixel
-    % First do a quick squared-distance filter to reduce candidates
-    dist_sq_amsr = (amsr_lat_flat - emit_lat_current).^2 + (amsr_long_flat - emit_long_current).^2;
-    [~, idx_amsr] = min(dist_sq_amsr);
-    
-    % Store AMSR linear index
-    overlap.amsr.linear_idx(nn) = idx_amsr;
-    
-    % Convert linear index to row/col for AMSR
-    [overlap.amsr.row(nn), overlap.amsr.col(nn)] = ind2sub(size(amsr_lat), idx_amsr);
-    
-    % Get lat/lon for this AMSR pixel
-    amsr_lat_current = amsr_lat_flat(idx_amsr);
-    amsr_long_current = amsr_long_flat(idx_amsr);
-    
-    % Calculate accurate distance between EMIT and AMSR using WGS84 ellipsoid
-    overlap.distance_emit_amsr_km(nn) = distance(emit_lat_current, emit_long_current, ...
-        amsr_lat_current, amsr_long_current, wgs84);
     
 end
 
@@ -327,12 +238,5 @@ fprintf('Average distance between matched MODIS-EMIT pixels: %.2f km\n', mean(ov
 fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_emit_km));
 fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_emit_km));
 
-fprintf('\nAverage distance between matched EMIT-AIRS pixels: %.2f km\n', mean(overlap.distance_emit_airs_km));
-fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_airs_km));
-fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_airs_km));
-
-fprintf('\nAverage distance between matched EMIT-AMSR pixels: %.2f km\n', mean(overlap.distance_emit_amsr_km));
-fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_amsr_km));
-fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_amsr_km));
 
 end
