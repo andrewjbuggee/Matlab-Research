@@ -33,19 +33,13 @@
 
 %%
 
-function [airs] = convert_AIRS_prof_2_mass_density(airs, folder_paths, idx, filename,...
-    num_vars, overlap_pixels, us_std_atm_file, print_status_updates)
+function [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, idx, overlap_pixels,...
+    us_std_atm_file, print_status_updates)
 
-% Check if folder_paths structure has the atmosphere folder field
-if ~isfield(folder_paths, 'atm_folder_path')
-    error([newline, 'folder_paths structure must contain "atm_folder_path" field with path to atmosphere folder', newline])
-end
-
-atm_folder_path = folder_paths.atm_folder_path;
 
 % Make sure the path ends with a forward slash
-if atm_folder_path(end) ~= '/'
-    atm_folder_path = [atm_folder_path, '/'];
+if atm_data_directory(end) ~= '/'
+    atm_data_directory = [atm_data_directory, '/'];
 end
 
 % Set default US standard atmosphere file if not provided
@@ -56,13 +50,8 @@ end
 %% Read US Standard Atmosphere for quality control replacement
 % This will be used to replace bad quality AIRS measurements
 
-% Check if libRadtran_data path exists
-if ~isfield(folder_paths, 'libRadtran_data')
-    error([newline, 'folder_paths structure must contain "libRadtran_data" field for US standard atmosphere', newline])
-end
-
 % Construct path to US standard atmosphere file
-us_std_atm_path = [folder_paths.libRadtran_data, 'atmmod/', us_std_atm_file];
+us_std_atm_path = [atm_data_directory, us_std_atm_file];
 
 % Read the US standard atmosphere
 % Columns: z(km), p(hPa), T(K), air, O3, O2, H2O(molecules/cm^3), CO2, NO2
@@ -455,6 +444,13 @@ end
 
 %% Solve for the above cloud total precipitable water amount
 
+% First, interpolate the mass density at the AIRS retrieved cloud top
+% height
+cloud_top_pressure = airs.cloud.presTop_(idx);  % mb
+
+% Convert US standard atmosphere water vapor density to relative humidity
+% First, interpolate US std atm T and H2O to the H2O pressure levels
+rho_v_cloudTop = interp1(log(pressure_sorted), us_std_H2O, log(rho_v_scaled_sorted), 'linear', 'extrap');
 
 
 

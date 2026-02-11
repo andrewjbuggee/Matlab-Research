@@ -9,7 +9,43 @@
 
 %%
 
-function figure_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, airs, amsr, pixel_num)
+function figure_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs,...
+    modis, airs, amsr, pixel_num)
+
+
+
+if isempty(airs) == false
+
+    % define where the US standard atm's are located
+
+    % Determine which computer you're using
+    which_computer = whatComputer();
+
+    % Load simulated measurements
+    if strcmp(which_computer,'anbu8374')==true
+
+        % ------ Folders on my Mac Desktop --------
+        % -----------------------------------------
+
+        atm_data_directory = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/'];
+
+    elseif strcmp(which_computer,'andrewbuggee')==true
+
+        % ------ Folders on my Macbook --------
+        % -------------------------------------
+        error([newline, 'What is the directory?'])
+        atm_data_directory = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/'];
+
+    end
+
+
+end
+
+
+
+
+
+
 
 
 C = mySavedColors(1:2, 'fixed');
@@ -199,19 +235,13 @@ if size(GN_outputs.retrieval, 1)>3
 
     elseif isempty(amsr) == false
 
-        % Compute the above cloud precipitable water from AIRS data
-        % ----- Convert RH profile to water vapor mass density (kg/m^3) -----
-        % Saturation vapor pressure (Bolton 1980)
-        T_celsius_28 = airs.temp. - 273.15;
-        e_sat_28 = 6.112 * exp((17.67 * T_celsius_28) ./ (T_celsius_28 + 243.5));  % hPa
-        
-        % Actual vapor pressure from relative humidity (relHum is now a fraction)
-        e_hPa_28 = relHum' .* e_sat_28;  % hPa
-        
-        % Water vapor mass density using ideal gas law for water vapor
-        % rho_v = e / (R_v * T), where e is in Pa and R_v = 461.52 J/(kg*K)
-        R_v = 461.52;  % Specific gas constant for water vapor [J/(kg*K)]
-        rho_v = (e_hPa_28 * 100) ./ (R_v .* temperature);  % kg/m^3
+        if isfield(airs, 'acpw') == false
+
+            % Compute the above cloud precipitable water from AIRS data
+            [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, pixel_num, overlap_pixels,...
+                us_std_atm_file, print_status_updates);
+
+        end
 
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
@@ -223,7 +253,7 @@ if size(GN_outputs.retrieval, 1)>3
 
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
-             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     end
 
