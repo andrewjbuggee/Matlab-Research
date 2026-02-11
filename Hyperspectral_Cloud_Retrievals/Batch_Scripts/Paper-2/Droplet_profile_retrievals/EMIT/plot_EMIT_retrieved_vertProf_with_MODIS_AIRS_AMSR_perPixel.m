@@ -146,7 +146,7 @@ lwp_modis_WH = 5/9 * rho_h2o * modis.cloud.optThickness17(pixel_num) *...
 % Print this information on the figure
 dim = [0.137 0.727962757628641 0.481571428571429 0.159691563359013];
 
-if isnan(amsr.cloud.LiquidWaterPath(pixel_num))
+if isempty(amsr) == false & isnan(amsr.cloud.LiquidWaterPath(pixel_num))
 
     disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
@@ -155,14 +155,22 @@ if isnan(amsr.cloud.LiquidWaterPath(pixel_num))
         '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 
-else
+elseif isempty(amsr) == false
 
     str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
         '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
         '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(pixel_num),1)),' $g/m^{2}$', newline,...
         '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
+else
+
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+        '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
+        '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
+
+
 end
+
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 
@@ -182,19 +190,26 @@ if size(GN_outputs.retrieval, 1)>3
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
 
-    if isnan(amsr.H2O.TotalPrecipitableWater(pixel_num))
+    if isempty(amsr) == false & isnan(amsr.H2O.TotalPrecipitableWater(pixel_num))
 
         disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
-    else
+    elseif isempty(amsr) == false
 
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
             '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+
+
+    else
+
+
+        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     end
 

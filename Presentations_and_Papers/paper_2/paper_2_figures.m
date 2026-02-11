@@ -439,8 +439,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-elseif strcmp(which_computer,'curc')==true
+    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
 
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+elseif strcmp(which_computer,'curc')==true
 
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
@@ -486,17 +490,16 @@ load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).nam
 [modis, ~] = retrieveMODIS_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
 
 % Load AIRS data
-airs = readAIRS_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
+airs = readAIRS_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
 
 % Load AMSR-E/2 data
-amsr = readAMSR_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
+amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
 % ----------------------------------------
 
 
 % ----------------------------------------
 % Remove data that is not needed
 % ----------------------------------------
-emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
 
 modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
 
@@ -508,23 +511,23 @@ amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
 
 
 % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], [], 1);
+fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], amsr, 1);
 
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(which_computer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-exportgraphics(fig3,[folderpath_figs,...
-    'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% if strcmp(which_computer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(which_computer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% exportgraphics(fig3,[folderpath_figs,...
+%     'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
