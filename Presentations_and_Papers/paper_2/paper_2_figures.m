@@ -414,3 +414,117 @@ plt_idx = 3;
 
 plot_VOCALS_insitu_re_lwc_nc_and_radioSonde(airborne.ensemble_profiles, radSonde, plt_idx, false)
 
+
+
+
+%% Plots EMIT retrieval results
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    retrieval_directory = ('/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/');
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/'];
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+end
+
+
+
+% Grab filenames in drive
+filenames_retrieval = dir(retrieval_directory);
+idx_2delete = [];
+for nn = 1:length(filenames_retrieval)
+
+    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == false
+
+        idx_2delete = [idx_2delete, nn];
+
+    end
+
+end
+
+% delete rows that don't have retrieval filenames
+filenames_retrieval(idx_2delete) = [];
+
+% ----------------------------------------
+% -- For Retrieval Results from Take 4 ---
+% ----------------------------------------
+% profile_indexes for paper = [3, 6, 7, 9, 18]
+plt_idx = 1;
+% ------------------------------------------------------------
+
+load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name])
+
+
+
+
+
+% ----------------------------------------
+% *** Load MODIS, AIRS and AMSR-E data ***
+% ----------------------------------------
+
+% Load Aqua/MODIS Data
+[modis, ~] = retrieveMODIS_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+
+% Load AIRS data
+airs = readAIRS_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
+
+% Load AMSR-E/2 data
+amsr = readAMSR_L2_data([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder]);
+% ----------------------------------------
+
+
+% ----------------------------------------
+% Remove data that is not needed
+% ----------------------------------------
+emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
+
+modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
+
+airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
+
+amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
+
+
+
+
+% plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
+fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], [], 1);
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(which_computer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(which_computer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+exportgraphics(fig3,[folderpath_figs,...
+    'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 400);
+% -------------------------------------
+% -------------------------------------
