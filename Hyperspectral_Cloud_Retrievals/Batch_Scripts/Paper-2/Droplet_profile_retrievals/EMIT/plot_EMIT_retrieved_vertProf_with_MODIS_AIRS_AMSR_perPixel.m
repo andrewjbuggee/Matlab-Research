@@ -227,27 +227,18 @@ if size(GN_outputs.retrieval, 1)>3
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
 
-    if isempty(amsr) == false & isnan(amsr.H2O.TotalPrecipitableWater(pixel_num))
+    if isempty(airs) == true || (isempty(airs) == false & isnan(airs.H2O.totCol_Std(pixel_num)))
 
         disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
-    elseif isempty(amsr) == false
-
-
-
-
-        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
-            '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
-            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
-
-
-    else
+    elseif isempty(airs) == false
 
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+            '$ACPW_{AIRS} = \,$',num2str(round(airs.H2O.acpw_using_assumed_CTH(pixel_num), 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     end

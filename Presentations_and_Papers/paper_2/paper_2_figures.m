@@ -555,3 +555,69 @@ fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN
 %     'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
+
+
+%% Look at all of the EMIT retrievals and see how many advance beyone the initial guess
+
+
+%% Plots EMIT retrieval results
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    retrieval_directory = '/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+
+    coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+
+
+
+end
+
+
+
+% Grab filenames in drive
+filenames_retrieval = dir(retrieval_directory);
+idx_2delete = [];
+for nn = 1:length(filenames_retrieval)
+
+    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == true
+
+        load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name])
+
+        disp([newline, 'File: ', num2str(nn), newline])
+        disp([newline, 'Filename: ', filenames_retrieval(nn).name, newline])
+        disp(['     Retrieval Iterations: ', newline])
+        disp(['                   re_top: ', num2str(GN_outputs.retrieval(1, :)), newline])
+        disp(['                   re_bot: ', num2str(GN_outputs.retrieval(2, :)), newline])
+        disp(['                    Tau_c: ', num2str(GN_outputs.retrieval(3, :)), newline])
+        disp(['                     acpw: ', num2str(GN_outputs.retrieval(4, :)), newline])
+  
+
+    end
+
+end
+
+
+
