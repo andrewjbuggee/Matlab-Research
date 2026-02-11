@@ -429,10 +429,12 @@ if strcmp(which_computer,'anbu8374')==true
     % ------ Folders on my Mac Desktop --------
     % -----------------------------------------
 
-    retrieval_directory = ('/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/');
+    retrieval_directory = '/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
 
-    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/'];
+    coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -444,10 +446,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
 
-elseif strcmp(which_computer,'curc')==true
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
 
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
+
 
 end
 
@@ -481,6 +482,13 @@ load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).nam
 
 
 
+% ----------------------------------------
+% *** Extract the pixel number ***
+% ----------------------------------------
+pixel_num = str2double(extractBetween([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name],...
+    'pixel_', '_'));
+
+
 
 % ----------------------------------------
 % *** Load MODIS, AIRS and AMSR-E data ***
@@ -497,6 +505,8 @@ amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder
 % ----------------------------------------
 
 
+
+
 % ----------------------------------------
 % Remove data that is not needed
 % ----------------------------------------
@@ -510,8 +520,22 @@ amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
 
 
 
+% ----------------------------------------------------
+% Compute the above cloud precipitable water from AIRS
+% ----------------------------------------------------
+if isfield(airs, 'acpw') == false
+
+    assumed_cloudTopHeight = GN_inputs.RT.z_topBottom(1)*1e3;    % meters - cloud top height used by libRadtran
+
+    % Compute the above cloud precipitable water from AIRS data
+    airs = convert_AIRS_prof_2_mass_density(airs, atm_data_directory,...
+        pixel_num, overlap_pixels, [], false, assumed_cloudTopHeight);
+
+end
+
+
 % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, [], amsr, 1);
+fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, airs, amsr, pixel_num);
 
 % ** Paper Worthy **
 % -------------------------------------

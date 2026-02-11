@@ -33,8 +33,7 @@ if isempty(airs) == false
 
         % ------ Folders on my Macbook --------
         % -------------------------------------
-        error([newline, 'What is the directory?'])
-        atm_data_directory = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/'];
+        atm_data_directory = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/'];
 
     end
 
@@ -222,6 +221,8 @@ if size(GN_outputs.retrieval, 1)>3
 
     retrieved_CWV = GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
+
+
     % Print the simulated value and the retrieved value
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
@@ -235,13 +236,7 @@ if size(GN_outputs.retrieval, 1)>3
 
     elseif isempty(amsr) == false
 
-        if isfield(airs, 'acpw') == false
 
-            % Compute the above cloud precipitable water from AIRS data
-            [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, pixel_num, overlap_pixels,...
-                us_std_atm_file, print_status_updates);
-
-        end
 
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...

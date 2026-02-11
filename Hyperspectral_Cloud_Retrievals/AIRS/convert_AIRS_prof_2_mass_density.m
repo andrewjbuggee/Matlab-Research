@@ -34,7 +34,7 @@
 %%
 
 function [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, idx, overlap_pixels,...
-    us_std_atm_file, print_status_updates)
+    us_std_atm_file, print_status_updates, assumed_cloudTopHeight)
 
 
 % Make sure the path ends with a forward slash
@@ -448,14 +448,53 @@ end
 % height
 cloud_top_pressure = airs.cloud.presTop_(idx);  % mb
 
-% Convert US standard atmosphere water vapor density to relative humidity
-% First, interpolate US std atm T and H2O to the H2O pressure levels
-rho_v_cloudTop = interp1(log(pressure_sorted), us_std_H2O, log(rho_v_scaled_sorted), 'linear', 'extrap');
+% To linear interpolate the scaled mass density at cloud top pressure, both pressure and
+% mass density should be in log space.
+rho_v_cloudTopPressure = exp(interp1(log(pressure_sorted), log(rho_v_scaled_sorted), log(cloud_top_pressure), 'linear', 'extrap'));
+
+% To linear interpolate the geopotential height at cloud top, convert Z
+% into log space. This is value for pressures below 100 mb, where most
+% marine stratus and stratocumulus reside
+% ** AIRS VALUE IS OFTEN HIGHER THAN THE IN-SITU **
+% PERHAPS TO DUE MULTIPLE CLOUD LAYERS
+z_cloudTop = exp(interp1(pressure_sorted, log(z_hyps_sorted), cloud_top_pressure, 'linear', 'extrap'));
+
+new_z = sort([z_hyps_sorted; z_cloudTop], 'ascend');
+
+idx_cloudTop = find(new_z == z_cloudTop);
+
+% find where this new rho_v should be located in pressure space
+idx_new_p = pressure_sorted > cloud_top_pressure;
+
+new_rho_v_scaled_sorted = [rho_v_scaled_sorted(idx_new_p); rho_v_cloudTopPressure; rho_v_scaled_sorted(~idx_new_p)];
+
+% compute the above cloud precipitable water using the assumed cloud top
+% height
+airs.H2O.acpw_usingAIRS_CTP = trapz(new_z(idx_cloudTop:end), new_rho_v_scaled_sorted(idx_cloudTop:end));   % kg/m^2 (mm)
 
 
 
 
+% ******** Now do the same thing but use the assumed CTH *************
 
+% To linear interpolate the scaled mass density at cloud top height,
+% geopotential height should remain in linear space, whereas the mass
+% density should be converted to log space
+rho_v_cloudTopHeight = exp(interp1(z_hyps_sorted, log(rho_v_scaled_sorted), assumed_cloudTopHeight, 'linear', 'extrap'));
+
+new_z = sort([z_hyps_sorted; assumed_cloudTopHeight], 'ascend');
+
+
+
+% find where this new rho_v should be located in pressure space
+idx_new_z = z_hyps_sorted < assumed_cloudTopHeight;
+
+new_rho_v_scaled_sorted = [rho_v_scaled_sorted(idx_new_z); rho_v_cloudTopHeight; rho_v_scaled_sorted(~idx_new_z)];
+
+% compute the above cloud precipitable water using the assumed cloud top
+% height
+idx_cloudTop = find(new_z == assumed_cloudTopHeight);
+airs.H2O.acpw_using_assumed_CTH = trapz(new_z(idx_cloudTop:end), new_rho_v_scaled_sorted(idx_cloudTop:end));   % kg/m^2 (mm)
 
 
 
