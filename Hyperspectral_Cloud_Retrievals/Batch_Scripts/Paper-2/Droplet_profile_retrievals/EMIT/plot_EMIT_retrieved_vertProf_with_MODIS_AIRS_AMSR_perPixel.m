@@ -199,6 +199,20 @@ if size(GN_outputs.retrieval, 1)>3
 
     elseif isempty(amsr) == false
 
+        % Compute the above cloud precipitable water from AIRS data
+        % ----- Convert RH profile to water vapor mass density (kg/m^3) -----
+        % Saturation vapor pressure (Bolton 1980)
+        T_celsius_28 = airs.temp. - 273.15;
+        e_sat_28 = 6.112 * exp((17.67 * T_celsius_28) ./ (T_celsius_28 + 243.5));  % hPa
+        
+        % Actual vapor pressure from relative humidity (relHum is now a fraction)
+        e_hPa_28 = relHum' .* e_sat_28;  % hPa
+        
+        % Water vapor mass density using ideal gas law for water vapor
+        % rho_v = e / (R_v * T), where e is in Pa and R_v = 461.52 J/(kg*K)
+        R_v = 461.52;  % Specific gas constant for water vapor [J/(kg*K)]
+        rho_v = (e_hPa_28 * 100) ./ (R_v .* temperature);  % kg/m^3
+
 
         str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
             '$TPW_{AMSR-E} = \,$',num2str(round(amsr.H2O.TotalPrecipitableWater(pixel_num), 1)),' $mm$', newline,...
