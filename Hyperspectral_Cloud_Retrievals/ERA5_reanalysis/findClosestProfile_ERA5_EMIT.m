@@ -113,6 +113,10 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
+    
+    % define where the ERA5 data is stored
+    era5_dir = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'ERA5_reanalysis/ERA5_data/EMIT_Terra_overlap/'];
 
 end
 
