@@ -18,7 +18,7 @@
 %%
 
 function jacobian_fm_ln = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar(state_vector, measurement_estimate_ln, GN_inputs,...
-    spec_response, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num)
+    spec_response, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num)
 
 
 % convert the measurement back to linear space
@@ -148,7 +148,7 @@ changing_variables = [changing_variables, repmat((1:num_wl)', num_forward_model_
 % -----------------------------------------------------------
 % ** create file with original cloud top height **
 aboveCloud_waterVaporColumn_fileName_original_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
+    wv_col_aboveCloud, atm_folder_path, radiosonde_datProfiles, pixel_num);
 
 % ** create file with new cloud top height **
 % Define the cloud top value
@@ -156,7 +156,7 @@ GN_inputs.RT.z_topBottom = [changing_variables(num_forward_model_params * num_wl
     changing_variables(num_forward_model_params * num_wl, num_cloud_layers+1) - GN_inputs.RT.H];
 
 aboveCloud_waterVaporColumn_fileName_new_cloudTopHeight = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
+    wv_col_aboveCloud, atm_folder_path, radiosonde_datProfiles, pixel_num);
 % -----------------------------------------------------------
 % -----------------------------------------------------------
 

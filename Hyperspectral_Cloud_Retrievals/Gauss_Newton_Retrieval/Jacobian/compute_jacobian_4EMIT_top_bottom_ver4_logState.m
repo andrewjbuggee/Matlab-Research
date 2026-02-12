@@ -7,7 +7,7 @@
 %%
 
 function jacobian_ln = compute_jacobian_4EMIT_top_bottom_ver4_logState(state_vector, measurement_estimate_ln,...
-    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num)
+    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num)
 
 
 % convert the measurement back to linear space
@@ -187,10 +187,10 @@ wc_with_no_change = write_wc_file(re_with_noChange, changing_variables(3*num_wl 
 % create water vapor density profiles - there are only two!
 % -----------------------------------------------------------
 aboveCloud_waterVaporColumn_fileName_noChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    wv_col_aboveCloud, atm_folder_path, airs_datProfiles, pixel_num);
+    wv_col_aboveCloud, atm_folder_path, radiosonde_datProfiles, pixel_num);
 
 aboveCloud_waterVaporColumn_fileName_withChange = alter_aboveCloud_columnWaterVapor_profile(GN_inputs,...
-    state_vectors_with_change(end,end), atm_folder_path, airs_datProfiles, pixel_num);
+    state_vectors_with_change(end,end), atm_folder_path, radiosonde_datProfiles, pixel_num);
 
 
 
