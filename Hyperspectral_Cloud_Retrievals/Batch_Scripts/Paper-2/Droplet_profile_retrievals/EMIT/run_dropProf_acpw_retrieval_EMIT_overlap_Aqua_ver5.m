@@ -58,7 +58,7 @@ criteria.cld_phase = 'water';
 criteria.cld_cvr = 1;   % cloud fraction
 criteria.cld_tau_min = 3;   % cloud optical depth
 criteria.cld_tau_max = 30;   % cloud optical depth
-criteria.H = 0.1;         % horizontal inhomogeneity index
+criteria.H = 1.85;         % horizontal inhomogeneity index
 
 % plot flag
 plot_data = false;
@@ -75,21 +75,30 @@ plot_data = false;
 % ** If there aren't any pixels found ... **
 % Increase the horizontal inhomogeneity index
 
-while isempty(overlap_pixels.modis.linear_idx) == true
+% while isempty(overlap_pixels.modis.linear_idx) == true
+% 
+%     disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
+%     criteria.H = criteria.H + 0.25;         % horizontal inhomogeneity index
+% 
+%     % recompute
+%     [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+%         criteria, plot_data);
+% 
+%     if isempty(overlap_pixels.modis.linear_idx) == false
+% 
+%         % print the H value used
+%         disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
+% 
+%     end
+% 
+% end
 
-    disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
-    criteria.H = criteria.H + 0.25;         % horizontal inhomogeneity index
+% If there are no pixels with an H-index less than 1.85 that overlap with
+% EMIT, terminate this function
+if isempty(overlap_pixels.modis.linear_idx) == true
 
-    % recompute
-    [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-        criteria, plot_data);
-
-    if isempty(overlap_pixels.modis.linear_idx) == false
-
-        % print the H value used
-        disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
-
-    end
+    error([newline, 'There are no overlapping pixels between EMIT and MODIS with an inhomogeneity index less than ',...
+        num2str(criteria.H), '! Terminating program.' , newline])
 
 end
 
