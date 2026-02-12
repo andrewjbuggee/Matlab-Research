@@ -4,7 +4,7 @@
 
 print_status_updates = true;
 print_libRadtran_err = false;
-plot_figures = false; 
+plot_figures = true; 
 save_figures = false; 
 
 
@@ -52,7 +52,14 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_3_6_T151922/';
 
     % 3 Pixels with H less than 1.1
-    folder_paths.coincident_dataFolder = '2023_3_6_T152010/';
+    % folder_paths.coincident_dataFolder = '2023_3_6_T152010/';
+
+    % 1 Pixels with H less than 1.6
+    % folder_paths.coincident_dataFolder = '2024_9_5_T135602/';
+
+    % folder_paths.coincident_dataFolder = '2025_11_7_T132422/';
+
+    folder_paths.coincident_dataFolder = '2024_11_4_T144644/';
 
 
 

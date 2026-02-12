@@ -17,10 +17,14 @@ addpath(folderName)
 % -----------------------------------------------------
 
 
-files = dir([folderName, '*.nc']);       % find all files that end in .hdf
+files = dir([folderName, '*.nc']);       % find all files that end in .nc
 
 % check to see if we found any files!
 if isempty(files)==true
+
+    % % try files staring with EMIT
+    % files = dir([folderName, 'EMIT_*']);       % find all files that end in .nc
+
     error([newline,'There are no files in the folder provided!', newline])
 end
 
