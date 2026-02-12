@@ -3,8 +3,9 @@
 
 % This function supports two types of atmosphere files:
 %   1. US Standard Atmosphere .DAT files (9 columns: z, p, T, air, O3, O2, H2O, CO2, NO2)
-%   2. AIRS radiosonde .DAT files (2-3 columns: p [mbar], T [K], WV [CM-3])
-%      Created by write_AIRS_radiosonde_DAT_with_multiPixels()
+%   2. AIRS/ERA5 radiosonde .DAT files (2-3 columns: p [mbar], T [K], WV [CM-3])
+%      Created by write_AIRS_radiosonde_DAT_with_multiPixels() or
+%      write_ERA5_radiosonde_DAT_with_multiPixels()
 
 % INPUTS:
 
@@ -21,16 +22,23 @@
 %%
 
 function [filename_fullPath] = alter_aboveCloud_columnWaterVapor_profile(inputs, aboveCloudTotal,...
-    atm_folder_path, airs_datProfiles, pixel_num)
+    atm_folder_path, radiosonde_datProfiles, pixel_num)
 
 
 if isfield(inputs.RT, 'use_radiosonde_file') == true && inputs.RT.use_radiosonde_file == true
 
-    % extract the AIRS filename
-    str = extractBetween(inputs.RT.radiosonde_file_T_P_WV, '/AIRS', '.dat');
+    if contains(inputs.RT.radiosonde_file_T_P_WV, 'AIRS', 'IgnoreCase', true)
+        % extract the AIRS filename
+        str = extractBetween(inputs.RT.radiosonde_file_T_P_WV, '/AIRS', '.dat');
+        prefix = 'AIRS';
+    elseif contains(inputs.RT.radiosonde_file_T_P_WV, 'ERA5', 'IgnoreCase', true)
+        % extract the ERA5 filename
+        str = extractBetween(inputs.RT.radiosonde_file_T_P_WV, '/ERA5', '.dat');
+        prefix = 'ERA5';
+    end
 
     % create the modified atm file name
-    filename = ['AIRS', str{1}, '_H2O_MODIFIED_', num2str(aboveCloudTotal), 'mm-aboveCloud',...
+    filename = [prefix, str{1}, '_H2O_MODIFIED_', num2str(aboveCloudTotal), 'mm-aboveCloud',...
         '_cloudTop_', num2str(inputs.RT.z_topBottom(1)), 'km.DAT'];
 
 else
@@ -44,29 +52,40 @@ end
 
 %% Read in the atmosphere profile and determine its type
 
-% Check if this is an AIRS file by looking at the filename
+% Check if this is an AIRS or ERA5 file by looking at the filename
 useAIRS_file = isfield(inputs.RT, 'use_radiosonde_file') == true && inputs.RT.use_radiosonde_file == true && ...
     contains(inputs.RT.radiosonde_file_T_P_WV, 'AIRS', 'IgnoreCase', true);
 
-if useAIRS_file
-    %% ---- AIRS radiosonde file ----
-    % These files have 2-3 columns: pressure (hPa), temperature (K), [relative humidity (fraction)]
-    % Created by write_AIRS_radiosonde_DAT_with_multiPixels()
+useERA5_file = isfield(inputs.RT, 'use_radiosonde_file') == true && inputs.RT.use_radiosonde_file == true && ...
+    contains(inputs.RT.radiosonde_file_T_P_WV, 'ERA5', 'IgnoreCase', true);
 
-    % [z, waterVapor_column, airs_data] = read_AIRS_profile_for_H2O_scaling(inputs, atm_folder_path);
-    % check to make sure the airs_datProfiles exits
-    if exist("airs_datProfiles", "var") == false
+useRadiosonde_file = useAIRS_file || useERA5_file;
 
-        error([newline, 'Need the AIRS dat file profiles.', newline])
+if useRadiosonde_file
+    %% ---- AIRS or ERA5 radiosonde file ----
+    % These files have 2-3 columns: pressure (hPa), temperature (K), [water vapor (CM-3)]
+    % Created by write_AIRS_radiosonde_DAT_with_multiPixels() or
+    % write_ERA5_radiosonde_DAT_with_multiPixels()
+
+    % check to make sure the radiosonde_datProfiles exist
+    if exist("radiosonde_datProfiles", "var") == false
+
+        error([newline, 'Need either AIRS or ERA5 dat file profiles.', newline])
 
     else
 
-        z = airs_datProfiles(pixel_num).GP_new;  % meters - geopotential height
-        waterVapor_column = airs_datProfiles(pixel_num).vapor_concentration;    % #/cm^3 - water vapor number concentration
+        % AIRS stores altitude in .GP_new, ERA5 stores it in .GP_height
+        if useAIRS_file
+            z = radiosonde_datProfiles(pixel_num).GP_new;       % meters - geopotential height
+        elseif useERA5_file
+            z = radiosonde_datProfiles(pixel_num).GP_height;    % meters - geopotential height
+        end
+
+        waterVapor_column = radiosonde_datProfiles(pixel_num).vapor_concentration;    % #/cm^3 - water vapor number concentration
 
         % convert water vapor densities to m^(-3)
         waterVapor_column = waterVapor_column * 1e6;  % molecules/m^3
-        
+
 
     end
 
@@ -168,7 +187,7 @@ z_2write = new_z./1e3;  % (km)
 
 %% Write the file
 
-if useAIRS_file == false
+if useRadiosonde_file == false
 
     % Then write a .dat file that will update the H2O concentration profile
     % from some US standard atmosphere
@@ -194,9 +213,9 @@ if useAIRS_file == false
     fclose(fileID);
 
 
-    %% If using AIRS file, also write a new radiosonde .dat file with scaled RH
+    %% If using AIRS/ERA5 file, also write a new radiosonde .dat file with scaled WV
     %  The new radiosonde file uses the INTERPOLATED grid (new_z) which includes
-    %  cloud top height, so that pressure, temperature, and RH are all on the
+    %  cloud top height, so that pressure, temperature, and WV are all on the
     %  same grid as the scaled water vapor density profile.
 
 else
@@ -261,10 +280,15 @@ else
     %   - 1 meter above cloud top: inputs.RT.z_topBottom(1)*1e3 + 1 (meters)
     % We need to interpolate pressure and temperature to these new levels.
 
-    % Extract original profiles from airs_datProfiles
-    z_orig = airs_datProfiles(pixel_num).GP_new;    % meters (sorted surface-to-TOA, ascending)
-    p_orig = airs_datProfiles(pixel_num).p';        % hPa (sorted surface-to-TOA, descending pressure)
-    T_orig = airs_datProfiles(pixel_num).T;         % K (sorted surface-to-TOA)
+    % Extract original profiles from radiosonde_datProfiles
+    % AIRS stores altitude in .GP_new, ERA5 stores it in .GP_height
+    if useAIRS_file
+        z_orig = radiosonde_datProfiles(pixel_num).GP_new;     % meters (sorted surface-to-TOA, ascending)
+    elseif useERA5_file
+        z_orig = radiosonde_datProfiles(pixel_num).GP_height;  % meters (sorted surface-to-TOA, ascending)
+    end
+    p_orig = radiosonde_datProfiles(pixel_num).p';        % hPa (sorted surface-to-TOA, descending pressure)
+    T_orig = radiosonde_datProfiles(pixel_num).T;         % K (sorted surface-to-TOA)
 
     new_p = exp(interp1(z_orig, log(p_orig), new_z, 'linear', 'extrap'));       % hPa
     new_T = interp1(z_orig, T_orig, new_z, 'linear', 'extrap');       % K
@@ -294,7 +318,7 @@ else
     end
 
     % Write header comment
-    fprintf(fileID_rs, '# Modified AIRS profile with scaled above-cloud water vapor (%.2f mm)\n', aboveCloudTotal);
+    fprintf(fileID_rs, '# Modified %s profile with scaled above-cloud water vapor (%.2f mm)\n', prefix, aboveCloudTotal);
     fprintf(fileID_rs, '# Interpolated to include cloud top height at %.3f km\n', inputs.RT.z_topBottom(1));
 
     % Write column headers

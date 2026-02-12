@@ -22,6 +22,10 @@
 %            .emit.col            - Column indices of overlap pixels in EMIT array
 %            .emit.linear_idx     - Linear indices of overlap pixels in EMIT array
 %
+% (3) print_status_updates - (optional) logical flag to enable/disable
+%            printing of status messages to the command window.
+%            Default: false
+%
 % OUTPUTS:
 % (1) era5 - Structure containing ERA5 reanalysis data at the relevant
 %            spatial and temporal locations. Fields:
@@ -66,12 +70,51 @@
 % By Andrew John Buggee
 %%
 
-function [era5, overlap_pixels] = findClosestProfile_ERA5_EMIT(emit, overlap_pixels)
+function [era5, overlap_pixels] = findClosestProfile_ERA5_EMIT(emit, overlap_pixels, print_status_updates)
+
+% Default: do not print status updates
+if nargin < 3
+    print_status_updates = false;
+end
 
 
 %% Define the ERA5 data directory for EMIT-Terra overlap
 
-era5_dir = '/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/ERA5_reanalysis/ERA5_data/EMIT_Terra_overlap/';
+
+which_computer = whatComputer;
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % define where the ERA5 data is stored
+    era5_dir = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'ERA5_reanalysis/ERA5_data/EMIT_Terra_overlap/'];
+
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % define where the ERA5 data is stored
+    era5_dir = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'ERA5_reanalysis/ERA5_data/EMIT_Terra_overlap/'];
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+end
 
 
 %% Find all ERA5 NetCDF files in the directory
@@ -84,7 +127,9 @@ end
 
 n_files = length(era5_files);
 
-disp([newline, 'Found ', num2str(n_files), ' ERA5 files in directory.', newline])
+if print_status_updates
+    disp([newline, 'Found ', num2str(n_files), ' ERA5 files in directory.', newline])
+end
 
 
 %% Find the ERA5 file for the same day and closest in time
@@ -134,9 +179,11 @@ idx_best = idx_same_day(idx_min_time);
 
 era5_filepath = [era5_dir, era5_files(idx_best).name];
 
-disp([newline, 'Using ERA5 file: ', era5_files(idx_best).name])
-disp(['Time difference between EMIT acquisition and ERA5 file: ', ...
-    num2str(min_timeDiff_hrs * 60, '%.1f'), ' minutes', newline])
+if print_status_updates
+    disp([newline, 'Using ERA5 file: ', era5_files(idx_best).name])
+    disp(['Time difference between EMIT acquisition and ERA5 file: ', ...
+        num2str(min_timeDiff_hrs * 60, '%.1f'), ' minutes', newline])
+end
 
 
 %% Read the ERA5 NetCDF file
@@ -160,8 +207,10 @@ emit_datetime = datetime(era5_year, era5_month, era5_day_num, ...
 [min_ERA5_timeDiff, idx_time] = min( abs( utcTime - emit_datetime ) );
 idx_time = idx_time(1);     % take first in case of tie
 
-disp(['ERA5 time step selected: ', char(utcTime(idx_time)), ' UTC'])
-disp(['Time difference to EMIT acquisition: ', char(min_ERA5_timeDiff), newline])
+if print_status_updates
+    disp(['ERA5 time step selected: ', char(utcTime(idx_time)), ' UTC'])
+    disp(['Time difference to EMIT acquisition: ', char(min_ERA5_timeDiff), newline])
+end
 
 
 %% Read the ERA5 spatial grid and pressure levels
@@ -187,10 +236,10 @@ dist_era5_emit_m                = zeros(n_overlap, 1);
 for pp = 1:n_overlap
 
     % Get the lat/lon of this EMIT overlap pixel
-    emit_row = overlap_pixels.emit.row(pp);
-    emit_col = overlap_pixels.emit.col(pp);
-    pix_lat  = double( emit.radiance.geo.lat(emit_row, emit_col) );
-    pix_lon  = double( emit.radiance.geo.long(emit_row, emit_col) );
+    % emit_row = overlap_pixels.emit.row(pp);
+    % emit_col = overlap_pixels.emit.col(pp);
+    pix_lat  = double( emit.radiance.geo.lat(pp) );
+    pix_lon  = double( emit.radiance.geo.long(pp) );
 
     % Compute geodetic distance from this EMIT pixel to all ERA5 grid points [m]
     dist = distance(Lat, Lon, pix_lat, pix_lon, wgs84);
@@ -254,9 +303,11 @@ era5.metadata.era5_utcTime               = utcTime(idx_time);
 era5.metadata.min_timeDiff               = min_ERA5_timeDiff;
 era5.metadata.dist_btwn_era5_and_emit_m  = dist_era5_emit_m;
 
-disp([newline, 'ERA5 profiles extracted for ', num2str(n_unique), ' unique spatial pixels.'])
-disp(['Average distance between ERA5 grid points and EMIT pixels: ', ...
-    num2str(mean(dist_era5_emit_m) / 1000, '%.2f'), ' km', newline])
+if print_status_updates
+    disp([newline, 'ERA5 profiles extracted for ', num2str(n_unique), ' unique spatial pixels.'])
+    disp(['Average distance between ERA5 grid points and EMIT pixels: ', ...
+        num2str(mean(dist_era5_emit_m) / 1000, '%.2f'), ' km', newline])
+end
 
 
 end

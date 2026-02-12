@@ -24,20 +24,21 @@
 %%
 
 function tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
-    print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_AIRS_data, pixel_num)
+    print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_radiosonde_data, pixel_num)
 
 
 
 %% Create an input structure that helps write the INP files
 
 % this is a built-in function that is defined at the bottom of this script
-inputs_tblut = create_emit_inputs_TBLUT_with_MODIS_retrievals_perPixel(folder_paths, emit, spec_response, print_libRadtran_err, pixel_num);
+inputs_tblut = create_emit_inputs_TBLUT_with_MODIS_retrievals_perPixel(folder_paths, emit, spec_response,...
+    print_libRadtran_err, pixel_num);
 
 
 
 %% Update based on GN_inputs
 
-if exist("use_MODIS_AIRS_data", "var")==1 && use_MODIS_AIRS_data==true
+if exist("use_MODIS_radiosonde_data", "var")==1 && use_MODIS_radiosonde_data==true
 
     % override the cloud top height
     inputs_tblut.RT.z_topBottom = GN_inputs.RT.z_topBottom;  % km

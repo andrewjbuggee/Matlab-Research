@@ -409,10 +409,10 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         tic
     end
 
-    use_MODIS_AIRS_data = true;
+    use_MODIS_ERA5_data = true;
 
     tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
-        print_libRadtran_err, print_status_updates,GN_inputs, use_MODIS_AIRS_data, pixel_num);
+        print_libRadtran_err, print_status_updates,GN_inputs, use_MODIS_ERA5_data, pixel_num);
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -428,10 +428,10 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
         tic
     end
 
-    use_MODIS_AIRS_data = true;
+    use_MODIS_ERA5_data = true;
 
-    acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs.datProfiles);
+    acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_ERA5_data,...
+        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, era5.datProfiles);
 
     if print_status_updates==true
         disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
