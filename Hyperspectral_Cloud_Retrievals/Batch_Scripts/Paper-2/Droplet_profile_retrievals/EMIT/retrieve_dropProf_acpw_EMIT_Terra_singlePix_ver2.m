@@ -471,7 +471,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     disp([newline, 'Running Multispectral retrieval... ', newline])
 
     [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs, emit, spec_response,...
-        folder_paths, print_status_updates, pixel_num, airs.datProfiles);
+        folder_paths, print_status_updates, pixel_num, era5.datProfiles);
 
 
     % --------------------------------------------------------------
