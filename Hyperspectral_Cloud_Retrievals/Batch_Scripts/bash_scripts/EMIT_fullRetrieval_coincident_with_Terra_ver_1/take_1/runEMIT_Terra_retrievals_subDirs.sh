@@ -1,7 +1,7 @@
-runEMIT_Terra_retrievals_subDirs#!/bin/bash
+#!/bin/bash
 
 # SLURM Job Array Script to run EMIT droplet profile retrievals
-# Each array job processes one subdirectory of coincident EMIT-Aqua data
+# Each array job processes one subdirectory of coincident EMIT-Terra data
 #
 # The input directory contains subdirectories like:
 #   2023_9_16_T191118_1/
