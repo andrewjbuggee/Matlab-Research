@@ -20,7 +20,7 @@
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=25
 #SBATCH --mem=90G
 #SBATCH --time=23:59:00
 #SBATCH --partition=amilan
@@ -30,7 +30,7 @@
 #SBATCH --error=EMIT_dropProf_subdir_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=11-17       # UPDATE: set to the number of subdirectories
+#SBATCH --array=1-7       # UPDATE: set to the number of subdirectories
 
 # Load modules
 ml purge
@@ -149,7 +149,7 @@ time matlab -nodesktop -nodisplay -r "\
     addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
     clear variables; \
     addLibRadTran_paths; \
-    print_status_updates = false; \
+    print_status_updates = true; \
     print_libRadtran_err = false; \
     plot_figures = false; \
     save_figures = false; \
