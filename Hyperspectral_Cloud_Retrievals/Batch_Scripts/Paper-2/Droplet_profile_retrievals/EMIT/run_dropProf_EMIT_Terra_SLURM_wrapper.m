@@ -3,8 +3,8 @@
 
 
 print_status_updates = true;
-print_libRadtran_err = true;
-plot_figures = false; 
+print_libRadtran_err = false;
+plot_figures = true; 
 save_figures = false; 
 
 
@@ -28,13 +28,12 @@ if strcmp(which_computer,'anbu8374')==true
     % -----------------------------------------
 
     folder_paths.coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/'];
-
-    % folder_paths.coincident_dataFolder = '2024-09-12/';
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/',...
+        'southEast_pacific/likely_stratus/'];
 
 
     % 11 Pixels with H less than 1.6     ** Use this data set **
-    folder_paths.coincident_dataFolder = '2023_9_16_T191118_1/';
+    folder_paths.coincident_dataFolder = '2023_3_6_T151922/';
 
 
 
@@ -46,13 +45,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % define the folder where the coincident data is stored
     folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/'];
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/',...
+        'southEast_pacific/likely_stratus/'];
 
 
-
-    % 10 Pixels with H less than 1.85      ** Use this data set **
-    % But only 2 aren't masked out by EMIT cloud filter!
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    folder_paths.coincident_dataFolder = '2023_3_6_T151922/';
 
 
 
@@ -63,21 +60,6 @@ elseif strcmp(which_computer,'curc')==true
     % ------------------------------------------------
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
-
-    % add folders to the path
-    addpath(genpath('/projects/anbu8374/Matlab-Research'));
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
-    addLibRadTran_paths;
-
-    % define the folder where the coincident data is stored
-    folder_paths.coincident_dataPath = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/'];
-
-
-    % 10 Pixels with H less than 1.85      ** Use this data set **
-    % But only 2 aren't masked out by EMIT cloud filter!
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
 
 end
 

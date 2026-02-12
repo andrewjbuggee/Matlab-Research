@@ -9,8 +9,9 @@
 
 
 
-function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Terra_singlePix_ver2(emit,...
-            modis, era5, overlap_pixels, folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
+function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
+            modis, airs, overlap_pixels,...
+            folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
 
 
 
@@ -148,24 +149,24 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
 
 
-    %% Override input settings with ERA5 derived values
+    %% Override input settings with AIRS derived values
 
     % ----------------------------------------------------
-    % *** Use ERA5 temp/press and water vapor profiles ***
+    % *** Use AIRS temp/press and water vapor profiles ***
     % ----------------------------------------------------
 
-    % first, write a radiosonde.dat file with ERA5 temperature, pressure and
+    % first, write a radiosonde.dat file with airs temperature, pressure and
     % relative humidity
     GN_inputs.RT.use_radiosonde_file = true;
     GN_inputs.RT.radiosonde_num_vars = 3;
 
-    [GN_inputs.RT.radiosonde_file_T_P_WV, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
-        folder_paths, pixel_num, [], GN_inputs.RT.radiosonde_num_vars, overlap_pixels,...
-        GN_inputs.RT.atm_file, print_status_updates);
+    [GN_inputs.RT.radiosonde_file_T_P_WV, airs] = write_AIRS_radiosonde_DAT_with_multiPixels(airs,...
+        folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
 
-    [GN_inputs.RT.radiosonde_file_T_P, ~] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
-        folder_paths, pixel_num, [], GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels,...
-        GN_inputs.RT.atm_file, print_status_updates);
+    [GN_inputs.RT.radiosonde_file_T_P, ~] = write_AIRS_radiosonde_DAT_with_multiPixels(airs,...
+        folder_paths, pixel_num, [],...
+        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
 
 
 
@@ -305,7 +306,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     
     folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
-        'Droplet_profile_retrievals/take_2/'];
+        'Droplet_profile_retrievals/take_4/'];
 
 
     folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
