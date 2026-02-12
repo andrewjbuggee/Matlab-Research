@@ -48,8 +48,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/',...
         'southEast_pacific/likely_stratus/'];
 
+    % 2 Pixels with H less than 0.85
+    % folder_paths.coincident_dataFolder = '2023_3_6_T151922/';
 
-    folder_paths.coincident_dataFolder = '2023_3_6_T151922/';
+    % 3 Pixels with H less than 1.1
+    folder_paths.coincident_dataFolder = '2023_3_6_T152010/';
 
 
 
