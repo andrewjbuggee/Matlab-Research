@@ -57,7 +57,7 @@ end
 criteria.cld_phase = 'water';
 criteria.cld_cvr = 1;   % cloud fraction
 criteria.cld_tau_min = 3;   % cloud optical depth
-criteria.cld_tau_max = 30;   % cloud optical depth
+criteria.cld_tau_max = 50;   % cloud optical depth
 criteria.H = 1.85;         % horizontal inhomogeneity index
 
 % plot flag
