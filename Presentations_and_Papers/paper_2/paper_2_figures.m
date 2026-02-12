@@ -607,7 +607,7 @@ for nn = 1:length(filenames_retrieval)
         load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name])
 
         disp([newline, 'File: ', num2str(nn), newline])
-        disp([newline, 'Filename: ', filenames_retrieval(nn).name, newline])
+        disp(['Filename: ', filenames_retrieval(nn).name, newline])
         disp(['     Retrieval Iterations: ', newline])
         disp(['                   re_top: ', num2str(GN_outputs.retrieval(1, :)), newline])
         disp(['                   re_bot: ', num2str(GN_outputs.retrieval(2, :)), newline])

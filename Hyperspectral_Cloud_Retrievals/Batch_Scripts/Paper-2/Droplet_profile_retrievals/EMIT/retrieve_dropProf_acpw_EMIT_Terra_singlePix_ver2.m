@@ -10,8 +10,7 @@
 
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Terra_singlePix_ver2(emit,...
-            modis, era5, overlap_pixels,...
-            folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
+            modis, era5, overlap_pixels, folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
 
 
 
@@ -161,12 +160,12 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     GN_inputs.RT.radiosonde_num_vars = 3;
 
     [GN_inputs.RT.radiosonde_file_T_P_WV, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
-        folder_paths, pixel_num, [],...
-        GN_inputs.RT.radiosonde_num_vars, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
+        folder_paths, pixel_num, [], GN_inputs.RT.radiosonde_num_vars, overlap_pixels,...
+        GN_inputs.RT.atm_file, print_status_updates);
 
     [GN_inputs.RT.radiosonde_file_T_P, ~] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
-        folder_paths, pixel_num, [],...
-        GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels, GN_inputs.RT.atm_file, print_status_updates);
+        folder_paths, pixel_num, [], GN_inputs.RT.radiosonde_num_vars-1, overlap_pixels,...
+        GN_inputs.RT.atm_file, print_status_updates);
 
 
 
