@@ -72,8 +72,9 @@ end
 
 % set the maximum scalar value used to create a set of scalar values that
 % will be multiplied along the direction of greatest change
-a_largestVal = 1.5;
-a_smallestVal = -1.5;
+a_smallestVal = -1;
+a_largestVal = 1;
+
 
 
 % define length of initial array used to check which state vectors meet the
@@ -81,7 +82,7 @@ a_smallestVal = -1.5;
 array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
-array_length_newMax = 15;
+array_length_newMax = 20;
 
 % We want to make sure the new step is within the feasible
 % range, not at the boundaries. So we only accept a values that
@@ -451,24 +452,24 @@ if print_status_updates == true
             % meaning that the initial guess has the lowest rss, perturb to
             % initial guess to see if you can jump out of this local
             % minimum
-            if ii==1 && a(min_residual_idx) == 0
+            if ii==1 && a(min_residual_idx)==0
 
                 disp([newline, 'The state vector with the minimum RSS is the same as the initial guess.', newline])
-                disp([newline, 'Perturbing the initial guess and trying again...', newline])
+                disp(['Perturbing the initial guess and trying again...', newline])
 
                 % increase r_top
-                new_guess(1) = 1.1 * current_guess(1);
+                new_guess(1,1) = log(1.1) + current_guess(1);
                 % increase r_bot
-                new_guess(2) = 1.1 * current_guess(2);
+                new_guess(2,1) = log(1.1) + current_guess(2);
                 % keep tau_c the same
-                new_guess(3) = 1.1 * current_guess(3);
+                new_guess(3,1) = current_guess(3);
                 % increase acpw
-                new_guess(4) = 1.1 * current_guess(4);
+                new_guess(4,1) = log(1.1) + current_guess(4);
 
                 % compute the new measurement estimate
                 disp([newline, 'Estimating spectral measurements for new initial guess...', newline])
-                new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs,...
-                spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
+                    spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
                 residual(:,ii+1) = measurements_log - new_measurement_estimate;
                 rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
@@ -604,6 +605,9 @@ else
     for ii = 1:num_iterations
 
 
+        % at each iteration I need to compute the forward model at my current
+        % state vector estimate
+
 
         current_guess = retrieval(:,ii);
 
@@ -617,8 +621,8 @@ else
 
             % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
             % *** Take the logarithm of the measurement estimate ***
-            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
-                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+            measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs,...
+                spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -637,8 +641,8 @@ else
 
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
-        Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln,...
-            GN_inputs, spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+        Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
+            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -654,8 +658,6 @@ else
         end
 
 
-        % --------------------------------------------------------------
-        % --------------------------------------------------------------
 
         % ** For uncertainty with re profile **
         % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
@@ -723,6 +725,13 @@ else
             constrained_guesses(2,:)<=log(rEff_limits(end)) & constrained_guesses(2,:) >= log(rEff_limits(1)) &...
             constrained_guesses(3,:)>log(rEff_limits(1))   & ...
             constrained_guesses(4,:)>log(1e-5)));
+
+        % find the minimum a where this is satisfied
+        [min_a, ~] = min(a(constrained_guesses(1,:)>=constrained_guesses(2,:) & ...
+            constrained_guesses(1,:)<=log(rEff_limits(end)) & constrained_guesses(1,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(2,:)<=log(rEff_limits(end)) & constrained_guesses(2,:) >= log(rEff_limits(1)) &...
+            constrained_guesses(3,:)>log(rEff_limits(1))   & ...
+            constrained_guesses(4,:)>log(1e-5)));
         % --------------------------------------------------------
 
         % if the maximum value of a is 0, then there is no solution space
@@ -745,10 +754,9 @@ else
             new_guess = [current_guess(1), 0.7273*current_guess(2), current_guess(3)];
 
 
-
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
-            new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess),...
+            new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
                 GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
@@ -760,7 +768,6 @@ else
             % in this case, the only direction the algorithm finds is one
             % that forces the profile to be non-adiabatic. Let's break the
             % loop at this point
-
 
 
 
@@ -778,14 +785,13 @@ else
         else
 
 
-
             % Set the a vector to values between 0 and some fraction of the max a
             % a = linspace(0, percent_of_maxA * max_a, array_length_newMax);
 
             % Should the scalar value span negative values as well? Do I
             % have the correct sign for the slope when computing the
             % Jacobian in log-space?
-            a = linspace(a_smallestVal * percent_of_maxA, max_a * percent_of_maxA, array_length_newMax);
+            a = linspace(min_a * percent_of_maxA, max_a * percent_of_maxA, array_length_newMax);
 
             % include a=1 if a=0 isn't in the current vector
             if isempty(find(a==1, 1))
@@ -796,6 +802,9 @@ else
             if isempty(find(a==0, 1))
                 a = sort([a, 0]);
             end
+
+
+
 
             % recompute the constrained guesses
             constrained_guesses = current_guess + new_direction*a;
@@ -829,6 +838,7 @@ else
                     error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
                         'computed mie table.', newline])
 
+
                 end
 
             end
@@ -860,12 +870,39 @@ else
             end
 
 
-            % Select the step length by choosing the a value with the minimumum
-            % residual
-            new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual(:,ii+1) = measurements_log - new_measurement_estimate;
-            rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
-            new_guess = constrained_guesses(:, min_residual_idx);
+
+            % if the minimum rss is associated with the scalar a==0,
+            % meaning that the initial guess has the lowest rss, perturb to
+            % initial guess to see if you can jump out of this local
+            % minimum
+            if ii==1 && a(min_residual_idx)==0
+
+                % increase r_top
+                new_guess(1,1) = log(1.1) + current_guess(1);
+                % increase r_bot
+                new_guess(2,1) = log(1.1) + current_guess(2);
+                % keep tau_c the same
+                new_guess(3,1) = current_guess(3);
+                % increase acpw
+                new_guess(4,1) = log(1.1) + current_guess(4);
+
+                % compute the new measurement estimate
+                new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
+                    spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
+
+            else
+
+                % Select the step length by choosing the a value with the minimumum
+                % residual
+                new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
+                new_guess = constrained_guesses(:, min_residual_idx);
+
+            end
 
 
 
@@ -961,7 +998,6 @@ else
 
 
     end
-
 
 
 
