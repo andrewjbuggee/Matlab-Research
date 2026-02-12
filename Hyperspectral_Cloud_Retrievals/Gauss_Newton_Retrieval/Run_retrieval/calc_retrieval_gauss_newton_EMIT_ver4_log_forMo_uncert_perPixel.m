@@ -2,7 +2,7 @@
 
 
 function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs,...
-    emit, spec_response, folder_paths, print_status_updates, pixel_num, airs_datProfiles)
+    emit, spec_response, folder_paths, print_status_updates, pixel_num, radiosonde_datProfiles)
 
 
 % ----- unpack inputs -----
@@ -186,7 +186,7 @@ if print_status_updates == true
             % *** Take the logarithm of the measurement estimate ***
             disp([newline, 'Estimating spectral measurements...', newline])
             measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs,...
-                spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -207,7 +207,7 @@ if print_status_updates == true
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
         Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
-            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+            jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -235,7 +235,7 @@ if print_status_updates == true
 
         % ** For uncertainty with re profile, cloud top height and effective varaince **
         jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+            spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
         % --------------------------------------------------------------
         % --------------------------------------------------------------
 
@@ -329,7 +329,7 @@ if print_status_updates == true
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
-                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                GN_inputs, spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -407,7 +407,7 @@ if print_status_updates == true
 
                     disp([newline, 'Estimating spectral measurements...', newline])
                     constrained_measurement_estimate(:,mm) = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(constrained_guesses(:,mm)),...
-                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                        GN_inputs, spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
 
                 else
@@ -469,7 +469,7 @@ if print_status_updates == true
                 % compute the new measurement estimate
                 disp([newline, 'Estimating spectral measurements for new initial guess...', newline])
                 new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
-                    spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                    spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
                 residual(:,ii+1) = measurements_log - new_measurement_estimate;
                 rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
@@ -622,7 +622,7 @@ else
             % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
             % *** Take the logarithm of the measurement estimate ***
             measurement_estimate_ln = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess), GN_inputs,...
-                spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
             % compute residual, rms residual, the difference between the
             % iterate and the prior, and the product of the jacobian with
@@ -642,7 +642,7 @@ else
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
-            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+            jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -669,7 +669,7 @@ else
 
         % ** For uncertainty with re profile, cloud top height and effective varaince **
         jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+            spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
         % --------------------------------------------------------------
         % --------------------------------------------------------------
 
@@ -757,7 +757,7 @@ else
             % Use the new guess to compute the rss residual, which is used
             % to detmerine convergence
             new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(current_guess),...
-                GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                GN_inputs, spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
             residual(:,ii+1) = measurements_log - new_measurement_estimate;
             rss_residual(ii+1) = sqrt(sum(residual(:,ii+1).^2));
@@ -830,7 +830,7 @@ else
                         constrained_guesses(2,mm)>log(rEff_limits(1)) && constrained_guesses(2,mm)<log(rEff_limits(end))
 
                     constrained_measurement_estimate(:,mm) = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(constrained_guesses(:,mm)),...
-                        GN_inputs, spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                        GN_inputs, spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
 
                 else
@@ -888,7 +888,7 @@ else
 
                 % compute the new measurement estimate
                 new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
-                    spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+                    spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
                 residual(:,ii+1) = measurements_log - new_measurement_estimate;
                 rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
@@ -1045,7 +1045,7 @@ retrieval = exp(retrieval);
 % *** CHECK THAT THE RETRIEVAL AND THE MEASUREMENTS ARE IN THE PROPER SPCAE
 % EITHER LOG OR LINEAR ***
 Jacobian_log = compute_jacobian_4EMIT_top_bottom_ver4_logState(retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+    spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
 
 
 % --------------------------------------------------------------
@@ -1065,7 +1065,7 @@ GN_inputs.model.forward_model.re.mean{end + 1} = create_droplet_profile2( [retri
 
 % ** For uncertainty with re profile, cloud top height and effective varaince **
 jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( retrieval(:,end), new_measurement_estimate, GN_inputs,...
-    spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+    spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num);
 
 
 % -----------------------------------------------------------------

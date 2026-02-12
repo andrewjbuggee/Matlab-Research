@@ -2,7 +2,7 @@
 
 
 
-print_status_updates = true;
+print_status_updates = false;
 print_libRadtran_err = false;
 plot_figures = false; 
 save_figures = false; 
