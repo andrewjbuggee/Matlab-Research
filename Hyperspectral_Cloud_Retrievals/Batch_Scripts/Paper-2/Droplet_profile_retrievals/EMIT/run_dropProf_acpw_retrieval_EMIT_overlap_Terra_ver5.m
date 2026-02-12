@@ -199,6 +199,11 @@ emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
 modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
 
 
+%% Find ERA5 atmosphere profiles closest to each EMIT pixel
+
+[era5, overlap_pixels] = findClosestProfile_ERA5_EMIT(emit, overlap_pixels, print_status_updates);
+
+
 
 %% Set libRadtran INP directory
 

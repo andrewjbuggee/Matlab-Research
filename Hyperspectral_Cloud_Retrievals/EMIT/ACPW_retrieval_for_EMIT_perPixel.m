@@ -6,7 +6,7 @@
 %%
 
 function [acpw_retrieval] = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs_datProfiles)
+    GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, radiosonde_datProfiles)
 
 
 
@@ -177,7 +177,7 @@ if inputs_acpw.flags.writeINPfiles == true
 
         % create a custom water vapor profile
         custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs_acpw, changing_variables(nn,1),...
-            atm_folder_path, airs_datProfiles, pixel_num);
+            atm_folder_path, radiosonde_datProfiles, pixel_num);
 
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----

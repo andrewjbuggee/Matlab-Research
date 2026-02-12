@@ -4,7 +4,7 @@
 
 print_status_updates = true;
 print_libRadtran_err = false;
-plot_figures = true; 
+plot_figures = false; 
 save_figures = false; 
 
 
@@ -45,7 +45,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % define the folder where the coincident data is stored
     folder_paths.coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/southEast_pacific/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Terra_data/',...
         'southEast_pacific/likely_stratus/'];
 
 
