@@ -90,7 +90,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % folder_paths.coincident_dataFolder = '2023_9_16_T191142_1/';
 
     % 2 Pixels with H less than 1.35     ** Use this data set **
-    % folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
+    folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
     % 1 Pixel with H less than 2.1       ** Don't use this data set. H value too large **
     % folder_paths.coincident_dataFolder = '2024_1_13_T194710_1/';
@@ -129,7 +129,10 @@ elseif strcmp(which_computer,'curc')==true
 
     % 10 Pixels with H less than 1.85      ** Use this data set **
     % But only 2 aren't masked out by EMIT cloud filter!
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+
+    % 2 Pixels with H less than 1.35     ** Use this data set **
+    folder_paths.coincident_dataFolder = '2024_1_13_T194658_1/';
 
 end
 
