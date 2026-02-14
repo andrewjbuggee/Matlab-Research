@@ -305,7 +305,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     
     folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
-        'Droplet_profile_retrievals/take_5/'];
+        'Droplet_profile_retrievals/take_6/'];
 
 
     folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
