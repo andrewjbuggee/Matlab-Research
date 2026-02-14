@@ -443,7 +443,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % -------------------------------------
 
     % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
-    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_6';
+
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
@@ -476,7 +478,7 @@ filenames_retrieval(idx_2delete) = [];
 % -- For Retrieval Results from Take 4 ---
 % ----------------------------------------
 % profile_indexes for paper = [1, 4, ]
-plt_idx = 36;
+plt_idx = 8;
 % ------------------------------------------------------------
 
 load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name])
