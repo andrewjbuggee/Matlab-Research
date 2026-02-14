@@ -33,7 +33,7 @@
 
 %%
 
-function [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, idx, overlap_pixels,...
+function [airs] = convert_AIRS_prof_2_mass_density(airs, atm_data_directory, pixel_idx, overlap_pixels,...
     us_std_atm_file, print_status_updates, assumed_cloudTopHeight)
 
 
@@ -46,6 +46,9 @@ end
 if isempty(us_std_atm_file)
     us_std_atm_file = 'afglus.dat';
 end
+
+
+
 
 %% Read US Standard Atmosphere for quality control replacement
 % This will be used to replace bad quality AIRS measurements
@@ -81,13 +84,13 @@ for xx = 1:length(unique_pix_idx)
 
 end
 
-temperature = airs.temp.prof_std(unique_pix_idx(idx), :)';  % (StdPressureLev x 1)
+temperature = airs.temp.prof_std(unique_pix_idx(pixel_idx), :)';  % (StdPressureLev x 1)
 
 %% Check temperature quality flags and replace bad values with US standard atmosphere
 % Quality flag: 0 = Highest Quality, 1 = Good Quality, 2 = Do Not Use
 
 if isfield(airs.temp, 'prof_std_QC')
-    temp_QC = airs.temp.prof_std_QC(unique_pix_idx(idx), :)';  % (StdPressureLev x 1)
+    temp_QC = airs.temp.prof_std_QC(unique_pix_idx(pixel_idx), :)';  % (StdPressureLev x 1)
 
     % Find pressure levels with QC = 2 (Do Not Use)
     idx_bad_temp = (temp_QC == 2);
@@ -167,14 +170,14 @@ end
 % Extract relative humidity profile
 % After using remove_unwanted_airs_data, H2O.RelHum is (num_pixels x H2OPressureLev)
 % RelHum is on H2O pressure levels (15 levels), need to map to pressStd (28 levels)
-relHum_H2O_levels = airs.H2O.RelHum(unique_pix_idx(idx), :)';  % (H2OPressureLev x 1)
+relHum_H2O_levels = airs.H2O.RelHum(unique_pix_idx(pixel_idx), :)';  % (H2OPressureLev x 1)
 pressH2O = double(airs.pressH2O{1});  % (H2OPressureLev = 15)
 
 %% Check relative humidity quality flags and replace bad values with US standard atmosphere
 % Quality flag: 0 = Highest Quality, 1 = Good Quality, 2 = Do Not Use
 
 if isfield(airs.H2O, 'RelHum_QC')
-    relHum_QC = airs.H2O.RelHum_QC(unique_pix_idx(idx), :)';  % (H2OPressureLev x 1)
+    relHum_QC = airs.H2O.RelHum_QC(unique_pix_idx(pixel_idx), :)';  % (H2OPressureLev x 1)
 
     % Find pressure levels with QC = 2 (Do Not Use)
     idx_bad_RH = (relHum_QC == 2);
@@ -373,7 +376,7 @@ TPW_unscaled = trapz(z_hyps_sorted(valid_hyps), rho_v_sorted(valid_hyps));  % kg
 % values. We scale rho_v only at these levels so the total integrated
 % column water vapor matches airs.H2O.totCol_Std.
 
-TPW_airs = airs.H2O.totCol_Std(unique_pix_idx(idx));  % kg/m^2
+TPW_airs = airs.H2O.totCol_Std(unique_pix_idx(pixel_idx));  % kg/m^2
 
 if print_status_updates == true
     fprintf('\n--- Total Column Water Vapor Verification (before scaling) ---\n');
@@ -446,7 +449,7 @@ end
 
 % First, interpolate the mass density at the AIRS retrieved cloud top
 % height
-cloud_top_pressure = airs.cloud.presTop_(idx);  % mb
+cloud_top_pressure = airs.cloud.presTop_(unique_pix_idx(pixel_idx));  % mb
 
 % To linear interpolate the scaled mass density at cloud top pressure, both pressure and
 % mass density should be in log space.

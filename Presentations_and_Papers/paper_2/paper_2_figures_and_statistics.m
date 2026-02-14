@@ -727,4 +727,249 @@ exportgraphics(fig3,[folderpath_figs,...
 % -------------------------------------
 
 
-%%
+
+
+
+
+
+%% Compute EMIT-Aqua retrieval statistics
+
+
+
+clear variables
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % define the folder where the Vocals-Rex in-situ derived measurements
+    % are located
+    folder_paths.retrieval = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+        'paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1/'];
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % mie folder location
+    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+    % % define the folder where retrievals are located
+    % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    %     'paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_3/'];
+
+
+    % define the folder where retrievals are located
+    % *** 2/13/2026 - Retrieval with overlapping EMIT/Aqua data
+    %          
+    folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+
+    addpath(folder_paths.retrieval);
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+end
+
+
+% First step through all files in the directory and remove invisble files
+% or directories
+
+% Grab filenames in drive
+filenames_retrieval = dir(folder_paths.retrieval);
+idx_2delete = [];
+for nn = 1:length(filenames_retrieval)
+
+    if strcmp(filenames_retrieval(nn).name(1), 'd')~=true
+
+        idx_2delete = [idx_2delete, nn];
+
+    end
+
+end
+
+% delete rows that don't have retrieval filenames
+filenames_retrieval(idx_2delete) = [];
+
+
+
+con = physical_constants;
+rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
+
+
+
+% store the LWP retrieval
+% store the TBLUT LWP estimate
+% store the TBLUT LWP estimate with Wood-Hartmann adjustement
+% store the in-situ LWP measurement
+lwp_retrieval = zeros(size(filenames_retrieval));
+lwp_tblut = zeros(size(filenames_retrieval));
+lwp_tblut_WH = zeros(size(filenames_retrieval));
+lwp_inSitu = zeros(size(filenames_retrieval));
+
+lwp_newCalc = zeros(size(filenames_retrieval));
+
+
+% store the ACPW retrieval
+% store the true ACPW used in the forward model - measured by....
+acpw_retrieval = zeros(size(filenames_retrieval));
+acpw_inSitu = zeros(size(filenames_retrieval));
+
+
+% store the optical depth retrieval
+% store the in-situ measured optical depth
+tauC_retrieval = zeros(size(filenames_retrieval));
+tauC_inSitu = zeros(size(filenames_retrieval));
+
+
+
+for nn = 1:length(filenames_retrieval)
+
+    clear ds
+
+    ds = load(filenames_retrieval(nn).name);
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % store the liquid water paths
+    lwp_retrieval(nn) = ds.GN_outputs.LWP;    % g/m^2
+
+    % compute the LWP estimate using the TBLUT retrieval
+    lwp_tblut(nn) = (2 * rho_h2o * (ds.tblut_retrieval.minRe/1e6) * ds.tblut_retrieval.minTau)/3; % g/m^2
+
+    % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
+    lwp_tblut_WH(nn) = 5/9 * rho_h2o * ds.tblut_retrieval.minTau * (ds.tblut_retrieval.minRe/1e6); % g/m^2
+
+
+    % What is the true LWP
+    lwp_inSitu(nn) = ds.GN_inputs.measurement.lwp;   % g/m^2
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % ** Compute new updated LWP calc ***
+    re_profile = create_droplet_profile2([ds.GN_outputs.retrieval(1,end), ds.GN_outputs.retrieval(2,end)],...
+        ds.GN_inputs.RT.z, 'altitude', ds.GN_inputs.model.profile.type);
+
+
+    % define the z vector
+    z = linspace(ds.GN_inputs.RT.z_topBottom(2), ds.GN_inputs.RT.z_topBottom(1), length(re_profile)+1)';                 % km - altitude vector
+
+    % define the z midpoint at each layer and normalize it!
+    z_norm = z - z(1);
+    z_norm_mid = (diff(z_norm)/2 + z_norm(1:end-1));
+
+
+    % The radius input is defined as [r_start, r_end, r_step].
+    % where r_step is the interval between radii values (used only for
+    % vectors of radii). A 0 tells the code there is no step. Finally, the
+    % radius values have to be in increasing order.
+    ext_bulk_coeff_per_LWC = zeros(length(re_profile), 1);
+
+    for rr = 1:length(re_profile)
+
+        mie_radius = [re_profile(rr), re_profile(rr), 0];    % microns
+
+        size_distribution = {'gamma', ds.GN_inputs.RT.distribution_var(rr)};           % droplet distribution
+
+        % Create a mie file
+        [input_filename, output_filename] = write_mie_file('MIEV0', 'water',...
+            mie_radius, 500, size_distribution, 'verbose', rr, round(re_profile(rr), 4), mie_folder_path);
+
+        % run the mie file
+        [~] = runMIE(mie_folder_path, input_filename,output_filename, which_computer);
+
+        % Read the output of the mie file
+        [mie,~,~] = readMIE(mie_folder_path, output_filename);
+
+        ext_bulk_coeff_per_LWC(rr) = mie.Qext;       % km^-1 / (cm^3 / m^3)
+
+    end
+
+
+    % ** Assuming liquid water content increases linearly with depth **
+    z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
+    dz_km = z(2) - z(1);           % kilometers
+
+    %slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
+    slope = ds.GN_outputs.retrieval(3,end) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
+
+    % solve for the linear liquid water content profile
+    %lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+    lwc = slope * z_kilometers_upper_boundary;                     % g/m^3 - grams of water per meter cubed of air
+
+
+    lwp_newCalc(nn) = trapz( 1e3 .* z_norm_mid, lwc);    % g/m^2
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % store above cloud preciptiable water
+    acpw_retrieval(nn) = ds.GN_outputs.retrieval(end,end);    % mm
+
+    % What is the true LWP
+    acpw_inSitu(nn) = ds.GN_inputs.measurement.actpw;   % mm
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % store above cloud preciptiable water
+    tauC_retrieval(nn) = ds.GN_outputs.retrieval(3,end);    %
+
+    % What is the true LWP
+    tauC_inSitu(nn) = ds.GN_inputs.measurement.tau_c;   %
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+end
+
+% -------------------------------------------------------
+% Compute statistics!!
+
+% Let's compute the root-mean-square percent error
+rms_err_lwp_hyperspectral = 100 * sqrt( mean( (1 - lwp_retrieval./lwp_inSitu).^2 ));  % percent
+rms_err_lwp_tblut = 100 * sqrt( mean( (1 - lwp_tblut./lwp_inSitu).^2 ));  % percent
+rms_err_lwp_tblut_WH = 100 * sqrt( mean( (1 - lwp_tblut_WH./lwp_inSitu).^2 ));  % percent
+
+% using the new LWP calc!
+rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
+
+
+% Let's compute the average percent difference
+avg_percent_diff_newCacl = mean( abs( 100 .* (1 - lwp_newCalc./lwp_inSitu) ));
+avg_percent_diff_tblut = mean( abs( 100 .* (1 - lwp_tblut./lwp_inSitu) ));
+avg_percent_diff_tblutWH = mean( abs( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) ));
+
+
+

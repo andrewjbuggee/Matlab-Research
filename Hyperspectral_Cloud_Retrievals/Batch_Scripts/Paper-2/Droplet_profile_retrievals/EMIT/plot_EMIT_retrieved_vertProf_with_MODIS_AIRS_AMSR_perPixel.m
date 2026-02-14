@@ -10,7 +10,9 @@
 %%
 
 function figure_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs,...
-    modis, airs, amsr, pixel_num)
+    modis, airs, amsr, pixel_num, overlap_pixels)
+
+
 
 
 
@@ -36,6 +38,57 @@ if isempty(airs) == false
         atm_data_directory = ['/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/'];
 
     end
+
+
+    % ** use the AIRS measurement closest to EMIT **
+    unique_airs_pix = unique(overlap_pixels.airs.linear_idx);
+    unique_pix_idx_airs = zeros(1, length(overlap_pixels.airs.linear_idx));
+    for xx = 1:length(unique_pix_idx_airs)
+
+        unique_pix_idx_airs(xx) = find(unique_airs_pix==overlap_pixels.airs.linear_idx(xx));
+
+    end
+
+
+
+end
+
+
+
+
+
+
+
+if isempty(amsr) == false
+
+
+    % ** use the AMSR measurement closest to EMIT **
+    unique_amsr_pix = unique(overlap_pixels.amsr.linear_idx);
+    unique_pix_idx_amsr = zeros(1, length(overlap_pixels.amsr.linear_idx));
+    for xx = 1:length(unique_pix_idx_amsr)
+
+        unique_pix_idx_amsr(xx) = find(unique_amsr_pix==overlap_pixels.amsr.linear_idx(xx));
+
+    end
+
+
+
+end
+
+
+
+if isempty(modis) == false
+
+
+    % ** use the MODIS measurement closest to EMIT **
+    unique_modis_pix = unique(overlap_pixels.modis.linear_idx);
+    unique_pix_idx_modis = zeros(1, length(overlap_pixels.modis.linear_idx));
+    for xx = 1:length(unique_pix_idx_modis)
+
+        unique_pix_idx_modis(xx) = find(unique_modis_pix==overlap_pixels.modis.linear_idx(xx));
+
+    end
+
 
 
 end
@@ -127,15 +180,15 @@ annotation('textbox',[0.00857142857142857 0.0262081128747797 0.051 0.07777777777
 
 % Plot the emit TBLUT droplet estimate as a constant vertical line
 
-xl0 = xline(modis.cloud.effRadius17(pixel_num),':',...
-    ['MODIS retreived $r_{e} = $',num2str(round(modis.cloud.effRadius17(pixel_num), 1)), '$\mu m$'], 'Fontsize',22,...
+xl0 = xline(modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)),':',...
+    ['MODIS retreived $r_{e} = $',num2str(round(modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)), 1)), '$\mu m$'], 'Fontsize',22,...
     'FontWeight', 'bold', 'Interpreter','latex','LineWidth',3,'Color', C(2,:));
 xl0.LabelVerticalAlignment = 'top';
 xl0.LabelHorizontalAlignment = 'left';
 
 % Plot the emit optical depth TBLUT retrieval as a constant horizontal line
-yl0 = yline(modis.cloud.optThickness17(pixel_num),':',...
-    ['MODIS retrieved $\tau_{c} = $',num2str(round(modis.cloud.optThickness17(pixel_num), 1))], 'Fontsize',22,...
+yl0 = yline(modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)),':',...
+    ['MODIS retrieved $\tau_{c} = $',num2str(round(modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)), 1))], 'Fontsize',22,...
     'FontWeight', 'bold','Interpreter','latex','LineWidth',3,'Color', C(2,:));
 yl0.LabelVerticalAlignment = 'top';
 yl0.LabelHorizontalAlignment = 'right';
@@ -175,31 +228,31 @@ retrieved_LWP = GN_outputs.LWP;        % g/m^2
 con = physical_constants;
 rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 
-lwp_modis_WH = 5/9 * rho_h2o * modis.cloud.optThickness17(pixel_num) *...
-    (modis.cloud.effRadius17(pixel_num) * 1e-6);
+lwp_modis_WH = 5/9 * rho_h2o * modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
+    (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)) * 1e-6);
 
 % Print this information on the figure
 dim = [0.137 0.727962757628641 0.481571428571429 0.159691563359013];
 
-if isempty(amsr) == false & isnan(amsr.cloud.LiquidWaterPath(pixel_num))
+if isempty(amsr) == false & isnan(amsr.cloud.LiquidWaterPath(unique_pix_idx_amsr(pixel_num)))
 
     disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
-    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(unique_pix_idx_modis(pixel_num)),1)),' $g/m^{2}$', newline,...
         '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
         '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 
 elseif isempty(amsr) == false
 
-    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(unique_pix_idx_modis(pixel_num)),1)),' $g/m^{2}$', newline,...
         '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
-        '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(pixel_num),1)),' $g/m^{2}$', newline,...
+        '$LWP_{AMSR} = \,$',num2str(round(amsr.cloud.LiquidWaterPath(unique_pix_idx_amsr(pixel_num)),1)),' $g/m^{2}$', newline,...
         '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
 else
 
-    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(pixel_num),1)),' $g/m^{2}$', newline,...
+    str = ['$LWP_{MODIS} = \,$',num2str(round(modis.cloud.lwp(unique_pix_idx_modis(pixel_num)),1)),' $g/m^{2}$', newline,...
         '$LWP_{MODIS-WH} = \,$',num2str(round(lwp_modis_WH,1)),' $g/m^{2}$', newline,...
         '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$'];
 
@@ -227,18 +280,18 @@ if size(GN_outputs.retrieval, 1)>3
     % MODIS reports in cm
     % My retrieval is is kg/m^2 which is equivelant to mm
 
-    if isempty(airs) == true || (isempty(airs) == false & isnan(airs.H2O.totCol_Std(pixel_num)))
+    if isempty(airs) == true || (isempty(airs) == false & isnan(airs.H2O.totCol_Std(unique_pix_idx_airs(pixel_num))))
 
         disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
-        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
+        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     elseif isempty(airs) == false
 
 
-        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(pixel_num) * 10, 1)),' $mm$', newline,...
-            '$ACPW_{AIRS} = \,$',num2str(round(airs.H2O.acpw_using_assumed_CTH(pixel_num), 1)),' $mm$', newline,...
+        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
+            '$ACPW_{AIRS} = \,$',num2str(round(airs.H2O.acpw_using_assumed_CTH, 1)),' $mm$', newline,...
             '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     end

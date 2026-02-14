@@ -419,6 +419,7 @@ plot_VOCALS_insitu_re_lwc_nc_and_radioSonde(airborne.ensemble_profiles, radSonde
 
 %% Plots EMIT retrieval results
 
+clear variables
 
 % Determine which computer you're using
 which_computer = whatComputer();
@@ -441,7 +442,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
@@ -473,8 +475,8 @@ filenames_retrieval(idx_2delete) = [];
 % ----------------------------------------
 % -- For Retrieval Results from Take 4 ---
 % ----------------------------------------
-% profile_indexes for paper = [3, 6, 7, 9, 18]
-plt_idx = 1;
+% profile_indexes for paper = [1, 4, ]
+plt_idx = 36;
 % ------------------------------------------------------------
 
 load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name])
@@ -494,6 +496,9 @@ pixel_num = str2double(extractBetween([filenames_retrieval(plt_idx).folder, '/',
 % *** Load MODIS, AIRS and AMSR-E data ***
 % ----------------------------------------
 
+% Load EMIT data
+[emit, folder_paths.L1B_fileName_emit] = retrieveEMIT_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+
 % Load Aqua/MODIS Data
 [modis, ~] = retrieveMODIS_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
 
@@ -510,6 +515,8 @@ amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder
 % ----------------------------------------
 % Remove data that is not needed
 % ----------------------------------------
+
+emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
 
 modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
 
@@ -535,7 +542,8 @@ end
 
 
 % plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
-fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis, airs, amsr, pixel_num);
+fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis,...
+    airs, amsr, pixel_num, overlap_pixels);
 
 % ** Paper Worthy **
 % -------------------------------------
@@ -584,7 +592,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
@@ -613,6 +622,10 @@ for nn = 1:length(filenames_retrieval)
         disp(['                   re_bot: ', num2str(GN_outputs.retrieval(2, :)), newline])
         disp(['                    Tau_c: ', num2str(GN_outputs.retrieval(3, :)), newline])
         disp(['                     acpw: ', num2str(GN_outputs.retrieval(4, :)), newline])
+        disp(['----------------------------------------', newline])
+        disp(['       RSS convergence limit: ', num2str(GN_inputs.convergence_limit), newline])
+        disp(['RSS using final state vector: ', num2str(GN_outputs.rss_residual(end)), newline])
+        
   
 
     end
