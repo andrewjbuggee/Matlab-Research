@@ -74,7 +74,7 @@ n_emit_per_modis = 10;
 % ** If there aren't any pixels found ... **
 % Increase the horizontal inhomogeneity index
 
-while length(overlap_pixels.modis.linear_idx) <10
+while numel(unique(overlap_pixels.modis.linear_idx)) < 10
 
     disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
     criteria.H = criteria.H + 0.1;         % horizontal inhomogeneity index
@@ -94,8 +94,8 @@ while length(overlap_pixels.modis.linear_idx) <10
 
         % print the H value used
         disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
-        % print the H value used
-        disp([newline, 'Number of pixels found - ', num2str(length(overlap_pixels.modis.linear_idx)) newline])
+        % print the number of unique MODIS pixels found
+        disp([newline, 'Number of unique MODIS pixels found - ', num2str(numel(unique(overlap_pixels.modis.linear_idx))), newline])
 
         break
 
