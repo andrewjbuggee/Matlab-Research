@@ -30,7 +30,7 @@
 #SBATCH --error=EMIT_dropProf_subdir_30emitPix_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=201-207       # UPDATE: set to the number of subdirectories
+#SBATCH --array=401-407       # UPDATE: set to the number of subdirectories
 
 # Load modules
 ml purge
