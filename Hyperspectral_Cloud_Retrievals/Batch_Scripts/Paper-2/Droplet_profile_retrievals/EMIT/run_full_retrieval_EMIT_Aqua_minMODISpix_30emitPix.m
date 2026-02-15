@@ -286,76 +286,84 @@ end
 
 %% RUN FOR LOOP OVER ALL PIXELS
 
-for pp = 1:length(overlap_pixels.emit.linear_idx)
+pixel_num = 0;
+for mm = 1:length(overlap_pixels.modis.linear_idx)
+
+    for pp = 1:length(overlap_pixels.emit.linear_idx)
 
 
-    %% Check to see if all chosen EMIT pixels have been masked out
+        %% Check to see if all chosen EMIT pixels have been masked out
+        
+        % what pixel are we using?
+        pixel_num = pixel_num+1;
 
-    if all(isnan(emit.radiance.measurements(:, pp)))
+        if all(isnan(emit.radiance.measurements(:, pixel_num)))
 
-        warning([newline, 'EMIT pixel ', num2str(pp), ' is masked out. Moving to pixel ', num2str(pp+1), '...', newline])
+            warning([newline, 'EMIT pixel ', num2str(pixel_num), ' is masked out. Moving to pixel ', num2str(pixel_num+1), '...', newline])
 
-        continue
+            continue
 
-    else
+        else
 
-        if pp>1
+            if pixel_num>1
 
-            clear GN_inputs GN_outputs tblut_retrieval acpw_retrieval
+                clear GN_inputs GN_outputs tblut_retrieval acpw_retrieval
+
+            end
+
+            disp([newline, 'Retrieving Profile for pixel ', num2str(pixel_num), '...', newline])
 
         end
 
-        disp([newline, 'Retrieving Profile for pixel ', num2str(pp), '...', newline])
-
-    end
 
 
-    
-
-    folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
-    'EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3),...
-    '_EMIT-pixel_', num2str(pp),...
-    '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+        rev = 1;
+        folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
+            'EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3),...
+            '_EMIT-pixel_', num2str(pixel_num),...
+            '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
 
 
 
-    while isfile(folder_paths.saveOutput_filename)
-        rev = rev+1;
-        if rev<10
-            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-5), num2str(rev),'.mat'];
-        elseif rev>10
-            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-6), num2str(rev),'.mat'];
+        while isfile(folder_paths.saveOutput_filename)
+            rev = rev+1;
+            if rev<10
+                folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-5), num2str(rev),'.mat'];
+            elseif rev>10
+                folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-6), num2str(rev),'.mat'];
+            end
         end
+
+
+
+
+        % *** Retrieve r_top, r_bot, tau_c, and acpw ***
+        % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
+        % (1) Adiabatic droplet profile assumption
+        % (2) Cloud top height assumption
+
+        % [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
+        %     modis, airs, overlap_pixels,...
+        %     folder_paths, print_libRadtran_err, print_status_updates, pp);
+
+
+
+        % *** Retrieve r_top, r_bot, tau_c, and acpw ***
+        % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
+        % (1) Adiabatic droplet profile assumption
+        % (2) Cloud top height assumption
+        % (3) Droplet distribution effective variance assumption
+        
+        [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
+            modis, airs, overlap_pixels,folder_paths, print_libRadtran_err, print_status_updates, pixel_num);
+
+
+
+
+
+
+
     end
-
-
-
-
-    % *** Retrieve r_top, r_bot, tau_c, and acpw ***
-    % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
-    % (1) Adiabatic droplet profile assumption
-    % (2) Cloud top height assumption
-
-    % [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
-    %     modis, airs, overlap_pixels,...
-    %     folder_paths, print_libRadtran_err, print_status_updates, pp);
-
-
-
-    % *** Retrieve r_top, r_bot, tau_c, and acpw ***
-    % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
-    % (1) Adiabatic droplet profile assumption
-    % (2) Cloud top height assumption
-    % (3) Droplet distribution effective variance assumption
-
-    [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
-        modis, airs, overlap_pixels,folder_paths, print_libRadtran_err, print_status_updates, pp);
-
-
-
-
-
-
 
 end
 
