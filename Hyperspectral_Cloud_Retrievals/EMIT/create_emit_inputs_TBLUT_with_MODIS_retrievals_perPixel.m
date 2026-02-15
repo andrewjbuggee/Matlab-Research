@@ -211,8 +211,8 @@ inputs.RT.parameterization_str = 'mie';     % This string is used to compute the
 % define the wavelength used for the optical depth as the 650 nm
 % band1 = modisBands(1);
 % lambda_forTau = band1(1);            % nm
-inputs.RT.lambda_forTau = 500;            % nm
-
+% inputs.RT.lambda_forTau = 500;            % nm
+inputs.RT.lambda_forTau = mean(inputs.RT.wavelengths2run(1,:));            % nm
 
 % -------------------------------------------------------------------
 % define the independent variable used to define the effective radius
@@ -235,7 +235,7 @@ inputs.RT.define_atm_grid=false;
 % -----------------------------------------------------------------------
 % MODIS only considers homogenous plane parallel clouds. Lets construct the
 % re matrix needed to create homogenous water clouds using write_wc_file
-inputs.RT.re = [3:0.5:9, 11:2:17];      % microns
+inputs.RT.re = [3:0.5:9, 11:2:21];      % microns
 inputs.RT.tau_c = [1:10, 12:2:20,  25:5:35, 40:10:60];
 
 

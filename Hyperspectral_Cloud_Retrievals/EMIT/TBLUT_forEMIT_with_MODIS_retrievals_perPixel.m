@@ -24,7 +24,9 @@
 %%
 
 function tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
-    print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_radiosonde_data, pixel_num)
+    print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_radiosonde_data, pixel_num,...
+    radiosonde_datProfiles)
+
 
 
 
@@ -47,10 +49,12 @@ if exist("use_MODIS_radiosonde_data", "var")==1 && use_MODIS_radiosonde_data==tr
     % Water Cloud depth
     inputs_tblut.RT.cloud_depth = inputs_tblut.RT.z_topBottom(1) - inputs_tblut.RT.z_topBottom(2);                                % km - geometric thickness of cloud
 
+    % redundant for historical coding reasons
+    inputs_tblut.RT.H = inputs_tblut.RT.cloud_depth;
 
     inputs_tblut.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
 
-    inputs_tblut.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
+    inputs_tblut.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
     inputs_tblut.RT.waterVapor_column = GN_inputs.RT.waterVapor_column;   % mm - milimeters of water condensed in a column
 
@@ -59,13 +63,14 @@ if exist("use_MODIS_radiosonde_data", "var")==1 && use_MODIS_radiosonde_data==tr
     inputs_tblut.RT.use_radiosonde_file = true;
     
     % Use the same one defined for the full retrieval
-    inputs_tblut.RT.radiosonde_file = GN_inputs.RT.radiosonde_file_T_P_WV;
+    inputs_tblut.RT.radiosonde_file_T_P_WV = GN_inputs.RT.radiosonde_file_T_P_WV;
     inputs_tblut.RT.radiosonde_num_vars = GN_inputs.RT.radiosonde_num_vars;
 
 
     % *** Use custom precomputed mie table with a specific effective variance ***
     inputs_tblut.RT.use_custom_mie_calcs = true;
     inputs_tblut.RT.mean_distribution_var_closest_filename = GN_inputs.RT.mean_distribution_var_closest_filename;
+    inputs_tblut.RT.distribution_var = GN_inputs.RT.mean_distribution_var_closest_2file;
 
 
 end
@@ -96,6 +101,7 @@ if inputs_tblut.flags.writeINPfiles == true
     num_rEff = length(inputs_tblut.RT.re);
     num_tauC = length(inputs_tblut.RT.tau_c);
     num_wl = length(inputs_tblut.bands2run);
+    
 
     num_INP_files = num_rEff*num_tauC*num_wl;
 
@@ -122,6 +128,14 @@ if inputs_tblut.flags.writeINPfiles == true
 
     % Define the mie folder path
     mie_folder_path = folder_paths.libRadtran_mie_folder;
+
+    % define the atmmod folder where the custom profiles are stored
+    atm_folder_path = folder_paths.atm_folder_path;
+
+
+    % create a custom water vapor profile
+    custom_waterVapor_profile = alter_aboveCloud_columnWaterVapor_profile(inputs_tblut, inputs_tblut.RT.waterVapor_column,...
+        atm_folder_path, radiosonde_datProfiles, pixel_num);
 
 
 
@@ -168,6 +182,7 @@ if inputs_tblut.flags.writeINPfiles == true
         % set the wavelengths for each file
         wavelengths = changing_variables(nn, end-2:end-1);
 
+
         % ------------------------------------------------
         % ---- Define the input and output filenames! ----
         % ------------------------------------------------
@@ -186,7 +201,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
         % ------------------ Write the INP File --------------------
         write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs_tblut,...
-            wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
+            wavelengths, wc_filename{nn}, [], changing_variables(nn,2), custom_waterVapor_profile);
 
 
     end

@@ -2,7 +2,7 @@
 
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] =...
-    run_dropProf_acpw_retrieval_EMIT_overlap_Aqua_ver5(folder_paths, print_status_updates, print_libRadtran_err,...
+    run_full_retrieval_EMIT_Aqua_10MODISpix_10emitPix(folder_paths, print_status_updates, print_libRadtran_err,...
     plot_figures, save_figures)
 
 
@@ -58,10 +58,9 @@ criteria.cld_phase = 'water';
 criteria.cld_cvr = 1;   % cloud fraction
 criteria.cld_tau_min = 3;   % cloud optical depth
 criteria.cld_tau_max = 50;   % cloud optical depth
-criteria.H = 1.85;         % horizontal inhomogeneity index
+criteria.H = 0.1;         % horizontal inhomogeneity index
+n_emit_per_modis = 10;
 
-% plot flag
-plot_data = false;
 
 % TODO: Add temporal information to compute time difference between pixels
 % Will need:
@@ -70,37 +69,48 @@ plot_data = false;
 % - Then compute: overlap.time_difference_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
 
 [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-    criteria, plot_data);
+    criteria, n_emit_per_modis);
 
 % ** If there aren't any pixels found ... **
 % Increase the horizontal inhomogeneity index
 
-% while isempty(overlap_pixels.modis.linear_idx) == true
-% 
-%     disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
-%     criteria.H = criteria.H + 0.25;         % horizontal inhomogeneity index
-% 
-%     % recompute
-%     [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
-%         criteria, plot_data);
-% 
-%     if isempty(overlap_pixels.modis.linear_idx) == false
-% 
-%         % print the H value used
-%         disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
-% 
-%     end
-% 
-% end
+while length(overlap_pixels.modis.linear_idx) <10
 
-% If there are no pixels with an H-index less than 1.85 that overlap with
-% EMIT, terminate this function
-if isempty(overlap_pixels.modis.linear_idx) == true
+    disp([newline, 'No overlaping pixels that meet defined criteria. Increasing H index....', newline])
+    criteria.H = criteria.H + 0.1;         % horizontal inhomogeneity index
 
-    error([newline, 'There are no overlapping pixels between EMIT and MODIS with an inhomogeneity index less than ',...
-        num2str(criteria.H), '! Terminating program.' , newline])
+    % recompute
+    [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+        criteria, n_emit_per_modis);
+
+    if isempty(overlap_pixels.modis.linear_idx) == false
+
+        % print the H value used
+        disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
+
+    end
+
+    if criteria.H >= 2.5
+
+        % print the H value used
+        disp([newline, 'Horizontal Inhomogeneity Index - H = ', num2str(criteria.H), newline])
+        % print the H value used
+        disp([newline, 'Number of pixels found - ', num2str(length(overlap_pixels.modis.linear_idx)) newline])
+
+        break
+
+    end
 
 end
+
+% % If there are no pixels with an H-index less than 1.85 that overlap with
+% % EMIT, terminate this function
+% if isempty(overlap_pixels.modis.linear_idx) == true
+%
+%     error([newline, 'There are no overlapping pixels between EMIT and MODIS with an inhomogeneity index less than ',...
+%         num2str(criteria.H), '! Terminating program.' , newline])
+%
+% end
 
 %% Plot all three swaths
 
@@ -139,7 +149,8 @@ if plot_figures == true
     % fig = plot_instrument_footprints(modis, emit, amsr, overlap_pixels, options);
     % fig1 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
     % [fig1, ax1] = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
-    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+    % [fig1, ax1] = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
+    [fig1, ax1] = plot_instrument_footprints_4(modis, emit, [], amsr, overlap_pixels, options);
 
     % ** Paper Worthy **
     % -------------------------------------
@@ -170,7 +181,8 @@ if plot_figures == true
     % ** Plot without RGB Image **
     options.show_rgb = false;
     % fig2 = plot_instrument_footprints_2(modis, emit, amsr, overlap_pixels, options);
-    fig2 = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    % fig2 = plot_instrument_footprints_3(modis, emit, airs, amsr, overlap_pixels, options);
+    fig2 = plot_instrument_footprints_4(modis, emit, airs, amsr, overlap_pixels, options);
 
     % ** Paper Worthy **
     % -------------------------------------
@@ -249,11 +261,43 @@ delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 
 
+% ----------------------------------------------------------------
+
+%% Set output filename
+take_num = 8;
+
+
+folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
+    'Droplet_profile_retrievals/take_', num2str(take_num), '/'];
+
+
+% If the directory doesn't exist, create it!
+if ~exist(folder_paths.saveOutput_directory, 'dir')
+
+    mkdir(folder_paths.saveOutput_directory)
+
+else
+
+    while exist(folder_paths.saveOutput_directory, 'dir') == true
+
+        take_num = take_num+1;
+
+        folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
+            'Droplet_profile_retrievals/take_', num2str(take_num), '/'];
+
+
+    end
+
+
+end
+% ----------------------------------------------------------------
+
+
 
 
 %% RUN FOR LOOP OVER ALL PIXELS
 
-for pp = 1:length(overlap_pixels.modis.linear_idx)
+for pp = 1:length(overlap_pixels.emit.linear_idx)
 
 
     %% Check to see if all chosen EMIT pixels have been masked out
@@ -277,12 +321,32 @@ for pp = 1:length(overlap_pixels.modis.linear_idx)
     end
 
 
+    
+
+    folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
+    'EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3),...
+    '_EMIT-pixel_', num2str(pp),...
+    '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
+
+
+
+    while isfile(folder_paths.saveOutput_filename)
+        rev = rev+1;
+        if rev<10
+            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-5), num2str(rev),'.mat'];
+        elseif rev>10
+            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-6), num2str(rev),'.mat'];
+        end
+    end
+
+
+
 
     % *** Retrieve r_top, r_bot, tau_c, and acpw ***
     % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
     % (1) Adiabatic droplet profile assumption
     % (2) Cloud top height assumption
-    
+
     % [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver1(emit,...
     %     modis, airs, overlap_pixels,...
     %     folder_paths, print_libRadtran_err, print_status_updates, pp);
