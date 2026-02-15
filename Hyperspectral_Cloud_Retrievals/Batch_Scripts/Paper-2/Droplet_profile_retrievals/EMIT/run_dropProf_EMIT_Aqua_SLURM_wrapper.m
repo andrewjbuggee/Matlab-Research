@@ -4,7 +4,7 @@
 
 print_status_updates = true;
 print_libRadtran_err = true;
-plot_figures = true; 
+plot_figures = false; 
 save_figures = false; 
 
 
@@ -103,7 +103,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % 10 Pixels with H less than 1.85      ** Use this data set **
     % But only 2 aren't masked out by EMIT cloud filter!
-    folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
+    % folder_paths.coincident_dataFolder = '2024_5_17_T183930_1/';
 
     % No pixels below an H value of 16!   ** Don't use this data set **
     % folder_paths.coincident_dataFolder = '2025_1_13_T195116_1/';
@@ -139,5 +139,5 @@ end
 %%
 
 [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] =...
-    run_dropProf_acpw_retrieval_EMIT_overlap_Aqua_ver5(folder_paths, print_status_updates, print_libRadtran_err,...
+    run_full_retrieval_EMIT_Aqua_minMODISpix_30emitPix(folder_paths, print_status_updates, print_libRadtran_err,...
     plot_figures, save_figures);

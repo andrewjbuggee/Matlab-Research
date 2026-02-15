@@ -2,8 +2,15 @@
 %
 % This function identifies overlapping pixels between EMIT, Aqua/MODIS, AIRS, and AMSR
 % datasets based on spatial proximity and user-defined cloud property criteria.
-% For each MODIS pixel meeting the criteria, it finds the closest EMIT pixel,
-% and for each EMIT pixel, it finds the closest AIRS and AMSR pixels.
+% For each MODIS pixel meeting the criteria, it finds ALL EMIT pixels whose
+% centers fall completely within the MODIS pixel boundary (defined by the
+% grid spacing of the MODIS lat/lon arrays), then randomly selects 10 of
+% those EMIT pixels. For each matched MODIS pixel, it also finds the
+% closest AIRS and AMSR pixels.
+%
+% The output arrays are flat vectors of length n_matches * 10, where each
+% group of 10 consecutive rows corresponds to one MODIS pixel. The MODIS,
+% AIRS, and AMSR indices are repeated 10 times per match.
 %
 % INPUTS:
 %   folder_paths - Structure containing paths to data files with fields:
@@ -22,25 +29,31 @@
 %
 % OUTPUTS:
 %   overlap - Structure containing matched pixel indices and distances with fields:
-%       .modis - MODIS pixel information:
-%           .row           - Row indices in MODIS array (n_matches x 1)
-%           .col           - Column indices in MODIS array (n_matches x 1)
-%           .linear_idx    - Linear indices for MODIS array access (n_matches x 1)
-%       .emit - EMIT pixel information:
-%           .row           - Row indices in EMIT array (n_matches x 1)
-%           .col           - Column indices in EMIT array (n_matches x 1)
-%           .linear_idx    - Linear indices for EMIT array access (n_matches x 1)
-%       .airs - AIRS pixel information:
-%           .row           - Row indices in AIRS array (n_matches x 1)
-%           .col           - Column indices in AIRS array (n_matches x 1)
-%           .linear_idx    - Linear indices for AIRS array access (n_matches x 1)
-%       .amsr - AMSR pixel information:
-%           .row           - Row indices in AMSR array (n_matches x 1)
-%           .col           - Column indices in AMSR array (n_matches x 1)
-%           .linear_idx    - Linear indices for AMSR array access (n_matches x 1)
-%       .distance_modis_emit_km - Distance between MODIS and EMIT pixels (km)
-%       .distance_emit_airs_km  - Distance between EMIT and AIRS pixels (km)
-%       .distance_emit_amsr_km  - Distance between EMIT and AMSR pixels (km)
+%       All index/distance arrays below are flat vectors of length
+%       n_total = n_matches * 10 (or fewer if a MODIS pixel has < 10 EMIT pixels).
+%       Every group of 10 consecutive entries corresponds to one MODIS pixel.
+%
+%       .modis - MODIS pixel information (repeated 10x per match):
+%           .row           - Row indices in MODIS array (n_total x 1)
+%           .col           - Column indices in MODIS array (n_total x 1)
+%           .linear_idx    - Linear indices for MODIS array access (n_total x 1)
+%       .emit - EMIT pixel information (10 randomly selected per MODIS pixel):
+%           .row           - Row indices in EMIT array (n_total x 1)
+%           .col           - Column indices in EMIT array (n_total x 1)
+%           .linear_idx    - Linear indices for EMIT array access (n_total x 1)
+%       .airs - AIRS pixel information (repeated 10x per match):
+%           .row           - Row indices in AIRS array (n_total x 1)
+%           .col           - Column indices in AIRS array (n_total x 1)
+%           .linear_idx    - Linear indices for AIRS array access (n_total x 1)
+%       .amsr - AMSR pixel information (repeated 10x per match):
+%           .row           - Row indices in AMSR array (n_total x 1)
+%           .col           - Column indices in AMSR array (n_total x 1)
+%           .linear_idx    - Linear indices for AMSR array access (n_total x 1)
+%       .num_emit_pixels_per_modis - Number of EMIT pixels found in each
+%                                    MODIS pixel before random selection (n_matches x 1)
+%       .distance_modis_emit_km - Distance between each MODIS-EMIT pair (n_total x 1)
+%       .distance_emit_airs_km  - Distance between MODIS and AIRS pixels (n_total x 1)
+%       .distance_emit_amsr_km  - Distance between MODIS and AMSR pixels (n_total x 1)
 %
 %   emit - Structure containing EMIT L1B radiance data
 %       (returned from retrieveEMIT_data function)
@@ -68,9 +81,14 @@
 %   6. Horizontal inhomogeneity index < H threshold
 %
 % MATCHING LOGIC:
-%   - For each MODIS pixel meeting criteria → find closest EMIT pixel
-%   - For each matched EMIT pixel → find closest AIRS pixel
-%   - For each matched EMIT pixel → find closest AMSR pixel
+%   - For each MODIS pixel meeting criteria → find ALL EMIT pixels within
+%     the MODIS pixel boundary (defined by grid spacing half-widths)
+%   - Randomly select 10 EMIT pixels from those found (without replacement)
+%   - For each matched MODIS pixel → find closest AIRS pixel
+%   - For each matched MODIS pixel → find closest AMSR pixel
+%   - MODIS, AIRS, and AMSR indices are repeated 10 times (once per EMIT pixel)
+%   - Remove any EMIT pixels with all-NaN radiance (cloud masked by EMIT pipeline)
+%   - If all 10 EMIT pixels for a MODIS pixel are masked, remove that MODIS match
 %   - Distances calculated using WGS84 ellipsoid for geodetic accuracy
 %
 % EXAMPLE USAGE:
@@ -105,7 +123,7 @@
 % By Andrew John Buggee
 %%
 
-function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, plot_data)
+function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, n_emit_per_modis)
 
 
 
@@ -188,30 +206,39 @@ fprintf('Found %d MODIS pixels meeting all criteria within EMIT footprint\n', su
 
 n_matches = sum(idx_combined_master(:));
 
-% Pre-allocate output arrays for MODIS
-overlap.modis.row = zeros(n_matches, 1);
-overlap.modis.col = zeros(n_matches, 1);
-overlap.modis.linear_idx = zeros(n_matches, 1);    % Linear index for MODIS
+% Number of EMIT pixels to randomly select per MODIS pixel
+% n_emit_per_modis = 30;
 
-% Pre-allocate output arrays for EMIT
-overlap.emit.row = zeros(n_matches, 1);
-overlap.emit.col = zeros(n_matches, 1);
-overlap.emit.linear_idx = zeros(n_matches, 1);     % Linear index for EMIT
+% Maximum total entries (may be fewer if some MODIS pixels have < 10 EMIT pixels)
+n_total_max = n_matches * n_emit_per_modis;
 
-% Pre-allocate output arrays for AIRS
-overlap.airs.row = zeros(n_matches, 1);
-overlap.airs.col = zeros(n_matches, 1);
-overlap.airs.linear_idx = zeros(n_matches, 1);     % Linear index for AIRS
+% Pre-allocate output arrays for MODIS (repeated n_emit_per_modis times per match)
+overlap.modis.row = zeros(n_total_max, 1);
+overlap.modis.col = zeros(n_total_max, 1);
+overlap.modis.linear_idx = zeros(n_total_max, 1);
 
-% Pre-allocate output arrays for AMSR
-overlap.amsr.row = zeros(n_matches, 1);
-overlap.amsr.col = zeros(n_matches, 1);
-overlap.amsr.linear_idx = zeros(n_matches, 1);     % Linear index for AMSR
+% Pre-allocate output arrays for EMIT (n_emit_per_modis per MODIS pixel)
+overlap.emit.row = zeros(n_total_max, 1);
+overlap.emit.col = zeros(n_total_max, 1);
+overlap.emit.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate output arrays for AIRS (repeated n_emit_per_modis times per match)
+overlap.airs.row = zeros(n_total_max, 1);
+overlap.airs.col = zeros(n_total_max, 1);
+overlap.airs.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate output arrays for AMSR (repeated n_emit_per_modis times per match)
+overlap.amsr.row = zeros(n_total_max, 1);
+overlap.amsr.col = zeros(n_total_max, 1);
+overlap.amsr.linear_idx = zeros(n_total_max, 1);
 
 % Pre-allocate distance arrays
-overlap.distance_modis_emit_km = zeros(n_matches, 1);  % Distance between MODIS and EMIT
-overlap.distance_emit_airs_km = zeros(n_matches, 1);   % Distance between EMIT and AIRS
-overlap.distance_emit_amsr_km = zeros(n_matches, 1);   % Distance between EMIT and AMSR
+overlap.distance_modis_emit_km = zeros(n_total_max, 1);
+overlap.distance_emit_airs_km = zeros(n_total_max, 1);
+overlap.distance_emit_amsr_km = zeros(n_total_max, 1);
+
+% Track how many EMIT pixels were found in each MODIS pixel (before selection)
+overlap.num_emit_pixels_per_modis = zeros(n_matches, 1);
 
 % TODO: Add temporal information to compute time difference between pixels
 % Will need:
@@ -219,7 +246,7 @@ overlap.distance_emit_amsr_km = zeros(n_matches, 1);   % Distance between EMIT a
 % - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
 % - AIRS pixel acquisition time (available: airs.Time_UTC)
 % - AMSR pixel acquisition time (available: amsr.Time_UTC)
-% - Then compute: 
+% - Then compute:
 %   overlap.time_difference_modis_emit_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
 %   overlap.time_difference_emit_airs_seconds(nn) = abs(emit_time(idx_emit) - airs_time(idx_airs))
 %   overlap.time_difference_emit_amsr_seconds(nn) = abs(emit_time(idx_emit) - amsr_time(idx_amsr))
@@ -243,96 +270,256 @@ amsr_long = double(amsr.geo.Longitude);
 amsr_lat_flat = amsr_lat(:);
 amsr_long_flat = amsr_long(:);
 
+%% Compute MODIS pixel half-widths from grid spacing
+% Use the spacing between neighboring pixels to define each MODIS pixel's
+% boundary. For interior pixels, use the average of the forward and backward
+% differences. For edge pixels, use one-sided differences.
+
+% % Half-width in latitude direction (row spacing)
+% dlat = diff(modis_lat, 1, 1);  % difference along rows
+% modis_half_dlat = zeros(size(modis_lat));
+% modis_half_dlat(1,:) = abs(dlat(1,:)) / 2;
+% modis_half_dlat(end,:) = abs(dlat(end,:)) / 2;
+% modis_half_dlat(2:end-1,:) = (abs(dlat(1:end-1,:)) + abs(dlat(2:end,:))) / 4;
+
+% Third-width in latitude direction (row spacing)
+dlat = diff(modis_lat, 1, 1);  % difference along rows
+modis_half_dlat = zeros(size(modis_lat));
+modis_half_dlat(1,:) = abs(dlat(1,:)) / 3;
+modis_half_dlat(end,:) = abs(dlat(end,:)) / 3;
+modis_half_dlat(2:end-1,:) = (abs(dlat(1:end-1,:)) + abs(dlat(2:end,:))) / 6;
+
+% % Half-width in longitude direction (column spacing)
+% dlon = diff(modis_long, 1, 2);  % difference along columns
+% modis_half_dlon = zeros(size(modis_long));
+% modis_half_dlon(:,1) = abs(dlon(:,1)) / 2;
+% modis_half_dlon(:,end) = abs(dlon(:,end)) / 2;
+% modis_half_dlon(:,2:end-1) = (abs(dlon(:,1:end-1)) + abs(dlon(:,2:end))) / 4;
+
+% Half-width in longitude direction (column spacing)
+dlon = diff(modis_long, 1, 2);  % difference along columns
+modis_half_dlon = zeros(size(modis_long));
+modis_half_dlon(:,1) = abs(dlon(:,1)) / 3;
+modis_half_dlon(:,end) = abs(dlon(:,end)) / 3;
+modis_half_dlon(:,2:end-1) = (abs(dlon(:,1:end-1)) + abs(dlon(:,2:end))) / 6;
+
+
+
 % Get linear indices of matching MODIS pixels
 modis_linear_idx = find(idx_combined_master);
 
+% Running index into the flat output arrays
+idx_out = 0;
+
 for nn = 1:n_matches
-    
+
     % ====== MODIS Pixel Information ======
     % Get the linear index for this MODIS pixel
-    overlap.modis.linear_idx(nn) = modis_linear_idx(nn);
-    
+    modis_lidx = modis_linear_idx(nn);
+
     % Convert linear index to row/col for MODIS
-    [overlap.modis.row(nn), overlap.modis.col(nn)] = ind2sub(size(modis_lat), modis_linear_idx(nn));
-    
+    [modis_row, modis_col] = ind2sub(size(modis_lat), modis_lidx);
+
     % Get lat/lon for this MODIS pixel
-    modis_lat_current = modis_lat(modis_linear_idx(nn));
-    modis_long_current = modis_long(modis_linear_idx(nn));
-    
-    
-    % ====== Find Closest EMIT Pixel ======
-    % First do a quick squared-distance filter to reduce candidates
-    dist_sq_emit = (emit_lat_flat - modis_lat_current).^2 + (emit_long_flat - modis_long_current).^2;
-    [~, idx_emit] = min(dist_sq_emit);
-    
-    % Store EMIT linear index
-    overlap.emit.linear_idx(nn) = idx_emit;
-    
-    % Convert linear index to row/col for EMIT
-    [overlap.emit.row(nn), overlap.emit.col(nn)] = ind2sub(size(emit_lat), idx_emit);
-    
-    % Get lat/lon for this EMIT pixel
-    emit_lat_current = emit_lat_flat(idx_emit);
-    emit_long_current = emit_long_flat(idx_emit);
-    
-    % Calculate accurate distance between MODIS and EMIT using WGS84 ellipsoid
-    overlap.distance_modis_emit_km(nn) = distance(modis_lat_current, modis_long_current, ...
-        emit_lat_current, emit_long_current, wgs84);
-    
-    
+    modis_lat_current = modis_lat(modis_lidx);
+    modis_long_current = modis_long(modis_lidx);
+
+    % Get the half-widths for this MODIS pixel
+    half_dlat = modis_half_dlat(modis_lidx);
+    half_dlon = modis_half_dlon(modis_lidx);
+
+
+    % ====== Find ALL EMIT Pixels Within This MODIS Pixel ======
+    % Define the MODIS pixel boundary
+    lat_min = modis_lat_current - half_dlat;
+    lat_max = modis_lat_current + half_dlat;
+    lon_min = modis_long_current - half_dlon;
+    lon_max = modis_long_current + half_dlon;
+
+    % Find all EMIT pixels whose centers fall within the MODIS pixel boundary
+    idx_emit_all = find(emit_lat_flat >= lat_min & emit_lat_flat <= lat_max & ...
+                        emit_long_flat >= lon_min & emit_long_flat <= lon_max);
+
+    n_found = numel(idx_emit_all);
+    overlap.num_emit_pixels_per_modis(nn) = n_found;
+
+    % ====== Randomly Select 10 EMIT Pixels ======
+    if n_found >= n_emit_per_modis
+        % Randomly select n_emit_per_modis without replacement
+        rand_idx = randperm(n_found, n_emit_per_modis);
+        idx_emit_selected = idx_emit_all(rand_idx);
+    else
+        % Fewer than 10 EMIT pixels found -- keep all and warn
+        warning(['MODIS pixel %d (row=%d, col=%d) has only %d EMIT pixels ' ...
+                 'within its boundary (expected >= %d). Keeping all available.'], ...
+                 nn, modis_row, modis_col, n_found, n_emit_per_modis);
+        idx_emit_selected = idx_emit_all;
+    end
+
+    n_selected = numel(idx_emit_selected);
+
+    % Convert selected EMIT linear indices to row/col
+    [rows_emit, cols_emit] = ind2sub(size(emit_lat), idx_emit_selected);
+
+    % Calculate accurate distances between MODIS and each selected EMIT pixel
+    dist_km = zeros(n_selected, 1);
+    for ee = 1:n_selected
+        dist_km(ee) = distance(modis_lat_current, modis_long_current, ...
+            emit_lat_flat(idx_emit_selected(ee)), emit_long_flat(idx_emit_selected(ee)), wgs84);
+    end
+
+
     % ====== Find Closest AIRS Pixel ======
-    % Use the EMIT pixel location (not MODIS) to find the closest AIRS pixel
-    % First do a quick squared-distance filter to reduce candidates
-    dist_sq_airs = (airs_lat_flat - emit_lat_current).^2 + (airs_long_flat - emit_long_current).^2;
+    % Use the MODIS pixel location to find the closest AIRS pixel
+    dist_sq_airs = (airs_lat_flat - modis_lat_current).^2 + (airs_long_flat - modis_long_current).^2;
     [~, idx_airs] = min(dist_sq_airs);
-    
-    % Store AIRS linear index
-    overlap.airs.linear_idx(nn) = idx_airs;
-    
-    % Convert linear index to row/col for AIRS
-    [overlap.airs.row(nn), overlap.airs.col(nn)] = ind2sub(size(airs_lat), idx_airs);
-    
-    % Get lat/lon for this AIRS pixel
-    airs_lat_current = airs_lat_flat(idx_airs);
-    airs_long_current = airs_long_flat(idx_airs);
-    
-    % Calculate accurate distance between EMIT and AIRS using WGS84 ellipsoid
-    overlap.distance_emit_airs_km(nn) = distance(emit_lat_current, emit_long_current, ...
-        airs_lat_current, airs_long_current, wgs84);
-    
-    
+
+    % Convert to row/col for AIRS
+    [airs_row, airs_col] = ind2sub(size(airs_lat), idx_airs);
+
+    % Calculate accurate distance between MODIS and AIRS using WGS84 ellipsoid
+    dist_modis_airs = distance(modis_lat_current, modis_long_current, ...
+        airs_lat_flat(idx_airs), airs_long_flat(idx_airs), wgs84);
+
+
     % ====== Find Closest AMSR Pixel ======
-    % Use the EMIT pixel location (not MODIS) to find the closest AMSR pixel
-    % First do a quick squared-distance filter to reduce candidates
-    dist_sq_amsr = (amsr_lat_flat - emit_lat_current).^2 + (amsr_long_flat - emit_long_current).^2;
+    % Use the MODIS pixel location to find the closest AMSR pixel
+    dist_sq_amsr = (amsr_lat_flat - modis_lat_current).^2 + (amsr_long_flat - modis_long_current).^2;
     [~, idx_amsr] = min(dist_sq_amsr);
-    
-    % Store AMSR linear index
-    overlap.amsr.linear_idx(nn) = idx_amsr;
-    
-    % Convert linear index to row/col for AMSR
-    [overlap.amsr.row(nn), overlap.amsr.col(nn)] = ind2sub(size(amsr_lat), idx_amsr);
-    
-    % Get lat/lon for this AMSR pixel
-    amsr_lat_current = amsr_lat_flat(idx_amsr);
-    amsr_long_current = amsr_long_flat(idx_amsr);
-    
-    % Calculate accurate distance between EMIT and AMSR using WGS84 ellipsoid
-    overlap.distance_emit_amsr_km(nn) = distance(emit_lat_current, emit_long_current, ...
-        amsr_lat_current, amsr_long_current, wgs84);
-    
+
+    % Convert to row/col for AMSR
+    [amsr_row, amsr_col] = ind2sub(size(amsr_lat), idx_amsr);
+
+    % Calculate accurate distance between MODIS and AMSR using WGS84 ellipsoid
+    dist_modis_amsr = distance(modis_lat_current, modis_long_current, ...
+        amsr_lat_flat(idx_amsr), amsr_long_flat(idx_amsr), wgs84);
+
+
+    % ====== Store Results: one row per selected EMIT pixel ======
+    out_range = idx_out + (1:n_selected);
+
+    % MODIS info (repeated for each EMIT pixel)
+    overlap.modis.row(out_range) = modis_row;
+    overlap.modis.col(out_range) = modis_col;
+    overlap.modis.linear_idx(out_range) = modis_lidx;
+
+    % EMIT info (unique per row)
+    overlap.emit.row(out_range) = rows_emit;
+    overlap.emit.col(out_range) = cols_emit;
+    overlap.emit.linear_idx(out_range) = idx_emit_selected;
+
+    % AIRS info (repeated for each EMIT pixel)
+    overlap.airs.row(out_range) = airs_row;
+    overlap.airs.col(out_range) = airs_col;
+    overlap.airs.linear_idx(out_range) = idx_airs;
+
+    % AMSR info (repeated for each EMIT pixel)
+    overlap.amsr.row(out_range) = amsr_row;
+    overlap.amsr.col(out_range) = amsr_col;
+    overlap.amsr.linear_idx(out_range) = idx_amsr;
+
+    % Distances
+    overlap.distance_modis_emit_km(out_range) = dist_km;
+    overlap.distance_emit_airs_km(out_range) = dist_modis_airs;
+    overlap.distance_emit_amsr_km(out_range) = dist_modis_amsr;
+
+    idx_out = idx_out + n_selected;
+
 end
 
-fprintf('Average distance between matched MODIS-EMIT pixels: %.2f km\n', mean(overlap.distance_modis_emit_km));
-fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_emit_km));
-fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_emit_km));
+% Trim pre-allocated arrays in case some MODIS pixels had < 10 EMIT pixels
+n_total = idx_out;
+if n_total < n_total_max
+    overlap.modis.row = overlap.modis.row(1:n_total);
+    overlap.modis.col = overlap.modis.col(1:n_total);
+    overlap.modis.linear_idx = overlap.modis.linear_idx(1:n_total);
+    overlap.emit.row = overlap.emit.row(1:n_total);
+    overlap.emit.col = overlap.emit.col(1:n_total);
+    overlap.emit.linear_idx = overlap.emit.linear_idx(1:n_total);
+    overlap.airs.row = overlap.airs.row(1:n_total);
+    overlap.airs.col = overlap.airs.col(1:n_total);
+    overlap.airs.linear_idx = overlap.airs.linear_idx(1:n_total);
+    overlap.amsr.row = overlap.amsr.row(1:n_total);
+    overlap.amsr.col = overlap.amsr.col(1:n_total);
+    overlap.amsr.linear_idx = overlap.amsr.linear_idx(1:n_total);
+    overlap.distance_modis_emit_km = overlap.distance_modis_emit_km(1:n_total);
+    overlap.distance_emit_airs_km = overlap.distance_emit_airs_km(1:n_total);
+    overlap.distance_emit_amsr_km = overlap.distance_emit_amsr_km(1:n_total);
+end
 
-fprintf('\nAverage distance between matched EMIT-AIRS pixels: %.2f km\n', mean(overlap.distance_emit_airs_km));
-fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_airs_km));
-fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_airs_km));
+%% Remove EMIT pixels that have been masked out (all-NaN radiance)
+% The EMIT cloud mask sets radiance to NaN at every wavelength for masked pixels.
+% Check each selected EMIT pixel and remove it if all wavelengths are NaN.
 
-fprintf('\nAverage distance between matched EMIT-AMSR pixels: %.2f km\n', mean(overlap.distance_emit_amsr_km));
-fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_amsr_km));
-fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_amsr_km));
+% emit.radiance.measurements is (rows x cols x wavelengths)
+is_masked = false(n_total, 1);
+for pp = 1:n_total
+    emit_spectrum = emit.radiance.measurements(overlap.emit.row(pp), overlap.emit.col(pp), :);
+    if all(isnan(emit_spectrum))
+        is_masked(pp) = true;
+    end
+end
+
+n_masked = sum(is_masked);
+fprintf('\nFound %d EMIT pixels with all-NaN radiance (cloud masked). Removing...\n', n_masked);
+
+% Remove masked EMIT pixels from all overlap arrays
+if n_masked > 0
+    idx_keep = ~is_masked;
+
+    overlap.modis.row = overlap.modis.row(idx_keep);
+    overlap.modis.col = overlap.modis.col(idx_keep);
+    overlap.modis.linear_idx = overlap.modis.linear_idx(idx_keep);
+    overlap.emit.row = overlap.emit.row(idx_keep);
+    overlap.emit.col = overlap.emit.col(idx_keep);
+    overlap.emit.linear_idx = overlap.emit.linear_idx(idx_keep);
+    overlap.airs.row = overlap.airs.row(idx_keep);
+    overlap.airs.col = overlap.airs.col(idx_keep);
+    overlap.airs.linear_idx = overlap.airs.linear_idx(idx_keep);
+    overlap.amsr.row = overlap.amsr.row(idx_keep);
+    overlap.amsr.col = overlap.amsr.col(idx_keep);
+    overlap.amsr.linear_idx = overlap.amsr.linear_idx(idx_keep);
+    overlap.distance_modis_emit_km = overlap.distance_modis_emit_km(idx_keep);
+    overlap.distance_emit_airs_km = overlap.distance_emit_airs_km(idx_keep);
+    overlap.distance_emit_amsr_km = overlap.distance_emit_amsr_km(idx_keep);
+
+    % Check if any MODIS pixel lost ALL of its EMIT pixels
+    % If so, remove those MODIS (and corresponding AIRS/AMSR) entries entirely
+    unique_modis_remaining = unique(overlap.modis.linear_idx);
+    unique_modis_original = unique(modis_linear_idx);
+    modis_lost = setdiff(unique_modis_original, unique_modis_remaining);
+
+    if ~isempty(modis_lost)
+        fprintf('Removed %d MODIS pixels entirely (all EMIT pixels were masked).\n', numel(modis_lost));
+    end
+
+    n_total = numel(overlap.emit.linear_idx);
+end
+
+% Summary statistics
+fprintf('\n--- Overlap Summary ---\n');
+fprintf('MODIS pixels meeting all criteria: %d\n', n_matches);
+fprintf('EMIT pixels selected per MODIS pixel: %d\n', n_emit_per_modis);
+fprintf('EMIT pixels removed (cloud masked): %d\n', n_masked);
+fprintf('Total EMIT pixels stored after masking: %d\n', n_total);
+fprintf('Unique MODIS pixels remaining: %d\n', numel(unique(overlap.modis.linear_idx)));
+fprintf('Average EMIT pixels found per MODIS pixel (before selection): %.1f\n', mean(overlap.num_emit_pixels_per_modis));
+fprintf('Min/Max EMIT pixels found per MODIS pixel: %d / %d\n', min(overlap.num_emit_pixels_per_modis), max(overlap.num_emit_pixels_per_modis));
+
+if n_total > 0
+    fprintf('\nAverage distance between matched MODIS-EMIT pixels: %.2f km\n', mean(overlap.distance_modis_emit_km));
+    fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_emit_km));
+    fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_emit_km));
+
+    fprintf('\nAverage distance between matched MODIS-AIRS pixels: %.2f km\n', mean(overlap.distance_emit_airs_km));
+    fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_airs_km));
+    fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_airs_km));
+
+    fprintf('\nAverage distance between matched MODIS-AMSR pixels: %.2f km\n', mean(overlap.distance_emit_amsr_km));
+    fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_amsr_km));
+    fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_amsr_km));
+else
+    fprintf('\nNo EMIT pixels remaining after cloud mask removal.\n');
+end
 
 end
