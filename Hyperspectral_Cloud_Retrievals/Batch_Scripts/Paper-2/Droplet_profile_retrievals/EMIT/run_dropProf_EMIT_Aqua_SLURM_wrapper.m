@@ -138,6 +138,16 @@ end
 
 %%
 
+% run retrieval on 30 pixels within 1 MODIS pixel with smallest
+% inhomogeneity index
+% [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] =...
+%     run_full_retrieval_EMIT_Aqua_minMODISpix_30emitPix(folder_paths, print_status_updates, print_libRadtran_err,...
+%     plot_figures, save_figures);
+
+
+% Find the 10 MODIS pixels within the entire EMIT swath with the smalled
+% inhomogeneity index. Then select 10 EMIT pixels within each MODIS pixel
+% to run the retrieval on
 [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] =...
-    run_full_retrieval_EMIT_Aqua_minMODISpix_30emitPix(folder_paths, print_status_updates, print_libRadtran_err,...
-    plot_figures, save_figures);
+    run_full_retrieval_EMIT_Aqua_10MODISpix_10emitPix(folder_paths, print_status_updates, print_libRadtran_err,...
+    plot_figures, save_figures)
