@@ -40,7 +40,7 @@
 #SBATCH --error=EMIT_singlePix_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-100       # UPDATE: set to the desired number of jobs
+#SBATCH --array=1-18       # UPDATE: set to the desired number of jobs
 
 # Load modules
 ml purge
@@ -71,7 +71,7 @@ module load matlab/R2024b
 # *** DEFINE THE DIRECTORY CONTAINING PER-PIXEL .mat FILES ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END             ***
 # ----------------------------------------------------------
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/overlap_data_per_pixel"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/overlap_data_per_pixel/modixPix_1_emitPix_5"
 # ----------------------------------------------------------
 
 # ----------------------------------------------------------
@@ -93,6 +93,7 @@ if [ ${TOTAL_FILES} -eq 0 ]; then
 fi
 
 # Calculate the number of jobs in the array
+SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1}  # Default to 1 if unset
 NUM_JOBS=$(( SLURM_ARRAY_TASK_MAX - SLURM_ARRAY_TASK_MIN + 1 ))
 
 # Calculate files per job (ceiling division)
