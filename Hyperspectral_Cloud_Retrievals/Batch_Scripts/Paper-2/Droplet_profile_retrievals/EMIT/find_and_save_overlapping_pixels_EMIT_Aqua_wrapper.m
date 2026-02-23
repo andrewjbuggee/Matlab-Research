@@ -103,9 +103,9 @@ criteria.cld_tau_min = 3;          % cloud optical depth minimum
 criteria.cld_tau_max = 50;         % cloud optical depth maximum
 criteria.H = 2;                    % horizontal inhomogeneity index
 criteria.findN_smallest_H = true;
-criteria.H_N_smallest = 1;         % keep the 5 MODIS pixels with smallest H
+criteria.H_N_smallest = 5;         % keep the 5 MODIS pixels with smallest H
 
-emit_pixels_per_modis = 5;        % select 30 EMIT pixels within each MODIS pixel
+emit_pixels_per_modis = 30;        % select 30 EMIT pixels within each MODIS pixel
 
  
 for nn = 1:length(sub_directories)
