@@ -66,6 +66,16 @@ PRINT_STATUS_UPDATES=true
 # ===========================================================
 
 
+
+
+# ---------------------------------------------------------------
+# *** DEFINE THE DIRECTORY WHERE ALL .mat FILES WILL BE SAVED ***
+# *** MUST HAVE TRAILING SLASH '/' AT THE END             ***
+# ---------------------------------------------------------------
+OUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2/"
+# ----------------------------------------------------------
+
+
 # Start of the job
 echo " "
 echo "Starting EMIT overlap pixel preprocessing at $(date)"
@@ -105,6 +115,7 @@ time matlab -nodesktop -nodisplay -r "\
     sub_directories = {'2023_9_16_T191118_1/', '2023_9_16_T191130_1/', '2023_9_16_T191142_1/', \
                        '2024_1_13_T194658_1/', '2024_5_17_T183906_1/', '2024_5_17_T183918_1/', \
                        '2024_5_17_T183930_1/'}; \
+    folder_paths.output_dir = '${OUT_DIR}'; \
     criteria.cld_phase = '${CLD_PHASE}'; \
     criteria.cld_cvr = ${CLD_CVR}; \
     criteria.cld_tau_min = ${CLD_TAU_MIN}; \
