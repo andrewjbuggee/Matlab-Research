@@ -60,8 +60,8 @@ CLD_TAU_MIN=3
 CLD_TAU_MAX=50
 H=2
 FIND_N_SMALLEST_H=true
-H_N_SMALLEST=1
-EMIT_PIXELS_PER_MODIS=5
+H_N_SMALLEST=5
+EMIT_PIXELS_PER_MODIS=30
 PRINT_STATUS_UPDATES=true
 # ===========================================================
 
