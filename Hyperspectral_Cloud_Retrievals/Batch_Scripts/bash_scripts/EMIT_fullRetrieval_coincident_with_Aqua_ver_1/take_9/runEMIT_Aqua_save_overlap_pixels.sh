@@ -125,8 +125,8 @@ time matlab -nodesktop -nodisplay -r "\
     emit_pixels_per_modis = ${EMIT_PIXELS_PER_MODIS}; \
     print_status_updates = ${PRINT_STATUS_UPDATES}; \
     for nn = 1:length(sub_directories), \
-        [n_saved, out_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, print_status_updates, emit_pixels_per_modis, sub_directories{nn}); \
-        disp(['Subdirectory ', num2str(nn), ': saved ', num2str(n_saved), ' pixels to ', out_dir]); \
+        n_saved = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, print_status_updates, emit_pixels_per_modis, sub_directories{nn}); \
+        disp(['Subdirectory ', num2str(nn), ': saved ', num2str(n_saved), ' pixels to ', folder_paths.output_dir]); \
     end; \
     exit"
 
