@@ -236,83 +236,22 @@ else
     n_candidates = sum(idx_candidates(:));
     fprintf('Found %d MODIS pixels meeting all criteria (no H filter) within EMIT footprint\n', n_candidates);
 
-    % Get the H values for the candidate pixels
+    % Get the H values for the candidate pixels and sort ascending
     H_values = modis.cloud.inhomogeneity_index(:,:,2);
     H_candidates = H_values(idx_candidates);
+    candidate_linear_idx = find(idx_candidates);
+    [~, sort_idx] = sort(H_candidates, 'ascend');
 
-    % Sort by H value (ascending) and keep the N smallest
+    % Store the full sorted candidate list for the retry loop below
+    sorted_candidate_linear_idx = candidate_linear_idx(sort_idx);
+    sorted_H_values = H_candidates(sort_idx);
+
     N = criteria.H_N_smallest;
-
-    if n_candidates <= N
-        % Fewer candidates than requested — keep all
-        idx_combined_master = idx_candidates;
-        fprintf('Keeping all %d candidates (fewer than requested N = %d)\n', n_candidates, N);
-
-    else
-        % Find the N smallest H values
-        [~, sort_idx] = sort(H_candidates, 'ascend');
-        idx_keep = sort_idx(1:N);
-
-        % Convert back to a logical mask over the full MODIS grid
-        candidate_linear_idx = find(idx_candidates);
-        idx_combined_master = false(size(modis_lat));
-        idx_combined_master(candidate_linear_idx(idx_keep)) = true;
-
-        fprintf('Selected %d MODIS pixels with smallest H values (H range: %.4f to %.4f)\n',...
-            N, H_candidates(sort_idx(1)), H_candidates(sort_idx(N)));
-
-    end
 
 end
 
-%% Find row/column indices for MODIS pixels and match with closest EMIT, AIRS, and AMSR pixels
 
-n_matches = sum(idx_combined_master(:));
-
-% Number of EMIT pixels to randomly select per MODIS pixel
-% n_emit_per_modis = 30;
-
-% Maximum total entries (may be fewer if some MODIS pixels have < 10 EMIT pixels)
-n_total_max = n_matches * n_emit_per_modis;
-
-% Pre-allocate output arrays for MODIS (repeated n_emit_per_modis times per match)
-overlap.modis.row = zeros(n_total_max, 1);
-overlap.modis.col = zeros(n_total_max, 1);
-overlap.modis.linear_idx = zeros(n_total_max, 1);
-
-% Pre-allocate output arrays for EMIT (n_emit_per_modis per MODIS pixel)
-overlap.emit.row = zeros(n_total_max, 1);
-overlap.emit.col = zeros(n_total_max, 1);
-overlap.emit.linear_idx = zeros(n_total_max, 1);
-
-% Pre-allocate output arrays for AIRS (repeated n_emit_per_modis times per match)
-overlap.airs.row = zeros(n_total_max, 1);
-overlap.airs.col = zeros(n_total_max, 1);
-overlap.airs.linear_idx = zeros(n_total_max, 1);
-
-% Pre-allocate output arrays for AMSR (repeated n_emit_per_modis times per match)
-overlap.amsr.row = zeros(n_total_max, 1);
-overlap.amsr.col = zeros(n_total_max, 1);
-overlap.amsr.linear_idx = zeros(n_total_max, 1);
-
-% Pre-allocate distance arrays
-overlap.distance_modis_emit_km = zeros(n_total_max, 1);
-overlap.distance_modis_airs_km = zeros(n_total_max, 1);
-overlap.distance_modis_amsr_km = zeros(n_total_max, 1);
-
-% Track how many EMIT pixels were found in each MODIS pixel (before selection)
-overlap.num_emit_pixels_per_modis = zeros(n_matches, 1);
-
-% TODO: Add temporal information to compute time difference between pixels
-% Will need:
-% - EMIT pixel acquisition time (if available in emit.radiance structure)
-% - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
-% - AIRS pixel acquisition time (available: airs.Time_UTC)
-% - AMSR pixel acquisition time (available: amsr.Time_UTC)
-% - Then compute:
-%   overlap.time_difference_modis_emit_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
-%   overlap.time_difference_emit_airs_seconds(nn) = abs(emit_time(idx_emit) - airs_time(idx_airs))
-%   overlap.time_difference_emit_amsr_seconds(nn) = abs(emit_time(idx_emit) - amsr_time(idx_amsr))
+%% Set up coordinate arrays and MODIS pixel half-widths (used by both branches)
 
 % Setup WGS84 ellipsoid for accurate distance calculation
 wgs84 = wgs84Ellipsoid('kilometer');
@@ -367,9 +306,169 @@ modis_half_dlon(:,end) = abs(dlon(:,end)) / 3;
 modis_half_dlon(:,2:end-1) = (abs(dlon(:,1:end-1)) + abs(dlon(:,2:end))) / 6;
 
 
+%% Find row/column indices for MODIS pixels and match with closest EMIT, AIRS, and AMSR pixels
+%
+% When findN_smallest_H is true, this section uses a retry loop: if a
+% selected MODIS pixel has all-NaN EMIT pixels (cloud masked), it is
+% discarded and replaced with the next-best candidate from the H-sorted
+% list. This continues until H_N_smallest valid MODIS pixels are found
+% or all candidates are exhausted.
+
+if criteria.findN_smallest_H == false
+
+    % ---- H-threshold mode: select MODIS pixels once, no retry ----
+
+    idx_combined_master_final = idx_combined_master;
+
+else
+
+    % ---- Smallest-H mode with retry for masked EMIT pixels ----
+
+    % Track which candidate index we've tried up to (into the sorted list)
+    next_candidate_ptr = 0;
+
+    % Track MODIS pixels confirmed to have valid (non-NaN) EMIT pixels
+    valid_modis_linear_idx = [];
+
+    while numel(valid_modis_linear_idx) < N && next_candidate_ptr < n_candidates
+
+        % How many more MODIS pixels do we need?
+        n_needed = N - numel(valid_modis_linear_idx);
+
+        % Pick the next n_needed candidates from the sorted list
+        start_ptr = next_candidate_ptr + 1;
+        end_ptr = min(next_candidate_ptr + n_needed, n_candidates);
+        trial_idx = sorted_candidate_linear_idx(start_ptr:end_ptr);
+        next_candidate_ptr = end_ptr;
+
+        fprintf('Trying %d MODIS candidate(s) (H range: %.4f to %.4f)...\n',...
+            numel(trial_idx), sorted_H_values(start_ptr), sorted_H_values(end_ptr));
+
+        % For each trial MODIS pixel, check if it has valid EMIT pixels
+        for tt = 1:numel(trial_idx)
+
+            modis_lidx = trial_idx(tt);
+            modis_lat_current = modis_lat(modis_lidx);
+            modis_long_current = modis_long(modis_lidx);
+            half_dlat = modis_half_dlat(modis_lidx);
+            half_dlon = modis_half_dlon(modis_lidx);
+
+            % Find EMIT pixels within this MODIS pixel
+            lat_min = modis_lat_current - half_dlat;
+            lat_max = modis_lat_current + half_dlat;
+            lon_min = modis_long_current - half_dlon;
+            lon_max = modis_long_current + half_dlon;
+
+            idx_emit_all = find(emit_lat_flat >= lat_min & emit_lat_flat <= lat_max & ...
+                                emit_long_flat >= lon_min & emit_long_flat <= lon_max);
+
+            n_found = numel(idx_emit_all);
+
+            if n_found == 0
+                fprintf('  MODIS pixel (linear_idx=%d): no EMIT pixels found. Skipping.\n', modis_lidx);
+                continue
+            end
+
+            % Select EMIT pixels (random subset or all if fewer than requested)
+            if n_found >= n_emit_per_modis
+                rand_idx = randperm(n_found, n_emit_per_modis);
+                idx_emit_selected = idx_emit_all(rand_idx);
+            else
+                idx_emit_selected = idx_emit_all;
+            end
+
+            % Check if ALL selected EMIT pixels are NaN-masked
+            any_valid = false;
+            for ee = 1:numel(idx_emit_selected)
+                [r_emit, c_emit] = ind2sub(size(emit_lat), idx_emit_selected(ee));
+                emit_spectrum = emit.radiance.measurements(r_emit, c_emit, :);
+                if ~all(isnan(emit_spectrum))
+                    any_valid = true;
+                    break
+                end
+            end
+
+            if any_valid
+                valid_modis_linear_idx = [valid_modis_linear_idx; modis_lidx]; %#ok<AGROW>
+                fprintf('  MODIS pixel (linear_idx=%d, H=%.4f): valid EMIT pixels found.\n',...
+                    modis_lidx, H_values(modis_lidx));
+            else
+                fprintf('  MODIS pixel (linear_idx=%d, H=%.4f): all %d EMIT pixels masked. Skipping.\n',...
+                    modis_lidx, H_values(modis_lidx), numel(idx_emit_selected));
+            end
+
+            % Stop early if we have enough
+            if numel(valid_modis_linear_idx) >= N
+                break
+            end
+
+        end
+
+    end
+
+    % Build the final MODIS selection mask from the validated pixels
+    idx_combined_master_final = false(size(modis_lat));
+    idx_combined_master_final(valid_modis_linear_idx) = true;
+
+    n_valid = numel(valid_modis_linear_idx);
+    if n_valid < N
+        fprintf('WARNING: Only found %d valid MODIS pixels out of %d requested (exhausted all %d candidates).\n',...
+            n_valid, N, n_candidates);
+    else
+        fprintf('Selected %d MODIS pixels with smallest H values that have valid EMIT pixels.\n', n_valid);
+    end
+
+end
+
+
+%% Sample EMIT, AIRS, AMSR pixels for the final set of MODIS pixels
+
+n_matches = sum(idx_combined_master_final(:));
+
+% Maximum total entries (may be fewer if some MODIS pixels have < n_emit_per_modis EMIT pixels)
+n_total_max = n_matches * n_emit_per_modis;
+
+% Pre-allocate output arrays for MODIS (repeated n_emit_per_modis times per match)
+overlap.modis.row = zeros(n_total_max, 1);
+overlap.modis.col = zeros(n_total_max, 1);
+overlap.modis.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate output arrays for EMIT (n_emit_per_modis per MODIS pixel)
+overlap.emit.row = zeros(n_total_max, 1);
+overlap.emit.col = zeros(n_total_max, 1);
+overlap.emit.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate output arrays for AIRS (repeated n_emit_per_modis times per match)
+overlap.airs.row = zeros(n_total_max, 1);
+overlap.airs.col = zeros(n_total_max, 1);
+overlap.airs.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate output arrays for AMSR (repeated n_emit_per_modis times per match)
+overlap.amsr.row = zeros(n_total_max, 1);
+overlap.amsr.col = zeros(n_total_max, 1);
+overlap.amsr.linear_idx = zeros(n_total_max, 1);
+
+% Pre-allocate distance arrays
+overlap.distance_modis_emit_km = zeros(n_total_max, 1);
+overlap.distance_modis_airs_km = zeros(n_total_max, 1);
+overlap.distance_modis_amsr_km = zeros(n_total_max, 1);
+
+% Track how many EMIT pixels were found in each MODIS pixel (before selection)
+overlap.num_emit_pixels_per_modis = zeros(n_matches, 1);
+
+% TODO: Add temporal information to compute time difference between pixels
+% Will need:
+% - EMIT pixel acquisition time (if available in emit.radiance structure)
+% - MODIS pixel acquisition time (already available: modis.EV1km.pixel_time_UTC)
+% - AIRS pixel acquisition time (available: airs.Time_UTC)
+% - AMSR pixel acquisition time (available: amsr.Time_UTC)
+% - Then compute:
+%   overlap.time_difference_modis_emit_seconds(nn) = abs(emit_time(idx_emit) - modis_time(idx_modis))
+%   overlap.time_difference_emit_airs_seconds(nn) = abs(emit_time(idx_emit) - airs_time(idx_airs))
+%   overlap.time_difference_emit_amsr_seconds(nn) = abs(emit_time(idx_emit) - amsr_time(idx_amsr))
 
 % Get linear indices of matching MODIS pixels
-modis_linear_idx = find(idx_combined_master);
+modis_linear_idx = find(idx_combined_master_final);
 
 % Running index into the flat output arrays
 idx_out = 0;
@@ -490,7 +589,7 @@ for nn = 1:n_matches
 
 end
 
-% Trim pre-allocated arrays in case some MODIS pixels had < 10 EMIT pixels
+% Trim pre-allocated arrays in case some MODIS pixels had < n_emit_per_modis EMIT pixels
 n_total = idx_out;
 if n_total < n_total_max
     overlap.modis.row = overlap.modis.row(1:n_total);
@@ -513,6 +612,12 @@ end
 %% Remove EMIT pixels that have been masked out (all-NaN radiance)
 % The EMIT cloud mask sets radiance to NaN at every wavelength for masked pixels.
 % Check each selected EMIT pixel and remove it if all wavelengths are NaN.
+%
+% NOTE: When findN_smallest_H is true, the retry loop above already ensures
+% that each selected MODIS pixel has at least one valid EMIT pixel. However,
+% individual NaN EMIT pixels within a valid MODIS pixel still need removal.
+% When findN_smallest_H is false (H-threshold mode), this section handles
+% all NaN removal including potentially losing entire MODIS pixels.
 
 % emit.radiance.measurements is (rows x cols x wavelengths)
 is_masked = false(n_total, 1);
