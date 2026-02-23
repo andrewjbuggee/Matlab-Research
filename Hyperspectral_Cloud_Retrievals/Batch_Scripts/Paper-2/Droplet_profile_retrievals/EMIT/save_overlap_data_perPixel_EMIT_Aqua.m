@@ -31,7 +31,7 @@
 % By Andrew John Buggee
 %%
 
-function [n_pixels_saved, output_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, print_status_updates,...
+function [n_pixels_saved] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, print_status_updates,...
     emit_pixels_per_modis, sub_directory)
 
 
@@ -81,45 +81,15 @@ airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
 amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
 
 
-%% Create the output directory for per-pixel .mat files
 
-% Remove trailing slash from coincident_dataFolder for use in filenames
+
+%%  Remove trailing slash from coincident_dataFolder for use in filenames
 subdir_name = sub_directory;
 if subdir_name(end) == '/'
     subdir_name = subdir_name(1:end-1);
 end
 
 
-% IF running this on the CU supercomputer, store the data on the scratch
-% directory. Scratch has 10 TB of storage and is designed for high
-% performance reading/writing, but everything stored is scratch is deleted
-% each 90 days.
-if strcmp(folder_paths.which_computer,'curc')==true
-
-    ver = 1;
-
-    % store on scratch
-    output_dir = ['/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver', num2str(ver)];
-
-else
-
-    output_dir = [folder_paths.coincident_dataPath, 'overlap_data_per_pixel/'];
-
-end
-
-if ~exist(output_dir, 'dir')
-    mkdir(output_dir)
-
-else 
-
-    while exist(output_dir, 'dir')==7
-
-        ver = ver + 1;
-        output_dir = ['/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver', num2str(ver)];
-
-    end
-
-end
 
 
 %% Save one .mat file per EMIT pixel
@@ -214,7 +184,7 @@ for pp = 1:total_pixels
     pixel_num = 1; 
 
     % Define the output filename
-    output_filename = [output_dir, 'overlap_EMIT_pixel_', num2str(pp, '%03d'), '_', subdir_name, '.mat'];
+    output_filename = [folder_paths.output_dir, 'overlap_EMIT_pixel_', num2str(pp, '%03d'), '_', subdir_name, '.mat'];
 
     % Save all data needed for the single-pixel retrieval
     save(output_filename, 'emit_pp', 'modis_pp', 'airs_pp', 'amsr_pp',...
@@ -238,8 +208,8 @@ if print_status_updates == true
     disp(['Total EMIT pixels found: ', num2str(total_pixels)])
     disp(['Pixels saved (non-masked): ', num2str(n_pixels_saved)])
     disp(['Pixels skipped (masked): ', num2str(total_pixels - n_pixels_saved)])
-    disp(['Output directory: ', output_dir])
-    disp([newline])
+    disp(['Output directory: ', folder_paths.output_dir])
+    disp(newline)
 
 end
 
