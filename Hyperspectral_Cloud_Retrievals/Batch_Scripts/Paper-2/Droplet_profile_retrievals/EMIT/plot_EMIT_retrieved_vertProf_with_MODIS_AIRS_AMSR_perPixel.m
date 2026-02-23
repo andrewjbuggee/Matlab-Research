@@ -10,7 +10,7 @@
 %%
 
 function figure_handle = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs,...
-    modis, airs, amsr, pixel_num, overlap_pixels)
+    modis, airs, amsr, pixel_num, overlap_pixels, use_new_LWP_calc)
 
 
 
@@ -222,7 +222,15 @@ yl0.LabelHorizontalAlignment = 'right';
 
 
 % grab the hypersepctral retrieval estimate of LWP
-retrieved_LWP = GN_outputs.LWP;        % g/m^2
+if use_new_LWP_calc == true
+
+    retrieved_LWP = GN_outputs.LWP_newCalc;  % g/m^2
+    
+else
+
+    retrieved_LWP = GN_outputs.LWP;        % g/m^2
+
+end
 
 % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
 con = physical_constants;
