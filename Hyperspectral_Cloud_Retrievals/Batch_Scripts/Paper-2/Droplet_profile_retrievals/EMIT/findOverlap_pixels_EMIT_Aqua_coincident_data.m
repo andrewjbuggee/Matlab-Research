@@ -18,11 +18,21 @@
 %       .coincident_dataFolder - Folder name containing EMIT, MODIS, AIRS, and AMSR files
 %
 %   criteria - Structure defining cloud filtering criteria with fields:
-%       .cld_phase    - Cloud phase to filter ('water' for liquid water clouds)
-%       .cld_tau_min  - Minimum cloud optical thickness (tau)
-%       .cld_tau_max  - Maximum cloud optical thickness (tau)
-%       .H            - Maximum horizontal inhomogeneity index threshold
-%                       (H_860 < criteria.H will be selected)
+%       .cld_phase       - Cloud phase to filter ('water' for liquid water clouds)
+%       .cld_tau_min     - Minimum cloud optical thickness (tau)
+%       .cld_tau_max     - Maximum cloud optical thickness (tau)
+%       .findN_smallest_H - (logical) Flag to select filtering mode:
+%           false (default): Use criteria.H as a threshold. All MODIS
+%                            pixels with H < criteria.H are selected.
+%           true:            Ignore criteria.H. Instead, find all MODIS
+%                            pixels meeting phase, tau, re uncertainty,
+%                            and ocean criteria, then select the
+%                            criteria.H_N_smallest pixels with the
+%                            smallest inhomogeneity index values.
+%       .H               - Maximum horizontal inhomogeneity index threshold
+%                           (used when findN_smallest_H is false)
+%       .H_N_smallest    - Number of MODIS pixels with smallest H to keep
+%                           (used when findN_smallest_H is true)
 %
 %   plot_data - (Optional) Flag or structure for plotting control
 %               (currently not used in function but reserved for future plotting)
@@ -52,8 +62,8 @@
 %       .num_emit_pixels_per_modis - Number of EMIT pixels found in each
 %                                    MODIS pixel before random selection (n_matches x 1)
 %       .distance_modis_emit_km - Distance between each MODIS-EMIT pair (n_total x 1)
-%       .distance_emit_airs_km  - Distance between MODIS and AIRS pixels (n_total x 1)
-%       .distance_emit_amsr_km  - Distance between MODIS and AMSR pixels (n_total x 1)
+%       .distance_modis_airs_km  - Distance between MODIS and AIRS pixels (n_total x 1)
+%       .distance_modis_amsr_km  - Distance between MODIS and AMSR pixels (n_total x 1)
 %
 %   emit - Structure containing EMIT L1B radiance data
 %       (returned from retrieveEMIT_data function)
@@ -150,6 +160,11 @@ modis_long = double(modis.geo.long);
 
 %% Apply criteria filters first (more efficient than checking spatial overlap first)
 
+% Set default for findN_smallest_H if not provided
+if ~isfield(criteria, 'findN_smallest_H')
+    criteria.findN_smallest_H = false;
+end
+
 % Which cloud phase should we look for?
 if strcmp(criteria.cld_phase, 'water')==true
     is_liquidWater = modis.cloud.phase==2;           % 2 is the value designated for liquid water
@@ -161,18 +176,12 @@ end
 is_tauGreater_and_Less = modis.cloud.optThickness17 >= criteria.cld_tau_min &...
     modis.cloud.optThickness17 <= criteria.cld_tau_max;
 
-% Set the criteria for the horizontal homogeneity index
-is_H_lessThan = modis.cloud.inhomogeneity_index(:,:,2) < criteria.H;
-
 % Find pixels where the effective radius retrieval uncertainty is less than 10 percent
 is_reUncertLessThan10Percent = modis.cloud.effRad_uncert_17<=10;
 
 % Check if over ocean
 isOcean = reshape(land_or_ocean(modis_lat(:), modis_long(:), 20, false), size(modis_lat));
 
-% Combine all criteria
-idx_criteria = logical(is_liquidWater .* is_tauGreater_and_Less .*...
-                       is_reUncertLessThan10Percent .* is_H_lessThan .* isOcean);
 
 %% Find MODIS pixels within EMIT footprint using convex hull
 
@@ -188,19 +197,73 @@ left_edge = [emit_lat(:,1), emit_long(:,1)];
 right_edge = [emit_lat(:,end), emit_long(:,end)];
 
 % Combine to form boundary (counter-clockwise)
-boundary_pts = [top_edge; 
-                flipud(right_edge(2:end-1,:)); 
-                flipud(bottom_edge); 
+boundary_pts = [top_edge;
+                flipud(right_edge(2:end-1,:));
+                flipud(bottom_edge);
                 left_edge(2:end-1,:)];
 
 % Find MODIS pixels inside the EMIT boundary
 idx_in_footprint = inpolygon(modis_lat(:), modis_long(:), boundary_pts(:,1), boundary_pts(:,2));
 idx_in_footprint = reshape(idx_in_footprint, size(modis_lat));
 
-%% Combine footprint constraint with other criteria
-idx_combined_master = logical(idx_in_footprint .* idx_criteria);
 
-fprintf('Found %d MODIS pixels meeting all criteria within EMIT footprint\n', sum(idx_combined_master(:)));
+%% Combine footprint constraint with criteria
+
+if criteria.findN_smallest_H == false
+
+    % ---- Option 1: Use H threshold ----
+    % Keep all pixels with H < criteria.H
+    is_H_lessThan = modis.cloud.inhomogeneity_index(:,:,2) < criteria.H;
+
+    idx_criteria = logical(is_liquidWater .* is_tauGreater_and_Less .*...
+                           is_reUncertLessThan10Percent .* is_H_lessThan .* isOcean);
+
+    idx_combined_master = logical(idx_in_footprint .* idx_criteria);
+
+    fprintf('Found %d MODIS pixels meeting all criteria (H < %.2f) within EMIT footprint\n',...
+        sum(idx_combined_master(:)), criteria.H);
+
+else
+
+    % ---- Option 2: Find N pixels with smallest H ----
+    % First, find all pixels meeting phase, tau, re uncertainty, ocean,
+    % and footprint criteria (no H threshold applied)
+    idx_criteria_noH = logical(is_liquidWater .* is_tauGreater_and_Less .*...
+                               is_reUncertLessThan10Percent .* isOcean);
+
+    idx_candidates = logical(idx_in_footprint .* idx_criteria_noH);
+
+    n_candidates = sum(idx_candidates(:));
+    fprintf('Found %d MODIS pixels meeting all criteria (no H filter) within EMIT footprint\n', n_candidates);
+
+    % Get the H values for the candidate pixels
+    H_values = modis.cloud.inhomogeneity_index(:,:,2);
+    H_candidates = H_values(idx_candidates);
+
+    % Sort by H value (ascending) and keep the N smallest
+    N = criteria.H_N_smallest;
+
+    if n_candidates <= N
+        % Fewer candidates than requested — keep all
+        idx_combined_master = idx_candidates;
+        fprintf('Keeping all %d candidates (fewer than requested N = %d)\n', n_candidates, N);
+
+    else
+        % Find the N smallest H values
+        [~, sort_idx] = sort(H_candidates, 'ascend');
+        idx_keep = sort_idx(1:N);
+
+        % Convert back to a logical mask over the full MODIS grid
+        candidate_linear_idx = find(idx_candidates);
+        idx_combined_master = false(size(modis_lat));
+        idx_combined_master(candidate_linear_idx(idx_keep)) = true;
+
+        fprintf('Selected %d MODIS pixels with smallest H values (H range: %.4f to %.4f)\n',...
+            N, H_candidates(sort_idx(1)), H_candidates(sort_idx(N)));
+
+    end
+
+end
 
 %% Find row/column indices for MODIS pixels and match with closest EMIT, AIRS, and AMSR pixels
 
@@ -234,8 +297,8 @@ overlap.amsr.linear_idx = zeros(n_total_max, 1);
 
 % Pre-allocate distance arrays
 overlap.distance_modis_emit_km = zeros(n_total_max, 1);
-overlap.distance_emit_airs_km = zeros(n_total_max, 1);
-overlap.distance_emit_amsr_km = zeros(n_total_max, 1);
+overlap.distance_modis_airs_km = zeros(n_total_max, 1);
+overlap.distance_modis_amsr_km = zeros(n_total_max, 1);
 
 % Track how many EMIT pixels were found in each MODIS pixel (before selection)
 overlap.num_emit_pixels_per_modis = zeros(n_matches, 1);
@@ -420,8 +483,8 @@ for nn = 1:n_matches
 
     % Distances
     overlap.distance_modis_emit_km(out_range) = dist_km;
-    overlap.distance_emit_airs_km(out_range) = dist_modis_airs;
-    overlap.distance_emit_amsr_km(out_range) = dist_modis_amsr;
+    overlap.distance_modis_airs_km(out_range) = dist_modis_airs;
+    overlap.distance_modis_amsr_km(out_range) = dist_modis_amsr;
 
     idx_out = idx_out + n_selected;
 
@@ -443,8 +506,8 @@ if n_total < n_total_max
     overlap.amsr.col = overlap.amsr.col(1:n_total);
     overlap.amsr.linear_idx = overlap.amsr.linear_idx(1:n_total);
     overlap.distance_modis_emit_km = overlap.distance_modis_emit_km(1:n_total);
-    overlap.distance_emit_airs_km = overlap.distance_emit_airs_km(1:n_total);
-    overlap.distance_emit_amsr_km = overlap.distance_emit_amsr_km(1:n_total);
+    overlap.distance_modis_airs_km = overlap.distance_modis_airs_km(1:n_total);
+    overlap.distance_modis_amsr_km = overlap.distance_modis_amsr_km(1:n_total);
 end
 
 %% Remove EMIT pixels that have been masked out (all-NaN radiance)
@@ -480,8 +543,8 @@ if n_masked > 0
     overlap.amsr.col = overlap.amsr.col(idx_keep);
     overlap.amsr.linear_idx = overlap.amsr.linear_idx(idx_keep);
     overlap.distance_modis_emit_km = overlap.distance_modis_emit_km(idx_keep);
-    overlap.distance_emit_airs_km = overlap.distance_emit_airs_km(idx_keep);
-    overlap.distance_emit_amsr_km = overlap.distance_emit_amsr_km(idx_keep);
+    overlap.distance_modis_airs_km = overlap.distance_modis_airs_km(idx_keep);
+    overlap.distance_modis_amsr_km = overlap.distance_modis_amsr_km(idx_keep);
 
     % Check if any MODIS pixel lost ALL of its EMIT pixels
     % If so, remove those MODIS (and corresponding AIRS/AMSR) entries entirely
@@ -511,13 +574,13 @@ if n_total > 0
     fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_emit_km));
     fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_emit_km));
 
-    fprintf('\nAverage distance between matched MODIS-AIRS pixels: %.2f km\n', mean(overlap.distance_emit_airs_km));
-    fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_airs_km));
-    fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_airs_km));
+    fprintf('\nAverage distance between matched MODIS-AIRS pixels: %.2f km\n', mean(overlap.distance_modis_airs_km));
+    fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_airs_km));
+    fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_airs_km));
 
-    fprintf('\nAverage distance between matched MODIS-AMSR pixels: %.2f km\n', mean(overlap.distance_emit_amsr_km));
-    fprintf('Median distance: %.2f km\n', median(overlap.distance_emit_amsr_km));
-    fprintf('Max distance: %.2f km\n', max(overlap.distance_emit_amsr_km));
+    fprintf('\nAverage distance between matched MODIS-AMSR pixels: %.2f km\n', mean(overlap.distance_modis_amsr_km));
+    fprintf('Median distance: %.2f km\n', median(overlap.distance_modis_amsr_km));
+    fprintf('Max distance: %.2f km\n', max(overlap.distance_modis_amsr_km));
 else
     fprintf('\nNo EMIT pixels remaining after cloud mask removal.\n');
 end

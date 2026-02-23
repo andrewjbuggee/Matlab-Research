@@ -2,116 +2,6 @@
 
 % By Andrew John Buggee
 
-%% Plot the HySICS retrieval along with the in-situ measurement
-
-% ** only considering re_profile uncertainty **
-
-clear variables
-
-
-% Determine which computer you're using
-which_computer = whatComputer();
-
-% Load simulated measurements
-if strcmp(which_computer,'anbu8374')==true
-
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
-
-    % define the folder where the Vocals-Rex in-situ derived measurements
-    % are located
-    folder_paths.retrieval = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-        'paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1/'];
-
-
-elseif strcmp(which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-
-    % define the folder where the Vocals-Rex in-situ derived measurements
-    % are located
-    folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
-        'paper2_variableSweep/full_retrieval_logSpace_newCov_VR_meas_allBands_3/'];
-
-
-
-elseif strcmp(which_computer,'curc')==true
-
-
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
-
-
-end
-
-
-% First step through all files in the directory and remove invisble files
-% or directories
-
-% Grab filenames in drive
-filenames_retrieval = dir(folder_paths.retrieval);
-idx_2delete = [];
-for nn = 1:length(filenames_retrieval)
-
-    if strcmp(filenames_retrieval(nn).name(1), 'd')~=true
-
-        idx_2delete = [idx_2delete, nn];
-
-    end
-
-end
-
-% delete rows that don't have retrieval filenames
-filenames_retrieval(idx_2delete) = [];
-
-
-% ------------------------------------------------------------
-% -- For full_retrieval_logSpace_newCov_VR_meas_allBands_3 ---
-% ------------------------------------------------------------
-% profile_indexes for paper = [3, 6, 7, 9, 18]
-%plt_idx = 17;
-% ------------------------------------------------------------
-
-
-% -------------------------------------------------------------------------------
-% -- For full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_uncert_1 ---
-% -------------------------------------------------------------------------------
-% profile_indexes for paper = [3, 6, 7, 9, 18]
-plt_idx = 4;
-% ------------------------------------------------------------
-
-
-fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_retrieval(plt_idx).name);
-
-
-
-% ** Paper Worthy **
-% -------------------------------------
-% ---------- Save figure --------------
-% save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-    num2str(plt_idx), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-title('');
-exportgraphics(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-    num2str(plt_idx), '.jpg'],'Resolution', 400);
-% -------------------------------------
-% -------------------------------------
-
-
 
 
 %% Plot true color image from EMIT with overlapping footprints from the Aqua instruments
@@ -444,7 +334,240 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
     % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
-    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_6';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_6';
+
+    retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
+
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+
+    % mie folder location
+    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+
+
+end
+
+
+
+% Grab filenames in drive
+filenames_retrieval = dir(retrieval_directory);
+idx_2delete = [];
+for nn = 1:length(filenames_retrieval)
+
+    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == false
+
+        idx_2delete = [idx_2delete, nn];
+
+    end
+
+end
+
+% delete rows that don't have retrieval filenames
+filenames_retrieval(idx_2delete) = [];
+
+% ----------------------------------------
+% -- For Retrieval Results from Take 4 ---
+% ----------------------------------------
+% profile_indexes for paper = [5, 12, ]
+plt_idx = 36;
+% ------------------------------------------------------------
+
+load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name])
+
+
+
+
+% ----------------------------------------
+% *** Extract the pixel number ***
+% ----------------------------------------
+pixel_num = str2double(extractBetween([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name],...
+    'pixel_', '_'));
+
+
+
+% ----------------------------------------
+% *** Load MODIS, AIRS and AMSR-E data ***
+% ----------------------------------------
+
+% Load EMIT data
+[emit, folder_paths.L1B_fileName_emit] = retrieveEMIT_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+
+% Load Aqua/MODIS Data
+[modis, ~] = retrieveMODIS_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+
+% Load AIRS data
+airs = readAIRS_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+
+% Load AMSR-E/2 data
+amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+% ----------------------------------------
+
+
+
+
+% ----------------------------------------
+% Remove data that is not needed
+% ----------------------------------------
+
+emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
+
+modis = remove_unwanted_modis_data(modis, overlap_pixels.modis);
+
+airs = remove_unwanted_airs_data(airs, overlap_pixels.airs);
+
+amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
+
+
+
+
+% ----------------------------------------------------
+% Compute the above cloud precipitable water from AIRS
+% ----------------------------------------------------
+if isfield(airs, 'acpw') == false
+
+    assumed_cloudTopHeight = GN_inputs.RT.z_topBottom(1)*1e3;    % meters - cloud top height used by libRadtran
+
+    % Compute the above cloud precipitable water from AIRS data
+    airs = convert_AIRS_prof_2_mass_density(airs, atm_data_directory,...
+        pixel_num, overlap_pixels, [], false, assumed_cloudTopHeight);
+
+end
+
+
+
+
+% -------------------------------------------------------
+% -------------------------------------------------------
+use_new_LWP_calc = true;
+
+if use_new_LWP_calc == true
+
+% ** Compute new updated LWP calc ***
+re_profile = create_droplet_profile2([GN_outputs.retrieval(1,end), GN_outputs.retrieval(2,end)],...
+    GN_inputs.RT.z, 'altitude', GN_inputs.model.profile.type);
+
+
+% define the z vector
+z = linspace(GN_inputs.RT.z_topBottom(2), GN_inputs.RT.z_topBottom(1), length(re_profile)+1)';                 % km - altitude vector
+
+% define the z midpoint at each layer and normalize it!
+z_norm = z - z(1);
+z_norm_mid = (diff(z_norm)/2 + z_norm(1:end-1));
+
+
+% The radius input is defined as [r_start, r_end, r_step].
+% where r_step is the interval between radii values (used only for
+% vectors of radii). A 0 tells the code there is no step. Finally, the
+% radius values have to be in increasing order.
+ext_bulk_coeff_per_LWC = zeros(length(re_profile), 1);
+
+for rr = 1:length(re_profile)
+
+    mie_radius = [re_profile(rr), re_profile(rr), 0];    % microns
+
+    size_distribution = {'gamma', GN_inputs.RT.distribution_var(rr)};           % droplet distribution
+
+    % Create a mie file
+    [input_filename, output_filename] = write_mie_file('MIEV0', 'water',...
+        mie_radius, 500, size_distribution, 'verbose', rr, round(re_profile(rr), 4), mie_folder_path);
+
+    % run the mie file
+    [~] = runMIE(mie_folder_path, input_filename,output_filename, which_computer);
+
+    % Read the output of the mie file
+    [mie,~,~] = readMIE(mie_folder_path, output_filename);
+
+    ext_bulk_coeff_per_LWC(rr) = mie.Qext;       % km^-1 / (cm^3 / m^3)
+
+end
+
+
+% ** Assuming liquid water content increases linearly with depth **
+z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
+dz_km = z(2) - z(1);           % kilometers
+
+slope = GN_outputs.retrieval(3,end) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
+
+% solve for the linear liquid water content profile
+%lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
+lwc = slope * z_kilometers_upper_boundary;                     % g/m^3 - grams of water per meter cubed of air
+
+
+lwp_newCalc = trapz( 1e3 .* z_norm_mid, lwc);    % g/m^2
+
+GN_outputs.LWP_newCalc = lwp_newCalc;
+
+end
+
+% -------------------------------------------------------
+% -------------------------------------------------------
+
+
+
+
+
+% plot_EMIT_retrieved_vertProf(GN_outputs, tblut_retrieval, GN_inputs)
+fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN_inputs, modis,...
+    airs, amsr, pixel_num, overlap_pixels, use_new_LWP_calc);
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(which_computer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(which_computer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+exportgraphics(fig3,[folderpath_figs,...
+    'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
+    'pixelNum-', num2str(pixel_num), '.png'],'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
+
+
+%% Plots the mean EMIT retrieval over N pixels within a single MODIS pixel
+
+clear variables
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    retrieval_directory = '/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+
+    coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_6';
+
+    retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
 
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
@@ -474,15 +597,59 @@ end
 % delete rows that don't have retrieval filenames
 filenames_retrieval(idx_2delete) = [];
 
+retrieval_output = cell(7, 1);   % There are seven directories 
+
+date_str = cell(length(filenames_retrieval), 1);
+
+% Step through the file names and store the retirevals over different
+% pixels for the same scence
+for nn = 1:length(filenames_retrieval)
+
+    date_str(nn) = extractBetween(filenames_retrieval(nn).name, 'dropRetrieval_', '_EMIT');
+end
+
+% Find the number of unique date strings
+date_str = unique(date_str);
+
+% Now step through each filename again and store data for each unique day
+for nn = 1:length(filenames_retrieval)
+
+    date_str_2save = extractBetween(filenames_retrieval(nn).name, 'dropRetrieval_', '_EMIT');
+
+    for mm = 1:length(date_str)
+
+        idx_2save = [];
+        if strcmp(date_str{mm}, date_str_2save) == true
+
+            idx_2save = mm;
+
+            break   
+
+        end
+
+    end
+
+    % Store the data
+    load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name])
+    retrieval_output{idx_2save} = [retrieval_output{idx_2save}, GN_outputs.retrieval(:, end)];
+
+
+
+end
+
+
+        
+
+
+
 % ----------------------------------------
 % -- For Retrieval Results from Take 4 ---
 % ----------------------------------------
 % profile_indexes for paper = [1, 4, ]
-plt_idx = 8;
+plt_idx = 1;
 % ------------------------------------------------------------
 
 load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name])
-
 
 
 
@@ -491,6 +658,7 @@ load([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).nam
 % ----------------------------------------
 pixel_num = str2double(extractBetween([filenames_retrieval(plt_idx).folder, '/', filenames_retrieval(plt_idx).name],...
     'pixel_', '_'));
+
 
 
 
@@ -593,9 +761,16 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % ------ Folders on my Macbook --------
     % -------------------------------------
+    
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4';
 
-    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
-    retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+    % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+
+    % retrieval_directory = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/',...
+    %     'Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_7'];
+
+    retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
+
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];

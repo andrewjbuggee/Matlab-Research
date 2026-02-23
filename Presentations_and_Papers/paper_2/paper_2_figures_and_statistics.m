@@ -105,21 +105,21 @@ fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-    num2str(plt_idx), '.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-title('');
-exportgraphics(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-    num2str(plt_idx), '.jpg'],'Resolution', 500);
+% % save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
+%     num2str(plt_idx), '.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% title('');
+% exportgraphics(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
+%     num2str(plt_idx), '.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -761,8 +761,13 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
     % mie folder location
     mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
 
     % % define the folder where retrievals are located
     % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
@@ -772,9 +777,12 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % define the folder where retrievals are located
     % *** 2/13/2026 - Retrieval with overlapping EMIT/Aqua data
     %          
-    folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
+    % folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
 
-    addpath(folder_paths.retrieval);
+
+    % define the folder where retrievals are located
+    % *** 2/15/2026 - Retrieval with overlapping EMIT/Aqua data             
+    folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7';
 
 
 
@@ -797,7 +805,7 @@ filenames_retrieval = dir(folder_paths.retrieval);
 idx_2delete = [];
 for nn = 1:length(filenames_retrieval)
 
-    if strcmp(filenames_retrieval(nn).name(1), 'd')~=true
+    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == false
 
         idx_2delete = [idx_2delete, nn];
 
@@ -820,9 +828,8 @@ rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 % store the TBLUT LWP estimate with Wood-Hartmann adjustement
 % store the in-situ LWP measurement
 lwp_retrieval = zeros(size(filenames_retrieval));
-lwp_tblut = zeros(size(filenames_retrieval));
-lwp_tblut_WH = zeros(size(filenames_retrieval));
-lwp_inSitu = zeros(size(filenames_retrieval));
+lwp_modis = zeros(size(filenames_retrieval));
+lwp_modis_WH = zeros(size(filenames_retrieval));
 
 lwp_newCalc = zeros(size(filenames_retrieval));
 
@@ -830,21 +837,91 @@ lwp_newCalc = zeros(size(filenames_retrieval));
 % store the ACPW retrieval
 % store the true ACPW used in the forward model - measured by....
 acpw_retrieval = zeros(size(filenames_retrieval));
-acpw_inSitu = zeros(size(filenames_retrieval));
+acpw_modis = zeros(size(filenames_retrieval));
+acpw_airs = zeros(size(filenames_retrieval));
 
 
 % store the optical depth retrieval
 % store the in-situ measured optical depth
 tauC_retrieval = zeros(size(filenames_retrieval));
-tauC_inSitu = zeros(size(filenames_retrieval));
+tauC_modis = zeros(size(filenames_retrieval));
+
+
 
 
 
 for nn = 1:length(filenames_retrieval)
 
-    clear ds
+    clear ds emit modis airs
 
-    ds = load(filenames_retrieval(nn).name);
+    ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+
+
+
+    % ----------------------------------------
+    % *** Extract the pixel number ***
+    % ----------------------------------------
+    pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
+        'pixel_', '_'));
+
+
+
+    % ----------------------------------------
+    % *** Load MODIS, AIRS and AMSR-E data ***
+    % ----------------------------------------
+
+    % Load EMIT data
+    % [emit, ~] = retrieveEMIT_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+
+    % Load Aqua/MODIS Data
+    [modis, ~] = retrieveMODIS_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+
+    % Load AIRS data
+    airs = readAIRS_L2_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+
+    % Load AMSR-E/2 data
+    % amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+    % ----------------------------------------
+
+    % ----------------------------------------
+    % Remove data that is not needed
+    % ----------------------------------------
+    % emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
+
+    modis = remove_unwanted_modis_data(modis, ds.overlap_pixels.modis);
+
+    airs = remove_unwanted_airs_data(airs, ds.overlap_pixels.airs);
+
+    % amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
+
+
+
+    % Compute the above cloud precipitable water from AIRS data
+    airs = convert_AIRS_prof_2_mass_density(airs, atm_data_directory,...
+        pixel_num, ds.overlap_pixels, [], false, ds.GN_inputs.RT.z_topBottom(1)*1e3);
+
+
+
+    % ** use the AIRS measurement closest to EMIT **
+    unique_airs_pix = unique(ds.overlap_pixels.airs.linear_idx);
+    unique_pix_idx_airs = zeros(1, length(ds.overlap_pixels.airs.linear_idx));
+    for xx = 1:length(unique_pix_idx_airs)
+
+        unique_pix_idx_airs(xx) = find(unique_airs_pix==ds.overlap_pixels.airs.linear_idx(xx));
+
+    end
+
+
+    % ** use the MODIS measurement closest to EMIT **
+    unique_modis_pix = unique(ds.overlap_pixels.modis.linear_idx);
+    unique_pix_idx_modis = zeros(1, length(ds.overlap_pixels.modis.linear_idx));
+    for xx = 1:length(unique_pix_idx_modis)
+
+        unique_pix_idx_modis(xx) = find(unique_modis_pix==ds.overlap_pixels.modis.linear_idx(xx));
+
+    end
+
+
 
     % -------------------------------------------------------
     % -------------------------------------------------------
@@ -852,14 +929,15 @@ for nn = 1:length(filenames_retrieval)
     lwp_retrieval(nn) = ds.GN_outputs.LWP;    % g/m^2
 
     % compute the LWP estimate using the TBLUT retrieval
-    lwp_tblut(nn) = (2 * rho_h2o * (ds.tblut_retrieval.minRe/1e6) * ds.tblut_retrieval.minTau)/3; % g/m^2
+    lwp_modis(nn) = (2 * rho_h2o *...
+        (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
+        modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ) )/3; % g/m^2
 
     % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
-    lwp_tblut_WH(nn) = 5/9 * rho_h2o * ds.tblut_retrieval.minTau * (ds.tblut_retrieval.minRe/1e6); % g/m^2
+    lwp_modis_WH(nn) = 5/9 * rho_h2o *...
+        (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
+        modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ); % g/m^2
 
-
-    % What is the true LWP
-    lwp_inSitu(nn) = ds.GN_inputs.measurement.lwp;   % g/m^2
     % -------------------------------------------------------
     % -------------------------------------------------------
 
@@ -935,18 +1013,21 @@ for nn = 1:length(filenames_retrieval)
     acpw_retrieval(nn) = ds.GN_outputs.retrieval(end,end);    % mm
 
     % What is the true LWP
-    acpw_inSitu(nn) = ds.GN_inputs.measurement.actpw;   % mm
+    acpw_modis(nn) = modis.vapor.col_nir( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
+
+
+    acpw_airs(nn) = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );
     % -------------------------------------------------------
     % -------------------------------------------------------
 
 
     % -------------------------------------------------------
     % -------------------------------------------------------
-    % store above cloud preciptiable water
+    % store the retrieved optical depth
     tauC_retrieval(nn) = ds.GN_outputs.retrieval(3,end);    %
 
-    % What is the true LWP
-    tauC_inSitu(nn) = ds.GN_inputs.measurement.tau_c;   %
+    % What is the MODIS optical depth
+    tauC_modis(nn) = modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) );
     % -------------------------------------------------------
     % -------------------------------------------------------
 
@@ -957,19 +1038,38 @@ end
 % -------------------------------------------------------
 % Compute statistics!!
 
-% Let's compute the root-mean-square percent error
-rms_err_lwp_hyperspectral = 100 * sqrt( mean( (1 - lwp_retrieval./lwp_inSitu).^2 ));  % percent
-rms_err_lwp_tblut = 100 * sqrt( mean( (1 - lwp_tblut./lwp_inSitu).^2 ));  % percent
-rms_err_lwp_tblut_WH = 100 * sqrt( mean( (1 - lwp_tblut_WH./lwp_inSitu).^2 ));  % percent
+% % Let's compute the root-mean-square percent error
+% rms_err_lwp_hyperspectral = 100 * sqrt( mean( (1 - lwp_retrieval./lwp_inSitu).^2 ));  % percent
+% rms_err_lwp_tblut = 100 * sqrt( mean( (1 - lwp_tblut./lwp_inSitu).^2 ));  % percent
+% rms_err_lwp_tblut_WH = 100 * sqrt( mean( (1 - lwp_tblut_WH./lwp_inSitu).^2 ));  % percent
+% 
+% % using the new LWP calc!
+% rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
 
-% using the new LWP calc!
-rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
+
+% Let's compute the average percent difference for LWP
+avg_percent_LWP_diff_newCacl_MODIS = mean( abs( 100 .* (1 - lwp_newCalc./lwp_modis) ));
+avg_percent_LWP_diff_newCalc_MODIS_WH = mean( abs( 100 .* (1 - lwp_newCalc./lwp_modis_WH) ));
+
+avg_percent_LWP_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis) ));
+avg_percent_LWP_diff_newCalc_MODIS_WH_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis_WH) ));
 
 
-% Let's compute the average percent difference
-avg_percent_diff_newCacl = mean( abs( 100 .* (1 - lwp_newCalc./lwp_inSitu) ));
-avg_percent_diff_tblut = mean( abs( 100 .* (1 - lwp_tblut./lwp_inSitu) ));
-avg_percent_diff_tblutWH = mean( abs( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) ));
+
+% Let's compute the average percent difference for ACPW
+avg_percent_ACPW_diff_newCacl_MODIS = mean( abs( 100 .* (1 - acpw_retrieval./acpw_modis) ));
+avg_percent_ACPW_diff_newCalc_AIRS = mean( abs( 100 .* (1 - acpw_retrieval./acpw_airs) ));
+
+avg_percent_ACPW_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis) ));
+avg_percent_ACPW_diff_newCalc_AIRS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_airs) ));
+
+avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_modis) ));
+
+
+% Let's compute the average percent difference for optical thickness
+avg_percent_tau_diff_newCacl_MODIS = mean( abs( 100 .* (1 - tauC_retrieval./tauC_modis) ));
+
+avg_percent_tau_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - tauC_retrieval./tauC_modis) ));
 
 
 
