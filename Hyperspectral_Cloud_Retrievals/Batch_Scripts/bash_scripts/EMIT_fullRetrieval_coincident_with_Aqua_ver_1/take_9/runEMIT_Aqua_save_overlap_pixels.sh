@@ -106,8 +106,6 @@ echo "Starting MATLAB at $(date)"
 
 time matlab -nodesktop -nodisplay -r "\
     addpath(genpath('/projects/anbu8374/Matlab-Research')); \
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
     clear variables; \
     addLibRadTran_paths; \
     folder_paths = define_EMIT_dataPath_and_saveFolders(5); \
