@@ -108,7 +108,7 @@ criteria.H_N_smallest = 1;         % keep the 5 MODIS pixels with smallest H
 emit_pixels_per_modis = 5;        % select 30 EMIT pixels within each MODIS pixel
 
  
-parfor nn = 1:length(sub_directories)
+for nn = 1:length(sub_directories)
 
 
     [n_saved, out_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, true, emit_pixels_per_modis,...
