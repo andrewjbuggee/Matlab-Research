@@ -73,8 +73,8 @@ elseif strcmp(which_computer,'curc')==true
 
     % add folders to the path
     addpath(genpath('/projects/anbu8374/Matlab-Research'));
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
+    % addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
+    % addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
     addLibRadTran_paths;
 
     % define the folder where the coincident data is stored
