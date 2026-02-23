@@ -79,6 +79,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
         end
 
+        mkdir(folder_paths.output_dir)
+
     end
 
 
@@ -129,6 +131,8 @@ elseif strcmp(which_computer,'curc')==true
         end
 
     end
+
+    mkdir(folder_paths.output_dir)
 
 
 end

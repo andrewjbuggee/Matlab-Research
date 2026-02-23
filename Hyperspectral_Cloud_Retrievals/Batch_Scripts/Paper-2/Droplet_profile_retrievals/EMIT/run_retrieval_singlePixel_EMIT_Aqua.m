@@ -28,7 +28,7 @@
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, folder_rev_num)
+    print_status_updates, print_libRadtran_err, folder_rev_num, output_dir)
 
 
 %% Load the per-pixel .mat file
@@ -123,32 +123,11 @@ delete([folder_paths.libRadtran_mie_folder, '*.INP'])
 delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 
-%% Set output filename
+%% Set output filename and directory
 
 
-folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
-    'Droplet_profile_retrievals/take_', num2str(folder_rev_num), '/'];
+folder_paths.saveOutput_directory = output_dir;
 
-% If the directory doesn't exist, create it
-if ~exist(folder_paths.saveOutput_directory, 'dir') == true
-
-    mkdir(folder_paths.saveOutput_directory)
-
-% else
-% 
-%     while exist(folder_paths.saveOutput_directory, 'dir') == true
-% 
-%         folder_rev_num = folder_rev_num + 1;
-% 
-%         folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
-%             folder_paths.coincident_dataFolder,...
-%             'Droplet_profile_retrievals/take_', num2str(folder_rev_num), '/'];
-% 
-%     end
-% 
-%     mkdir(folder_paths.saveOutput_directory)
-
-end
 
 rev = 1;
 folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...

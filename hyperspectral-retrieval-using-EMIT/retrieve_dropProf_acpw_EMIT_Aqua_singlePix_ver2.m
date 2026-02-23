@@ -300,41 +300,6 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % *** Retreive Column Water Vapor! ***
     GN_inputs.RT.modify_aboveCloud_columnWaterVapor = true;         % modify the column above the cloud
 
-    %% Set output filename
-
-    rev = 1;
-
-    
-    folder_paths.saveOutput_directory = [folder_paths.coincident_dataPath,...
-        'Droplet_profile_retrievals/take_4/'];
-
-
-    folder_paths.saveOutput_filename = [folder_paths.saveOutput_directory,...
-        num2str(numel(GN_inputs.bands2run)),...
-        'bands_EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3),...
-        '_pixel_', num2str(pixel_num),...
-        '_ran-on-',char(datetime("today")), '_rev', num2str(rev),'.mat'];
-
-
-    
-    % If the directory doesn't exist, create it!
-    if ~exist(folder_paths.saveOutput_directory, 'dir')
-    
-        mkdir(folder_paths.saveOutput_directory)
-    
-    end
-
-
-
-
-    while isfile(folder_paths.saveOutput_filename)
-        rev = rev+1;
-        if rev<10
-            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-5), num2str(rev),'.mat'];
-        elseif rev>10
-            folder_paths.saveOutput_filename = [folder_paths.saveOutput_filename(1:end-6), num2str(rev),'.mat'];
-        end
-    end
 
 
     %% Define the spectral response function of EMIT for the desired Bands
