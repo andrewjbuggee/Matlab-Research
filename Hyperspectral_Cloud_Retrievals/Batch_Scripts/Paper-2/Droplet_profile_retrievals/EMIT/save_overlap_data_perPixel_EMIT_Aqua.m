@@ -49,7 +49,7 @@ end
 
 folder_paths.coincident_dataFolder = sub_directory;
 
-[overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+[overlap_pixels, emit, modis, airs, amsr] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
     criteria, emit_pixels_per_modis);
 
 % If no pixels found, increase the horizontal inhomogeneity index
@@ -58,7 +58,7 @@ while isempty(overlap_pixels.modis.linear_idx) == true
     disp([newline, 'No overlapping pixels that meet defined criteria. Increasing H index....', newline])
     criteria.H = criteria.H + 0.1;
 
-    [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+    [overlap_pixels, emit, modis, airs, amsr] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
         criteria, emit_pixels_per_modis);
 
     if isempty(overlap_pixels.modis.linear_idx) == false

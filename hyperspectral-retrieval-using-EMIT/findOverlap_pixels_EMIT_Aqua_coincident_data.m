@@ -133,7 +133,7 @@
 % By Andrew John Buggee
 %%
 
-function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
+function [overlap, emit, modis, airs, amsr] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
     criteria, n_emit_per_modis)
 
 
