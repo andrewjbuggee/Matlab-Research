@@ -116,6 +116,7 @@ time matlab -nodesktop -nodisplay -r "\
                        '2024_1_13_T194658_1/', '2024_5_17_T183906_1/', '2024_5_17_T183918_1/', \
                        '2024_5_17_T183930_1/'}; \
     folder_paths.output_dir = '${OUT_DIR}'; \
+    mkdir(folder_paths.output_dir); \
     criteria.cld_phase = '${CLD_PHASE}'; \
     criteria.cld_cvr = ${CLD_CVR}; \
     criteria.cld_tau_min = ${CLD_TAU_MIN}; \
