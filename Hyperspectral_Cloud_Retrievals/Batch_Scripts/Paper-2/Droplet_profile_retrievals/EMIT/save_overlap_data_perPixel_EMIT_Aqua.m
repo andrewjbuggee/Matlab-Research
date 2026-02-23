@@ -89,10 +89,36 @@ if subdir_name(end) == '/'
     subdir_name = subdir_name(1:end-1);
 end
 
-output_dir = [folder_paths.coincident_dataPath, 'overlap_data_per_pixel/'];
+
+% IF running this on the CU supercomputer, store the data on the scratch
+% directory. Scratch has 10 TB of storage and is designed for high
+% performance reading/writing, but everything stored is scratch is deleted
+% each 90 days.
+if strcmp(folder_paths.which_computer,'curc')==true
+
+    ver = 1;
+
+    % store on scratch
+    output_dir = ['/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver', num2str(ver)];
+
+else
+
+    output_dir = [folder_paths.coincident_dataPath, 'overlap_data_per_pixel/'];
+
+end
 
 if ~exist(output_dir, 'dir')
     mkdir(output_dir)
+
+else 
+
+    while exist(output_dir, 'dir')==7
+
+        ver = ver + 1;
+        output_dir = ['/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver', num2str(ver)];
+
+    end
+
 end
 
 
@@ -164,28 +190,28 @@ for pp = 1:total_pixels
     % ---- Extract only pixel pp from EMIT ----
     % EMIT arrays have total_pixels entries after trimming.
     % extract_pixel_from_struct slices dimension matching total_pixels.
-    emit_pp = extract_pixel_from_struct(emit, pp, total_pixels);                      %#ok<NASGU>
+    emit_pp = extract_pixel_from_struct(emit, pp, total_pixels);                      
 
     % ---- Extract the one overlapping MODIS pixel ----
     % MODIS arrays have n_unique_modis entries after trimming.
     % modis_idx_for_emit(pp) gives the index into those trimmed arrays.
-    modis_pp = extract_pixel_from_struct(modis, modis_idx_for_emit(pp), n_unique_modis); %#ok<NASGU>
+    modis_pp = extract_pixel_from_struct(modis, modis_idx_for_emit(pp), n_unique_modis); 
 
     % ---- Extract the one overlapping AIRS pixel ----
     % AIRS arrays have n_unique_airs entries after trimming.
-    airs_pp = extract_pixel_from_struct(airs, airs_idx_for_emit(pp), n_unique_airs);     %#ok<NASGU>
+    airs_pp = extract_pixel_from_struct(airs, airs_idx_for_emit(pp), n_unique_airs);     
 
     % ---- Extract the one overlapping AMSR pixel ----
     % AMSR arrays have n_unique_amsr entries after trimming.
-    amsr_pp = extract_pixel_from_struct(amsr, amsr_idx_for_emit(pp), n_unique_amsr);     %#ok<NASGU>
+    amsr_pp = extract_pixel_from_struct(amsr, amsr_idx_for_emit(pp), n_unique_amsr);    
 
     % ---- Extract this pixel from overlap_pixels ----
     % overlap_pixels arrays all have total_pixels entries.
-    overlap_pixels_pp = extract_pixel_from_struct(overlap_pixels, pp, total_pixels);     %#ok<NASGU>
+    overlap_pixels_pp = extract_pixel_from_struct(overlap_pixels, pp, total_pixels);     
 
     % Store the pixel number (always 1 in the saved file, since the
     % per-pixel structures contain only this one pixel's data)
-    pixel_num = 1; %#ok<NASGU>
+    pixel_num = 1; 
 
     % Define the output filename
     output_filename = [output_dir, 'overlap_EMIT_pixel_', num2str(pp, '%03d'), '_', subdir_name, '.mat'];
