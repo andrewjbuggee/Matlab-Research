@@ -43,9 +43,9 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % *** Define output directory ***
-    rev = 9;
+    rev = 8;
     output_dir = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/',...
-        'Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_', num2str(rev)];
+        'Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_', num2str(rev), '/'];
 
     if ~exist(output_dir, 'dir')
         mkdir(output_dir)
@@ -55,7 +55,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
         while exist(output_dir, 'dir')==7
 
             rev = rev + 1;
-            output_dir = [output_dir(1:end-1), num2str(rev), '/'];
+            if rev<10
+                output_dir = [output_dir(1:end-2), num2str(rev), '/'];
+            else
+                output_dir = [output_dir(1:end-3), num2str(rev), '/'];
+            end
 
         end
 
