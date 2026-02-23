@@ -2,8 +2,8 @@
 
 clear variables
 
-print_status_updates = true;
-print_libRadtran_err = true;
+print_status_updates = false;
+print_libRadtran_err = false;
 plot_figures = false; 
 save_figures = false; 
 
@@ -55,7 +55,11 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 % % delete rows that don't have retrieval filenames
 % sub_directories(idx_2delete) = [];
 
-    folder_paths.sub_directories = {'2023_9_16_T191118_1/', '2023_9_16_T191130_1/', '2023_9_16_T191142_1/',...	
+    % folder_paths.sub_directories = {'2023_9_16_T191118_1/', '2023_9_16_T191130_1/', '2023_9_16_T191142_1/',...	
+    %                                        '2024_1_13_T194658_1/', '2024_5_17_T183906_1/', '2024_5_17_T183918_1/',...
+    %                                        '2024_5_17_T183930_1/'};
+
+    sub_directories = {'2023_9_16_T191118_1/', '2023_9_16_T191130_1/', '2023_9_16_T191142_1/',...	
                                            '2024_1_13_T194658_1/', '2024_5_17_T183906_1/', '2024_5_17_T183918_1/',...
                                            '2024_5_17_T183930_1/'};
 
@@ -104,11 +108,11 @@ criteria.H_N_smallest = 1;         % keep the 5 MODIS pixels with smallest H
 emit_pixels_per_modis = 5;        % select 30 EMIT pixels within each MODIS pixel
 
  
-for nn = 1:length(folder_paths.sub_directories)
+parfor nn = 1:length(sub_directories)
 
-    folder_paths.coincident_dataFolder = folder_paths.sub_directories{nn};
 
-    [n_saved, out_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, true, emit_pixels_per_modis);
+    [n_saved, out_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, true, emit_pixels_per_modis,...
+        sub_directories{nn});
 
 end
 

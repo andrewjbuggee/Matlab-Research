@@ -32,7 +32,7 @@
 %%
 
 function [n_pixels_saved, output_dir] = save_overlap_data_perPixel_EMIT_Aqua(criteria, folder_paths, print_status_updates,...
-    emit_pixels_per_modis)
+    emit_pixels_per_modis, sub_directory)
 
 
 
@@ -43,8 +43,11 @@ function [n_pixels_saved, output_dir] = save_overlap_data_perPixel_EMIT_Aqua(cri
 %% Find overlapping pixels between EMIT and Aqua instruments
 
 if print_status_updates == true
-    disp([newline, 'Finding overlapping pixels for subdirectory: ', folder_paths.coincident_dataFolder, newline])
+    disp([newline, 'Finding overlapping pixels for subdirectory: ',...
+        sub_directory, newline])
 end
+
+folder_paths.coincident_dataFolder = sub_directory;
 
 [overlap_pixels, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
     criteria, emit_pixels_per_modis);
@@ -81,7 +84,7 @@ amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
 %% Create the output directory for per-pixel .mat files
 
 % Remove trailing slash from coincident_dataFolder for use in filenames
-subdir_name = folder_paths.coincident_dataFolder;
+subdir_name = sub_directory;
 if subdir_name(end) == '/'
     subdir_name = subdir_name(1:end-1);
 end
@@ -205,7 +208,7 @@ end
 if print_status_updates == true
 
     disp([newline, '--- Save Summary ---'])
-    disp(['Subdirectory: ', folder_paths.coincident_dataFolder])
+    disp(['Subdirectory: ', sub_directory])
     disp(['Total EMIT pixels found: ', num2str(total_pixels)])
     disp(['Pixels saved (non-masked): ', num2str(n_pixels_saved)])
     disp(['Pixels skipped (masked): ', num2str(total_pixels - n_pixels_saved)])
