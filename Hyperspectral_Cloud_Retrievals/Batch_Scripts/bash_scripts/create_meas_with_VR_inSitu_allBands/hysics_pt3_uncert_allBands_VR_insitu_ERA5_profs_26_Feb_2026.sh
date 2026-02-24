@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Because this is a job array, each job will request resources independently
