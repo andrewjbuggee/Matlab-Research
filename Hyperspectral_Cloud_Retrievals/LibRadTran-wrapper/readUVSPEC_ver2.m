@@ -74,7 +74,7 @@
 % --- By Andrew J. Buggee ---
 %% --- Read in Files ---
 
-function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC_ver2(path, fileName, inputs, compute_reflectivity)
+function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC_ver2(path, fileName, inputs, compute_reflectivity, vza_override, vaz_override)
 
 % How many files do we need to read?
 
@@ -100,8 +100,18 @@ data = [];
 
 
 rte_solver = inputs.RT.rte_solver;
-umuVec = round(cosd(inputs.RT.vza), 4);     % This is how it's coded in the function 'write-INP-file
-phiVec = inputs.RT.vaz;
+
+if exist('vza_override', 'var') && ~isempty(vza_override)
+    umuVec = round(cosd(vza_override), 4);
+else
+    umuVec = round(cosd(inputs.RT.vza), 4);     % This is how it's coded in the function 'write-INP-file'
+end
+
+if exist('vaz_override', 'var') && ~isempty(vaz_override)
+    phiVec = vaz_override;
+else
+    phiVec = inputs.RT.vaz;
+end
 
 numUmu = length(umuVec);
 numPhi = length(phiVec);
