@@ -70,7 +70,7 @@
 % By Andrew John Buggee
 %%
 
-function [era5, overlap_pixels] = findClosestProfile_ERA5_VOCALS_REx(vocals_rex, overlap_pixels, print_status_updates, which_computer)
+function era5 = findClosestProfile_ERA5_VOCALS_REx(vocals_rex, print_status_updates, which_computer)
 
 % Default: do not print status updates
 if isempty(print_status_updates)
@@ -147,7 +147,6 @@ vocalsRex_day_of_year  = day(datetime(2008, vocalsRex_month, vocalsRex_day_of_mo
 % Parse date and time from each ERA5 filename
 % Filename format: era5_vocalsrex_Month_YYYY_MM_dayDD.nc
 era5_day_of_year  = zeros(n_files, 1);
-era5_time_decimal = zeros(n_files, 1);
 
 for ff = 1:n_files
 
@@ -202,34 +201,32 @@ vocalsRex_datetime = datetime(2008, vocalsRex_month, vocalsRex_day_of_month, ...
 idx_time = idx_time(1);     % take first in case of tie
 
 
-idx_best = idx_same_day(idx_min_time);
-
-
 
 if print_status_updates
     disp([newline, 'Using ERA5 file: ', era5_files(idx_same_day).name])
-    disp(['Time difference between VOCALS-REx acquisition and ERA5 file: ', ...
+    disp([newline, 'ERA5 time step selected: ', char(utcTime(idx_time)), ' UTC'])
+    disp([newline, 'Time difference between VOCALS-REx acquisition and ERA5 file: ', ...
         num2str(minutes(min_ERA5_timeDiff), '%.1f'), ' minutes', newline])
 end
+
 
 
 %% Read the ERA5 NetCDF file
 
 % Parse the date from the best-matching ERA5 filename
-fname  = era5_files(idx_best).name;
-parts  = strsplit(fname, '_');
-era5_year    = str2double(parts{2});
-era5_month   = str2double(parts{3});
-era5_day_num = str2double(parts{4});
+fname  = era5_files(idx_same_day).name;
+parts = strsplit(fname, '_');
 
-
-
-
-
-if print_status_updates
-    disp(['ERA5 time step selected: ', char(utcTime(idx_time)), ' UTC'])
-    disp(['Time difference to VOCALS-REx acquisition: ', char(min_ERA5_timeDiff), newline])
+era5_year = str2double(parts{4});
+if strcmp(parts{3}, 'october')==true
+    era5_month = 10;
+elseif strcmp(parts{3}, 'November')==true
+    era5_month = 11;
 end
+era5_day_num = str2double(extractBetween(parts{5}, 'day', '.nc'));
+
+
+
 
 
 %% Read the ERA5 spatial grid and pressure levels
@@ -247,29 +244,19 @@ wgs84 = wgs84Ellipsoid('m');
 
 %% For each overlap pixel, find the closest ERA5 grid point
 
-n_overlap = length(overlap_pixels.vocalsRex.linear_idx);
 
-overlap_pixels.era5.linear_idx = zeros(n_overlap, 1);
-dist_era5_vocalsRex_m                = zeros(n_overlap, 1);
+% Get the lat/lon of this VOCALS-REx overlap pixel
+% vocalsRex_row = overlap_pixels.vocalsRex.row(pp);
+% vocalsRex_col = overlap_pixels.vocalsRex.col(pp);
+VR_lat  = double( vocals_rex.latitude(round(end/2)) );
+VR_lon  = double( vocals_rex.longitude(round(end/2)) );
 
-for pp = 1:n_overlap
+% Compute geodetic distance from this VOCALS-REx pixel to all ERA5 grid points [m]
+dist = distance(Lat, Lon, VR_lat, VR_lon, wgs84);
 
-    % Get the lat/lon of this VOCALS-REx overlap pixel
-    % vocalsRex_row = overlap_pixels.vocalsRex.row(pp);
-    % vocalsRex_col = overlap_pixels.vocalsRex.col(pp);
-    pix_lat  = double( vocals_rex.radiance.geo.lat(pp) );
-    pix_lon  = double( vocals_rex.radiance.geo.long(pp) );
+% Find the closest ERA5 grid point and its linear index in the meshgrid
+[dist_era5_vocalsRex_m, idx_minDist] = min(dist, [], 'all');
 
-    % Compute geodetic distance from this VOCALS-REx pixel to all ERA5 grid points [m]
-    dist = distance(Lat, Lon, pix_lat, pix_lon, wgs84);
-
-    % Find the closest ERA5 grid point and its linear index in the meshgrid
-    [dist_era5_vocalsRex_m(pp), idx_minDist] = min(dist, [], 'all');
-
-    % Store as linear index into the ERA5 meshgrid
-    overlap_pixels.era5.linear_idx(pp) = idx_minDist;
-
-end
 
 
 %% Read ERA5 atmospheric profile variables
@@ -280,32 +267,22 @@ q_4D = ncread(era5_filepath, 'q');     % Specific humidity [kg/kg]
 z_4D = ncread(era5_filepath, 'z');     % Geopotential [m^2/s^2]
 
 
-%% Extract profiles for each unique ERA5 spatial pixel
+%% Extract profiles closest to VR in situ measurement
 
-unique_era5_pix = unique(overlap_pixels.era5.linear_idx);
-n_unique        = length(unique_era5_pix);
 n_levels        = length(pressure);
+n_hrs           = length(utcTime);
+
+% Convert linear meshgrid index to (lon, lat) subscripts
+[r, c] = ind2sub(size(Lat), idx_minDist);
 
 % Pre-allocate output arrays (n_unique_era5_pixels x n_pressure_levels)
-era5.temperature      = zeros(n_unique, n_levels);
-era5.specificHumidity = zeros(n_unique, n_levels);
-era5.geopotential     = zeros(n_unique, n_levels);
-era5.geo.Latitude     = zeros(n_unique, 1);
-era5.geo.Longitude    = zeros(n_unique, 1);
+era5.temperature      = reshape(T_4D(r, c, :, idx_time), 1, []);
+era5.specificHumidity = reshape(q_4D(r, c, :, idx_time), 1, []);
+era5.geopotential     = reshape(z_4D(r, c, :, idx_time), 1, []);
+era5.geo.Latitude     = Lat(r, c);
+era5.geo.Longitude    = Lon(r, c);
 
-for kk = 1:n_unique
 
-    % Convert linear meshgrid index to (lon, lat) subscripts
-    [r, c] = ind2sub(size(Lat), unique_era5_pix(kk));
-
-    era5.temperature(kk, :)      = reshape(T_4D(r, c, :, idx_time), 1, []);
-    era5.specificHumidity(kk, :) = reshape(q_4D(r, c, :, idx_time), 1, []);
-    era5.geopotential(kk, :)     = reshape(z_4D(r, c, :, idx_time), 1, []);
-
-    era5.geo.Latitude(kk)  = Lat(r, c);
-    era5.geo.Longitude(kk) = Lon(r, c);
-
-end
 
 % Pressure levels are shared across all pixels [hPa]
 era5.pressure = pressure(:)';   % row vector: 1 x n_levels
@@ -317,15 +294,15 @@ era5.metadata.start_year{1}  = era5_year;
 era5.metadata.start_month{1} = era5_month;
 era5.metadata.start_day{1}   = era5_day_num;
 
-era5.metadata.era5_filename              = era5_files(idx_best).name;
+era5.metadata.era5_filename              = era5_files(idx_same_day).name;
 era5.metadata.era5_utcTime               = utcTime(idx_time);
 era5.metadata.min_timeDiff               = min_ERA5_timeDiff;
 era5.metadata.dist_btwn_era5_and_vocalsRex_m  = dist_era5_vocalsRex_m;
 
 if print_status_updates
-    disp([newline, 'ERA5 profiles extracted for ', num2str(n_unique), ' unique spatial pixels.'])
-    disp(['Average distance between ERA5 grid points and VOCALS-REx pixels: ', ...
-        num2str(mean(dist_era5_vocalsRex_m) / 1000, '%.2f'), ' km', newline])
+    disp([newline, 'ERA5 profile closest to VOCALS-REx in-situ extracted.', newline])
+    disp(['Distance between ERA5 grid point and VOCALS-REx measurement: ', ...
+        num2str(dist_era5_vocalsRex_m / 1000, '%.2f'), ' km', newline])
 end
 
 

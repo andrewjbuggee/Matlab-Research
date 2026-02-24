@@ -38,7 +38,16 @@ else
 end
 
 
+% ================================================================
+% ====== Measurements need to be checked for negative values =====
+if sum(emit.radiance.measurements<0) > 0
+    disp([newline, num2str(sum(emit.radiance.measurements<0)) ' EMIT measurement was below 0. Now set to 0.0001.',...
+        newline])
 
+    emit.radiance.measurements(emit.radiance.measurements<0) = 0.0001;
+    emit.reflectance.value(emit.reflectance.value<0) = 0.0001;
+
+end
 % ** If the measurments used in the retrieval are smaller than the
 % measurement covariance, reduce the matrix
 % 285 is the maximum number of spectral channels
@@ -63,6 +72,7 @@ else
 
 end
 
+% ================================================================
 
 
 
@@ -457,14 +467,14 @@ if print_status_updates == true
                 disp([newline, 'The state vector with the minimum RSS is the same as the initial guess.', newline])
                 disp(['Perturbing the initial guess and trying again...', newline])
 
-                % increase r_top
-                new_guess(1,1) = log(1.1) + current_guess(1);
-                % increase r_bot
-                new_guess(2,1) = log(1.1) + current_guess(2);
+                % Keep r_top the same
+                new_guess(1,1) = current_guess(1);
+                % decrease r_bot
+                new_guess(2,1) = log(0.9) + current_guess(2);
                 % keep tau_c the same
                 new_guess(3,1) = current_guess(3);
                 % increase acpw
-                new_guess(4,1) = log(1.1) + current_guess(4);
+                new_guess(4,1) = log(1.125) + current_guess(4);
 
                 % compute the new measurement estimate
                 disp([newline, 'Estimating spectral measurements for new initial guess...', newline])
