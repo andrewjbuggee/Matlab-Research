@@ -1241,6 +1241,9 @@ parfor nn = 1:num_INP_files
 
     % ** define the geometry **
     inputs.RT.vza = changing_variables_allStateVectors(nn, 1);
+    inputs.RT.sza = changing_variables_allStateVectors(nn, 2);
+    inputs.RT.vaz = changing_variables_allStateVectors(nn, 3);
+    inputs.RT.phi0 = changing_variables_allStateVectors(nn, 4);
 
     % ------------------------------------------------
     % ---- Define the input and output filenames! ----
