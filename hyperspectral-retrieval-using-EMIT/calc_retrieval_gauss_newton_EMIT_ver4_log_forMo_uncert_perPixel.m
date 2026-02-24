@@ -38,8 +38,6 @@ else
 end
 
 
-
-
 % ================================================================
 % ====== Measurements need to be checked for negative values =====
 if sum(emit.radiance.measurements<0) > 0

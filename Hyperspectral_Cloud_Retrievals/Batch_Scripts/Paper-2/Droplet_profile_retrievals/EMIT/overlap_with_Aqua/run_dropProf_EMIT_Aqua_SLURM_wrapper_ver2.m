@@ -92,11 +92,7 @@ end
 % this should be the SLURM_ARRAY_TASK_ID number
 folder_extension_number = 5;
 
-% This is the final number in the directory name where the output will be
-% stored
-folder_rev_num = 9;
-
 
 [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, folder_rev_num, output_dir);
+    print_status_updates, print_libRadtran_err, output_dir);
