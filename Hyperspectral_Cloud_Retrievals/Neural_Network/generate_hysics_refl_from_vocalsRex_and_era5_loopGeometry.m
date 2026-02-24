@@ -508,9 +508,9 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 % -----------------------------
 % define the solar zenith angle
 % -----------------------------
-inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.sza = acosd(0.65);           % degree - for Platnick (2000)
-% inputs.RT.sza = 10;           % degree
+% define vza so cos(vza) is sampled linearly
+mu_sample = linspace(cosd(0), cosd(65), 8);
+sza = acosd(mu_sample);               % degree - v
 
 
 
@@ -519,15 +519,11 @@ inputs.RT.sza = 31;               % degree - value for pixel used in Figure 3.a 
 % define the solar azimuith angle
 % -------------------------------
 
-% Define the solar azimuth measurement between values 0 and 360
-% The EMIT solar azimuth angle is defined as 0-360 degrees clockwise from
-% due north. The libRadTran solar azimuth is defined as 0-360 degrees
-% clockwise from due south. So they are separated by 180 degrees. To map
-% the EMIT azimuth the the libRadTran azimuth, we need to add 180 modulo
-% 360
-%inputs.RT.phi0 = mod(293.8140 + 180, 360);
-inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.phi0 = 0;         % degree
+% The libRadTran solar azimuth is defined as 0-360 degrees
+% clockwise from due south. 
+
+phi0 =  linspace(0, 300, 4);     % degree -
+
 
 
 
@@ -537,8 +533,8 @@ inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.
 % define the viewing Zenith angle
 % --------------------------------
 % define vza so cos(vza) is sampled linearly
-mu_sample = linspace(cosd(0), cosd(65), 10);
-inputs.RT.vza = acosd(mu_sample);                                   % degree
+mu_sample = linspace(cosd(0), cosd(65), 8);
+vza = acosd(mu_sample);                                   % degree
 
 
 
@@ -552,7 +548,7 @@ inputs.RT.vza = acosd(mu_sample);                                   % degree
 % The libRadTran sensor azimuth is defined as 0-360 degrees
 % clockwise from due North.
 
-inputs.RT.vaz = 0:60:300;     % degree -
+vaz = linspace(0, 300, 4);     % degree -
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -737,10 +733,13 @@ inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the
 % num wavelengths
 num_wl = length(inputs.bands2run);
 
+num_vza = length(vza);
+num_sza = length(sza);
+num_vaz = length(vaz);
+num_saz = length(phi0);
 
 
-
-num_INP_files = num_meas * num_wl;
+num_INP_files = num_wl * num_vza * num_sza * num_saz * num_vaz;
 
 
 inputs.calc_type = 'simulated_spectra';
@@ -781,7 +780,7 @@ date_of_flight{nn} = ds_cdp.ensemble_profiles{measurement_idx}.dateOfFlight;
 time_of_flight(nn) = ds_cdp.ensemble_profiles{measurement_idx}.time_utc(round(length(ds_cdp.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
 
 % store the optical depth of each profile
-tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end);
+tau_c(nn) = max(ds_cdp.ensemble_profiles{measurement_idx}.tau(end));
 
 
 % ------------------------------------------------------------------------------
@@ -844,20 +843,20 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
         tau{nn} = flipud(tau{nn});
     end
 
-    % Sometimes droplets will be larger than 25 microns. If there are droplets
-    % larger than 25 microns, skip this in-situ measurement for now. libRadtran
-    % cannot process droplets larger than 25 microns, which is the limit of the
+    % If there are droplets
+    % larger than 35 microns, remove them for now. My custom Mie Table
+    % cannot process droplets larger than 35 microns, which is the limit of the
     % pre-computed mie table
 
-    if any(re{nn}>=25)==true
+    if any(re{nn}>=35)==true
 
         if strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
                 '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
                 measurement_idx==11
 
-            % only the last two measurements exceed 25 microns. Remove
+            % only the last two measurements exceed 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn}>=25;
+            idx_remove = re{nn}>=35;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -878,7 +877,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==15
 
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % them and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -899,7 +898,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==22
 
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % them and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -920,7 +919,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==36
 
 
-            % only the last 12 measurements exceed 25 microns. Remove
+            % only the last 12 measurements exceed 35 microns. Remove
             % them and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -960,7 +959,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==54
 
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -980,7 +979,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])==true &&...
                 measurement_idx==51
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -1002,7 +1001,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==22
 
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -1043,7 +1042,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==15
 
 
-            % only the last measurement exceeds 25 microns. Remove
+            % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
             idx_remove = re{nn} >= 25;
             re{nn}(idx_remove) = [];
@@ -1065,9 +1064,9 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
                 measurement_idx==11
 
 
-            % only the last two measurements exceed 25 microns. Remove
+            % only the last two measurements exceed 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn}>=25;
+            idx_remove = re{nn}>=35;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -1084,7 +1083,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
         else
 
-            error([newline, 'There is a droplet size measurement larger than 25 microns and I dont know what to do', newline])
+            error([newline, 'There is a droplet size measurement larger than 35 microns and I dont know what to do', newline])
 
         end
 
@@ -1132,12 +1131,12 @@ elseif isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're_CDP') == true
         tau{nn} = flipud(tau{nn});
     end
 
-    % Sometimes droplets will be larger than 25 microns. If there are droplets
-    % larger than 25 microns, skip this in-situ measurement for now. libRadtran
-    % cannot process droplets larger than 25 microns, which is the limit of the
+    % Sometimes droplets will be larger than 35 microns. If there are droplets
+    % larger than 35 microns, skip this in-situ measurement for now. libRadtran
+    % cannot process droplets larger than 35 microns, which is the limit of the
     % pre-computed mie table
 
-    if any(re{nn}>=25)==true
+    if any(re{nn}>=35)==true
 
         wc_filename{nn} = NaN;
 
@@ -1174,26 +1173,50 @@ end
 % *** we dont' need the ensemble profiles anymore ***
 clear ds_cdp
 
-% changing variable steps through each wavelength for this single measurement
-% in for loop speak, it would be:
+
+
+
+
+% changing_variables_allStateVectors = [];
 %   for ww = 1:num_wl
-changing_variables_allStateVectors = {reshape(repmat( (1:num_meas), num_wl, 1), [],1),...
-    reshape(repmat(tau_c', num_wl, 1), [], 1),...
-    reshape(repmat(date_of_flight', num_wl, 1), [], 1),...
-    reshape(repmat(time_of_flight', num_wl, 1), [], 1),...
-    reshape(repmat(wc_filename', num_wl, 1), [], 1),...
-    repmat(inputs.RT.wavelengths2run, num_meas, 1)};
+%       for vz = 1:num_vza
+%           for sz = 1:num_sza
+%               for va = 1:num_vaz
+%                   for sa = 1:num_saz
+% 
+%                         changing_variables_allStateVectors = [changing_variables_allStateVectors;...
+%                             inputs.RT.vza(vz), inputs.RT.sza(sz), inputs.RT.vaz(va), inputs.RT.phi0(sa), inputs.RT.wavelengths2run(ww, :)];
+% 
+% 
+%                   end
+%               end
+%           end
+%       end
+%   end
+
+
+[WW, VZ, SZ, VA, SA] = ndgrid(1:num_wl, 1:num_vza, 1:num_sza, 1:num_vaz, 1:num_saz);
+
+idx = [VZ(:), SZ(:), VA(:), SA(:), WW(:)];
+
+changing_variables_allStateVectors = [
+    vza(idx(:,1))', ...
+    sza(idx(:,2))', ...
+    vaz(idx(:,3))', ...
+    phi0(idx(:,4))', ...
+    inputs.RT.wavelengths2run(idx(:,5), :) ];
+
 
 
 % Add a final column that includes the index for the spectral response
 % function. These always increase chronologically
 changing_variables_allStateVectors = [changing_variables_allStateVectors,...
-    repmat((1:num_wl)', num_meas, 1)];
+    repmat((1:num_wl)', num_vza * num_sza * num_saz * num_vaz, 1)];
 
 
 % Double check that the number of rows for 'changing_variables' is equal
 % to the number of INP files
-if num_INP_files ~= size(changing_variables_allStateVectors{1}, 1)
+if num_INP_files ~= size(changing_variables_allStateVectors, 1)
 
     error([newline, 'Number of rows in changing_variables not equal to number of INP files', newline])
 
@@ -1206,12 +1229,18 @@ end
 inputFileName = cell(num_INP_files, 1);
 outputFileName = cell(num_INP_files, 1);
 
+num_cols = size(changing_variables_allStateVectors, 2);
+
 parfor nn = 1:num_INP_files
 % for nn = 1:num_INP_files
 
 
+
     % set the wavelengths for each file
-    wavelengths = changing_variables_allStateVectors{end-1}(nn,:);
+    wavelengths = changing_variables_allStateVector(nn, num_cols-1:num_cols);
+
+    % ** define the geometry **
+    inputs.RT.vza = changing_variables_allStateVectors(nn, 1);
 
     % ------------------------------------------------
     % ---- Define the input and output filenames! ----
@@ -1221,8 +1250,8 @@ parfor nn = 1:num_INP_files
 
 
     inputFileName{nn} = [num2str(mean(wavelengths)), 'nm_', campaign_name,'_',...
-        char(changing_variables_allStateVectors{3}{nn}),'_',...
-        num2str(changing_variables_allStateVectors{4}(nn)),'-UTC_meas_',...
+        char(date_of_flight),'_',...
+        num2str(time_of_flight),'-UTC_meas_',...
         num2str(measurement_idx), '_nn_', num2str(nn), '.INP'];
 
 
@@ -1233,7 +1262,7 @@ parfor nn = 1:num_INP_files
     % ------------------ Write the INP File --------------------
     % force modify tau
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
-        wavelengths, changing_variables_allStateVectors{5}{nn}, [], changing_variables_allStateVectors{2}(nn));
+        wavelengths, wc_filename, [], tau_c);
 
 
 end
