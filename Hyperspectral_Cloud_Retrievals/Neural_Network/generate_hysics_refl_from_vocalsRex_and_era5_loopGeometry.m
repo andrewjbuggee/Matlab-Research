@@ -1237,13 +1237,13 @@ parfor nn = 1:num_INP_files
 
 
     % set the wavelengths for each file
-    wavelengths = changing_variables_allStateVector(nn, num_cols-1:num_cols);
+    wavelengths = changing_variables_allStateVectors(nn, num_cols-1:num_cols);
 
-    % ** define the geometry **
-    inputs.RT.vza = changing_variables_allStateVectors(nn, 1);
-    inputs.RT.sza = changing_variables_allStateVectors(nn, 2);
-    inputs.RT.vaz = changing_variables_allStateVectors(nn, 3);
-    inputs.RT.phi0 = changing_variables_allStateVectors(nn, 4);
+    % extract per-iteration geometry values as scalars (avoids mutating inputs inside parfor)
+    vza_nn  = changing_variables_allStateVectors(nn, 1);
+    sza_nn  = changing_variables_allStateVectors(nn, 2);
+    vaz_nn  = changing_variables_allStateVectors(nn, 3);
+    phi0_nn = changing_variables_allStateVectors(nn, 4);
 
     % ------------------------------------------------
     % ---- Define the input and output filenames! ----
@@ -1263,9 +1263,9 @@ parfor nn = 1:num_INP_files
 
 
     % ------------------ Write the INP File --------------------
-    % force modify tau
+    % force modify tau; pass geometry overrides to avoid mutating inputs
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
-        wavelengths, wc_filename, [], tau_c);
+        wavelengths, wc_filename, [], tau_c, [], [], vza_nn, sza_nn, vaz_nn, phi0_nn);
 
 
 end

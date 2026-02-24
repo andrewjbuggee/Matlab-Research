@@ -5,7 +5,7 @@
 
 function [] = write_INP_file(INP_folderpath, libRadtran_data_path, wc_folder_path, inputFileName, inputs,...
     wavelengths, wc_filename, mc_basename, wc_modify_tau, modified_waterVaporProfile_filename,...
-    total_column_precipitable_water)
+    total_column_precipitable_water, vza_override, sza_override, vaz_override, phi0_override)
 
 
 
@@ -535,25 +535,47 @@ if inputs.RT.yesCloud==true
 
 
 
+    % Resolve geometry: use per-file overrides if provided, else fall back to inputs.RT
+    if exist('vza_override', 'var') && ~isempty(vza_override)
+        vza_write  = vza_override;
+    else
+        vza_write  = inputs.RT.vza;
+    end
+    if exist('sza_override', 'var') && ~isempty(sza_override)
+        sza_write  = sza_override;
+    else
+        sza_write  = inputs.RT.sza;
+    end
+    if exist('vaz_override', 'var') && ~isempty(vaz_override)
+        vaz_write  = vaz_override;
+    else
+        vaz_write  = inputs.RT.vaz;
+    end
+    if exist('phi0_override', 'var') && ~isempty(phi0_override)
+        phi0_write = phi0_override;
+    else
+        phi0_write = inputs.RT.phi0;
+    end
+
     % Define the solar zenith angle
     % ------------------------------------------------
     formatSpec = '%s %f %5s %s \n';
-    fprintf(fileID, formatSpec,'sza', inputs.RT.sza, ' ', '# Solar zenith angle');
+    fprintf(fileID, formatSpec,'sza', sza_write, ' ', '# Solar zenith angle');
 
     % Define the solar azimuth angle
     % -------------------------------------------------------
     formatSpec = '%s %f %5s %s \n';
-    fprintf(fileID, formatSpec,'phi0', inputs.RT.phi0, ' ', '# Solar azimuth angle');
+    fprintf(fileID, formatSpec,'phi0', phi0_write, ' ', '# Solar azimuth angle');
 
     % Define the cosine of the zenith viewing angle
     % ------------------------------------------------
     formatSpec = '%s %f %5s %s \n';
-    fprintf(fileID, formatSpec,'umu', round(cosd(inputs.RT.vza),4), ' ', '# Cosine of the zenith viewing angle');
+    fprintf(fileID, formatSpec,'umu', round(cosd(vza_write),4), ' ', '# Cosine of the zenith viewing angle');
 
     % Define the azimuth viewing angle
     % ------------------------------------------------
     formatSpec = '%s %f %5s %s \n\n';
-    fprintf(fileID, formatSpec,'phi', inputs.RT.vaz, ' ', '# Azimuthal viewing angle');
+    fprintf(fileID, formatSpec,'phi', vaz_write, ' ', '# Azimuthal viewing angle');
 
 
 
