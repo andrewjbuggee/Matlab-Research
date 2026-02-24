@@ -8,7 +8,7 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
-#SBATCH --time=00:45:00   # Adjusted time for single measurement
+#SBATCH --time=01:45:00   # Adjusted time for single measurement
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=45G
