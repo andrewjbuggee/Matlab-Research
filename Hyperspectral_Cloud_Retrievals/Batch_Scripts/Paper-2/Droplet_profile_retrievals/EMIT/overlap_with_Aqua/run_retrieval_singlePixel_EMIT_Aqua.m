@@ -28,7 +28,7 @@
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, folder_rev_num, output_dir)
+    print_status_updates, print_libRadtran_err, output_dir)
 
 
 %% Load the per-pixel .mat file
