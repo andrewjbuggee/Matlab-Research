@@ -323,19 +323,17 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
 
-    % If the new save_output director doesn't exist, make it and add it to
+    % If the new save_output directory doesn't exist, make it and add it to
     % the path
-    if ~exist([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
-            'Droplet_profile_retrievals/'], 'dir')
+    if ~exist(folder_paths.saveOutput_directory, 'dir')
+        
+        mkdir(folder_paths.saveOutput_directory)
+        addpath(folder_paths.saveOutput_directory)    
 
-        mkdir([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
-            'Droplet_profile_retrievals/'])
-
-        addpath([folder_paths.coincident_dataPath, folder_paths.coincident_dataFolder,...
-            'Droplet_profile_retrievals/'])
 
     end
 
+    
 
     % save the calculated reflectances and the inputs
     save(inputs_tblut.saveOutput_fileName, "inputs_tblut", "Refl_model_tblut"); % save inputSettings to the same folder as the input and output file

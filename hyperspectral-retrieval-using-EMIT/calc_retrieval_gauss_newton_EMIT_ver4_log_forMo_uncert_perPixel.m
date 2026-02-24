@@ -39,6 +39,17 @@ end
 
 
 
+
+% ================================================================
+% ====== Measurements need to be checked for negative values =====
+if sum(emit.radiance.measurements<0) > 0
+    disp([newline, num2str(sum(emit.radiance.measurements<0)) ' EMIT measurement was below 0. Now set to 0.0001.',...
+        newline])
+
+    emit.radiance.measurements(emit.radiance.measurements<0) = 0.0001;
+    emit.reflectance.value(emit.reflectance.value<0) = 0.0001;
+
+end
 % ** If the measurments used in the retrieval are smaller than the
 % measurement covariance, reduce the matrix
 % 285 is the maximum number of spectral channels
@@ -63,6 +74,8 @@ else
 
 end
 
+% ================================================================
+
 
 
 
@@ -72,8 +85,8 @@ end
 
 % set the maximum scalar value used to create a set of scalar values that
 % will be multiplied along the direction of greatest change
-a_largestVal = -1.5;
-a_smallestVal = 1.5;
+a_largestVal = 1.5;
+a_smallestVal = -1.5;
 
 
 % define length of initial array used to check which state vectors meet the
@@ -81,7 +94,7 @@ a_smallestVal = 1.5;
 array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
-array_length_newMax = 15;
+array_length_newMax = 30;
 
 % We want to make sure the new step is within the feasible
 % range, not at the boundaries. So we only accept a values that
@@ -205,8 +218,8 @@ if print_status_updates == true
         % **** compute the jacobian ****
         % For the retrieval of ln(r_top), ln(r_bot), ln(tau_c), and ln(acpw)
         disp([newline, 'Computing the Jacobian...', newline])
-        Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs, spec_response.value,...
-            jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
+        Jacobian = compute_jacobian_4EMIT_top_bottom_ver4_logState( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+            spec_response.value, jacobian_barPlot_flag, folder_paths, airs_datProfiles, pixel_num);
 
 
         % --------------------------------------------------------------
@@ -439,12 +452,40 @@ if print_status_updates == true
             end
 
 
-            % Select the step length by choosing the a value with the minimumum
-            % residual
-            new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual(:,ii+1) = measurements_log - new_measurement_estimate;
-            rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
-            new_guess = constrained_guesses(:, min_residual_idx);
+            % Check to see if the the minimum RSS is associated with the
+            % initial guess (a = 0)
+            if a(min_residual_idx) == 0
+
+                disp([newline, 'State vector with lowest RSS is the initial guess.', newline])
+                disp(['Pertubing the initial state vector and moving to the next iteration...', newline])
+
+                % We will try a new initial guess for the next iteration
+                new_guess = exp(GN_inputs.model.initialGuess);
+                % decrease cloud bottom
+                new_guess(2) = 0.8 * new_guess(2);
+                % increase above cloud precipitable water
+                new_guess(4) = 1.15 * new_guess(4);
+
+                new_guess = log(new_guess)';
+
+                % compute a new measurement estimate
+                new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
+                        spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii+1) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
+
+            else
+
+
+                % Select the step length by choosing the a value with the minimumum
+                % residual
+                new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
+                new_guess = constrained_guesses(:, min_residual_idx);
+
+            end
 
 
 
@@ -822,12 +863,39 @@ else
             end
 
 
-            % Select the step length by choosing the a value with the minimumum
-            % residual
-            new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
-            residual(:,ii+1) = measurements_log - new_measurement_estimate;
-            rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
-            new_guess = constrained_guesses(:, min_residual_idx);
+            % Check to see if the the minimum RSS is associated with the
+            % initial guess (a = 0)
+            if a(min_residual_idx) == 0
+
+
+                % We will try a new initial guess for the next iteration
+                new_guess = exp(GN_inputs.model.initialGuess);
+                % decrease cloud bottom
+                new_guess(2) = 0.8 * new_guess(2);
+                % increase above cloud precipitable water
+                new_guess(4) = 1.15 * new_guess(4);
+
+                new_guess = log(new_guess)';
+
+                % compute a new measurement estimate
+                new_measurement_estimate = log(compute_forward_model_4EMIT_top_bottom_ver2( exp(new_guess), GN_inputs,...
+                        spec_response.value, folder_paths, airs_datProfiles, pixel_num));
+
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii+1) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
+
+            else
+
+
+                % Select the step length by choosing the a value with the minimumum
+                % residual
+                new_measurement_estimate = constrained_measurement_estimate(:, min_residual_idx);
+                residual(:,ii+1) = measurements_log - new_measurement_estimate;
+                rss_residual(ii+1) = rss_residual_constrained(min_residual_idx);
+                new_guess = constrained_guesses(:, min_residual_idx);
+
+            end
+
 
 
 

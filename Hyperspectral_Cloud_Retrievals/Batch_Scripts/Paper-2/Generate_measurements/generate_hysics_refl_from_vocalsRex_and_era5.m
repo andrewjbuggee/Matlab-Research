@@ -1,4 +1,6 @@
-function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_4(folder_paths, measurement_idx)
+
+
+function generate_hysics_refl_from_vocalsRex_and_era5(folder_paths, measurement_idx)
 %% Generate measurements from VOCALS-REx in-situ data
 
 % The following VOCALS-REx in-situ measured values are used create
@@ -6,9 +8,9 @@ function hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array_4(folder_paths,
 
 %   (1) in-situ derived droplet profile - measured by the CDP
 %   (2) in-situ derived optical depth - measured by the CDP
-%   (3) radiosonde derived cloud top - cloud depth defined by CDP
-%   (4) radiosonde measured T, P, and RH defined from closest
-%       radiosonde to each CDP measured profile
+%   (3) in-situ derived cloud top and base - defined using the CDP
+%   (4) ERA5 T, P, and RH defined from closest
+%       ERA5 data point to each CDP measured profile
 
 %
 % INPUT:
@@ -66,26 +68,11 @@ if strcmp(which_computer,'anbu8374')==true
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
-
-
-    % Location of VOCALS-REx Radiosonde ensemble data
-    folderpath_radiosonde = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'VOCALS_REx/vocals_rex_data/radiosonde/paper2_prior_stats/'];
-    
-    % --- Radiosonde profile closest to the CDP measurement ----
-    saved_radiosonde_filename = 'radiosonde_profiles_for_paper2_measurements_closest_radiosonde_in_time_28-Jan-2026.mat';
-
-
-        
-
+       
 
     
     % Load the airborne data
     ds_cdp = load([folderpath_air, saved_profiles_filename]);
-
-    % Load the airborne data
-    ds_radSonde = load([folderpath_radiosonde, saved_radiosonde_filename]);
-
 
 
 
@@ -95,7 +82,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % ------ Folders on my Macbook --------
     % -------------------------------------
 
-    % Location of ensemble data
+    % Location of VOCALS-REx airborne ensemble data
     folderpath_air = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
@@ -108,7 +95,8 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
 
-    
+
+    % Load the airborne data
     ds_cdp = load([folderpath_air, saved_profiles_filename]);
 
 
@@ -133,6 +121,7 @@ elseif strcmp(which_computer,'curc')==true
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
 
+
     % --- non-precip profiles only, LWC>0.03, Nc>25 ----
     ds_cdp = load([folderpath_air, saved_profiles_filename]);
 
@@ -154,6 +143,11 @@ end
 fprintf('Processing measurement %d of %d\n', measurement_idx, total_measurements);
 
 
+
+%% Find ERA5 vertical profiles closest to the VOCALS-REx measurement
+
+[era5, overlap_pixels] = findClosestProfile_ERA5_VOCALS_REx(ds_cdp.ensemble_profiles{measurement_idx}, [],...
+    true, which_computer);
 
 %% Inputs needed to create the measurement input structure
 
