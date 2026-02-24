@@ -64,7 +64,7 @@ spec_response = reshape(spec_response, [], 1);
 % ***** Radiance has units of mW/m^2/nm/sr *****
 
 R_lambda = zeros(length(wavelength),geomSets); % phi (azimuth) changes first, then mu (cos(sza))
-R = zeros(length(mu),length(phi));
+R = zeros(length(mu),length(vaz));
 % if there is a single monochromatic wavelength then we don't need to
 % integrate. We simply divide
 if isscalar(wavelength)
