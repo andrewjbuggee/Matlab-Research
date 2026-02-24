@@ -11,8 +11,6 @@ function generate_hysics_refl_from_vocalsRex_and_era5(folder_paths, measurement_
 %   (3) in-situ derived cloud top and base - defined using the CDP
 %   (4) ERA5 T, P, and RH defined from closest
 %       ERA5 data point to each CDP measured profile
-%   (5) Using in situ measred droplet distribution width to select mie
-%       table calculations that convert cloud optical propers to RT props
 
 %
 % INPUT:
@@ -177,7 +175,7 @@ inputs.which_computer = which_computer;
 
 
 % Define the parameters of the INP file
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
@@ -1300,7 +1298,7 @@ parfor nn = 1:num_INP_files
 % for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
-    pause(0.01 * rand); % Each worker waits a different amount
+    pause(0.1 * rand); % Each worker waits a different amount
 
 
     % ----------------------------------------------------
@@ -1409,7 +1407,7 @@ if strcmp(which_computer,'anbu8374')==true
     %     'log_newCov_subset_allBands_VR_inSitu_1/'];
 
     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026/'];
+        'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026'];
 
 
 
@@ -1444,7 +1442,7 @@ elseif strcmp(which_computer,'curc')==true
 
 
     inputs.folderpath_2save = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/all636bands_VR_insitu_ERA5_profs_24_Feb_2026/'];
+        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
 
 
 
