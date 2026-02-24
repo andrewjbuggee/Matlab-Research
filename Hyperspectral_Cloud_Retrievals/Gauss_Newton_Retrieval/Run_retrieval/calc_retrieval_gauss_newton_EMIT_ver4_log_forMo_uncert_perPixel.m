@@ -92,7 +92,7 @@ a_largestVal = 1;
 array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
-array_length_newMax = 20;
+array_length_newMax = 25;
 
 % We want to make sure the new step is within the feasible
 % range, not at the boundaries. So we only accept a values that
@@ -462,7 +462,7 @@ if print_status_updates == true
             % meaning that the initial guess has the lowest rss, perturb to
             % initial guess to see if you can jump out of this local
             % minimum
-            if ii==1 && a(min_residual_idx)==0
+            if ii==1 && a(min_residual_idx)==0 
 
                 disp([newline, 'The state vector with the minimum RSS is the same as the initial guess.', newline])
                 disp(['Perturbing the initial guess and trying again...', newline])
@@ -482,7 +482,7 @@ if print_status_updates == true
                     spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
                 residual(:,ii+1) = measurements_log - new_measurement_estimate;
-                rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
+                rss_residual(ii+1) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
 
             else
 
@@ -901,7 +901,7 @@ else
                     spec_response.value, folder_paths, radiosonde_datProfiles, pixel_num));
 
                 residual(:,ii+1) = measurements_log - new_measurement_estimate;
-                rss_residual(ii) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
+                rss_residual(ii+1) = sqrt(sum( ( exp(measurements_log) - exp(new_measurement_estimate)).^2));
 
             else
 
