@@ -1310,7 +1310,7 @@ parfor nn = 1:num_INP_files
     % for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
-    pause(0.1 * rand); % Each worker waits a different amount
+    pause(0.01 * rand); % Each worker waits a different amount
 
 
     % ----------------------------------------------------
@@ -1323,7 +1323,7 @@ parfor nn = 1:num_INP_files
 
     % read .OUT file
     % radiance is in units of mW/nm/m^2/sr
-    [ds_cdp,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
+    [rad_calcs,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs,...
         inputs.RT.compute_reflectivity_uvSpec);
 
 
@@ -1333,7 +1333,7 @@ parfor nn = 1:num_INP_files
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver2(inputs, ds_cdp,...
+    [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver3(rad_calcs,...
         source_flux(idx_wl), spec_response_value(changing_variables_allStateVectors(nn,end),:));
 
 

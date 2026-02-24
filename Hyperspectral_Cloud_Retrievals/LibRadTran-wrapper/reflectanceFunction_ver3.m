@@ -21,13 +21,11 @@
 % By Andrew J. Buggee
 %% ------ Read input settings and output data from uv_spec -----
 
-function [R,R_lambda] = reflectanceFunction_ver2(inputs, ds, source, spec_response)
+function [R,R_lambda] = reflectanceFunction_ver3(ds, source, spec_response, sza, vza, vaz)
 
 
 % Geometry values from input Settings -
-mu = cosd(inputs.RT.vza); % cosine of the viewing zenith angle
-phi = inputs.RT.vaz; % sensor aziumuth angle
-sza = inputs.RT.sza; % solar zenith angle
+mu = cosd(vza); % cosine of the viewing zenith angle
 
 
 
@@ -48,7 +46,7 @@ end
 
 % a few other constants calculated from the inputs
 mu0 = cosd(sza); % cosine of the solar zenith angle
-geomSets = length(mu)*length(phi);
+geomSets = length(mu)*length(vaz);
 
 
 % make sure the spectral response is a column vector
