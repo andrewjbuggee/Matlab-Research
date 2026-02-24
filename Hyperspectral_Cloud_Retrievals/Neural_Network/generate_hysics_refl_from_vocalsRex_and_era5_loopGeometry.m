@@ -1,6 +1,6 @@
 
 
-function generate_hysics_refl_from_vocalsRex_and_era5(folder_paths, measurement_idx)
+function generate_hysics_refl_from_vocalsRex_and_era5_loopGeometry(folder_paths, measurement_idx)
 %% Generate measurements from VOCALS-REx in-situ data
 
 % The following VOCALS-REx in-situ measured values are used create
