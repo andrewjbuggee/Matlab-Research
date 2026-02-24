@@ -282,15 +282,15 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % Using almost all 35 spectral channels above that avoid water vapor and other
 % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
 % features for a total of 66 bands
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
-    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-    543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+%     198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+%     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+%     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+%     543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
 
 
 
-% inputs.bands2run = [49, 426, 613]';
+inputs.bands2run = [49, 426, 613]';
 % inputs.bands2run = [49, 57, 288, 426, 613]';
 
 % test bands
@@ -522,7 +522,7 @@ sza = acosd(mu_sample);               % degree - v
 % The libRadTran solar azimuth is defined as 0-360 degrees
 % clockwise from due south.
 
-phi0 =  linspace(0, 300, 4);     % degree -
+phi0 =  linspace(0, 300, 2);     % degree -
 
 
 
@@ -533,7 +533,7 @@ phi0 =  linspace(0, 300, 4);     % degree -
 % define the viewing Zenith angle
 % --------------------------------
 % define vza so cos(vza) is sampled linearly
-mu_sample = linspace(cosd(0), cosd(65), 8);
+mu_sample = linspace(cosd(0), cosd(65), 2);
 vza = acosd(mu_sample);                                   % degree
 
 
@@ -548,7 +548,7 @@ vza = acosd(mu_sample);                                   % degree
 % The libRadTran sensor azimuth is defined as 0-360 degrees
 % clockwise from due North.
 
-vaz = linspace(0, 300, 4);     % degree -
+vaz = linspace(0, 300, 2);     % degree -
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -1306,8 +1306,8 @@ tic
 Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
-% parfor nn = 1:num_INP_files
-for nn = 1:num_INP_files
+parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
     pause(0.01 * rand); % Each worker waits a different amount
@@ -1354,6 +1354,9 @@ disp([newline, 'Calculations took ', num2str(toc), ' seconds'])
 
 %% Rearrange the reflectances
 
+num_unique_geo = num_vza * num_sza * num_vaz * num_saz;
+% reshape that row-space spans wavelengths and column space spans each
+% unique geometry
 Refl_model_allStateVectors = reshape(Refl_model_allStateVectors, num_wl, []);
 
 
@@ -1413,8 +1416,7 @@ end
 % ---------- SAVE REFLECTANCE OUTPUT! ----------
 % ----------------------------------------------
 
-% Save the version without an measurement uncertainty. Then we can add
-% uncertainty and save the new file
+% Save all geometries as one mat file
 
 if strcmp(which_computer,'anbu8374')==true
 
@@ -1497,10 +1499,12 @@ for nn = 1:(num_INP_files/num_wl)
 
     filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
         num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert_',...
-        campaign_name, '_inSitu_re_lwc_tauC_z_', char(date_of_flight{nn}),'_', num2str(time_of_flight(nn)),...
-        'UTC_prof-nn_', num2str(measurement_idx), '_vza_', num2str(round(inputs.RT.vza)),...
-        '_vaz_', num2str(round(inputs.RT.vaz)), '_sza_', num2str(round(inputs.RT.sza)),...
-        '_saz_', num2str(round(inputs.RT.phi0)),...
+        campaign_name, '_inSitu_re_lwc_tauC_z_', char(date_of_flight{1}),'_', num2str(time_of_flight),...
+        'UTC_prof-nn_', num2str(measurement_idx), '_vzaRange_', num2str(round(vza(1))),...
+        '-', num2str(vza(end)),'_vazRange_', num2str(round(vaz(1))),...
+        '-', num2str(vaz(end)), '_szaRange_', num2str(round(sza(1))),...
+        '-', num2str(sza(end)), '_sazRange_', num2str(round(phi0(1))),...
+        '-', num2str(phi0(end)),...
         '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
