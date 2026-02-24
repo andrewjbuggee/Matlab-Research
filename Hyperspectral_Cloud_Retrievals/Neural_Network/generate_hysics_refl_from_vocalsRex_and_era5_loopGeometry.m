@@ -68,9 +68,9 @@ if strcmp(which_computer,'anbu8374')==true
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
-       
 
-    
+
+
     % Load the airborne data
     ds_cdp = load([folderpath_air, saved_profiles_filename]);
 
@@ -509,7 +509,7 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 % define the solar zenith angle
 % -----------------------------
 % define vza so cos(vza) is sampled linearly
-mu_sample = linspace(cosd(0), cosd(65), 8);
+mu_sample = linspace(cosd(0), cosd(65), 2);
 sza = acosd(mu_sample);               % degree - v
 
 
@@ -520,7 +520,7 @@ sza = acosd(mu_sample);               % degree - v
 % -------------------------------
 
 % The libRadTran solar azimuth is defined as 0-360 degrees
-% clockwise from due south. 
+% clockwise from due south.
 
 phi0 =  linspace(0, 300, 4);     % degree -
 
@@ -1183,11 +1183,11 @@ clear ds_cdp
 %           for sz = 1:num_sza
 %               for va = 1:num_vaz
 %                   for sa = 1:num_saz
-% 
+%
 %                         changing_variables_allStateVectors = [changing_variables_allStateVectors;...
 %                             inputs.RT.vza(vz), inputs.RT.sza(sz), inputs.RT.vaz(va), inputs.RT.phi0(sa), inputs.RT.wavelengths2run(ww, :)];
-% 
-% 
+%
+%
 %                   end
 %               end
 %           end
@@ -1232,12 +1232,12 @@ outputFileName = cell(num_INP_files, 1);
 num_cols = size(changing_variables_allStateVectors, 2);
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
 
     % set the wavelengths for each file
-    wavelengths = changing_variables_allStateVectors(nn, num_cols-1:num_cols);
+    wavelengths = changing_variables_allStateVectors(nn, num_cols-2:num_cols-1);
 
     % extract per-iteration geometry values as scalars (avoids mutating inputs inside parfor)
     vza_nn  = changing_variables_allStateVectors(nn, 1);
@@ -1253,9 +1253,10 @@ parfor nn = 1:num_INP_files
 
 
     inputFileName{nn} = [num2str(mean(wavelengths)), 'nm_', campaign_name,'_',...
-        char(date_of_flight),'_',...
-        num2str(time_of_flight),'-UTC_meas_',...
-        num2str(measurement_idx), '_nn_', num2str(nn), '.INP'];
+        char(date_of_flight{1}),'_',...
+        num2str(time_of_flight),'-UTC_VR-meas_',...
+        num2str(measurement_idx), '_vza', num2str(vza_nn),...
+        '_sza', num2str(sza_nn), '_vaz', num2str(vaz_nn), '_saz', num2str(phi0_nn) '.INP'];
 
 
 
@@ -1265,7 +1266,7 @@ parfor nn = 1:num_INP_files
     % ------------------ Write the INP File --------------------
     % force modify tau; pass geometry overrides to avoid mutating inputs
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
-        wavelengths, wc_filename, [], tau_c, [], [], vza_nn, sza_nn, vaz_nn, phi0_nn);
+        wavelengths, wc_filename{1}, [], tau_c, [], [], vza_nn, sza_nn, vaz_nn, phi0_nn);
 
 
 end
@@ -1306,7 +1307,7 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
     % Stagger the start times to avoid simultaneous file access
     pause(0.1 * rand); % Each worker waits a different amount
@@ -1327,20 +1328,20 @@ parfor nn = 1:num_INP_files
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
-    idx_wl = source_wavelength>=(changing_variables_allStateVectors{end-1}(nn,1) - wl_perturb) &...
-        source_wavelength<=(changing_variables_allStateVectors{end-1}(nn,2) + wl_perturb);
+    idx_wl = source_wavelength>=(changing_variables_allStateVectors(nn, num_cols-2) - wl_perturb) &...
+        source_wavelength<=(changing_variables_allStateVectors(nn, num_cols-1) + wl_perturb);
 
 
     % compute the reflectance **NEED SPECTRAL RESPONSE INDEX***
     [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver2(inputs, ds_cdp,...
-        source_flux(idx_wl), spec_response_value(changing_variables_allStateVectors{end}(nn),:));
+        source_flux(idx_wl), spec_response_value(changing_variables_allStateVectors(nn,end),:));
 
 
 
 end
 
 
-toc
+disp([newline, 'Calculations took ', num2str(toc), ' seconds'])
 
 
 %% Rearrange the reflectances
@@ -1418,7 +1419,7 @@ if strcmp(which_computer,'anbu8374')==true
     %     'log_newCov_subset_allBands_VR_inSitu_1/'];
 
     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026'];
+        'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026/'];
 
 
 
