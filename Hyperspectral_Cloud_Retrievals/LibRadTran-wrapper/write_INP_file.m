@@ -346,7 +346,7 @@ if inputs.RT.yesCloud==true
 
 
 
-    % Use radiosonde dat file to define the pressure, temperatrue and other ell
+    % Use radiosonde dat file to define the pressure, temperatrue and other well
     % mixed gasses
     % --------------------------------------------------------------------
     if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==true
