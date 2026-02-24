@@ -11,6 +11,8 @@ function generate_hysics_refl_from_vocalsRex_and_era5(folder_paths, measurement_
 %   (3) in-situ derived cloud top and base - defined using the CDP
 %   (4) ERA5 T, P, and RH defined from closest
 %       ERA5 data point to each CDP measured profile
+%   (5) Using in situ measred droplet distribution width to select mie
+%       table calculations that convert cloud optical propers to RT props
 
 %
 % INPUT:
