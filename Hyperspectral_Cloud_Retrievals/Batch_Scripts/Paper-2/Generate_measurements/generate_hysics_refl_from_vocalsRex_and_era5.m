@@ -146,7 +146,7 @@ fprintf('Processing measurement %d of %d\n', measurement_idx, total_measurements
 
 %% Find ERA5 vertical profiles closest to the VOCALS-REx measurement
 
-[era5, overlap_pixels] = findClosestProfile_ERA5_VOCALS_REx(ds_cdp.ensemble_profiles{measurement_idx}, [],...
+era5 = findClosestProfile_ERA5_VOCALS_REx(ds_cdp.ensemble_profiles{measurement_idx},...
     true, which_computer);
 
 %% Inputs needed to create the measurement input structure
@@ -400,21 +400,18 @@ inputs.RT.band_parameterization = 'reptran coarse';
 inputs.RT.atm_file = 'afglus.dat';
 
 
-% ------------------------------------------------------------------------
-% define the vertical profiles of temperature, pressure and relative
-% humidity using radiosonde data
-% ------------------------------------------------------------------------
+% ----------------------------------------------------
+% *** Use ERA5 temp/press and water vapor profiles ***
+% ----------------------------------------------------
+
+% first, write a radiosonde.dat file with ERA5 temperature, pressure and
+% relative humidity
 inputs.RT.use_radiosonde_file = true;
-% Define the pressure, temperature and RH
 inputs.RT.radiosonde_num_vars = 3;
 
-% convert radiosonde temperature data from celcius to Kelvin
-% Convert temperature from Celsius to Kelvin
-temp_kelvin = ds_radSonde.temp_prof{measurement_idx} + 273.15;
-
-inputs.RT.radiosonde_file = write_VR_radiosonde_DAT_for_libRadtran(temp_kelvin,...
-    ds_radSonde.pressure_prof{measurement_idx}, ds_radSonde.watVap_prof{measurement_idx},...
-    ds_radSonde.anicllary_info, folder_paths, measurement_idx, inputs.RT.radiosonde_num_vars);
+[inputs.RT.radiosonde_file_T_P_WV, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
+    folder_paths, 1, [], inputs.RT.radiosonde_num_vars, [],...
+    inputs.RT.atm_file, true);
 
 % ------------------------------------------------------------------------
 % ------------------------------------------------------------------------
