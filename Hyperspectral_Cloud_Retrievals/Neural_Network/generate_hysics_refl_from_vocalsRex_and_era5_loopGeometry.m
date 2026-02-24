@@ -534,13 +534,11 @@ inputs.RT.phi0 = -84 + 180;         % degree - value for pixel used in Figure 3.
 
 
 % --------------------------------
-% define the viewing azimuth angle
+% define the viewing Zenith angle
 % --------------------------------
-
-
-inputs.RT.vza = 4.29;                                   % degree - value for pixel used in Figure 3.a from paper 1
-% inputs.RT.vza = acosd(0.75);                              % degree - for Platnick (2000)
-% inputs.RT.vza = 20;                             % values are in degrees;
+% define vza so cos(vza) is sampled linearly
+mu_sample = linspace(cosd(0), cosd(65), 10);
+inputs.RT.vza = acosd(mu_sample);                                   % degree
 
 
 
@@ -551,22 +549,16 @@ inputs.RT.vza = 4.29;                                   % degree - value for pix
 
 
 % define the viewing azimuth angle
-% The EMIT sensor azimuth angle is defined as 0-360 degrees clockwise from
-% due north. The libRadTran sensor azimuth is defined as 0-360 degrees
-% clockwise from due North as well. So they are separated by 180 degrees. A
-% sensor azimuth angle of 0 means the sensor is in the North, looking
-% south. No transformation is needed
+% The libRadTran sensor azimuth is defined as 0-360 degrees
+% clockwise from due North.
 
-% inputs.RT.vaz = -103+360;     % degree
-% inputs.RT.vaz = 210;            % degree
-
-% to properly map the MODIS azimuth angle onto the reference plane used by
-% libRadTran...
-inputs.RT.vaz = 360 + -102.79;     % degree - value for pixel used in Figure 3.a from paper 1
-
-
+inputs.RT.vaz = 0:60:300;     % degree -
 
 % --------------------------------------------------------------
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+
+
 
 
 
@@ -728,19 +720,6 @@ end
 
 
 
-%% Define the geometry
-
-% Numbers based off NOAA solar calculator (27 Jan 2024 off coast of Chile)
-% inputs.RT.sza = 10;         % degrees - Solar Zenith Angle
-% inputs.RT.phi0 = 91.45;        % degrees - Solar Azimuth Angle
-% inputs.RT.vza = 7;        % degrees - Viewing Zenith Angle
-% inputs.RT.vaz = 210;       % degrees - Viewing Azimuth Angle
-
-% Replicating EMIT values from paper 1
-inputs.RT.sza = 31;         % degrees - Solar Zenith Angle
-inputs.RT.phi0 = 96;        % degrees - Solar Azimuth Angle
-inputs.RT.vza = 4.29;        % degrees - Viewing Zenith Angle
-inputs.RT.vaz = 257.21;       % degrees - Viewing Azimuth Angle
 
 
 

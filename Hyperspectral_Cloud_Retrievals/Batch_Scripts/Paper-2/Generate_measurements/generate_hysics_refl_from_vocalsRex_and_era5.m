@@ -177,7 +177,7 @@ inputs.which_computer = which_computer;
 
 
 % Define the parameters of the INP file
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 % -----------------------------------------------
 % --- Stuff for the Assumed Vertical Profile ---
@@ -262,7 +262,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -284,11 +284,11 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % Using almost all 35 spectral channels above that avoid water vapor and other
 % gaseous absorbers, AND 31 bands in the wings of water vapor absorption
 % features for a total of 66 bands
-inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
-    198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
-    346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
-    462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
-    543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
+% inputs.bands2run = [49, 57, 69, 86, 103, 166, 169, 171, 174, 180, 188,...
+%     198, 217, 220, 222, 224, 227, 237, 245, 249, 254, 264, 288, 290, 293,...
+%     346, 351, 354, 360, 365, 367, 372, 379, 388, 390, 393, 426, 434, 436,...
+%     462, 468, 469, 520, 524, 525, 526, 527, 530, 531, 533, 535, 537, 539,...
+%     543, 547, 570, 574, 577, 579, 582, 613, 616, 618, 620, 623, 625]';
 
 
 
