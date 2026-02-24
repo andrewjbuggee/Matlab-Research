@@ -409,7 +409,7 @@ inputs.RT.atm_file = 'afglus.dat';
 inputs.RT.use_radiosonde_file = true;
 inputs.RT.radiosonde_num_vars = 3;
 
-[inputs.RT.radiosonde_file_T_P_WV, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
+[inputs.RT.radiosonde_file, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
     folder_paths, 1, [], inputs.RT.radiosonde_num_vars, [],...
     inputs.RT.atm_file, true);
 
@@ -792,30 +792,8 @@ nn = 1;
 % define lwc, re, and z as column vectors
 % grab the LWC vector
 lwc{nn} = ds_cdp.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
-
-% --------------------------------------------------------
-% *** We will use the radiosonde data to define cloud top and base height ***
-% We will then create an altitude vector that matches the length of the CDP
-% measurements
-z_top = ds_radSonde.cloud_topHeight(measurement_idx) ./ 1e3;                 % km
-z_base = ds_radSonde.cloud_baseHeight(measurement_idx) ./ 1e3;                 % km
-
-dz = mean(diff( ds_cdp.ensemble_profiles{measurement_idx}.altitude ./1e3 )); % km - using CDP data
-
-% grab the altitude vector - this defines the cloud deck within the model.
-% Cloud base and top are defined from this vector
-% z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
-if dz < 0
-    error([newline, 'Check this!', newline])
-    % the the plane was descending. Start with cloud top
-    z{nn} = linspace(z_top, z_base, length(lwc{nn}))';   % kilometers
-
-elseif dz >0
-    % the the plane was ascending. Start with cloud bottom
-    z{nn} = linspace(z_base, z_top, length(lwc{nn}))';   % kilometers
-end
-% --------------------------------------------------------
-
+% grab the altitude vector
+z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
 % grab the optical depth vector
 tau{nn} = ds_cdp.ensemble_profiles{measurement_idx}.tau';
 % grab the date of flight
@@ -831,6 +809,30 @@ tau_c(nn) = ds_cdp.ensemble_profiles{measurement_idx}.tau(end);
 % --- Define the assumed effective variance of the droplet size distribution ---
 % ------------------------------------------------------------------------------
 % store the alpha parameter that best first the gamma distribution
+alpha_prof = ds_cdp.ensemble_profiles{measurement_idx}.gammaFit.alpha;
+z_prof = ds_cdp.ensemble_profiles{measurement_idx}.altitude;
+% get rid of any NaN values
+idx_nan = isnan(alpha_prof);
+alpha_prof_without_nan = alpha_prof;
+alpha_prof_without_nan(idx_nan) = [];
+
+z_without_nan = z_prof;
+z_without_nan(idx_nan) = [];
+
+new_alpha_prof = interp1(z_without_nan, alpha_prof_without_nan, z_prof, 'linear', 'extrap')';
+
+out = find_custom_mieTable_closest_to_alpha_profile(new_alpha_prof, which_computer);
+
+inputs.RT.distribution_var = new_alpha_prof;
+inputs.RT.mean_distribution_var = mean(new_alpha_prof);
+
+% store the filename of the mie table closest to the mean alpha value
+inputs.RT.mean_distribution_var_closest_filename = out.mie_table_filename_closest_to_mean;
+
+% Use the new custom mie tables created on 1 Feb 2026
+inputs.RT.use_custom_mie_calcs = true;
+% ------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------
 
 
 
@@ -1225,8 +1227,8 @@ end
 inputFileName = cell(num_INP_files, 1);
 outputFileName = cell(num_INP_files, 1);
 
-parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+% parfor nn = 1:num_INP_files
+for nn = 1:num_INP_files
 
 
     % set the wavelengths for each file

@@ -351,7 +351,7 @@ if inputs.RT.yesCloud==true
     % --------------------------------------------------------------------
     if isfield(inputs.RT, 'use_radiosonde_file') && inputs.RT.use_radiosonde_file==true
 
-        % Check to make sure that the anove-cloud precipitable water isn't
+        % Check to make sure that the above-cloud precipitable water isn't
         % being altered. If it is, we've already used the radiosonde function
         if (isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') && inputs.RT.modify_aboveCloud_columnWaterVapor == false) ...
                 || isfield(inputs.RT, 'modify_aboveCloud_columnWaterVapor') == false
