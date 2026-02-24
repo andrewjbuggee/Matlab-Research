@@ -74,7 +74,8 @@
 % --- By Andrew J. Buggee ---
 %% --- Read in Files ---
 
-function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC_ver2(path, fileName, inputs, compute_reflectivity, vza_override, vaz_override)
+function [dataStruct,irrad_headers_units,rad_headers_units] = readUVSPEC_ver2(path, fileName,...
+                                     inputs, compute_reflectivity, vza_override, vaz_override)
 
 % How many files do we need to read?
 
