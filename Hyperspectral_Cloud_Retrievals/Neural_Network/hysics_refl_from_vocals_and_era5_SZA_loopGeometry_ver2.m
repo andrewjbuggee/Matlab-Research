@@ -1,6 +1,6 @@
 
 
-function generate_hysics_refl_from_vocalsRex_and_era5_pick_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza)
+function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza)
 %% Generate measurements from VOCALS-REx in-situ data
 %
 % Ver2 speed improvements over ver1:
