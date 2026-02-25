@@ -62,6 +62,6 @@ sleep $((SLURM_ARRAY_TASK_ID % 10))
 echo "Starting MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
 
 # 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); measurement_idx = ${SLURM_ARRAY_TASK_ID} - ${offset}; generate_hysics_refl_from_vocalsRex_and_era5_pick_SZA_loopGeometry_ver2(folder_paths, measurement_idx, ${SZA}); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); measurement_idx = ${SLURM_ARRAY_TASK_ID} - ${offset}; hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, ${SZA}); exit"
 
 echo "Finished MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
