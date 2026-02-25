@@ -1,6 +1,6 @@
 
 
-function generate_hysics_refl_from_vocalsRex_and_era5_loopGeometry_ver2(folder_paths, measurement_idx)
+function generate_hysics_refl_from_vocalsRex_and_era5_pick_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza)
 %% Generate measurements from VOCALS-REx in-situ data
 %
 % Ver2 speed improvements over ver1:
@@ -269,7 +269,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ----------------- Simulating HySICS spectral channels ------------------
 % number of channels = 636 ranging from center wavelengths: [351, 2297]
-% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:636)';
 
 % Paper 1 - Figures 7 and 8 - 35 spectral channels that avoid water vapor
 % and other gaseous absorbers
@@ -299,7 +299,7 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 
 
-inputs.bands2run = [49, 426, 613]';
+% inputs.bands2run = [49, 426, 613]';
 % inputs.bands2run = [49, 57, 288, 426, 613]';
 
 % test bands
@@ -508,9 +508,8 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 % -----------------------------
 % define the solar zenith angle
 % -----------------------------
-% define vza so cos(vza) is sampled linearly
-mu_sample = linspace(cosd(0), cosd(65), 2);
-sza = acosd(mu_sample);               % degree - v
+% define sza so cos(vza) is sampled linearly
+% sza = 0;
 
 
 
@@ -521,8 +520,7 @@ sza = acosd(mu_sample);               % degree - v
 
 % The libRadTran solar azimuth is defined as 0-360 degrees
 % clockwise from due south.
-
-phi0 =  linspace(0, 300, 2);     % degree -
+phi0 =  [0, 45, 90, 180];     % degree -
 
 
 
@@ -531,7 +529,7 @@ phi0 =  linspace(0, 300, 2);     % degree -
 % define the viewing Zenith angle
 % --------------------------------
 % define vza so cos(vza) is sampled linearly
-mu_sample = linspace(cosd(0), cosd(65), 2);
+mu_sample = linspace(cosd(0), cosd(65), 8);
 vza = acosd(mu_sample);                                   % degree
 
 
@@ -541,12 +539,10 @@ vza = acosd(mu_sample);                                   % degree
 % define the viewing azimuth angle
 % --------------------------------
 
-
 % define the viewing azimuth angle
 % The libRadTran sensor azimuth is defined as 0-360 degrees
 % clockwise from due North.
-
-vaz = linspace(0, 300, 2);     % degree -
+vaz = [0, 45, 90, 180];     % degree -
 
 % --------------------------------------------------------------
 % --------------------------------------------------------------
@@ -720,12 +716,11 @@ inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the
 num_wl = length(inputs.bands2run);
 
 num_vza = length(vza);
-num_sza = length(sza);
 num_vaz = length(vaz);
 num_saz = length(phi0);
 
 
-num_INP_files = num_wl * num_vza * num_sza * num_saz * num_vaz;
+num_INP_files = num_wl * num_vza * num_saz * num_vaz;
 
 
 inputs.calc_type = 'simulated_spectra';
@@ -1174,23 +1169,22 @@ clear ds_cdp
 %   end
 
 
-[WW, VZ, SZ, VA, SA] = ndgrid(1:num_wl, 1:num_vza, 1:num_sza, 1:num_vaz, 1:num_saz);
+[WW, VZ, VA, SA] = ndgrid(1:num_wl, 1:num_vza, 1:num_vaz, 1:num_saz);
 
-idx = [VZ(:), SZ(:), VA(:), SA(:), WW(:)];
+idx = [VZ(:), VA(:), SA(:), WW(:)];
 
 changing_variables_allStateVectors = [
     vza(idx(:,1))', ...
-    sza(idx(:,2))', ...
-    vaz(idx(:,3))', ...
-    phi0(idx(:,4))', ...
-    inputs.RT.wavelengths2run(idx(:,5), :) ];
+    vaz(idx(:,2))', ...
+    phi0(idx(:,3))', ...
+    inputs.RT.wavelengths2run(idx(:,4), :) ];
 
 
 
 % Add a final column that includes the index for the spectral response
 % function. These always increase chronologically
 changing_variables_allStateVectors = [changing_variables_allStateVectors,...
-    repmat((1:num_wl)', num_vza * num_sza * num_saz * num_vaz, 1)];
+    repmat((1:num_wl)', num_vza * num_saz * num_vaz, 1)];
 
 
 % Double check that the number of rows for 'changing_variables' is equal
@@ -1276,9 +1270,8 @@ parfor nn = 1:num_INP_files
 
     % extract per-iteration geometry values as scalars
     vza_nn  = changing_variables_allStateVectors(nn, 1);
-    sza_nn  = changing_variables_allStateVectors(nn, 2);
-    vaz_nn  = changing_variables_allStateVectors(nn, 3);
-    phi0_nn = changing_variables_allStateVectors(nn, 4);
+    vaz_nn  = changing_variables_allStateVectors(nn, 2);
+    phi0_nn = changing_variables_allStateVectors(nn, 3);
     wavelengths = changing_variables_allStateVectors(nn, num_cols-2:num_cols-1);
 
     % ------------------------------------------------
@@ -1291,14 +1284,14 @@ parfor nn = 1:num_INP_files
         char(date_of_flight{1}),'_',...
         num2str(time_of_flight),'-UTC_VR-meas_',...
         num2str(measurement_idx), '_vza', num2str(vza_nn),...
-        '_sza', num2str(sza_nn), '_vaz', num2str(vaz_nn), '_saz', num2str(phi0_nn) '.INP'];
+        '_sza', num2str(sza), '_vaz', num2str(vaz_nn), '_saz', num2str(phi0_nn) '.INP'];
 
     outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
 
     % ------------------ Write the INP File --------------------
     % force modify tau; pass geometry overrides to avoid mutating inputs
     write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs,...
-        wavelengths, wc_filename{1}, [], tau_c, [], [], vza_nn, sza_nn, vaz_nn, phi0_nn);
+        wavelengths, wc_filename{1}, [], tau_c, [], [], vza_nn, sza, vaz_nn, phi0_nn);
 
 
 
@@ -1315,7 +1308,7 @@ parfor nn = 1:num_INP_files
     % compute the reflectance using pre-sliced flux and spectral response
     [Refl_model_allStateVectors(nn), ~] = reflectanceFunction_ver3(rad_calcs,...
         source_flux_perIter{nn}, spec_response_perIter{nn},...
-        sza_nn, vza_nn, vaz_nn);
+        sza, vza_nn, vaz_nn);
 
 end
 
@@ -1325,7 +1318,7 @@ disp([newline, 'Calculations took ', num2str(toc), ' seconds'])
 
 %% Rearrange the reflectances
 
-num_unique_geo = num_vza * num_sza * num_vaz * num_saz;
+num_unique_geo = num_vza * num_vaz * num_saz;
 % reshape that row-space spans wavelengths and column space spans each
 % unique geometry
 Refl_model_allStateVectors = reshape(Refl_model_allStateVectors, num_wl, []);
@@ -1457,8 +1450,8 @@ filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
     campaign_name, '_inSitu_re_lwc_tauC_z_', char(date_of_flight{1}),'_', num2str(time_of_flight),...
     'UTC_prof-nn_', num2str(measurement_idx), '_vzaRange_', num2str(round(vza(1))),...
     '-', num2str(vza(end)),'_vazRange_', num2str(round(vaz(1))),...
-    '-', num2str(vaz(end)), '_szaRange_', num2str(round(sza(1))),...
-    '-', num2str(sza(end)), '_sazRange_', num2str(round(phi0(1))),...
+    '-', num2str(vaz(end)), '_sza_', num2str(round(sza)),...
+    '_sazRange_', num2str(round(phi0(1))),...
     '-', num2str(phi0(end)),...
     '_sim-ran-on-',char(datetime("today")),'.mat'];
 
