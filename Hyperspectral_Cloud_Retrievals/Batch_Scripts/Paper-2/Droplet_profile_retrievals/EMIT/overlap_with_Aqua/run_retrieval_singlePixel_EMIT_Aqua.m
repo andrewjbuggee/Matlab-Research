@@ -60,8 +60,8 @@ folder_paths = define_EMIT_dataPath_and_saveFolders(folder_extension_number);
 % Restore the coincident data paths from the saved file
 folder_paths.coincident_dataPath = saved_folder_paths.coincident_dataPath;
 folder_paths.coincident_dataFolder = saved_folder_paths.coincident_dataFolder;
-folder_paths.L1B_fileName_emit = saved_folder_paths.L1B_fileName_emit;
-folder_paths.L1B_fileName_modis = saved_folder_paths.L1B_fileName_modis;
+% folder_paths.L1B_fileName_emit = saved_folder_paths.L1B_fileName_emit;
+% folder_paths.L1B_fileName_modis = saved_folder_paths.L1B_fileName_modis;
 
 
 %% Add paths if running on the supercomputer
@@ -97,8 +97,9 @@ disp([newline, 'Retrieving Profile for pixel ', num2str(pixel_num), '...', newli
 
 %% Set libRadtran INP directory
 
-folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, 'EMIT_', folder_paths.coincident_dataFolder(1:end-1), '_',...
-    folder_paths.L1B_fileName_emit{1}(27:30), '/'];
+% folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, 'EMIT_', folder_paths.coincident_dataFolder(1:end-1), '_',...
+%     folder_paths.L1B_fileName_emit{1}(27:30), '/'];
+folder_paths.libRadtran_inp = [folder_paths.libRadtran_inp, 'EMIT_', folder_paths.coincident_dataFolder(1:end-1), '/'];
 
 % Create the directory if it doesn't exist
 if ~exist(folder_paths.libRadtran_inp, 'dir')
