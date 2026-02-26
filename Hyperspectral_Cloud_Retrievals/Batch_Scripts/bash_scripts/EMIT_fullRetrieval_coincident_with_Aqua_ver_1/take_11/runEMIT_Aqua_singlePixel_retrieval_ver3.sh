@@ -40,7 +40,7 @@
 #SBATCH --error=EMIT_singlePix_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1672       # There are 672 files spread across 336 jobs (2 files/job, last job has 2 files)
+#SBATCH --array=1001-1672       # There are 672 files, 1 file per job
 
 # Load modules
 ml purge
