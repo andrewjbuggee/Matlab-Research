@@ -340,19 +340,23 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
         % first read the local number of workers avilabile.
         p = parcluster('local');
+        if strcmp(folder_paths.which_computer, 'curc') == true
+            p.JobStorageLocation = getenv('MATLAB_TASK_DIR');  % unique per task
+        end
+        
         % start the cluster with the number of workers available
         if p.NumWorkers>64
             % Likely the amilan128c partition with 2.1 GB per core
             % Leave some cores for overhead
-            parpool(p.NumWorkers - 8);
+            parpool(p, p.NumWorkers - 8);
 
         elseif p.NumWorkers<=64 && p.NumWorkers>10
 
-            parpool(p.NumWorkers);
+            parpool(p, p.NumWorkers);
 
         elseif p.NumWorkers<=10
 
-            parpool(p.NumWorkers);
+            parpool(p, p.NumWorkers);
 
         end
 
