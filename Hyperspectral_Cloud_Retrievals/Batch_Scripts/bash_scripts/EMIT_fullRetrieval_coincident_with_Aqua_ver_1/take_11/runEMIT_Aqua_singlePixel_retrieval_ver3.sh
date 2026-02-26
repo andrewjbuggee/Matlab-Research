@@ -40,7 +40,7 @@
 #SBATCH --error=EMIT_singlePix_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1336       # There are 672 files spread across 336 jobs (2 files/job, last job has 2 files)
+#SBATCH --array=1001-1672       # There are 672 files spread across 336 jobs (2 files/job, last job has 2 files)
 
 # Load modules
 ml purge
@@ -178,7 +178,8 @@ echo "=================="
 
 
 # Add a small random delay to prevent simultaneous MATLAB startups
-sleep $((SLURM_ARRAY_TASK_ID % 30))
+# This is especially important if many tasks start at the same time, as it can prevent overwhelming the filesystem and reduce contention for resources.
+sleep $((SLURM_ARRAY_TASK_ID % 60))
 
 
 # Loop over all .mat files assigned to this task
