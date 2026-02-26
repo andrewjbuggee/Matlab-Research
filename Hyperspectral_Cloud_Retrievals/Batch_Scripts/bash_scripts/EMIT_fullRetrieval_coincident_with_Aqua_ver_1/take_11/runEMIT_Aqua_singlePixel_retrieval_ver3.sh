@@ -82,6 +82,8 @@ INPUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2"
 # *** MUST HAVE TRAILING SLASH '/' AT THE END             ***
 # ---------------------------------------------------------------
 OUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_11/"
+
+mkdir -p "${OUT_DIR}"
 # ----------------------------------------------------------
 
 
@@ -97,7 +99,7 @@ if [ ${TOTAL_FILES} -eq 0 ]; then
 fi
 
 # Calculate the number of jobs in the array
-SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1}  # Default to 1 if unset
+SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1001}  # Default to 1 if unset
 NUM_JOBS=$(( SLURM_ARRAY_TASK_MAX - SLURM_ARRAY_TASK_MIN + 1 ))
 
 # Calculate files per job (ceiling division)
@@ -176,7 +178,7 @@ echo "=================="
 
 
 # Add a small random delay to prevent simultaneous MATLAB startups
-sleep $((SLURM_ARRAY_TASK_ID % 10))
+sleep $((SLURM_ARRAY_TASK_ID % 30))
 
 
 # Loop over all .mat files assigned to this task
