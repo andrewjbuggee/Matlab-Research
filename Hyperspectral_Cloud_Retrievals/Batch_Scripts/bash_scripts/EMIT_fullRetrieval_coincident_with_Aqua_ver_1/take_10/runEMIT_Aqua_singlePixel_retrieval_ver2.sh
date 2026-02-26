@@ -63,6 +63,9 @@ export PATH=$GSL_BIN:$PATH
 
 cd /projects/anbu8374/
 
+
+
+
 # Load MATLAB
 module load matlab/R2024b
 
@@ -143,6 +146,18 @@ echo "JOB_IDX: ${JOB_IDX}"
 echo "START_IDX: ${START_IDX}"
 echo "END_IDX: ${END_IDX}"
 
+
+# ----------------------------------------------------------
+# This code below is repeated in each loop iteration to ensure a clean MATLAB environment for each file
+# Give each SLURM task its own isolated MATLAB preferences and job directory
+MATLAB_TASK_DIR="/scratch/alpine/${USER}/matlab_jobs/${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+mkdir -p "${MATLAB_TASK_DIR}"
+export MATLAB_TASK_DIR
+echo "MATLAB_TASK_DIR: ${MATLAB_TASK_DIR}"
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+
+
 # List first 10 .mat files found:
 echo " "
 echo "First 10 .mat files found:"
@@ -161,8 +176,8 @@ echo "=================="
 
 # Clean MATLAB temp directories
 echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
-rm -rf ~/.matlab/local_cluster_jobs/R2024b/Job*
-rm -rf /tmp/mathworks_${USER}_*
+# Clean up this task's unique MATLAB job directory after completion (at end of script)
+rm -rf "${MATLAB_TASK_DIR}"
 
 
 # Add a small random delay to prevent simultaneous MATLAB startups
