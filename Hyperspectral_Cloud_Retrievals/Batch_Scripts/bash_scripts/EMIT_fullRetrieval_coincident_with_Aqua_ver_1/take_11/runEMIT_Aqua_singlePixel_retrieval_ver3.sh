@@ -40,7 +40,7 @@
 #SBATCH --error=EMIT_singlePix_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-35       # UPDATE: set to the desired number of jobs
+#SBATCH --array=1001-1336       # There are 672 files spread across 336 jobs (2 files/job, last job has 2 files)
 
 # Load modules
 ml purge
@@ -74,14 +74,14 @@ module load matlab/R2024b
 # *** DEFINE THE DIRECTORY CONTAINING PER-PIXEL .mat FILES ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END             ***
 # ----------------------------------------------------------
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/overlap_data_per_pixel/modixPix_1_emitPix_5"
+INPUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2"
 # ----------------------------------------------------------
 
 # ---------------------------------------------------------------
 # *** DEFINE THE DIRECTORY WHERE ALL .mat FILES WILL BE SAVED ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END             ***
 # ---------------------------------------------------------------
-OUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_10/"
+OUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_11/"
 # ----------------------------------------------------------
 
 
