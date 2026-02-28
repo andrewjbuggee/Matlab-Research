@@ -14,12 +14,12 @@
 #SBATCH --mem=75G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23
-#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23_%A_%a.out
-#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23_%A_%a.err
+#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33
+#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33_%A_%a.out
+#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=201-273    # 73 measurements from the ensemble_profiles to process
+#SBATCH --array=301-373    # 73 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
@@ -46,10 +46,10 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Define the solar zenith angle for the measurements (0 degrees for this case)
-SZA=23.4343
+SZA=33.3806
 
 # define the offset for the job array so that the measurement index ranges from 1 to 73 instead of 101 to 173
-offset=200
+offset=300
 
 # define the output directory for the results
 output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026"
