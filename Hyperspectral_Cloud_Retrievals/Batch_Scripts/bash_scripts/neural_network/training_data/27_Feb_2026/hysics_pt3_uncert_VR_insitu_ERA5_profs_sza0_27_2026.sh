@@ -8,15 +8,15 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
-#SBATCH --time=80:00:00   # Request 80 hours for longer computation
+#SBATCH --time=23:59:59   # Request 80 hours for longer computation
 #SBATCH --partition=amilan
-#SBATCH --qos=long
+#SBATCH --qos=normal
 #SBATCH --mem=75G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData
-#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_%A_%a.out
-#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_%A_%a.err
+#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0
+#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0_%A_%a.out
+#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
 #SBATCH --array=101-173    # 73 measurements from the ensemble_profiles to process
@@ -51,6 +51,9 @@ SZA=0
 # define the offset for the job array so that the measurement index ranges from 1 to 73 instead of 101 to 173
 offset=100
 
+# define the output directory for the results
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026"
+
 # Create unique temp directory for this array task to avoid race conditions
 export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
 mkdir -p $TMPDIR
@@ -62,25 +65,6 @@ sleep $((SLURM_ARRAY_TASK_ID % 10))
 echo "Starting MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
 
 # 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); measurement_idx = ${SLURM_ARRAY_TASK_ID} - ${offset}; hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, ${SZA}); exit"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); clear variables; addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); measurement_idx = ${SLURM_ARRAY_TASK_ID} - ${offset}; hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, ${SZA}, '${output_dir}'); exit"
 
 echo "Finished MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
-
-# -------------------------------------------------------
-# Cleanup: immediately remove this job's MATLAB temp dir.
-# This is the JobStorageLocation set in start_parallel_pool.m
-# and contains small MATLAB parallel pool bookkeeping files.
-# -------------------------------------------------------
-echo "Removing TMPDIR: $TMPDIR"
-rm -rf "$TMPDIR"
-
-# -------------------------------------------------------
-# Prune old scratch directories (older than 7 days).
-# Every task runs this block, but concurrent execution is
-# safe: if two tasks try to rm the same directory, the
-# second one silently fails (2>/dev/null) and moves on.
-# -------------------------------------------------------
-# echo "Pruning scratch directories older than 7 days..."
-# find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
-# find /scratch/alpine/${USER}/HySICS/           -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
-# find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "Mie_Calculations_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
