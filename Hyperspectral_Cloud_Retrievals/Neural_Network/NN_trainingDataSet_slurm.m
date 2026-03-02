@@ -20,7 +20,7 @@ sza = acosd(mu_sample);
 
 for nn = 1:length(sza)
     % *** 1 SZA per file so multiple can run on the supercomputer at once ***
-    generate_hysics_refl_from_vocalsRex_and_era5_pick_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza(nn))
+    hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza(nn), output_dir)
 end
 
 
