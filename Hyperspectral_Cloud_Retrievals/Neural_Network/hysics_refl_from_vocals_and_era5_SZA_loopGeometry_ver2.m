@@ -1,6 +1,6 @@
 
 
-function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza)
+function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza, output_dir)
 %% Generate measurements from VOCALS-REx in-situ data
 %
 % Ver2 speed improvements over ver1:
@@ -1382,50 +1382,53 @@ end
 
 % Save all geometries as one mat file
 
-if strcmp(which_computer,'anbu8374')==true
+% if strcmp(which_computer,'anbu8374')==true
+% 
+%     % -----------------------------------------
+%     % ------ Folders on my Mac Desktop --------
+%     % -----------------------------------------
+% 
+%     % inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+%     %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
+%     %     'log_newCov_subset_allBands_VR_inSitu_1/'];
+% 
+%     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+%         'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026/'];
+% 
+% 
+% 
+% elseif strcmp(which_computer,'andrewbuggee')==true
+% 
+%     % -------------------------------------
+%     % ------ Folders on my Macbook --------
+%     % -------------------------------------
+% 
+%     % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+%     %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
+% 
+%     % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+%     %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
+% 
+% 
+%     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+%         'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
+% 
+% 
+% elseif strcmp(which_computer,'curc')==true
+% 
+%     % ------------------------------------------------
+%     % ------ Folders on the CU Super Computer --------
+%     % ------------------------------------------------
+% 
+%     inputs.folderpath_2save = ['/scratch/alpine/anbu8374/neural_network_training_data/',...
+%         'dataSet_created_on_24_Feb_2026/'];
+% 
+% 
+% 
+% end
 
-    % -----------------------------------------
-    % ------ Folders on my Mac Desktop --------
-    % -----------------------------------------
 
-    % inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-    %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
-    %     'log_newCov_subset_allBands_VR_inSitu_1/'];
-
-    inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026/'];
-
-
-
-elseif strcmp(which_computer,'andrewbuggee')==true
-
-    % -------------------------------------
-    % ------ Folders on my Macbook --------
-    % -------------------------------------
-
-    % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-    %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
-
-    % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-    %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
-
-
-    inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
-
-
-elseif strcmp(which_computer,'curc')==true
-
-    % ------------------------------------------------
-    % ------ Folders on the CU Super Computer --------
-    % ------------------------------------------------
-
-    inputs.folderpath_2save = ['/scratch/alpine/anbu8374/neural_network_training_data/',...
-        'dataSet_created_on_24_Feb_2026/'];
-
-
-
-end
+inputs.folderpath_2save = output_dir;
 
 
 % If the folder path doesn't exit, create a new directory

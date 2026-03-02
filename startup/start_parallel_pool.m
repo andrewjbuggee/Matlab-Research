@@ -103,9 +103,30 @@ if isempty(p)==true
         % Add a small delay to let file system sync (cluster-specific)
         pause(1);
 
+        % -------------------------------------------------------
+        % Set a unique JobStorageLocation for each SLURM array job.
+        %
+        % Without this, all array jobs default to the same shared
+        % directory (~/.matlab/local_cluster_jobs/R2024b/), and
+        % when 50+ jobs start simultaneously they corrupt each
+        % other's Job*.in.mat files, causing parpool to fail.
+        %
+        % TMPDIR is already set to a unique per-job path in the
+        % SLURM batch script:
+        %   /scratch/alpine/$USER/matlab_tmp_$JOBID_$TASKID
+        % -------------------------------------------------------
+        tmpdir = getenv('TMPDIR');
+        if ~isempty(tmpdir)
+            p.JobStorageLocation = tmpdir;
+            fprintf('JobStorageLocation set to: %s\n', tmpdir);
+        else
+            warning('TMPDIR is not set. Concurrent array jobs may corrupt shared pool files in ~/.matlab/local_cluster_jobs/.');
+        end
+
 
         % *** Start parallel pool ***
-
+        % Pass the cluster object 'p' (not just the worker count) so
+        % that the updated JobStorageLocation is actually used.
 
 
         % start the cluster with the number of workers available
@@ -113,15 +134,15 @@ if isempty(p)==true
             % Likely the amilan128c partition with 2.1 GB per core
             % Leave some cores for overhead
             fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers - 8);
-            parpool(p.NumWorkers - 8);
+            parpool(p, p.NumWorkers - 8);
 
         elseif p.NumWorkers<=64 && p.NumWorkers>10
             fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
-            parpool(p.NumWorkers);
+            parpool(p, p.NumWorkers);
 
         elseif p.NumWorkers<=10
             fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
-            parpool(p.NumWorkers);
+            parpool(p, p.NumWorkers);
 
         end
 

@@ -193,11 +193,13 @@ for (( FILE_IDX=START_IDX; FILE_IDX<=END_IDX; FILE_IDX++ )); do
         continue
     fi
 
-    # Compute a unique folder_extension_number for each file within this task
-    # This ensures each call gets unique INP_OUT, wc, atmmod, and Mie directories
-    # Formula: TASK_ID * 1000 + local file index (0-based within this task)
+    # Compute a unique folder_extension_number for each file within this task.
+    # This ensures each call gets unique INP_OUT, wc, atmmod, and Mie directories.
+    # Formula: (JOB_IDX * FILES_PER_JOB) + LOCAL_FILE_IDX + SLURM_ARRAY_TASK_MIN
+    #   - When FILES_PER_JOB=1 (current setup), this equals SLURM_ARRAY_TASK_ID (1001-1672)
+    #   - When FILES_PER_JOB>1, each file within a task still gets a unique number
     LOCAL_FILE_IDX=$(( FILE_IDX - START_IDX ))
-    FOLDER_EXT_NUM=$(( SLURM_ARRAY_TASK_ID * 1000 + LOCAL_FILE_IDX ))
+    FOLDER_EXT_NUM=$(( JOB_IDX * FILES_PER_JOB + LOCAL_FILE_IDX + SLURM_ARRAY_TASK_MIN ))
 
     echo " "
     echo "=============================================="
@@ -233,6 +235,17 @@ done
 echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
 # Clean up this task's unique MATLAB job directory after completion (at end of script)
 rm -rf "${MATLAB_TASK_DIR}"
+
+# -------------------------------------------------------
+# Prune old scratch directories (older than 7 days).
+# Concurrent execution across array tasks is safe:
+# failed rm calls (already-deleted dirs) are suppressed.
+# -------------------------------------------------------
+echo "Pruning scratch directories older than 7 days..."
+find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/matlab_jobs/      -mindepth 1 -maxdepth 1                -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/EMIT/             -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "emit_*"             -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
 
 echo " "
 echo "=============================================="
