@@ -152,7 +152,7 @@ if measurement_idx < 1 || measurement_idx > total_measurements
     error('measurement_idx must be between 1 and %d', total_measurements);
 end
 
-fprintf('Processing measurement %d of %d\n', measurement_idx, total_measurements);
+fprintf('\n Processing measurement %d of %d\n', measurement_idx, total_measurements);
 
 
 
@@ -1457,6 +1457,6 @@ save(filename, "Refl_model_allStateVectors", "Refl_model_with_noise_allStateVect
     "changing_variables_allStateVectors", "re", "tau", "lwc", "z", "era5");
 
 
-fprintf('Successfully completed measurement %d\n', measurement_idx);
+fprintf('Successfully completed and saved measurement %d\n', measurement_idx);
 
 end

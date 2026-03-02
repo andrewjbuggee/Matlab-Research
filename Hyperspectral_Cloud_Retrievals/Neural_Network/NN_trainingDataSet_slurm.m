@@ -23,5 +23,4 @@ for nn = 1:length(sza)
     hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza(nn), output_dir)
 end
 
-
 %% %% Test slurm script to create Neural Network Training Data set with ORACLES measurments
