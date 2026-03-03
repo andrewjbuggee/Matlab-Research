@@ -28,6 +28,8 @@ Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_videos/*
 *.tif
 *.geo.tiff
 *.out
+*.OUT
+*.inp
 *.INP
 *.cls
 *.hdf.jpg.1
