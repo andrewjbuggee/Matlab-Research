@@ -336,8 +336,21 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
     % retrieval_directory = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_6';
 
-    retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
+    retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7/'];
 
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+
+    % mie folder location
+    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+elseif strcmp(which_computer, 'curc')==true
+
+    retrieval_directory = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_11/'];
 
     coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
         'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
@@ -738,8 +751,10 @@ fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN
 %% Look at all of the EMIT retrievals and see how many advance beyone the initial guess
 
 
-%% Plots EMIT retrieval results
+%% Prints EMIT retrieval results
 
+
+clear variables
 
 % Determine which computer you're using
 which_computer = whatComputer();
@@ -752,10 +767,6 @@ if strcmp(which_computer,'anbu8374')==true
 
     retrieval_directory = '/Users/anbu8374/MATLAB-Drive/EMIT/Droplet_profile_retrievals/Paper_2/take_4/';
 
-    coincident_dataPath = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
-        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
-
-    atm_data_directory = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
 
 elseif strcmp(which_computer,'andrewbuggee')==true
 
@@ -772,42 +783,90 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     retrieval_directory = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
 
 
-    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
-
-    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
 
 
+
+elseif strcmp(which_computer, 'curc')
+
+    retrieval_directory = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_11/'];
+
+    
 
 end
 
 
 
+
+
 % Grab filenames in drive
+% filenames_retrieval = dir(retrieval_directory);
+% idx_2delete = [];
+% for nn = 1:length(filenames_retrieval)
+% 
+%     if contains(filenames_retrieval(nn).name, "EMIT", "IgnoreCase", true) == true
+% 
+%         load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name])
+% 
+%         disp([newline, 'File: ', num2str(nn), newline])
+%         disp(['Filename: ', filenames_retrieval(nn).name, newline])
+%         disp(['     Retrieval Iterations: ', newline])
+%         disp(['                   re_top: ', num2str(GN_outputs.retrieval(1, :)), newline])
+%         disp(['                   re_bot: ', num2str(GN_outputs.retrieval(2, :)), newline])
+%         disp(['                    Tau_c: ', num2str(GN_outputs.retrieval(3, :)), newline])
+%         disp(['                     acpw: ', num2str(GN_outputs.retrieval(4, :)), newline])
+%         disp(['----------------------------------------', newline])
+%         disp(['       RSS convergence limit: ', num2str(GN_inputs.convergence_limit), newline])
+%         disp(['RSS using final state vector: ', num2str(GN_outputs.rss_residual(end)), newline])
+%         
+%   
+% 
+%     end
+% 
+% end
+
+
+
+
+
+
+
+% How many retrievals converged within the time limits provided?
+% (i.e. how many retrievals have a GN_outputs)
+
+num_retrievals = 0;
+num_converged = 0;
+
 filenames_retrieval = dir(retrieval_directory);
 idx_2delete = [];
 for nn = 1:length(filenames_retrieval)
 
-    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == true
+    clear ds
 
-        load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name])
+    if contains(filenames_retrieval(nn).name, "EMIT", "IgnoreCase", true) == true
 
-        disp([newline, 'File: ', num2str(nn), newline])
-        disp(['Filename: ', filenames_retrieval(nn).name, newline])
-        disp(['     Retrieval Iterations: ', newline])
-        disp(['                   re_top: ', num2str(GN_outputs.retrieval(1, :)), newline])
-        disp(['                   re_bot: ', num2str(GN_outputs.retrieval(2, :)), newline])
-        disp(['                    Tau_c: ', num2str(GN_outputs.retrieval(3, :)), newline])
-        disp(['                     acpw: ', num2str(GN_outputs.retrieval(4, :)), newline])
-        disp(['----------------------------------------', newline])
-        disp(['       RSS convergence limit: ', num2str(GN_inputs.convergence_limit), newline])
-        disp(['RSS using final state vector: ', num2str(GN_outputs.rss_residual(end)), newline])
+        num_retrievals = num_retrievals + 1;
+
+        ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+
+        if isfield(ds, 'GN_inputs')==true && isfield(ds, 'GN_outputs')==true
+
+            num_converged = num_converged + 1;
+
+        end
         
   
 
     end
 
 end
+
+
+disp([newline, 'Number of retrievals attempted: ', num2str(num_retrievals), newline])
+disp([newline, 'Number of retrievals that converged: ', num2str(num_converged), newline])
+
+
+
 
 
 
