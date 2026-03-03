@@ -352,13 +352,12 @@ elseif strcmp(which_computer, 'curc')==true
     retrieval_directory = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
         'Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_11/'];
 
-    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+    coincident_dataPath = '/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2/';
 
-    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+    atm_data_directory = '/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod/';
 
     % mie folder location
-    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+    mie_folder_path = '/scratch/alpine/anbu8374/Mie_Calculations/';
 
 
 
@@ -369,15 +368,46 @@ end
 % Grab filenames in drive
 filenames_retrieval = dir(retrieval_directory);
 idx_2delete = [];
-for nn = 1:length(filenames_retrieval)
 
-    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == false
+if strcmp(which_computer, 'curc') == true
 
-        idx_2delete = [idx_2delete, nn];
+    for nn = 1:length(filenames_retrieval)
+
+        if contains(filenames_retrieval(nn).name, "emit_dropretrieval", "ignorecase", true) == false
+
+            idx_2delete = [idx_2delete, nn];
+
+        else
+
+            clear ds
+
+            ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+
+            if isfield(ds, 'GN_inputs')==false && isfield(ds, 'GN_outputs')==false
+
+                idx_2delete = [idx_2delete, nn];
+
+            end
+
+        end
+
+    end
+
+else
+
+    for nn = 1:length(filenames_retrieval)
+
+        if contains(filenames_retrieval(nn).name, "emit_dropretrieval", "ignorecase", true) == false
+
+            idx_2delete = [idx_2delete, nn];
+
+        end
 
     end
 
 end
+
+
 
 % delete rows that don't have retrieval filenames
 filenames_retrieval(idx_2delete) = [];
