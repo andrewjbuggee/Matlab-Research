@@ -52,7 +52,7 @@ SZA=60
 offset=700
 
 # define the output directory for the results
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026/"
 
 # Create unique temp directory for this array task to avoid race conditions
 export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
@@ -76,3 +76,13 @@ echo "Finished MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
 # -------------------------------------------------------
 echo "Removing TMPDIR: $TMPDIR"
 rm -rf "$TMPDIR"
+
+# Cleanup this job's INP_OUT directory (INP/OUT files already deleted in parfor; removes errMsg.txt + dir)
+echo "Removing INP_OUT directory for task ${SLURM_ARRAY_TASK_ID}..."
+rm -rf "/scratch/alpine/${USER}/HySICS/INP_OUT_${SLURM_ARRAY_TASK_ID}"
+
+# Prune scratch directories older than 7 days
+echo "Pruning scratch directories older than 7 days..."
+find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/HySICS/           -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "Mie_Calculations_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true

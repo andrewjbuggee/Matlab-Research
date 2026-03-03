@@ -152,7 +152,7 @@ if measurement_idx < 1 || measurement_idx > total_measurements
     error('measurement_idx must be between 1 and %d', total_measurements);
 end
 
-fprintf('Processing measurement %d of %d\n', measurement_idx, total_measurements);
+fprintf('\n Processing measurement %d of %d\n', measurement_idx, total_measurements);
 
 
 
@@ -1310,6 +1310,24 @@ parfor nn = 1:num_INP_files
         source_flux_perIter{nn}, spec_response_perIter{nn},...
         sza, vza_nn, vaz_nn);
 
+    % -----------------------------------------------------------------------
+    % Delete INP and OUT files immediately after processing to conserve
+    % scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+    % files, leaving files on disk until the end exhausts the inode limit
+    % (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+    % failures. Deleting inline keeps at most 40 files active per job.
+    % -----------------------------------------------------------------------
+    inp_file_path = [libRadtran_inp, inputFileName{nn}];
+    out_file_path = [libRadtran_inp, outputFileName{nn}, '.OUT'];
+
+    if isfile(inp_file_path)
+        delete(inp_file_path)
+    end
+
+    if isfile(out_file_path)
+        delete(out_file_path)
+    end
+
 end
 
 
@@ -1457,6 +1475,6 @@ save(filename, "Refl_model_allStateVectors", "Refl_model_with_noise_allStateVect
     "changing_variables_allStateVectors", "re", "tau", "lwc", "z", "era5");
 
 
-fprintf('Successfully completed measurement %d\n', measurement_idx);
+fprintf('Successfully completed and saved measurement %d\n', measurement_idx);
 
 end
