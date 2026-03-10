@@ -8,18 +8,18 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
-#SBATCH --time=23:59:59   # Request 80 hours for longer computation
+#SBATCH --time=48:00:00   # Request 48 hours for longer computation
 #SBATCH --partition=amilan
-#SBATCH --qos=normal
+#SBATCH --qos=long
 #SBATCH --mem=75G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza60
-#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza60_%A_%a.out
-#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza60_%A_%a.err
+#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23
+#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23_%A_%a.out
+#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza23_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=701-773    # 73 measurements from the ensemble_profiles to process
+#SBATCH --array=201-273    # 73 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
@@ -46,13 +46,13 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Define the solar zenith angle for the measurements (0 degrees for this case)
-SZA=60
+SZA=23.4343
 
 # define the offset for the job array so that the measurement index ranges from 1 to 73 instead of 101 to 173
-offset=700
+offset=200
 
 # define the output directory for the results
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_10_March_2026/"
 
 # Create unique temp directory for this array task to avoid race conditions
 export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}

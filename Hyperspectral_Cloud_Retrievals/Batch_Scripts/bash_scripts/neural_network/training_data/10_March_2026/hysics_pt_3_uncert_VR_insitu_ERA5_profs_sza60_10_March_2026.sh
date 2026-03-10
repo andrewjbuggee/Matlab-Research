@@ -8,9 +8,9 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
-#SBATCH --time=23:59:59   # Request 80 hours for longer computation
+#SBATCH --time=48:00:00   # Request 48 hours for longer computation
 #SBATCH --partition=amilan
-#SBATCH --qos=normal
+#SBATCH --qos=long
 #SBATCH --mem=75G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
@@ -52,7 +52,7 @@ SZA=60
 offset=700
 
 # define the output directory for the results
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_27_Feb_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_10_March_2026/"
 
 # Create unique temp directory for this array task to avoid race conditions
 export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
