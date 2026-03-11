@@ -28,7 +28,7 @@
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, output_dir)
+    print_status_updates, print_libRadtran_err, output_dir, delete_inp_out)
 
 
 %% Load the per-pixel .mat file
@@ -150,7 +150,8 @@ end
 %% Run the single-pixel retrieval
 
 [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
-    modis, airs, overlap_pixels, folder_paths, print_libRadtran_err, print_status_updates, pixel_num);
+    modis, airs, overlap_pixels, folder_paths, print_libRadtran_err, print_status_updates,...
+    pixel_num, delete_inp_out);
 
 
 end

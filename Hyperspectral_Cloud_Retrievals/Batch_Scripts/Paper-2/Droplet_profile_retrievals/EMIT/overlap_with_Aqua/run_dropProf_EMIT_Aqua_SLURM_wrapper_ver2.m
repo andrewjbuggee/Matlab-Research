@@ -10,6 +10,15 @@ print_libRadtran_err = true;
 plot_figures = false; 
 save_figures = false; 
 
+% if true....
+% -----------------------------------------------------------------------
+% Delete INP and OUT files immediately after processing to conserve
+% scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+% files, leaving files on disk until the end exhausts the inode limit
+% (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+% failures. Deleting inline keeps at most 40 files active per job.
+% -----------------------------------------------------------------------
+delete_inp_out = true;
 
 
 %% Define the folder of the coincident data set between EMIT and Aqau
@@ -95,4 +104,4 @@ folder_extension_number = 5;
 
 [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, output_dir);
+    print_status_updates, print_libRadtran_err, output_dir, delete_inp_out);

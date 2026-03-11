@@ -25,8 +25,10 @@
 
 function tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
     print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_radiosonde_data, pixel_num,...
-    radiosonde_datProfiles)
+    radiosonde_datProfiles, delete_inp_out)
 
+
+which_computer = folder_paths.which_computer;
 
 
 
@@ -156,7 +158,7 @@ if inputs_tblut.flags.writeINPfiles == true
         temp = write_wc_file(changing_variables(2*nn -1, 1), changing_variables(2*nn -1,2),...
             inputs_tblut.RT.z_topBottom,inputs_tblut.RT.lambda_forTau, inputs_tblut.RT.distribution_str,...
             inputs_tblut.RT.distribution_var,inputs_tblut.RT.vert_homogeneous_str, inputs_tblut.RT.parameterization_str,...
-            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, inputs_tblut.which_computer, nn+(nn-1), 1,...
+            inputs_tblut.RT.indVar, inputs_tblut.compute_weighting_functions, which_computer, nn+(nn-1), 1,...
             wc_folder_path, mie_folder_path);
 
         temp_names{nn} = temp{1};
@@ -169,7 +171,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
     % define the INP folder location
-    inp_folder_path = folder_paths.libRadtran_inp;
+    libRadtran_inp = folder_paths.libRadtran_inp;
 
     % define the libRadtran data path
     libRadtran_data_path = folder_paths.libRadtran_data;
@@ -200,7 +202,7 @@ if inputs_tblut.flags.writeINPfiles == true
 
 
         % ------------------ Write the INP File --------------------
-        write_INP_file(inp_folder_path, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs_tblut,...
+        write_INP_file(libRadtran_inp, libRadtran_data_path, wc_folder_path, inputFileName{nn}, inputs_tblut,...
             wavelengths, wc_filename{nn}, [], changing_variables(nn,2), custom_waterVapor_profile);
 
 
@@ -266,13 +268,13 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
             % compute INP file
-            runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+            runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+                which_computer);
 
 
             % read .OUT file
             % radiance is in units of mW/nm/m^2/sr
-            [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+            [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs_tblut,...
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
@@ -286,6 +288,29 @@ if inputs_tblut.flags.runUVSPEC == true
 
             %         [Refl_model_tblut(nn),~, inputs_tblut] = runReflectanceFunction_4EMIT(inputs_tblut,...
             %             names, emit.spec_response.value);
+
+
+
+            if delete_inp_out == true
+                % -----------------------------------------------------------------------
+                % Delete INP and OUT files immediately after processing to conserve
+                % scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+                % files, leaving files on disk until the end exhausts the inode limit
+                % (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+                % failures. Deleting inline keeps at most 40 files active per job.
+                % -----------------------------------------------------------------------
+                inp_file_path = [libRadtran_inp, inputFileName{nn}];
+                out_file_path = [libRadtran_inp, outputFileName{nn}, '.OUT'];
+
+                if isfile(inp_file_path)
+                    delete(inp_file_path)
+                end
+
+                if isfile(out_file_path)
+                    delete(out_file_path)
+                end
+
+            end
 
 
 
@@ -308,13 +333,13 @@ if inputs_tblut.flags.runUVSPEC == true
 
 
             % compute INP file
-            runUVSPEC_ver2(folder_paths.libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
-                inputs_tblut.which_computer);
+            runUVSPEC_ver2(libRadtran_inp, inputFileName{nn}, outputFileName{nn},...
+                which_computer);
 
 
             % read .OUT file
             % radiance is in units of mW/nm/m^2/sr
-            [ds,~,~] = readUVSPEC_ver2(folder_paths.libRadtran_inp, outputFileName{nn}, inputs_tblut,...
+            [ds,~,~] = readUVSPEC_ver2(libRadtran_inp, outputFileName{nn}, inputs_tblut,...
                 inputs_tblut.RT.compute_reflectivity_uvSpec);
 
 
@@ -328,6 +353,32 @@ if inputs_tblut.flags.runUVSPEC == true
 
             %         [Refl_model_tblut(nn),~, inputs_tblut] = runReflectanceFunction_4EMIT(inputs_tblut,...
             %             names, emit.spec_response.value);
+
+
+
+
+            if delete_inp_out == true
+                % -----------------------------------------------------------------------
+                % Delete INP and OUT files immediately after processing to conserve
+                % scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+                % files, leaving files on disk until the end exhausts the inode limit
+                % (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+                % failures. Deleting inline keeps at most 40 files active per job.
+                % -----------------------------------------------------------------------
+                inp_file_path = [libRadtran_inp, inputFileName{nn}];
+                out_file_path = [libRadtran_inp, outputFileName{nn}, '.OUT'];
+
+                if isfile(inp_file_path)
+                    delete(inp_file_path)
+                end
+
+                if isfile(out_file_path)
+                    delete(out_file_path)
+                end
+
+            end
+
+
 
 
 

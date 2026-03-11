@@ -7,7 +7,8 @@
 %%
 
 function jacobian_ln = compute_jacobian_4EMIT_top_bottom_ver4_logState(state_vector, measurement_estimate_ln,...
-    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles, pixel_num)
+    GN_inputs, spec_response, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles,...
+    pixel_num, delete_inp_out)
 
 
 % convert the measurement back to linear space
@@ -293,6 +294,30 @@ parfor nn = 1:num_INP_files
 
     [new_measurement_estimate(nn), ~] = reflectanceFunction_ver2(GN_inputs, ds,...
         source_flux(idx_wl), spec_response(changing_variables(nn,end),:)');
+
+
+
+
+    if delete_inp_out == true
+        % -----------------------------------------------------------------------
+        % Delete INP and OUT files immediately after processing to conserve
+        % scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+        % files, leaving files on disk until the end exhausts the inode limit
+        % (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+        % failures. Deleting inline keeps at most 40 files active per job.
+        % -----------------------------------------------------------------------
+        inp_file_path = [libRadtran_inp, inputFileName];
+        out_file_path = [libRadtran_inp, outputFileName, '.OUT'];
+
+        if isfile(inp_file_path)
+            delete(inp_file_path)
+        end
+
+        if isfile(out_file_path)
+            delete(out_file_path)
+        end
+
+    end
 
 
 

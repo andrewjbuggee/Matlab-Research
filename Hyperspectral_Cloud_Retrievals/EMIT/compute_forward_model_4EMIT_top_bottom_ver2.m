@@ -10,7 +10,7 @@
 % By Andrew J. Buggee
 %%
 function measurement_estimate = compute_forward_model_4EMIT_top_bottom_ver2(current_guess, GN_inputs, spec_response,...
-    folder_paths, radiosonde_datProfiles, pixel_num)
+    folder_paths, radiosonde_datProfiles, pixel_num, delete_inp_out)
 
 
 
@@ -120,7 +120,7 @@ aboveCloud_waterVaporColumn_fileName = alter_aboveCloud_columnWaterVapor_profile
 measurement_estimate = zeros(size(GN_inputs.RT.wavelengths2run,1), 1);
 
 parfor ww = 1:size(wavelengths2run,1)
-% for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
+    % for ww = 1:size(GN_inputs.RT.wavelengths2run,1)
 
     % define the input file name
     inputFileName = [num2str(mean(wavelengths2run(ww,:))), '_','nm_rTop_', num2str(r_top),...
@@ -156,6 +156,33 @@ parfor ww = 1:size(wavelengths2run,1)
 
     [measurement_estimate(ww), ~] = reflectanceFunction_ver2(GN_inputs, ds,...
         source_flux(idx_wl), spec_response(ww,:)');
+
+
+
+
+    if delete_inp_out == true
+        % -----------------------------------------------------------------------
+        % Delete INP and OUT files immediately after processing to conserve
+        % scratch disk inodes. With 511 concurrent jobs x 81,408 iterations x 2
+        % files, leaving files on disk until the end exhausts the inode limit
+        % (~100M inodes) after ~8.8 hours, causing fopen and shell redirect
+        % failures. Deleting inline keeps at most 40 files active per job.
+        % -----------------------------------------------------------------------
+        inp_file_path = [libRadtran_inp, inputFileName];
+        out_file_path = [libRadtran_inp, outputFileName, '.OUT'];
+
+        if isfile(inp_file_path)
+            delete(inp_file_path)
+        end
+
+        if isfile(out_file_path)
+            delete(out_file_path)
+        end
+
+    end
+
+
+
 
 end
 

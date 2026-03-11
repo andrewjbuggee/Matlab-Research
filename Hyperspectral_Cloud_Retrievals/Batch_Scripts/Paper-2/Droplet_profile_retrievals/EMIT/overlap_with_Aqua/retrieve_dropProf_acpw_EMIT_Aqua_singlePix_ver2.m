@@ -10,7 +10,8 @@
 
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2(emit,...
-            modis, airs, overlap_pixels,folder_paths, print_libRadtran_err, print_status_updates, pixel_num)
+            modis, airs, overlap_pixels,folder_paths, print_libRadtran_err, print_status_updates,...
+            pixel_num, delete_inp_out)
 
 
 
@@ -334,34 +335,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     %%  *** Start parallel pool ***
 
-    % Is parpool running?
-    p = gcp('nocreate');
-    if isempty(p)==true
-
-        % first read the local number of workers avilabile.
-        p = parcluster('local');
-        if strcmp(folder_paths.which_computer, 'curc') == true
-            p.JobStorageLocation = getenv('MATLAB_TASK_DIR');  % unique per task
-        end
-        
-        % start the cluster with the number of workers available
-        if p.NumWorkers>64
-            % Likely the amilan128c partition with 2.1 GB per core
-            % Leave some cores for overhead
-            parpool(p, p.NumWorkers - 8);
-
-        elseif p.NumWorkers<=64 && p.NumWorkers>10
-
-            parpool(p, p.NumWorkers);
-
-        elseif p.NumWorkers<=10
-
-            parpool(p, p.NumWorkers);
-
-        end
-
-    end
-
+    start_parallel_pool(folder_paths.which_computer)
 
 
 
@@ -380,7 +354,8 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     use_MODIS_AIRS_data = true;
 
     tblut_retrieval = TBLUT_forEMIT_with_MODIS_retrievals_perPixel(emit, spec_response, folder_paths,...
-        print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_AIRS_data, pixel_num, airs.datProfiles);
+        print_libRadtran_err, print_status_updates, GN_inputs, use_MODIS_AIRS_data, pixel_num,...
+        airs.datProfiles, delete_inp_out);
 
     if print_status_updates==true
         disp([newline, 'TBLUT retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -398,8 +373,9 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
 
     use_MODIS_AIRS_data = true;
 
-    acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval, folder_paths, use_MODIS_AIRS_data,...
-        GN_inputs, print_libRadtran_err, print_status_updates, pixel_num, airs.datProfiles);
+    acpw_retrieval = ACPW_retrieval_for_EMIT_perPixel(emit, spec_response, tblut_retrieval,...
+        folder_paths, use_MODIS_AIRS_data,GN_inputs, print_libRadtran_err,...
+        print_status_updates, pixel_num, airs.datProfiles, delete_inp_out);
 
     if print_status_updates==true
         disp([newline, 'ACPW retrieval completed in ', num2str(toc), ' seconds', newline])
@@ -439,7 +415,7 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     disp([newline, 'Running Multispectral retrieval... ', newline])
 
     [GN_outputs, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forMo_uncert_perPixel(GN_inputs, emit, spec_response,...
-        folder_paths, print_status_updates, pixel_num, airs.datProfiles);
+        folder_paths, print_status_updates, pixel_num, airs.datProfiles, delete_inp_out);
 
 
     % --------------------------------------------------------------
@@ -466,5 +442,17 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     end
 
 
+
+    %% delete supporting .DAT files and INP/OUT files
+
+    % Delete old wc files
+    delete([folder_paths.libRadtran_water_cloud_files, '*.DAT'])
+
+    % Delete old atm files
+    delete([folder_paths.atm_folder_path, '*.DAT'])
+
+    % Delete old mie files
+    delete([folder_paths.libRadtran_mie_folder, '*.INP'])
+    delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 end
