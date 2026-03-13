@@ -159,9 +159,9 @@ for nn = 1:length(idx_1)
             idx_1(nn), idx_cloud_boundary, idx_dz_dt);
 
 
-    % -----------------------------------------------------------------
-    % Case 2: possible multi-layer cloud -- gap after profile
-    % -----------------------------------------------------------------
+        % -----------------------------------------------------------------
+        % Case 2: possible multi-layer cloud -- gap after profile
+        % -----------------------------------------------------------------
     elseif ascend_or_descend_throughout_cloud && meets_length_requirement && ...
             before_profile_below_thresholds && ~after_profile_below_thresholds
 
@@ -211,9 +211,9 @@ for nn = 1:length(idx_1)
         end
 
 
-    % -----------------------------------------------------------------
-    % Case 3: possible multi-layer cloud -- gap before profile
-    % -----------------------------------------------------------------
+        % -----------------------------------------------------------------
+        % Case 3: possible multi-layer cloud -- gap before profile
+        % -----------------------------------------------------------------
     elseif ascend_or_descend_throughout_cloud && meets_length_requirement && ...
             ~before_profile_below_thresholds && after_profile_below_thresholds
 
@@ -277,212 +277,228 @@ for nn = 1:length(idx_1)
 
 end
 
+% If there are no vertical profiles found, terminate the function
+if exist("vert_profs", "var") == 0
 
-% -------------------------------------------------------------------------
-% ------------- Remove near-duplicate profiles (multilayer edge cases) ----
-% -------------------------------------------------------------------------
+    % end the function with a statement that no vert profiles were found
+    vert_profs = [];
 
-buffer_length = 4;
-idx2delete = [];
+else
 
-for n1 = 1:profile_num
-    for n2 = (n1+1):profile_num
 
-        if (vert_profs(n2).time(1) - vert_profs(n1).time(1)) <= buffer_length || ...
-                (vert_profs(n2).time(end) - vert_profs(n1).time(end)) <= buffer_length
 
-            if length(vert_profs(n2).time) > length(vert_profs(n1).time)
-                idx2delete = [idx2delete, n1];
-            elseif length(vert_profs(n2).time) < length(vert_profs(n1).time)
-                idx2delete = [idx2delete, n2];
-            else
-                idx2delete = [idx2delete, n2];
+    % -------------------------------------------------------------------------
+    % ------------- Remove near-duplicate profiles (multilayer edge cases) ----
+    % -------------------------------------------------------------------------
+
+    buffer_length = 4;
+    idx2delete = [];
+
+    for n1 = 1:profile_num
+        for n2 = (n1+1):profile_num
+
+            if (vert_profs(n2).time(1) - vert_profs(n1).time(1)) <= buffer_length || ...
+                    (vert_profs(n2).time(end) - vert_profs(n1).time(end)) <= buffer_length
+
+                if length(vert_profs(n2).time) > length(vert_profs(n1).time)
+                    idx2delete = [idx2delete, n1];
+                elseif length(vert_profs(n2).time) < length(vert_profs(n1).time)
+                    idx2delete = [idx2delete, n2];
+                else
+                    idx2delete = [idx2delete, n2];
+                end
+
+            end
+
+        end
+    end
+
+    if isempty(idx2delete)~= true
+        vert_profs(idx2delete) = [];
+    end
+
+
+    % -------------------------------------------------------------------------
+    % --------- Remove profiles with too many below-threshold Nc points -------
+    % -------------------------------------------------------------------------
+
+    idx2delete = [];
+    for nn = 1:length(vert_profs)
+        if sum(vert_profs(nn).total_Nc < Nc_threshold) > floor(length(vert_profs(nn).total_Nc)/2)
+            idx2delete = [idx2delete, nn];
+        end
+    end
+    if isempty(idx2delete)~= true
+        vert_profs(idx2delete) = [];
+    end
+
+
+    % -------------------------------------------------------------------------
+    % -------------- Optionally truncate at peak LWC --------------------------
+    % -------------------------------------------------------------------------
+
+    if stop_at_max_lwc
+        error([newline, 'The code to cut profiles at max LWC has not been tested.', newline])
+    end
+
+
+    % -------------------------------------------------------------------------
+    % ------------- Store threshold values in each profile --------------------
+    % -------------------------------------------------------------------------
+
+    for nn = 1:length(vert_profs)
+        vert_profs(nn).LWC_threshold = LWC_threshold;   % g/m^3
+        vert_profs(nn).Nc_threshold  = Nc_threshold;     % cm^-3
+    end
+
+
+    % -------------------------------------------------------------------------
+    % ---------------------- Compute Liquid Water Path ------------------------
+    % -------------------------------------------------------------------------
+
+    for nn = 1:length(vert_profs)
+
+        dz_dt_prof = diff(vert_profs(nn).altitude) ./ diff(vert_profs(nn).time);
+
+        if mean(dz_dt_prof) > 0
+            sign_factor = 1;        % ascending
+        else
+            sign_factor = -1;       % descending
+        end
+
+        vert_profs(nn).lwp          = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).lwc);       % g/m^2
+        vert_profs(nn).lwp_CAS      = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).cwc);       % g/m^2
+        vert_profs(nn).lwp_2DS_HVPS = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).rwc);       % g/m^2
+
+    end
+
+
+    % -------------------------------------------------------------------------
+    % -------------- Compute horizontal distance and slant path ---------------
+    % -------------------------------------------------------------------------
+
+    wgs84 = wgs84Ellipsoid("m");
+
+    for nn = 1:length(vert_profs)
+
+        horz_distance_travelled = zeros(1, length(vert_profs(nn).latitude));
+
+        for xx = 2:length(vert_profs(nn).latitude)
+            horz_distance_travelled(xx) = distance( ...
+                vert_profs(nn).latitude(1),  vert_profs(nn).longitude(1), ...
+                vert_profs(nn).latitude(xx), vert_profs(nn).longitude(xx), wgs84);
+        end
+
+        vert_profs(nn).horz_dist       = horz_distance_travelled;
+        vert_profs(nn).cloud_depth     = max(vert_profs(nn).altitude) - min(vert_profs(nn).altitude);
+        vert_profs(nn).slant_path      = sqrt(vert_profs(nn).horz_dist(end)^2 + vert_profs(nn).cloud_depth^2);
+        vert_profs(nn).VR_zenith_angle = atand(vert_profs(nn).horz_dist(end) / vert_profs(nn).cloud_depth);
+
+    end
+
+
+    % -------------------------------------------------------------------------
+    % ---------------------- Compute optical depth ----------------------------
+    % -------------------------------------------------------------------------
+    % Optical depth is defined as 0 at cloud top, increasing toward cloud bottom.
+    % Uses the ORACLES pre-computed effective radius (re), which incorporates
+    % all three probes (CAS, 2DS, HVPS-3).
+    %
+    % PERFORMANCE NOTE: find_bestFitDist_dropDist is called ONCE per profile,
+    % outside the inner altitude loop. The distribution fit over the full
+    % profile is constant, so recomputing it at every altitude step is wasteful.
+    % Only average_mie_over_size_distribution (which depends on the cumulative
+    % re profile) is called inside the inner loop.
+
+    for nn = 1:length(vert_profs)
+
+        vector_length = length(vert_profs(nn).altitude);
+        vert_profs(nn).tau = zeros(1, vector_length - 1);
+
+        dz_dt_prof   = diff(vert_profs(nn).altitude) ./ diff(vert_profs(nn).time);
+        is_ascending = mean(dz_dt_prof) > 0;
+
+        % ------------------------------------------------------------------
+        % Fit size distribution ONCE per profile (outside the inner loop).
+        % The result is the same for every altitude step in this profile.
+        % ------------------------------------------------------------------
+        [normFit, logNormFit, gammaFit] = find_bestFitDist_dropDist( ...
+            vert_profs(nn).Nd, vert_profs(nn).drop_radius_bin_edges, ...
+            vert_profs(nn).drop_radius_bin_center, significance_lvl);
+
+        % Average shape parameter over the cloud-top region, which dominates
+        % the optical depth integral regardless of ascent/descent direction
+        if is_ascending
+            idx_shape_start = round(2*vector_length/3);
+            idx_shape_end   = vector_length;
+        else
+            idx_shape_start = 1;
+            idx_shape_end   = round(vector_length/3);
+        end
+
+        % Select distribution model and pre-compute the scalar shape parameter
+        [dist_2model, shape_param] = chooseDistParam( ...
+            normFit, logNormFit, gammaFit, idx_shape_start, idx_shape_end);
+
+
+        if is_ascending
+            % --- Ascending: cloud bottom sampled first, cloud top last ---
+
+            for ii = 1:vector_length - 1
+                
+                % for debugging
+                disp([newline, 'iteration: ', num2str(ii), newline])
+
+                % Cumulative integration from cloud top downward to level ii
+                re_meters       = vert_profs(nn).re(vector_length-ii:vector_length) ./ 1e6;   % m
+                total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length) .* 1e6; % m^-3
+                alt_from_top    = vert_profs(nn).altitude(end) - ...
+                    vert_profs(nn).altitude(vector_length-ii:vector_length);   % m
+
+                re_meters(re_meters == 0) = 0.009e-6;   % guard against zero re at edges
+
+                % Build constant-valued distribution vector at the correct length
+                distribution_dist = repmat(shape_param, 1, length(re_meters));
+                  
+                [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
+                    re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
+
+                vert_profs(nn).tau(ii) = pi * trapz(fliplr(alt_from_top), ...
+                    fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
+
+            end
+
+        else
+            % --- Descending: cloud top sampled first, cloud bottom last ---
+
+            for ii = 1:vector_length - 1
+
+                re_meters       = vert_profs(nn).re(1:ii+1) ./ 1e6;   % m
+                total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1) .* 1e6; % m^-3
+                alt_from_top    = vert_profs(nn).altitude(1) - vert_profs(nn).altitude(1:ii+1);   % m
+
+                re_meters(re_meters == 0) = 0.009e-6;
+
+                distribution_dist = repmat(shape_param, 1, length(re_meters));
+
+                [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
+                    re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
+
+                vert_profs(nn).tau(ii) = pi * trapz(alt_from_top, ...
+                    Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
+
             end
 
         end
 
-    end
-end
-
-vert_profs(idx2delete) = [];
-
-
-% -------------------------------------------------------------------------
-% --------- Remove profiles with too many below-threshold Nc points -------
-% -------------------------------------------------------------------------
-
-idx2delete = [];
-for nn = 1:length(vert_profs)
-    if sum(vert_profs(nn).total_Nc < Nc_threshold) > floor(length(vert_profs(nn).total_Nc)/2)
-        idx2delete = [idx2delete, nn];
-    end
-end
-vert_profs(idx2delete) = [];
-
-
-% -------------------------------------------------------------------------
-% -------------- Optionally truncate at peak LWC --------------------------
-% -------------------------------------------------------------------------
-
-if stop_at_max_lwc
-    error([newline, 'The code to cut profiles at max LWC has not been tested.', newline])
-end
-
-
-% -------------------------------------------------------------------------
-% ------------- Store threshold values in each profile --------------------
-% -------------------------------------------------------------------------
-
-for nn = 1:length(vert_profs)
-    vert_profs(nn).LWC_threshold = LWC_threshold;   % g/m^3
-    vert_profs(nn).Nc_threshold  = Nc_threshold;     % cm^-3
-end
-
-
-% -------------------------------------------------------------------------
-% ---------------------- Compute Liquid Water Path ------------------------
-% -------------------------------------------------------------------------
-
-for nn = 1:length(vert_profs)
-
-    dz_dt_prof = diff(vert_profs(nn).altitude) ./ diff(vert_profs(nn).time);
-
-    if mean(dz_dt_prof) > 0
-        sign_factor = 1;        % ascending
-    else
-        sign_factor = -1;       % descending
-    end
-
-    vert_profs(nn).lwp          = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).lwc);       % g/m^2
-    vert_profs(nn).lwp_CAS      = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).cwc);       % g/m^2
-    vert_profs(nn).lwp_2DS_HVPS = sign_factor * trapz(vert_profs(nn).altitude, vert_profs(nn).rwc);       % g/m^2
-
-end
-
-
-% -------------------------------------------------------------------------
-% -------------- Compute horizontal distance and slant path ---------------
-% -------------------------------------------------------------------------
-
-wgs84 = wgs84Ellipsoid("m");
-
-for nn = 1:length(vert_profs)
-
-    horz_distance_travelled = zeros(1, length(vert_profs(nn).latitude));
-
-    for xx = 2:length(vert_profs(nn).latitude)
-        horz_distance_travelled(xx) = distance( ...
-            vert_profs(nn).latitude(1),  vert_profs(nn).longitude(1), ...
-            vert_profs(nn).latitude(xx), vert_profs(nn).longitude(xx), wgs84);
-    end
-
-    vert_profs(nn).horz_dist       = horz_distance_travelled;
-    vert_profs(nn).cloud_depth     = max(vert_profs(nn).altitude) - min(vert_profs(nn).altitude);
-    vert_profs(nn).slant_path      = sqrt(vert_profs(nn).horz_dist(end)^2 + vert_profs(nn).cloud_depth^2);
-    vert_profs(nn).VR_zenith_angle = atand(vert_profs(nn).horz_dist(end) / vert_profs(nn).cloud_depth);
-
-end
-
-
-% -------------------------------------------------------------------------
-% ---------------------- Compute optical depth ----------------------------
-% -------------------------------------------------------------------------
-% Optical depth is defined as 0 at cloud top, increasing toward cloud bottom.
-% Uses the ORACLES pre-computed effective radius (re), which incorporates
-% all three probes (CAS, 2DS, HVPS-3).
-%
-% PERFORMANCE NOTE: find_bestFitDist_dropDist is called ONCE per profile,
-% outside the inner altitude loop. The distribution fit over the full
-% profile is constant, so recomputing it at every altitude step is wasteful.
-% Only average_mie_over_size_distribution (which depends on the cumulative
-% re profile) is called inside the inner loop.
-
-for nn = 1:length(vert_profs)
-
-    vector_length = length(vert_profs(nn).altitude);
-    vert_profs(nn).tau = zeros(1, vector_length - 1);
-
-    dz_dt_prof   = diff(vert_profs(nn).altitude) ./ diff(vert_profs(nn).time);
-    is_ascending = mean(dz_dt_prof) > 0;
-
-    % ------------------------------------------------------------------
-    % Fit size distribution ONCE per profile (outside the inner loop).
-    % The result is the same for every altitude step in this profile.
-    % ------------------------------------------------------------------
-    [normFit, logNormFit, gammaFit] = find_bestFitDist_dropDist( ...
-        vert_profs(nn).Nd, vert_profs(nn).drop_radius_bin_edges, ...
-        vert_profs(nn).drop_radius_bin_center, significance_lvl);
-
-    % Average shape parameter over the cloud-top region, which dominates
-    % the optical depth integral regardless of ascent/descent direction
-    if is_ascending
-        idx_shape_start = round(2*vector_length/3);
-        idx_shape_end   = vector_length;
-    else
-        idx_shape_start = 1;
-        idx_shape_end   = round(vector_length/3);
-    end
-
-    % Select distribution model and pre-compute the scalar shape parameter
-    [dist_2model, shape_param] = chooseDistParam( ...
-        normFit, logNormFit, gammaFit, idx_shape_start, idx_shape_end);
-
-
-    if is_ascending
-        % --- Ascending: cloud bottom sampled first, cloud top last ---
-
-        for ii = 1:vector_length - 1
-
-            % Cumulative integration from cloud top downward to level ii
-            re_meters       = vert_profs(nn).re(vector_length-ii:vector_length) ./ 1e6;   % m
-            total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length) .* 1e6; % m^-3
-            alt_from_top    = vert_profs(nn).altitude(end) - ...
-                vert_profs(nn).altitude(vector_length-ii:vector_length);   % m
-
-            re_meters(re_meters == 0) = 0.009e-6;   % guard against zero re at edges
-
-            % Build constant-valued distribution vector at the correct length
-            distribution_dist = repmat(shape_param, 1, length(re_meters));
-
-            [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
-                re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
-
-            vert_profs(nn).tau(ii) = pi * trapz(fliplr(alt_from_top), ...
-                fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
-
+        if sum(isnan(vert_profs(nn).tau)) > 0
+            error([newline, 'NaN values found in optical depth for profile ', num2str(nn), newline])
         end
 
-    else
-        % --- Descending: cloud top sampled first, cloud bottom last ---
-
-        for ii = 1:vector_length - 1
-
-            re_meters       = vert_profs(nn).re(1:ii+1) ./ 1e6;   % m
-            total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1) .* 1e6; % m^-3
-            alt_from_top    = vert_profs(nn).altitude(1) - vert_profs(nn).altitude(1:ii+1);   % m
-
-            re_meters(re_meters == 0) = 0.009e-6;
-
-            distribution_dist = repmat(shape_param, 1, length(re_meters));
-
-            [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
-                re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
-
-            vert_profs(nn).tau(ii) = pi * trapz(alt_from_top, ...
-                Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
-
-        end
+        % Prepend zero: tau = 0 at cloud top
+        vert_profs(nn).tau = [0, vert_profs(nn).tau];
 
     end
-
-    if sum(isnan(vert_profs(nn).tau)) > 0
-        error([newline, 'NaN values found in optical depth for profile ', num2str(nn), newline])
-    end
-
-    % Prepend zero: tau = 0 at cloud top
-    vert_profs(nn).tau = [0, vert_profs(nn).tau];
-
-end
 
 
 end
@@ -492,62 +508,66 @@ end
 % =================== Local helper functions ==============================
 % =========================================================================
 
-function prof = cropProfileFields(prof, fields, idx_start, idx_end, idx_dz_dt)
-% Crop all time-varying fields of prof to the range [idx_start, idx_end]
+    function prof = cropProfileFields(prof, fields, idx_start, idx_end, idx_dz_dt)
+        % Crop all time-varying fields of prof to the range [idx_start, idx_end]
 
-N_time = length(idx_dz_dt);
+        N_time = length(idx_dz_dt);
 
-for ff = 1:length(fields)
+        for ff = 1:length(fields)
 
-    n_elem = numel(prof.(fields{ff}));
+            n_elem = numel(prof.(fields{ff}));
 
-    if n_elem == N_time
-        % 1D time-varying field: crop to row vector
-        prof.(fields{ff}) = reshape(prof.(fields{ff})(idx_start:idx_end), 1, []);
+            if n_elem == N_time
+                % 1D time-varying field: crop to row vector
+                prof.(fields{ff}) = reshape(prof.(fields{ff})(idx_start:idx_end), 1, []);
 
-    elseif n_elem > N_time
-        % 2D field (bins x time): crop along time dimension
-        prof.(fields{ff}) = prof.(fields{ff})(:, idx_start:idx_end);
+            elseif n_elem > N_time
+                % 2D field (bins x time): crop along time dimension
+                prof.(fields{ff}) = prof.(fields{ff})(:, idx_start:idx_end);
 
-    % else: non-time field (bin edges, scalars, datetime) -- keep as-is
+                % else: non-time field (bin edges, scalars, datetime) -- keep as-is
+            end
+
+        end
+
     end
 
-end
 
-end
+    function [dist_2model, shape_param] = chooseDistParam(normFit, logNormFit, gammaFit, ...
+            idx_start, idx_end)
+        % Choose the best-fit size distribution model and return its scalar shape
+        % parameter averaged over the cloud-top region [idx_start:idx_end].
 
+        h_norm    = sum(normFit.h_test,    "omitnan");
+        h_lognorm = sum(logNormFit.h_test, "omitnan");
+        h_gamma   = sum(gammaFit.h_test,   "omitnan");
 
-function [dist_2model, shape_param] = chooseDistParam(normFit, logNormFit, gammaFit, ...
-    idx_start, idx_end)
-% Choose the best-fit size distribution model and return its scalar shape
-% parameter averaged over the cloud-top region [idx_start:idx_end].
+        if h_lognorm < h_norm && h_lognorm < h_gamma
+            dist_2model = 'lognormal';
+            shape_param = mean(logNormFit.std(idx_start:idx_end), "omitnan");
 
-h_norm    = sum(normFit.h_test,    "omitnan");
-h_lognorm = sum(logNormFit.h_test, "omitnan");
-h_gamma   = sum(gammaFit.h_test,   "omitnan");
+        elseif h_gamma <= h_norm && h_gamma <= h_lognorm
+            dist_2model = 'gamma';
+            shape_param = mean(gammaFit.alpha(idx_start:idx_end), "omitnan");
 
-if h_lognorm < h_norm && h_lognorm < h_gamma
-    dist_2model = 'lognormal';
-    shape_param = mean(logNormFit.std(idx_start:idx_end), "omitnan");
+        else
+            % Default / tie: gamma with alpha = 10
+            dist_2model = 'gamma';
+            if isfield(gammaFit, 'alpha') && ~isempty(gammaFit.alpha)
+                shape_param = mean(gammaFit.alpha(idx_start:idx_end), "omitnan");
+            else
+                shape_param = 10;
+            end
 
-elseif h_gamma <= h_norm && h_gamma <= h_lognorm
-    dist_2model = 'gamma';
-    shape_param = mean(gammaFit.alpha(idx_start:idx_end), "omitnan");
+        end
 
-else
-    % Default / tie: gamma with alpha = 10
-    dist_2model = 'gamma';
-    if isfield(gammaFit, 'alpha') && ~isempty(gammaFit.alpha)
-        shape_param = mean(gammaFit.alpha(idx_start:idx_end), "omitnan");
-    else
-        shape_param = 10;
+        % Guard against NaN or non-positive shape parameter (thin cloud edge case)
+        if isnan(shape_param) || shape_param <= 0
+            shape_param = 10;
+        end
+
     end
 
-end
 
-% Guard against NaN or non-positive shape parameter (thin cloud edge case)
-if isnan(shape_param) || shape_param <= 0
-    shape_param = 10;
-end
 
 end
