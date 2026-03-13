@@ -447,7 +447,7 @@ else
             for ii = 1:vector_length - 1
                 
                 % for debugging
-                disp([newline, 'iteration: ', num2str(ii), newline])
+                %disp([newline, 'iteration: ', num2str(ii), newline])
 
                 % Cumulative integration from cloud top downward to level ii
                 re_meters       = vert_profs(nn).re(vector_length-ii:vector_length) ./ 1e6;   % m

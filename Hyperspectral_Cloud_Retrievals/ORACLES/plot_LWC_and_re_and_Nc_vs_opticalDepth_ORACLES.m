@@ -57,7 +57,12 @@ for nn = 1:N_curves
 
     if is_ascending
         % Data starts at cloud bottom; flip so index 1 = cloud top
-        tau     = flipud(reshape(prof.tau,      [], 1));
+        if prof.tau(1)~=0
+            % flip tau if it doesn't start at 0
+            tau     = flipud(reshape(prof.tau,      [], 1));
+        else
+            tau = prof.tau;
+        end
         lwc_plt = fliplr(prof.lwc);
         re_plt  = fliplr(prof.re);
         Nc_plt  = fliplr(prof.total_Nc);
