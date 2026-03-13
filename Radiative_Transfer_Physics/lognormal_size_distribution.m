@@ -133,8 +133,11 @@ end
 % range of radii values
 
 if radius_modal==0
+
     r = linspace(0.001,10,1000);
-elseif radius_modal>0
+
+elseif radius_modal>0 && radius_modal<100
+
     % range_factor = 172.7*exp(-4.5*std_dev);         % factor that defines the total range
     range_factor = 300*exp(-4.5*std_dev);         % factor that defines the total range
     % num_points = 23540*exp(-4.28*std_dev);
@@ -142,8 +145,23 @@ elseif radius_modal>0
     % r = linspace(0.001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
     r = linspace(0.0001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
     %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
+
+elseif radius_modal>100 && radius_modal<300
+
+    range_factor = 125*exp(-4.5*std_dev);         % factor that defines the total range
+    % range_factor = 300*exp(-4.5*std_dev);         % factor that defines the total range
+    % num_points = 23540*exp(-4.28*std_dev);
+    num_points = 25000*exp(-4.28*std_dev);
+    % r = linspace(0.001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
+    r = linspace(0.0001*radius_modal, range_factor*radius_modal, round(num_points));              % microns - vector based on C.Emde (2016)
+    %r = logspace(floor(log10(r_modal/100)), floor(log10(r_modal*100)), 100);              % microns - vector based on C.Emde (2016)
+
 elseif radius_modal<0
     error([newline, 'I dont think r_modal can be less than 0...',newline])
+
+else
+
+    error([newline, 'I dont know how to deal with a droplet radius of ', num2str(radius_modal), ' microns',newline])
 end
 
 
