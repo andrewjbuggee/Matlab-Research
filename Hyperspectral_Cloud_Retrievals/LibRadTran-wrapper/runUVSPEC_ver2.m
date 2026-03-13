@@ -133,20 +133,24 @@ if numFiles2Run==1
     end
 
 
+    % % run all commands in the terminal window
+    % if strcmp('curc', computer_name)
+    %
+    %     [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+    %
+    %
+    % else
+    %     [status] = system([cmnd1, ' ; ', cmnd2]);
+    % end
+
+
+
     % run all commands in the terminal window
-    if strcmp('curc', computer_name)
-
-        [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-        %[status] = system([cmnd_modules, ' ; ', cmnd2]);
-
-    else
-        [status] = system([cmnd1, ' ; ', cmnd2]);
-    end
+    [status] = system([cmnd1, ' ; ', cmnd2]);
 
     if status ~= 0
         error(['Status returned value of ',num2str(status)])
     end
-
 
 
 elseif numFiles2Run>1
@@ -164,13 +168,17 @@ elseif numFiles2Run>1
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
-        if strcmp('curc', computer_name)
+        % run all commands in the terminal window
+        % if strcmp('curc', computer_name)
+        %
+        %     [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+        %
+        % else
+        %     [status] = system([cmnd1, ' ; ', cmnd2]);
+        % end
 
-            [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-
-        else
-            [status] = system([cmnd1, ' ; ', cmnd2]);
-        end
+        % run all commands in the terminal window
+        [status] = system([cmnd1, ' ; ', cmnd2]);
 
 
         if status ~= 0

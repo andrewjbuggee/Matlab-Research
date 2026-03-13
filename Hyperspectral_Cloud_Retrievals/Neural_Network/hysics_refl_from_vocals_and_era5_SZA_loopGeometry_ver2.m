@@ -1071,7 +1071,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
         % these levels
 
         idx_0 = re{nn}<=0.1;
-        sum(idx_0)
+        sum(idx_0);
         if sum(idx_0)>0
 
             re{nn}(idx_0) = [];
