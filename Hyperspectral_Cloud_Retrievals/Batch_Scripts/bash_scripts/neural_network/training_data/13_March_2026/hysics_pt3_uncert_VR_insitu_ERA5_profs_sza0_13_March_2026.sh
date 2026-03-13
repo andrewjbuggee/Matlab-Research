@@ -53,7 +53,8 @@ offset=100
 
 # define the output directory for the results
 # ** Needs a trailing slash at the end for the MATLAB script to work properly **
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_10_March_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_13_March_2026/"
+mkdir -p $output_dir
 
 # Create unique temp directory for this array task to avoid race conditions
 export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
