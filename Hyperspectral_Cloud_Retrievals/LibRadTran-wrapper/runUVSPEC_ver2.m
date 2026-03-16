@@ -87,18 +87,23 @@ elseif strcmp('curc', computer_name)
     % everytime you run a job. That's because each time you run the
     % function 'system', a new unique terminal window is open. Each time a
     % new terminal window is open, the modules need to be loaded.
-    cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline,...
-        'ml netcdf/4.8.1', newline, 'ml perl/5.36.0', newline, 'ml texlive/2021',...
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...         % add libRadtran to the path
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...    % add libRadtran data files to the path
-        newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...     % add uvspec location to the path
-        newline, 'export PATH=', folderName_INP_OUT,':$PATH',...                            % add inp/out file locations to the path
-        newline, 'export GSL_BIN=/projects/$USER/software/gsl-2.6/bin',...                  % define the binary file location for the GSL pacakge for libRadtran to find
-        newline, 'export GSL_LIB=/projects/$USER/software/gsl-2.6/lib',...                  % define the library folder for the GSL package for libRadtran to fine
-        newline, 'export GSL_INC=/projects/$USER/software/gsl-2.6/include',...              % define pointer for libRadtran to find the GSL pacakge
-        newline, 'export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH',...                     % define the install library path for libRadtran
-        newline, 'export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5',...         % define the install directory
-        newline, 'export PATH=$GSL_BIN:$PATH'];                                             % add the GSL binary files location to the path
+
+    % cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline,...
+    %     'ml netcdf/4.8.1', newline, 'ml perl/5.36.0', newline, 'ml texlive/2021',...
+    %     newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH',...         % add libRadtran to the path
+    %     newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH',...    % add libRadtran data files to the path
+    %     newline, 'export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH',...     % add uvspec location to the path
+    %     newline, 'export PATH=', folderName_INP_OUT,':$PATH',...                            % add inp/out file locations to the path
+    %     newline, 'export GSL_BIN=/projects/$USER/software/gsl-2.6/bin',...                  % define the binary file location for the GSL pacakge for libRadtran to find
+    %     newline, 'export GSL_LIB=/projects/$USER/software/gsl-2.6/lib',...                  % define the library folder for the GSL package for libRadtran to fine
+    %     newline, 'export GSL_INC=/projects/$USER/software/gsl-2.6/include',...              % define pointer for libRadtran to find the GSL pacakge
+    %     newline, 'export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH',...                     % define the install library path for libRadtran
+    %     newline, 'export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5',...         % define the install directory
+    %     newline, 'export PATH=$GSL_BIN:$PATH'];                                             % add the GSL binary files location to the path
+
+
+    uvspec_ldpath = getenv('PRE_MATLAB_LD_LIBRARY_PATH');
+
 
 end
 
@@ -111,20 +116,45 @@ cmnd1 = ['cd ', uvspec_folderName];
 if numFiles2Run==1
 
     if ischar(inputName)==true
-        % cmnd2 = [uvspec_folderName,'uvspec ',...
-        %            '< ',inputName,' > ', outputName];
 
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ',folderName_INP_OUT,inputName,' > ', folderName_INP_OUT, outputName,'.OUT',...
-            ')>& ', folderName_INP_OUT,'errMsg.txt'];
-        % a successful command will return a status of 0
-        % an unsuccessful command will return a status of 1
+        if strcmp('curc', computer_name) == true
+
+            cmnd2 = ['(env LD_LIBRARY_PATH=', uvspec_ldpath, ' ', ...
+                uvspec_folderName, 'uvspec ', ...
+                '< ', folderName_INP_OUT, inputName, ' > ', folderName_INP_OUT, outputName, '.OUT', ...
+                ')>& ', folderName_INP_OUT, 'errMsg.txt'];
+
+        else
+
+
+
+            cmnd2 = ['(',uvspec_folderName,'uvspec ',...
+                '< ',folderName_INP_OUT,inputName,' > ', folderName_INP_OUT, outputName,'.OUT',...
+                ')>& ', folderName_INP_OUT,'errMsg.txt'];
+            % a successful command will return a status of 0
+            % an unsuccessful command will return a status of 1
+
+        end
+
 
     elseif iscell(inputName)==true
 
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ', folderName_INP_OUT, inputName{1},' > ', folderName_INP_OUT, outputName{1},'.OUT',...
-            ')>&', folderName_INP_OUT, 'errMsg.txt'];
+
+        if strcmp('curc', computer_name) == true
+
+            cmnd2 = ['(env LD_LIBRARY_PATH=', uvspec_ldpath, ' ', ...
+                uvspec_folderName, 'uvspec ', ...
+                '< ', folderName_INP_OUT, inputName{1}, ' > ', folderName_INP_OUT, outputName{1}, '.OUT', ...
+                ')>& ', folderName_INP_OUT, 'errMsg.txt'];
+
+
+        else
+
+            cmnd2 = ['(',uvspec_folderName,'uvspec ',...
+                '< ', folderName_INP_OUT, inputName{1},' > ', folderName_INP_OUT, outputName{1},'.OUT',...
+                ')>&', folderName_INP_OUT, 'errMsg.txt'];
+
+        end
 
     else
 
@@ -133,20 +163,11 @@ if numFiles2Run==1
     end
 
 
-    % % run all commands in the terminal window
-    % if strcmp('curc', computer_name)
-    %
-    %     [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-    %
-    %
-    % else
-    %     [status] = system([cmnd1, ' ; ', cmnd2]);
-    % end
-
-
 
     % run all commands in the terminal window
+    
     [status] = system([cmnd1, ' ; ', cmnd2]);
+
 
     if status ~= 0
         error(['Status returned value of ',num2str(status)])
@@ -159,23 +180,26 @@ elseif numFiles2Run>1
     for ii = 1:numFiles2Run
 
 
-        % cmnd2 = [uvspec_folderName,'uvspec ',...
-        %            '< ',inputName,' > ', outputName];
 
-        cmnd2 = ['(',uvspec_folderName,'uvspec ',...
-            '< ', folderName_INP_OUT, inputName{ii},' > ', folderName_INP_OUT,...
-            outputName{ii},'.OUT',')>& errMsg.txt'];
+        if strcmp('curc', computer_name) == true
+
+            cmnd2 = ['(env LD_LIBRARY_PATH=', uvspec_ldpath, ' ', ...
+                uvspec_folderName, 'uvspec ', ...
+                '< ', folderName_INP_OUT, inputName{1}, ' > ', folderName_INP_OUT, outputName{1}, '.OUT', ...
+                ')>& ', folderName_INP_OUT, 'errMsg.txt'];
+
+
+        else
+
+
+            cmnd2 = ['(',uvspec_folderName,'uvspec ',...
+                '< ', folderName_INP_OUT, inputName{ii},' > ', folderName_INP_OUT,...
+                outputName{ii},'.OUT',')>& errMsg.txt'];
+
+        end
+        
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
-
-        % run all commands in the terminal window
-        % if strcmp('curc', computer_name)
-        %
-        %     [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
-        %
-        % else
-        %     [status] = system([cmnd1, ' ; ', cmnd2]);
-        % end
 
         % run all commands in the terminal window
         [status] = system([cmnd1, ' ; ', cmnd2]);
