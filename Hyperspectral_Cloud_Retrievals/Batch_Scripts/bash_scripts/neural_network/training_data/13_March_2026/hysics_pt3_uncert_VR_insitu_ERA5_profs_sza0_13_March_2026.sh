@@ -41,6 +41,7 @@ export PATH=$GSL_BIN:$PATH
 
 # *** Capture the correct LD_LIBRARY_PATH before MATLAB contaminates it ***
 export PRE_MATLAB_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
 # switch to home directory
 cd /projects/anbu8374/
 
