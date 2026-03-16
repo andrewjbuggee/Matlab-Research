@@ -108,7 +108,7 @@ disp(['Non-drizzling profiles: ', num2str(length(idx_no_drizzle))])
 % --- Pie / bar summary plot ---
 figure;
 bar([length(idx_no_drizzle), length(idx_drizzle)], 0.5, ...
-    'FaceColor', mySavedColors(2,'fixed'))
+    'FaceColor', plt_clr_1)
 set(gca, 'XTickLabel', {'Non-drizzling', 'Drizzling'})
 ylabel('Number of profiles')
 title(['ORACLES vertical profiles  |  drizzle LWP threshold = ', ...
@@ -183,10 +183,10 @@ end
 figure;
 hold on
 histogram(adiabaticity(~is_drizzle), 'BinWidth', 0.05, ...
-    'FaceColor', mySavedColors(2,'fixed'), 'FaceAlpha', 0.6, ...
+    'FaceColor', plt_clr_1, 'FaceAlpha', 0.6, ...
     'EdgeColor', 'none', 'Normalization', 'probability')
 histogram(adiabaticity(is_drizzle), 'BinWidth', 0.05, ...
-    'FaceColor', mySavedColors(4,'fixed'), 'FaceAlpha', 0.6, ...
+    'FaceColor', plt_clr_2, 'FaceAlpha', 0.6, ...
     'EdgeColor', 'none', 'Normalization', 'probability')
 xline(1, 'k--', 'LineWidth', 1.5)
 xlabel('Adiabaticity  $A_d = LWP / LWP_{ad}$', 'Interpreter', 'latex')
@@ -199,9 +199,9 @@ set(gcf, 'Position', [0 0 650 500])
 % --- Adiabaticity vs LWP scatter ---
 figure; hold on
 scatter(LWP_measured(~is_drizzle), adiabaticity(~is_drizzle), 30, ...
-    mySavedColors(2,'fixed'), 'filled', 'MarkerFaceAlpha', 0.5)
+    plt_clr_1, 'filled', 'MarkerFaceAlpha', 0.5)
 scatter(LWP_measured(is_drizzle), adiabaticity(is_drizzle), 30, ...
-    mySavedColors(4,'fixed'), 'filled', 'MarkerFaceAlpha', 0.5)
+    plt_clr_2, 'filled', 'MarkerFaceAlpha', 0.5)
 yline(1, 'k--', 'LineWidth', 1.5)
 xlabel('Measured LWP (g/m²)', 'Interpreter', 'latex')
 ylabel('Adiabaticity  $A_d$', 'Interpreter', 'latex')
@@ -299,10 +299,10 @@ figure;
 subplot(1,2,1)
 hold on
 histogram(kappa_CTEI(~is_drizzle), 'BinWidth', 0.05, ...
-    'FaceColor', mySavedColors(2,'fixed'), 'FaceAlpha', 0.6, ...
+    'FaceColor', plt_clr_1, 'FaceAlpha', 0.6, ...
     'EdgeColor', 'none', 'Normalization', 'probability')
 histogram(kappa_CTEI(is_drizzle), 'BinWidth', 0.05, ...
-    'FaceColor', mySavedColors(4,'fixed'), 'FaceAlpha', 0.6, ...
+    'FaceColor', plt_clr_2, 'FaceAlpha', 0.6, ...
     'EdgeColor', 'none', 'Normalization', 'probability')
 xline(kappa_c, 'k--', 'LineWidth', 1.5)
 xlabel('$\kappa_{CTEI}$', 'Interpreter', 'latex')
@@ -315,9 +315,9 @@ grid on; grid minor
 subplot(1,2,2)
 hold on
 scatter(LWP_measured(~is_drizzle), kappa_CTEI(~is_drizzle), 30, ...
-    mySavedColors(2,'fixed'), 'filled', 'MarkerFaceAlpha', 0.5)
+    plt_clr_1, 'filled', 'MarkerFaceAlpha', 0.5)
 scatter(LWP_measured(is_drizzle), kappa_CTEI(is_drizzle), 30, ...
-    mySavedColors(4,'fixed'), 'filled', 'MarkerFaceAlpha', 0.5)
+    plt_clr_2, 'filled', 'MarkerFaceAlpha', 0.5)
 yline(kappa_c, 'k--', 'LineWidth', 1.5)
 xlabel('Measured LWP (g/m²)', 'Interpreter', 'latex')
 ylabel('$\kappa_{CTEI}$', 'Interpreter', 'latex')
@@ -393,8 +393,8 @@ figure;
 subplot(1,2,1)
 hold on
 scatter(all_tau_phase_nodrizzle, all_LWC_nodrizzle, 2, ...
-    mySavedColors(2,'fixed'), 'filled', 'MarkerFaceAlpha', 0.05)
-plot(tau_fit, LWC_fit_nd, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 2)
+    plt_clr_1, 'filled', 'MarkerFaceAlpha', 0.05)
+plot(tau_fit, LWC_fit_nd, '-', 'Color', plt_clr_1, 'LineWidth', 2)
 set(gca, 'XScale', 'log', 'YScale', 'log')
 grid on; grid minor
 xlabel('Phase relaxation time $\tau_{ph}$ (s)', 'Interpreter', 'latex')
@@ -404,8 +404,8 @@ title(['Non-drizzling  |  slope = ', sprintf('%.2f', coeff_nd(1))], 'Interpreter
 subplot(1,2,2)
 hold on
 scatter(all_tau_phase_drizzle, all_LWC_drizzle, 2, ...
-    mySavedColors(4,'fixed'), 'filled', 'MarkerFaceAlpha', 0.05)
-plot(tau_fit, LWC_fit_d, '-', 'Color', mySavedColors(4,'fixed'), 'LineWidth', 2)
+    plt_clr_2, 'filled', 'MarkerFaceAlpha', 0.05)
+plot(tau_fit, LWC_fit_d, '-', 'Color', plt_clr_2, 'LineWidth', 2)
 set(gca, 'XScale', 'log', 'YScale', 'log')
 grid on; grid minor
 xlabel('Phase relaxation time $\tau_{ph}$ (s)', 'Interpreter', 'latex')
@@ -585,95 +585,116 @@ end
 % --- Plot ensemble median profiles for non-drizzling clouds ---
 figure;
 
+plt_clr_1 = mySavedColors(64,'fixed');
+plt_clr_2 = mySavedColors(62,'fixed');
+
+fnt_sz = 22;
+ttl_fnt = 26;
+
 % r_e
 subplot(1,3,1)
 x = [re_med_nd - re_iqr_nd/2; flipud(re_med_nd + re_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on
-plot(re_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+plot(re_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle r_e(z) \rangle$ (µm)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
+xlabel('$\langle r_e(z) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 xlim([0, max(re_med_nd)*1.3])
 
 % LWC
 subplot(1,3,2)
 x = [lwc_med_nd - lwc_iqr_nd/2; flipud(lwc_med_nd + lwc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on
-plot(lwc_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+plot(lwc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle LWC(z) \rangle$ (g/m³)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
+xlabel('$\langle LWC(z) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 title(['Median profiles — Non-drizzling ORACLES  |  ', ...
-    num2str(length(idx_no_drizzle)), ' profiles'], 'Interpreter', 'latex')
+    num2str(length(idx_no_drizzle)), ' profiles'], 'Interpreter', 'latex', 'FontSize', ttl_fnt)
 
 % N_c
 subplot(1,3,3)
 x = [Nc_med_nd - Nc_iqr_nd/2; flipud(Nc_med_nd + Nc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on
-plot(Nc_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+plot(Nc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle N_c(z) \rangle$ (cm$^{-3}$)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
+xlabel('$\langle N_c(z) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 
 set(gcf, 'Position', [0 0 1200 600])
 
 % --- Overlay drizzling vs non-drizzling on same axes ---
-figure;
+% Create figure
+figure1 = figure;
+
+% Create axes
+axes1 = axes('Parent',figure1,...
+    'Position',[0.213894399154591 0.144881944444444 0.189354393115943 0.771350694444444]);
+hold(axes1,'on');
 
 subplot(1,3,1)
 hold on
 x = [re_med_nd - re_iqr_nd/2; flipud(re_med_nd + re_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(re_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(re_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 x = [re_med_d - re_iqr_d/2; flipud(re_med_d + re_iqr_d/2)];
-fill(x, y, mySavedColors(4,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(re_med_d, bin_center, '-', 'Color', mySavedColors(4,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(re_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle r_e(z) \rangle$ (µm)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
-legend({'','Non-drizzling','','Drizzling'}, 'Location', 'best')
+xlabel('$\langle r_e(z) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+legend({'','Non-drizzling','','Drizzling'}, 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', fnt_sz-2, 'Color', 'white', 'TextColor', 'black',...
+    'Position',[0.0153049178561151 0.812493412950304 0.171744791666667 0.114166666666667])
+
+
 
 subplot(1,3,2)
 hold on
 x = [lwc_med_nd - lwc_iqr_nd/2; flipud(lwc_med_nd + lwc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(lwc_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(lwc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 x = [lwc_med_d - lwc_iqr_d/2; flipud(lwc_med_d + lwc_iqr_d/2)];
-fill(x, y, mySavedColors(4,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(lwc_med_d, bin_center, '-', 'Color', mySavedColors(4,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(lwc_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle LWC(z) \rangle$ (g/m³)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
-title('ORACLES median profiles: drizzling vs non-drizzling', 'Interpreter', 'latex')
+xlabel('$\langle LWC(z) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
 
 subplot(1,3,3)
 hold on
 x = [Nc_med_nd - Nc_iqr_nd/2; flipud(Nc_med_nd + Nc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
-fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(Nc_med_nd, bin_center, '-', 'Color', mySavedColors(2,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(Nc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
 x = [Nc_med_d - Nc_iqr_d/2; flipud(Nc_med_d + Nc_iqr_d/2)];
-fill(x, y, mySavedColors(4,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
-plot(Nc_med_d, bin_center, '-', 'Color', mySavedColors(4,'fixed'), 'LineWidth', 1.5)
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(Nc_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlabel('$\langle N_c(z) \rangle$ (cm$^{-3}$)', 'Interpreter', 'latex')
-ylabel('Normalized Optical Depth')
+xlabel('$\langle N_c(z) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 
 set(gcf, 'Position', [0 0 1200 600])
+
+hold on; subplot(1,3,2)
+title('ORACLES median profiles: drizzling vs non-drizzling', 'Interpreter', 'latex',...
+    'FontSize', ttl_fnt)
 
 
 %% -------------------------------------------------------------------------
