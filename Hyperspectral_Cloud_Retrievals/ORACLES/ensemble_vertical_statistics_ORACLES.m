@@ -28,8 +28,11 @@ if strcmp(which_computer, 'anbu8374')
 
 elseif strcmp(which_computer, 'andrewbuggee')
 
-    foldername_data = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/', ...
-        'Hyperspectral_Cloud_Retrievals/ORACLES/oracles_data/combined_microphysics/'];
+    foldername_data = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/ORACLES/ORACLES_data/combined_microphysics/'];
+
+    foldername_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/ORACLES/ORACLES_data/'];
 
 end
 

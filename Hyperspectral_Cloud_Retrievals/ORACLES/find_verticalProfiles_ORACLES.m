@@ -293,7 +293,7 @@ else
 
 
     % -------------------------------------------------------------------------
-    % ------------ Remove profiles that are not recorded over ocean ----------
+    % ------------ Remove profiles that are not sampled over ocean ----------
     % -------------------------------------------------------------------------
     idx2delete = [];
     for nn = 1:length(vert_profs)
@@ -318,8 +318,8 @@ else
     buffer_length = 4;
     idx2delete = [];
 
-    for n1 = 1:profile_num
-        for n2 = (n1+1):profile_num
+    for n1 = 1:length(vert_profs)
+        for n2 = (n1+1):length(vert_profs)
 
             if (vert_profs(n2).time(1) - vert_profs(n1).time(1)) <= buffer_length || ...
                     (vert_profs(n2).time(end) - vert_profs(n1).time(end)) <= buffer_length
