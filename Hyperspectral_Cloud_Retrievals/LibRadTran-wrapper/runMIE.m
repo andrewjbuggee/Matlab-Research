@@ -254,8 +254,10 @@ elseif strcmp('curc', computer_name)
     % everytime you run a job. That's because each time you run the
     % function 'system', a new unique terminal window is open. Each time a
     % new terminal window is open, the modules need to be loaded.
-    cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline, 'ml gsl/2.7', newline,...
-        'ml netcdf/4.8.1'];
+    % cmnd_modules = ['ml purge', newline, 'ml gcc/11.2.0', newline, 'ml gsl/2.7', newline,...
+    %     'ml netcdf/4.8.1'];
+
+    mie_ldpath = getenv('PRE_MATLAB_LD_LIBRARY_PATH');
 
 else
 
@@ -273,26 +275,31 @@ cmnd1 = ['cd ', folderName];
 if numFiles2Run==1
 
 
-    % cmnd2 = [uvspec_folderName,'uvspec ',...
-    %            '< ',inputName,' > ', outputName];
-
-    cmnd2 = ['(', mie_folderName, 'mie ',...
-        '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
-    % a successful command will return a status of 0
-    % an unsuccessful command will return a status of 1
+   
+    
 
 
     if strcmp('curc', computer_name)
 
-        [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+        cmnd2 = ['(env LD_LIBRARY_PATH=', mie_ldpath, ' ', ...
+            mie_folderName, 'mie ',...
+            '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
 
     else
-        [status] = system([cmnd1, ' ; ', cmnd2]);
+
+        cmnd2 = ['(', mie_folderName, 'mie ',...
+            '< ',inputName,' > ', outputName,'.OUT',')>& errMsg.txt'];
+
     end
+
+    % a successful command will return a status of 0
+    % an unsuccessful command will return a status of 1
+    [status] = system([cmnd1, ' ; ', cmnd2]);
 
     if status ~= 0
         error(['Status returned value of ',num2str(status)])
     end
+
 
 elseif numFiles2Run>1
 
@@ -303,18 +310,26 @@ elseif numFiles2Run>1
         % cmnd2 = [uvspec_folderName,'uvspec ',...
         %            '< ',inputName,' > ', outputName];
 
-        cmnd2 = ['(',mie_folderName,'mie ',...
-            '< ',inputName{ii},' > ', outputName{ii},'.OUT',')>& errMsg.txt'];
+        
         % a successful command will return a status of 0
         % an unsuccessful command will return a status of 1
 
         if strcmp('curc', computer_name)
 
-            [status] = system([cmnd_modules, ' ; ', cmnd1, ' ; ', cmnd2]);
+            cmnd2 = ['(env LD_LIBRARY_PATH=', mie_ldpath, ' ', ...
+            mie_folderName, 'mie ',...
+            '< ',inputName{ii},' > ', outputName{ii},'.OUT',')>& errMsg.txt'];
 
         else
-            [status] = system([cmnd1, ' ; ', cmnd2]);
+            cmnd2 = ['(',mie_folderName,'mie ',...
+            '< ',inputName{ii},' > ', outputName{ii},'.OUT',')>& errMsg.txt'];
+            
         end
+
+        % a successful command will return a status of 0
+        % an unsuccessful command will return a status of 1
+        [status] = system([cmnd1, ' ; ', cmnd2]);
+
 
         if status ~= 0
             error(['Status returned value of ',num2str(status)])
