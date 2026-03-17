@@ -47,7 +47,8 @@
 
 %%
 
-function [vert_profs] = find_verticalProfiles_ORACLES(oracles, LWC_threshold, stop_at_max_lwc, Nc_threshold, which_computer)
+function [vert_profs] = find_verticalProfiles_ORACLES(oracles, LWC_threshold, stop_at_max_lwc...
+         ,Nc_threshold, which_computer)
 
 
 % Grab all fieldnames for slicing
@@ -101,6 +102,9 @@ significance_lvl  = 0.1;    % 90% confidence for distribution fitting
 profile_num = 0;
 
 
+
+
+
 % -------------------------------------------------------------------------
 % ---------------------- Step through cloud entries -----------------------
 % -------------------------------------------------------------------------
@@ -145,6 +149,8 @@ for nn = 1:length(idx_1)
             median(oracles.total_Nc(idx_cloud_boundary+1:end)) < Nc_threshold & ...
             mean(oracles.bulk_lwc(idx_cloud_boundary+1:end))    < LWC_threshold;
     end
+
+    
 
 
     % -----------------------------------------------------------------
@@ -286,6 +292,24 @@ if exist("vert_profs", "var") == 0
 else
 
 
+    % -------------------------------------------------------------------------
+    % ------------ Remove profiles that are not recorded over ocean ----------
+    % -------------------------------------------------------------------------
+    idx2delete = [];
+    for nn = 1:length(vert_profs)
+
+        % *** is the profile over ocean? ***
+        isOcean = land_or_ocean(vert_profs(nn).latitude, vert_profs(nn).longitude, 20, false);
+        if all(isOcean) == false
+            idx2delete = [idx2delete, nn];
+        end
+    end
+    if isempty(idx2delete)~= true
+        vert_profs(idx2delete) = [];
+    end
+
+
+    
 
     % -------------------------------------------------------------------------
     % ------------- Remove near-duplicate profiles (multilayer edge cases) ----
@@ -317,6 +341,8 @@ else
         vert_profs(idx2delete) = [];
     end
 
+
+    
 
     % -------------------------------------------------------------------------
     % --------- Remove profiles with too many below-threshold Nc points -------
