@@ -20,7 +20,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
 #SBATCH --mem=80G
-#SBATCH --time=23:00:00     # Longer time for multiple files
+#SBATCH --time=10:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=compute_mieTable_for_libRadtran_gammaDist_rev3_wavelength_idx_%A_%a
@@ -65,7 +65,7 @@ module load matlab/R2024b
 # ----------------------------------------------------------
 # *** MODIFY THIS DIRECTORY BASED ON THE LOCATION OF THE MEASUREMENTS ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END         ***
-INPUT_DIR="/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/mieTables_gamma/netCDF_gammaDist_more_rEffs_moreAlpha"
+INPUT_DIR="/projects/anbu8374/Matlab-Research/Radiative_Transfer_Physics/mieTables_gamma/netCDF_gammaDist_rEff_1_50_microns_moreAlpha"
 # ----------------------------------------------------------
 
 

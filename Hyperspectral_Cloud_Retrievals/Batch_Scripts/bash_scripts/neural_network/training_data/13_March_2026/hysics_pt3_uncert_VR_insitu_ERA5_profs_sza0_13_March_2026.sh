@@ -86,7 +86,7 @@ rm -rf "$TMPDIR"
 echo "Removing INP_OUT directory for task ${SLURM_ARRAY_TASK_ID}..."
 rm -rf "/scratch/alpine/${USER}/HySICS/INP_OUT_${SLURM_ARRAY_TASK_ID}"
 
-# Cleanup this job's atmmod and wc files
+# Cleanup this job's atmmod and wc files older than 7 days (if any remain from previous runs)
 echo "Removing atmmod and wc directories for task ${SLURM_ARRAY_TASK_ID}..."
 rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/atmmod_${SLURM_ARRAY_TASK_ID}"
 rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/wc_${SLURM_ARRAY_TASK_ID}"
