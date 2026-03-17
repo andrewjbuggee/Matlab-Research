@@ -18,9 +18,9 @@
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --mem=70G
-#SBATCH --time=20:00:00     # Longer time for multiple files
+#SBATCH --cpus-per-task=20
+#SBATCH --mem=80G
+#SBATCH --time=23:00:00     # Longer time for multiple files
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=compute_mieTable_for_libRadtran_gammaDist_rev3_wavelength_idx_%A_%a
