@@ -86,6 +86,12 @@ rm -rf "$TMPDIR"
 echo "Removing INP_OUT directory for task ${SLURM_ARRAY_TASK_ID}..."
 rm -rf "/scratch/alpine/${USER}/HySICS/INP_OUT_${SLURM_ARRAY_TASK_ID}"
 
+# Cleanup this job's atmmod and wc files
+echo "Removing atmmod and wc directories for task ${SLURM_ARRAY_TASK_ID}..."
+rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/atmmod_${SLURM_ARRAY_TASK_ID}"
+rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/wc_${SLURM_ARRAY_TASK_ID}"
+
+
 # Prune scratch directories older than 7 days
 echo "Pruning scratch directories older than 7 days..."
 find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
