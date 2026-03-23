@@ -50,7 +50,7 @@ ds = load([mat_file_path, mat_file_name]);
 
 
 ln_wdth = 1;
-mkr_sz = 20;
+mkr_sz = 35;
 
 C = mySavedColors(61:68, 'fixed');
 C_idx = 5;
@@ -108,12 +108,22 @@ elseif isfield(ds.GN_inputs.measurement, 'tau_prof')==true
     if length(ds.GN_inputs.measurement.tau_prof) == length(ds.GN_inputs.measurement.re_prof)
 
 
+        % estimate the CDP measurement uncertainty 
+        re_uncert = cloud_droplet_probe_uncertainty_estimate(ds.GN_inputs.measurement.re_prof)';  % microns;
+
+
+
         % ** tau_prof starts at the bottom and re_prof starts at cloud top
         % **
-
-        plot(ds.GN_inputs.measurement.re_prof, sort(ds.GN_inputs.measurement.tau_prof),...
+        % plot(ds.GN_inputs.measurement.re_prof, sort(ds.GN_inputs.measurement.tau_prof),...
+        %     'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
+        %     'Color', 'k', 'MarkerFaceColor', 'k')
+        errorbar(ds.GN_inputs.measurement.re_prof, sort(ds.GN_inputs.measurement.tau_prof),...
+            [], [], re_uncert, re_uncert,...
             'Marker','.','LineStyle','-', 'LineWidth',ln_wdth, 'MarkerSize', mkr_sz,...
             'Color', 'k', 'MarkerFaceColor', 'k')
+        
+
 
     else
 
@@ -322,7 +332,7 @@ legend('In-Situ', 'Hyperspectral Retrieval', 'Interpreter','latex', 'Position',.
 
 
 % set figure size
-set(gcf,'Position',[0 0 700 810])
+set(gcf,'Position',[0 0 900 810])
 
 box(axes1,'on');
 grid(axes1,'on');
@@ -330,7 +340,7 @@ axis(axes1,'ij');
 hold(axes1,'off');
 
 % set x axis limits
-xlim([min(ds.GN_inputs.measurement.re_prof) - 0.5, max(ds.GN_inputs.measurement.re_prof) + 0.5])
+xlim([min(ds.GN_inputs.measurement.re_prof) - 1, max(ds.GN_inputs.measurement.re_prof) + 2])
 
 
 end

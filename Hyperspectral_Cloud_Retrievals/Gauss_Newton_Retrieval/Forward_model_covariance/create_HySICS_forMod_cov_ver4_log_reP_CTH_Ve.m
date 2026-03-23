@@ -196,22 +196,22 @@ samples_cloudTopHeight = logNorm_dist.random(1, n_samples);
 
 % ** VOCALS-REx in-situ measurements **
 % load the set of VOCALS-REx in-situ observations
-if strcmp(GN_inputs.which_computer, 'anbu8374')==true
-
-    alpha_effVar = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
-
-    alpha_effVar = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
-        'Presentations_and_Papers/paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
-
-elseif strcmp(GN_inputs.which_computer, 'curc')==true
-
-    alpha_effVar = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
-        'paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
-
-end
+% if strcmp(GN_inputs.which_computer, 'anbu8374')==true
+% 
+%     alpha_effVar = load(['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
+%         'Presentations_and_Papers/paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+% 
+% elseif strcmp(GN_inputs.which_computer, 'andrewbuggee')==true
+% 
+%     alpha_effVar = load(['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+%         'Presentations_and_Papers/paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+% 
+% elseif strcmp(GN_inputs.which_computer, 'curc')==true
+% 
+%     alpha_effVar = load(['/projects/anbu8374/Matlab-Research/Presentations_and_Papers/',...
+%         'paper_2/VR_effective_variance_at_normalized_altitudes_20-levels_19-Jan-2026.mat']);
+% 
+% end
 
 
 
@@ -224,7 +224,7 @@ GN_inputs.model.forward_model.alpha.std = GN_inputs.RT.distribution_var_std;   %
 
 
 % *** For computing the covariance of the logarithm of the parameters ***
-% Assume each assumed droplet effective radius along the profile follows a
+% Assume each assumed droplet effective variance along the profile follows a
 % lognormal distribution, where the mean is the assumed value and the std
 % is the value defined above
 

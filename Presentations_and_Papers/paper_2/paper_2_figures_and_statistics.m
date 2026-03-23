@@ -93,8 +93,8 @@ filenames_retrieval(idx_2delete) = [];
 % ---------------------------------------------------------------------------------------------
 % -- For full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_and_cloudTop_uncert_3 ---
 % ---------------------------------------------------------------------------------------------
-% profile_indexes for paper = [1,2,4, 6, 7,]
-plt_idx = 2;
+% profile_indexes for paper = [2, 4, 10]
+plt_idx = 4;
 % ------------------------------------------------------------
 
 
@@ -105,7 +105,7 @@ fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% % save .fig file
+% save .fig file
 % if strcmp(whatComputer,'anbu8374')==true
 %     error(['Where do I save the figure?'])
 % elseif strcmp(whatComputer,'andrewbuggee')==true

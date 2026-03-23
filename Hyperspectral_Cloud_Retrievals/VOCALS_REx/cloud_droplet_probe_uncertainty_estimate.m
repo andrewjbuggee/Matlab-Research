@@ -88,7 +88,7 @@ function [droplet_radius_uncertainty] = cloud_droplet_probe_uncertainty_estimate
 
 re_uncertainty_0_5 = 0.20;      % percentage
 re_uncertainty_5_10 = 0.15;      % percentage
-re_uncertainty_10_30 = 0.10;      % percentage
+re_uncertainty_10_50 = 0.10;      % percentage
 %re_uncertainty_all = 0.1;          % percentage
 
 
@@ -108,7 +108,7 @@ for nn = 1:length(effective_radius)
     elseif effective_radius(nn)>10
 
         % then we interpolate
-        droplet_radius_uncertainty(nn) = effective_radius(nn)*re_uncertainty_10_30;
+        droplet_radius_uncertainty(nn) = effective_radius(nn)*re_uncertainty_10_50;
 
 
 

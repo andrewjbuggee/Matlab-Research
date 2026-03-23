@@ -158,7 +158,7 @@ if inputs.RT.yesCloud==true
     else
 
         % ** USE CUSTOM MIE TABLES! **
-        % Find the tabel closest to the defined alpha value
+        % Find the table closest to the defined alpha value
         if isfield(inputs.RT, 'mean_distribution_var_closest_filename') == true
 
             % Use the designated filename
