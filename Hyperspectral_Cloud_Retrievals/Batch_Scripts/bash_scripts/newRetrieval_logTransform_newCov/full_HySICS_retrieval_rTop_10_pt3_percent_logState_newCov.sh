@@ -17,6 +17,7 @@
 # *** UPDATE JOB NAME, OUTPUT, AND ERROR FILE BASED ON SIM ***
 # *** UPDATE JOB ARRAY RANGE BASED ON NUMBER OF FILES  ***
 # ----------------------------------------------------------
+#SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
@@ -38,7 +39,6 @@ ml netcdf/4.8.1
 ml perl/5.36.0
 ml texlive/2021
 
-
 # Set up environment paths
 export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH
 export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH
@@ -49,6 +49,9 @@ export GSL_INC=/projects/$USER/software/gsl-2.6/include
 export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH
 export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5
 export PATH=$GSL_BIN:$PATH
+
+# *** Capture the correct LD_LIBRARY_PATH before MATLAB contaminates it ***
+export PRE_MATLAB_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
 cd /projects/anbu8374/
 
@@ -68,7 +71,16 @@ INPUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HyS
 # *** MODIFY THIS DIRECTORY BASED ON THE DESIRED LOCATION ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END         ***
 RETRIEVED_PROFS_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/paper2_variableSweep/newRetrieval_logTransform_newCov/"
+mkdir -p $RETRIEVED_PROFS_DIR
 # ----------------------------------------------------------
+
+
+# Create unique temp directory for this array task to avoid race conditions
+export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
+mkdir -p $TMPDIR
+
+# Add a small random delay to prevent simultaneous MATLAB startups
+sleep $((SLURM_ARRAY_TASK_ID % 10))
 
 # Get list of all files
 mapfile -t ALL_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f -printf "%f\n" | sort)
@@ -149,3 +161,28 @@ time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab
 
 echo " "
 echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
+
+
+# -------------------------------------------------------
+# Cleanup: immediately remove this job's MATLAB temp dir.
+# This is the JobStorageLocation set in start_parallel_pool.m
+# and contains small MATLAB parallel pool bookkeeping files.
+# -------------------------------------------------------
+echo "Removing TMPDIR: $TMPDIR"
+rm -rf "$TMPDIR"
+
+# Cleanup this job's INP_OUT directory (INP/OUT files already deleted in parfor; removes errMsg.txt + dir)
+echo "Removing INP_OUT directory for task ${SLURM_ARRAY_TASK_ID}..."
+rm -rf "/scratch/alpine/${USER}/HySICS/INP_OUT_${SLURM_ARRAY_TASK_ID}"
+
+# Cleanup this job's atmmod and wc files older than 7 days (if any remain from previous runs)
+echo "Removing atmmod and wc directories for task ${SLURM_ARRAY_TASK_ID}..."
+rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/atmmod_${SLURM_ARRAY_TASK_ID}"
+rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/wc_${SLURM_ARRAY_TASK_ID}"
+
+
+# Prune scratch directories older than 7 days
+echo "Pruning scratch directories older than 7 days..."
+find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/HySICS/           -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "Mie_Calculations_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
