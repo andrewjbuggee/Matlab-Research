@@ -92,6 +92,23 @@ vapor.col_ir = scalesOffsets2Matrix(column_waterVapor_IR,columnWaterVapor_IR_sca
 
 vapor.col_nir(vapor.col_nir<-99) = nan;
 vapor.col_ir(vapor.col_ir<-99) = nan;
+vapor.col_nir_correction(vapor.col_nir_correction<-99) = nan;
+
+
+%% ---- Apply aerosol correction to NIR water vapor -----
+
+% Water_Vapor_Correction_Factors is the aerosol correction factor for the
+% NIR retrieval. Aerosols bias the NIR water vapor high by adding apparent
+% absorption in the water-vapor channels relative to the window channels.
+% The corrected (aerosol-removed) column water vapor is obtained by
+% dividing the raw NIR retrieval by the correction factor:
+%
+%   WV_corrected = Water_Vapor_Near_Infrared / Water_Vapor_Correction_Factors
+%
+% A correction factor of 1.0 means no aerosol effect; values > 1.0 reduce
+% the raw retrieval accordingly.
+
+vapor.col_nir_corrected = vapor.col_nir ./ vapor.col_nir_correction;   % cm
 
 
 

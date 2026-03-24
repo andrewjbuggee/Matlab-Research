@@ -445,6 +445,66 @@ if print_status_updates == true
 end
 
 
+%% Compute per-level uncertainty in water vapor mass density (rho_v)
+%
+% AIRS provides 1-sigma posterior uncertainties at the profile level:
+%   TAirStdErr    (K):    temperature uncertainty at 28 standard pressure levels
+%   H2OMMRStdErr  (g/kg): water vapor MMR uncertainty at 15 H2O pressure levels
+%
+% AIRS does NOT provide a direct total-column water vapor uncertainty
+% (totH2OStdErr). The above-cloud uncertainty must be derived by propagating
+% the profile-level errors through the integration.
+%
+% Since rho_v = (p * q) / (R_d * T) with q proportional to MMR, the
+% fractional uncertainty (assuming T and H2O retrieval errors are uncorrelated):
+%
+%   sigma_rho_v / rho_v = sqrt( (sigma_T / T)^2 + (sigma_MMR / MMR)^2 )
+%
+% Propagating through the trapezoidal integral gives a LOWER BOUND on
+% sigma_ACPW because AIRS retrieval errors are positively correlated across
+% pressure levels (regularization). The true uncertainty may be larger.
+
+% --- Temperature uncertainty (K) at 28 standard pressure levels ---
+if isfield(airs.temp, 'prof_std_err')
+    temp_err = double(airs.temp.prof_std_err(unique_pix_idx(pixel_idx), :)');  % (StdPressureLev x 1)
+    temp_err(temp_err < 0 | temp_err >= 1e4) = NaN;
+else
+    temp_err = zeros(size(temperature));
+end
+
+% --- H2O MMR and its 1-sigma uncertainty (g/kg) at 15 H2O pressure levels ---
+if isfield(airs.H2O, 'MMR_StdErr') && isfield(airs.H2O, 'MMR_Std')
+    MMR_H2O     = double(airs.H2O.MMR_Std(unique_pix_idx(pixel_idx), :)');     % (H2OPressureLev x 1)
+    MMR_err_H2O = double(airs.H2O.MMR_StdErr(unique_pix_idx(pixel_idx), :)');  % (H2OPressureLev x 1)
+    MMR_H2O(MMR_H2O <= 0 | MMR_H2O >= 1e4)           = NaN;
+    MMR_err_H2O(MMR_err_H2O <= 0 | MMR_err_H2O >= 1e4) = NaN;
+else
+    MMR_H2O     = NaN(size(pressH2O));
+    MMR_err_H2O = zeros(size(pressH2O));
+end
+
+% Interpolate both to the 28 standard pressure levels (log-log space)
+valid_MMR = ~isnan(MMR_H2O) & ~isnan(MMR_err_H2O);
+if sum(valid_MMR) >= 2
+    MMR_28     = exp(interp1(log(pressH2O(valid_MMR)), log(MMR_H2O(valid_MMR)),     log(pressure), 'linear', 'extrap'));
+    MMR_err_28 = exp(interp1(log(pressH2O(valid_MMR)), log(MMR_err_H2O(valid_MMR)), log(pressure), 'linear', 'extrap'));
+else
+    MMR_28     = ones(size(pressure));
+    MMR_err_28 = zeros(size(pressure));
+end
+
+% Replace any remaining NaN errors with 0 (no contribution to uncertainty)
+temp_err(isnan(temp_err))       = 0;
+MMR_err_28(isnan(MMR_err_28))   = 0;
+MMR_28(isnan(MMR_28) | MMR_28 == 0) = 1;  % avoid divide-by-zero
+
+% Combined fractional uncertainty in rho_v at each standard pressure level
+frac_err_rho_v = sqrt((temp_err ./ temperature).^2 + (MMR_err_28' ./ MMR_28').^2);
+
+% Map to the surface-to-TOA sorted ordering used for the integrations below
+sigma_rho_v_sorted = abs(rho_v_scaled_sorted) .* frac_err_rho_v(sort_idx_hyps);
+
+
 %% Solve for the above cloud total precipitable water amount
 
 % First, interpolate the mass density at the AIRS retrieved cloud top
@@ -475,7 +535,12 @@ new_rho_v_scaled_sorted = [rho_v_scaled_sorted(idx_new_p); rho_v_cloudTopPressur
 % height
 airs.H2O.acpw_usingAIRS_CTP = trapz(new_z(idx_cloudTop:end), new_rho_v_scaled_sorted(idx_cloudTop:end));   % kg/m^2 (mm)
 
-
+% Uncertainty: interpolate sigma_rho_v at cloud top pressure, then propagate
+% through the same trapezoidal integral (independent-levels lower bound)
+sigma_cTop_CTP = exp(interp1(log(pressure_sorted), log(max(sigma_rho_v_sorted, eps)), ...
+    log(cloud_top_pressure), 'linear', 'extrap'));
+new_sigma_CTP = [sigma_rho_v_sorted(idx_new_p); sigma_cTop_CTP; sigma_rho_v_sorted(~idx_new_p)];
+airs.H2O.acpw_usingAIRS_CTP_sigma = trapz_sigma(new_z(idx_cloudTop:end), new_sigma_CTP(idx_cloudTop:end));   % kg/m^2
 
 
 % ******** Now do the same thing but use the assumed CTH *************
@@ -499,6 +564,46 @@ new_rho_v_scaled_sorted = [rho_v_scaled_sorted(idx_new_z); rho_v_cloudTopHeight;
 idx_cloudTop = find(new_z == assumed_cloudTopHeight);
 airs.H2O.acpw_using_assumed_CTH = trapz(new_z(idx_cloudTop:end), new_rho_v_scaled_sorted(idx_cloudTop:end));   % kg/m^2 (mm)
 
+% Uncertainty: interpolate sigma_rho_v at assumed cloud top height, then propagate
+% through the same trapezoidal integral (independent-levels lower bound)
+sigma_cTop_CTH = exp(interp1(z_hyps_sorted, log(max(sigma_rho_v_sorted, eps)), ...
+    assumed_cloudTopHeight, 'linear', 'extrap'));
+new_sigma_CTH = [sigma_rho_v_sorted(idx_new_z); sigma_cTop_CTH; sigma_rho_v_sorted(~idx_new_z)];
+airs.H2O.acpw_using_assumed_CTH_sigma = trapz_sigma(new_z(idx_cloudTop:end), new_sigma_CTH(idx_cloudTop:end));   % kg/m^2
 
 
+end
+
+
+% -----------------------------------------------------------------------
+function sigma = trapz_sigma(z_vec, sigma_rho_vec)
+% TRAPZ_SIGMA  Propagate per-level rho_v uncertainty through a trapezoidal
+%              integral to estimate 1-sigma uncertainty on ACPW.
+%
+%   sigma = TRAPZ_SIGMA(z_vec, sigma_rho_vec)
+%
+%   Returns the uncertainty on trapz(z_vec, rho_vec) given independent
+%   1-sigma errors sigma_rho_vec at each level.  This is a LOWER BOUND
+%   because AIRS retrieval errors are positively correlated across levels.
+%
+%   The trapezoid weight for level k is:
+%     w_k = d(trapz) / d(rho_k)
+%         = (z_{k+1} - z_{k-1}) / 2   for interior points
+%         = (z_2 - z_1) / 2           for first point
+%         = (z_N - z_{N-1}) / 2       for last point
+
+n = length(z_vec);
+if n < 2
+    sigma = NaN;
+    return
+end
+
+z_vec         = z_vec(:);
+sigma_rho_vec = sigma_rho_vec(:);
+sigma_rho_vec(isnan(sigma_rho_vec)) = 0;  % treat missing errors as zero
+
+dz = diff(z_vec);
+w  = [dz(1)/2; (dz(1:end-1) + dz(2:end))/2; dz(end)/2];
+
+sigma = sqrt(sum((w .* sigma_rho_vec).^2));
 end

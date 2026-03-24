@@ -352,8 +352,8 @@ p_acpw = polyfit(acpw_true, acpw_retrieved, 1);
 acpw_fit = polyval(p_acpw, ax_lim);
 plot(ax_lim, acpw_fit, 'k--', 'LineWidth', 1)
 grid on; grid minor
-xlabel('True ACPW ($mm$)', 'Interpreter','latex', 'FontSize',fnt_sz)
-ylabel('Retrieved ACPW ($mm$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlabel('True $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Retrieved $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize', fnt_sz)
 xlim(ax_lim)
 ylim(ax_lim)
 % Add textbox with equation
@@ -374,18 +374,18 @@ set(gcf,'Position',[0 0 1350 750])
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
-    'TauC and ACPW against the True values.fig']);
-
-
-% save .png with 400 DPI resolution
-% remove title
-exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
-    'TauC and ACPW against the True values.jpg'],'Resolution', 500);
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+%     'TauC and ACPW against the True values.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+%     'TauC and ACPW against the True values.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------

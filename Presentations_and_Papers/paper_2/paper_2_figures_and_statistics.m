@@ -840,9 +840,16 @@ rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 lwp_retrieval = zeros(size(filenames_retrieval));
 lwp_modis = zeros(size(filenames_retrieval));
 lwp_modis_WH = zeros(size(filenames_retrieval));
-lwp_amsr = zeros(size(filenames_retrieval));
 lwp_newCalc = zeros(size(filenames_retrieval));
 
+% store the LWP uncertainties for the MODIS retrieval
+lwp_modis_err = zeros(size(filenames_retrieval));
+lwp_modis_WH_err = zeros(size(filenames_retrieval));
+
+% store the LWP estimate from AMSR measurements and their associated
+% uncertainty
+lwp_amsr_err = zeros(size(filenames_retrieval));
+lwp_amsr = zeros(size(filenames_retrieval));
 
 % store the ACPW retrieval
 % store the true ACPW used in the forward model - measured by....
@@ -850,11 +857,17 @@ acpw_retrieval = zeros(size(filenames_retrieval));
 acpw_modis = zeros(size(filenames_retrieval));
 acpw_airs = zeros(size(filenames_retrieval));
 
+% store the AIRS acpw retrieval uncertainty estiamte
+acpw_airs_err = zeros(size(filenames_retrieval));
+
 
 % store the optical depth retrieval
 % store the in-situ measured optical depth
 tauC_retrieval = zeros(size(filenames_retrieval));
 tauC_modis = zeros(size(filenames_retrieval));
+
+% Store the MODIS optical thickness retrieval uncertainty
+tauC_modis_err = zeros(size(filenames_retrieval));
 
 
 
@@ -967,13 +980,33 @@ for nn = 1:length(filenames_retrieval)
         (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
         modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ) )/3; % g/m^2
 
+    % compute the uncertainty of LWP - the uncertaities of effective radius
+    % and optical depth add in quadrature and you must account for the
+    % change in LWP with respect to each variable
+    % 
+    lwp_modis_err(nn) = 2/3 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
+        modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)))^2 +...
+        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)) *...
+        modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)))^2 );
+
     % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
     lwp_modis_WH(nn) = 5/9 * rho_h2o *...
         (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
         modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ); % g/m^2
 
+    % compute the uncertainty of LWP - the uncertaities of effective radius
+    % and optical depth add in quadrature and you must account for the
+    % change in LWP with respect to each variable
+    % 
+    lwp_modis_WH_err(nn) = 5/9 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
+        modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)))^2 +...
+        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)) *...
+        modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)))^2 );
+
     % store the AMSR-E LWP estimate
-    lwp_amsr(nn) = amsr.cloud.LiquidWaterPath;
+    lwp_amsr(nn) = amsr.cloud.LiquidWaterPath;  % g/m^2
+    % store the LWP error
+    lwp_amsr_err(nn) = amsr.cloud.ErrorLWP;     % g/m^2
 
     % -------------------------------------------------------
     % -------------------------------------------------------
@@ -1049,11 +1082,14 @@ for nn = 1:length(filenames_retrieval)
     % store above cloud preciptiable water
     acpw_retrieval(nn) = ds.GN_outputs.retrieval(end,end);    % mm
 
-    % What is the true LWP
+    % What is the MODIS retrieved LWP
     acpw_modis(nn) = modis.vapor.col_nir( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
 
+    % store the ACPW estimate from AIRS retrievals
+    acpw_airs(nn) = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );  % mm
 
-    acpw_airs(nn) = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );
+    % store the ACPW AIRS uncertainty estimate
+    acpw_airs_err(nn) = airs.H2O.acpw_using_assumed_CTH_sigma;    % mm
     % -------------------------------------------------------
     % -------------------------------------------------------
 
@@ -1065,6 +1101,9 @@ for nn = 1:length(filenames_retrieval)
 
     % What is the MODIS optical depth
     tauC_modis(nn) = modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) );
+
+    % Store the optical thickness retrieval uncertainty
+    tauC_modis_err(nn) = modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num));
     % -------------------------------------------------------
     % -------------------------------------------------------
 
@@ -1105,6 +1144,11 @@ avg_percent_LWP_diff_newCalc_MODIS_WH = mean( abs( 100 .* (1 - lwp_newCalc./lwp_
 avg_percent_LWP_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis) ));
 avg_percent_LWP_diff_newCalc_MODIS_WH_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis_WH) ));
 
+% Compute the average percent difference for LWP between AMSR-E and the
+% hyperspectral retrieval
+idx_amsr_NOT_nan = find(~isnan(lwp_amsr));
+avg_percent_LWP_diff_newCacl_AMSR_noAbs = mean( ( 100 .* (1 - lwp_newCalc(idx_amsr_NOT_nan)./...
+    lwp_amsr(idx_amsr_NOT_nan)) ));
 
 
 % Let's compute the average percent difference for ACPW
@@ -1125,6 +1169,227 @@ avg_percent_tau_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - tauC_retrieval./t
 
 
 
+%% Create plot showing hyperspectral retrieval of LWP with AMSR retrieval of LWP and its uncertainty
+
+% Define the linewidth
+ln_wdth = 2;
+
+% define the font size
+fnt_sz = 20;
+
+% define marker width for the circle
+circ_size = 30;
+
+% define the equation font size
+eq_fnt_sz = 16;
+
+
+fig1 = figure;
+
+% *** Plot retrieved LWP vs MODIS LWP ***
+subplot(2,3,1)
+errorbar(lwp_modis, lwp_newCalc,...
+    [],[], lwp_modis_err, lwp_modis_err,...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(lwp_newCalc), 1.1 * max(lwp_newCalc)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_lwp = polyfit(lwp_modis, lwp_newCalc, 1);
+lwp_fit = polyval(p_lwp, ax_lim);
+plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('MODIS LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_lwp = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+text(0.05, 0.95, eq_str_lwp, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+% plot legend
+legend('', 'one-to-one', 'linear fit', 'Interpreter','latex',...
+    'Position', [0.194507210511621 0.1673125 0.13906449167352 0.0699999999999998], 'FontSize', 20,...
+    'Color', 'white', 'TextColor', 'k')
+
+
+
+
+% *** Plot hyperspectral LWP vs MODIS LWP w/ Wood-hartmann adjustment ***
+subplot(2,3,2)
+errorbar(lwp_modis_WH, lwp_newCalc,...
+    [],[], lwp_modis_WH_err, lwp_modis_WH_err,...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(lwp_newCalc), 1.1 * max(lwp_newCalc)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_lwp = polyfit(lwp_modis_WH, lwp_newCalc, 1);
+lwp_fit = polyval(p_lwp, ax_lim);
+plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('MODIS LWP_{WH} ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_tblut = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+text(0.05, 0.95, eq_str_tblut, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+% *** Plot hyperspectral LWP vs AMSR LWP ***
+subplot(2,3,3)
+errorbar(lwp_amsr(idx_amsr_NOT_nan), lwp_newCalc(idx_amsr_NOT_nan),...
+    [],[], lwp_amsr_err(idx_amsr_NOT_nan), lwp_amsr_err(idx_amsr_NOT_nan),...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(lwp_newCalc(idx_amsr_NOT_nan)), 1.1 * max(lwp_newCalc(idx_amsr_NOT_nan))];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_lwp = polyfit(lwp_newCalc(idx_amsr_NOT_nan), lwp_amsr(idx_amsr_NOT_nan), 1);
+lwp_fit = polyval(p_lwp, ax_lim);
+plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('AMSR LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_tblut_wh = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+text(0.05, 0.95, eq_str_tblut_wh, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+% *** Plot Tau ***
+subplot(2,3,4)
+errorbar(tauC_modis, tauC_retrieval,...
+    [],[], tauC_modis_err, tauC_modis_err,...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(tauC_retrieval), 1.1 * max(tauC_retrieval)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_tau = polyfit(tauC_modis, tauC_retrieval, 1);
+tau_fit = polyval(p_tau, ax_lim);
+plot(ax_lim, tau_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('MODIS $\tau_c$', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral $\tau_c$', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_tau = sprintf('y = %.3fx + %.3f', p_tau(1), p_tau(2));
+text(0.05, 0.95, eq_str_tau, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+
+% MODIS ACPW_err according to https://atmosphere-imager.gsfc.nasa.gov/products/water-vapor
+acpw_modis_err = 0.1; 
+
+% *** Plot MODIS ACPW versus hyperspectral retrieval ***
+subplot(2,3,5)
+
+errorbar(acpw_modis, acpw_retrieval,...
+    [],[], acpw_modis*acpw_modis_err, acpw_modis*acpw_modis_err,...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(acpw_retrieval), 1.1 * max(acpw_retrieval)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_acpw = polyfit(acpw_modis, acpw_retrieval, 1);
+acpw_fit = polyval(p_acpw, ax_lim);
+plot(ax_lim, acpw_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('MODIS $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_acpw = sprintf('y = %.3fx + %.3f', p_acpw(1), p_acpw(2));
+text(0.05, 0.95, eq_str_acpw, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+% *** Plot AIRS ACPW vs hyperspectral retrieval ***
+subplot(2,3,6)
+
+errorbar(acpw_airs, acpw_retrieval,...
+    [],[], acpw_airs_err, acpw_airs_err,...
+    '.','MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'),...
+    'LineWidth', 1);
+hold on
+% plot a one to one line
+ax_lim = [0.9 * min(acpw_retrieval), 1.1 * max(acpw_retrieval)];
+plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% Compute and plot linear fit
+p_acpw = polyfit(acpw_modis, acpw_retrieval, 1);
+acpw_fit = polyval(p_acpw, ax_lim);
+plot(ax_lim, acpw_fit, 'k--', 'LineWidth', 1)
+grid on; grid minor
+xlabel('AIRS $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+ylabel('Hyperspectral $IWV_{ac}$ ($mm$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+xlim(ax_lim)
+ylim(ax_lim)
+% Add textbox with equation
+eq_str_acpw = sprintf('y = %.3fx + %.3f', p_acpw(1), p_acpw(2));
+text(0.05, 0.95, eq_str_acpw, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+    'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+    'Position', [0.284442970682927 0.0479339227309894 0])
+
+
+
+
+
+set(gcf,'Position',[0 0 1350 750])
+
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+%     'TauC and ACPW against the True values.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+%     'TauC and ACPW against the True values.jpg'],'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
 
 
 
