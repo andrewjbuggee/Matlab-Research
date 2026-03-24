@@ -732,7 +732,7 @@ exportgraphics(fig3,[folderpath_figs,...
 
 
 
-%% Compute EMIT-Aqua retrieval statistics
+%% Compute EMIT-Aqua retrieval statistics - take 1 - retrievals stored on CURC
 
 
 
@@ -781,8 +781,17 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
 
     % define the folder where retrievals are located
-    % *** 2/15/2026 - Retrieval with overlapping EMIT/Aqua data             
-    folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7';
+    % *** 2/15/2026 - Retrieval with overlapping EMIT/Aqua data ***
+    % !! 37 retrieval !!
+    % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+    %     'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7'];
+
+
+    % define the folder where retrievals are located
+    % *** 2/23/2026 - Retrieval with overlapping EMIT/Aqua data ***
+    % !! 672 retrievals !!
+    folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12'];
 
 
 
@@ -809,6 +818,7 @@ for nn = 1:length(filenames_retrieval)
 
         idx_2delete = [idx_2delete, nn];
 
+
     end
 
 end
@@ -830,7 +840,7 @@ rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 lwp_retrieval = zeros(size(filenames_retrieval));
 lwp_modis = zeros(size(filenames_retrieval));
 lwp_modis_WH = zeros(size(filenames_retrieval));
-
+lwp_amsr = zeros(size(filenames_retrieval));
 lwp_newCalc = zeros(size(filenames_retrieval));
 
 
@@ -848,6 +858,8 @@ tauC_modis = zeros(size(filenames_retrieval));
 
 
 
+idx_2delete_round2 = [];
+
 
 
 for nn = 1:length(filenames_retrieval)
@@ -857,15 +869,37 @@ for nn = 1:length(filenames_retrieval)
     ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
 
 
+    % Check to see if the retrieval converged
+    if isfield(ds, 'GN_outputs')==false
+
+        % skip this file
+        idx_2delete_round2 = [idx_2delete_round2, nn];
+        continue
+
+    end
+
 
     % ----------------------------------------
-    % *** Extract the pixel number ***
+    % *** Extract the EMIT pixel number ***
     % ----------------------------------------
-    pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
-        'pixel_', '_'));
+
+    if strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
+
+        pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
+            'pixel_', '_'));
+
+    elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
+
+        pixel_num = 1;
+
+    end
 
 
 
+
+    
     % ----------------------------------------
     % *** Load MODIS, AIRS and AMSR-E data ***
     % ----------------------------------------
@@ -880,7 +914,7 @@ for nn = 1:length(filenames_retrieval)
     airs = readAIRS_L2_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
 
     % Load AMSR-E/2 data
-    % amsr = readAMSR_L2_data([coincident_dataPath, folder_paths.coincident_dataFolder]);
+    amsr = readAMSR_L2_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
     % ----------------------------------------
 
     % ----------------------------------------
@@ -892,7 +926,7 @@ for nn = 1:length(filenames_retrieval)
 
     airs = remove_unwanted_airs_data(airs, ds.overlap_pixels.airs);
 
-    % amsr = remove_unwanted_amsr_data(amsr, overlap_pixels.amsr);
+    amsr = remove_unwanted_amsr_data(amsr, ds.overlap_pixels.amsr);
 
 
 
@@ -937,6 +971,9 @@ for nn = 1:length(filenames_retrieval)
     lwp_modis_WH(nn) = 5/9 * rho_h2o *...
         (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
         modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ); % g/m^2
+
+    % store the AMSR-E LWP estimate
+    lwp_amsr(nn) = amsr.cloud.LiquidWaterPath;
 
     % -------------------------------------------------------
     % -------------------------------------------------------
@@ -1035,6 +1072,20 @@ for nn = 1:length(filenames_retrieval)
 
 end
 
+
+% Remove indices with no converged solution
+lwp_newCalc(idx_2delete_round2) = [];
+lwp_modis(idx_2delete_round2) = [];
+lwp_modis_WH(idx_2delete_round2) = [];
+lwp_amsr(idx_2delete_round2) = [];
+
+acpw_retrieval(idx_2delete_round2) = [];
+acpw_modis(idx_2delete_round2) = [];
+acpw_airs(idx_2delete_round2) = [];
+
+tauC_retrieval(idx_2delete_round2) = [];
+tauC_modis(idx_2delete_round2) = [];
+
 % -------------------------------------------------------
 % Compute statistics!!
 
@@ -1070,6 +1121,10 @@ avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_mod
 avg_percent_tau_diff_newCacl_MODIS = mean( abs( 100 .* (1 - tauC_retrieval./tauC_modis) ));
 
 avg_percent_tau_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - tauC_retrieval./tauC_modis) ));
+
+
+
+
 
 
 
