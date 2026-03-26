@@ -98,8 +98,22 @@ if use_35_or_50 == 35
         % store the closest alpha value for use in the radiative transfer
         out.closest_table_alpha_to_true(ll) = mie_table_alpha_values(idx_min);
 
+        if mie_table_alpha_values(idx_min)<10
+
+        out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_00',...
+            num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)<100
+            
+        out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_0',...
+            num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)>=100
+            
         out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_',...
             num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        end
 
 
     end
@@ -112,9 +126,28 @@ if use_35_or_50 == 35
 
     % store the closest alpha value for use in the radiative transfer
     out.closest_table_alpha_to_mean_alpha = mie_table_alpha_values(idx_min);
+
+
     % store the filename of the closest alpha value
-    out.mie_table_filename_closest_to_mean = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_',...
-        num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+    if mie_table_alpha_values(idx_mean_min)<10
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_00',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)<100
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_0',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)>=100
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-35microns_gammaDist_alpha_',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    end
+
+    
+
 
 
 
@@ -135,8 +168,23 @@ elseif use_35_or_50 == 50
         % store the closest alpha value for use in the radiative transfer
         out.closest_table_alpha_to_true(ll) = mie_table_alpha_values(idx_min);
 
+
+        if mie_table_alpha_values(idx_min)<10
+
+        out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_00',...
+            num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)<100
+            
+        out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_0',...
+            num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)>=100
+            
         out.mie_table_filename{ll} = ['wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_',...
             num2str(mie_table_alpha_values(idx_min)), '.cdf'];
+
+        end
 
 
     end
@@ -152,8 +200,25 @@ elseif use_35_or_50 == 50
     % store the closest alpha value for use in the radiative transfer
     out.closest_table_alpha_to_mean_alpha = mie_table_alpha_values(idx_min);
     % store the filename of the closest alpha value
-    out.mie_table_filename_closest_to_mean = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_',...
-        num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    % store the filename of the closest alpha value
+    if mie_table_alpha_values(idx_mean_min)<10
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_00',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)<100
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_0',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    elseif mie_table_alpha_values(idx_min)>=10 && mie_table_alpha_values(idx_min)>=100
+
+        out.mie_table_filename_closest_to_mean{ll} = [custom_mie_tables_dir, 'wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_',...
+            num2str(mie_table_alpha_values(idx_mean_min)), '.cdf'];
+
+    end
+
 
 
 end
