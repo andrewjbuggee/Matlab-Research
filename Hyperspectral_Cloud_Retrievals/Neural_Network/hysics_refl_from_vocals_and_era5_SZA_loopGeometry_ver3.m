@@ -1,7 +1,10 @@
 
 
-function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza, output_dir)
+function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver3(folder_paths, measurement_idx, sza, output_dir)
 %% Generate measurements from VOCALS-REx in-situ data
+%
+% Ver3 uses new custom Mie table:
+%   (1) new tables span radii from 1 to 50 microns
 %
 % Ver2 speed improvements over ver1:
 %   (1) Removed pause(rand) from parfor body
@@ -824,11 +827,11 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
     end
 
     % If there are droplets
-    % larger than 35 microns, remove them for now. My custom Mie Table
-    % cannot process droplets larger than 35 microns, which is the limit of the
+    % larger than 50 microns, remove them for now. My custom Mie Table
+    % cannot process droplets larger than 50 microns, which is the limit of the
     % pre-computed mie table
 
-    if any(re{nn}>=35)==true
+    if any(re{nn}>=50)==true
 
         if strcmp(saved_profiles_filename, ['ensemble_profiles_without_precip_from_14_files_LWC',...
                 '-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'])==true &&...
@@ -836,7 +839,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last two measurements exceed 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn}>=35;
+            idx_remove = re{nn}>=50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -859,7 +862,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -880,7 +883,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -901,7 +904,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last 12 measurements exceed 35 microns. Remove
             % them and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -922,7 +925,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the exclude the 60th measurement, which jumps to 30 microns. Remove
             % and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -941,7 +944,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -961,7 +964,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -983,7 +986,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -1004,7 +1007,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only 1 in-situ measurement exceeds 25, which jumps to 30 microns. Remove
             % and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];
@@ -1024,7 +1027,7 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
             % only the last measurement exceeds 35 microns. Remove
             % it and use this profile
-            idx_remove = re{nn} >= 25;
+            idx_remove = re{nn} >= 50;
             re{nn}(idx_remove) = [];
             lwc{nn}(idx_remove) = [];
             z{nn}(idx_remove) = [];

@@ -11,6 +11,8 @@ measurement_idx = 11;
 mu_sample = linspace(cosd(0), cosd(65), 8);
 sza = acosd(mu_sample);
 
+output_dir = '/Users/anbu8374/Downloads/test_new_mie_table/';
+
 % hysics_refl_pt3_percent_in_situ_prof_and_tau_func_array(folder_paths, measurement_idx);
 % generate_hysics_refl_from_vocalsRex_and_era5(folder_paths, measurement_idx);
 % generate_hysics_refl_from_vocalsRex_and_era5_loopGeometry(folder_paths, measurement_idx)
@@ -20,7 +22,8 @@ sza = acosd(mu_sample);
 
 for nn = 1:length(sza)
     % *** 1 SZA per file so multiple can run on the supercomputer at once ***
-    hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza(nn), output_dir)
+    % hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver2(folder_paths, measurement_idx, sza(nn), output_dir)
+    hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver3(folder_paths, measurement_idx, sza(nn), output_dir)
 end
 
 %% %% Test slurm script to create Neural Network Training Data set with ORACLES measurments
