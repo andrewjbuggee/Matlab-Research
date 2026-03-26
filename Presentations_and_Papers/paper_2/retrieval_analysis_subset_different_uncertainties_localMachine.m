@@ -288,7 +288,7 @@ clear variables
 % load 0.1% uncertainty data
 filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_0.1%_uncert_rTop_10_rBot_5';
 filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_0.1%_uncert_rTop_10_rBot_5';
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+folder_path = ['/Users/', whatComputer, '/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset/'];
 
 

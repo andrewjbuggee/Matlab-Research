@@ -468,15 +468,26 @@ set(gcf,'Position',[0 0 1500 875])
 
 
 
-%% Plot 9 panels for each cloud optical depth and show the percent difference between the true and retrieved radius at cloud top and bottom
+%% Plot 9 panels for each cloud optical depth and show the percent difference
+% between the true and retrieved radius at cloud top and bottom
 
 
 clear variables
 
 
 % Access specific file or folder
-filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+% Access specific file or folder
+if strcmp(whatComputer, 'anbu8374') == true
+
+    filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+elseif strcmp(whatComputer, 'andrewbuggee') == true
+
+    filenames = dir(['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+end
 
 % what are the free parameters?
 r_top = 10;
@@ -600,8 +611,17 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+if strcmp(whatComputer, 'anbu8374') == true
+
+    filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+elseif strcmp(whatComputer, 'andrewbuggee') == true
+
+    filenames = dir(['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+end
 
 % what are the free parameters?
 r_top = 10;
@@ -746,8 +766,17 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+if strcmp(whatComputer, 'anbu8374') == true
+
+    filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+elseif strcmp(whatComputer, 'andrewbuggee') == true
+
+    filenames = dir(['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+end
 
 % what are the free parameters?
 r_top = 10;
@@ -879,8 +908,17 @@ clear variables
 
 
 % Access specific file or folder
-filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+if strcmp(whatComputer, 'anbu8374') == true
+
+    filenames = dir(['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+elseif strcmp(whatComputer, 'andrewbuggee') == true
+
+    filenames = dir(['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91/*.mat']);
+
+end
 
 % what are the free parameters?
 r_top = 10;

@@ -2,6 +2,635 @@
 
 % By Andrew John Buggee
 
+
+
+
+%% Figure: Impact of IWV assumption on droplet size retrieval bias
+%
+% For each of ~840 simulated cloud retrievals, compute the signed retrieval
+% bias introduced by each of four assumed total IWV values (10, 15, 20, 25 mm)
+% relative to the true (simulated) cloud state:
+%
+%   delta_r_top(i,j) = r_top_retrieved(i,j) - r_top_true(i)
+%   delta_r_bot(i,j) = r_bot_retrieved(i,j) - r_bot_true(i)
+%
+% Panel (a): Scatter of delta_r_top vs. true IWV_ac (above-cloud PW)
+%            with binned medians +/- IQR. One color per IWV assumption.
+% Panel (b): Same for delta_r_bot vs. true IWV_ac.
+% Panel (c): Box plots of the sensitivity d(delta_r)/d(IWV_assumed)
+%            (slope of bias vs. assumed IWV fitted across 4 assumptions),
+%            separately for r_top and r_bot, binned by cloud optical depth.
+
+clear variables
+
+% -------------------------------------------------------------------------
+% Setup: folder paths for each assumed IWV retrieval
+% -------------------------------------------------------------------------
+% which_computer = whatComputer();
+
+base_path = ['/Users/', whatComputer, '/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/dropProf_retrieval_logTransform_newCov_noACPW_retrieval_assumed_10_15_20_25'];
+
+
+folder_names = { ...
+    'newRetrieval_logTransform_newCov_noACPW_10', ...
+    'newRetrieval_logTransform_newCov_noACPW_15', ...
+    'newRetrieval_logTransform_newCov_noACPW_20_rev2', ...
+    'newRetrieval_logTransform_newCov_noACPW_25_rev2' };
+
+iwv_totalColumn_assumed = [10, 15, 20, 25];   % assumed total column water vapor (mm)
+iwv_aboveCloud_assumed = [5.7864, 8.6797, 11.5729, 14.4661];
+n_iwv       = numel(iwv_aboveCloud_assumed);
+
+% -------------------------------------------------------------------------
+% Load GN retrieval data from all four folders
+% Only _1.mat files (first noise realization) with a GN_outputs struct are
+% used; duplicate trial runs and incomplete files are silently skipped.
+% -------------------------------------------------------------------------
+fprintf('Loading retrieval data...\n')
+
+rtop_true_all  = cell(1, n_iwv);
+rbot_true_all  = cell(1, n_iwv);
+tauc_true_all  = cell(1, n_iwv);
+actpw_true_all = cell(1, n_iwv);
+rtop_ret_all   = cell(1, n_iwv);
+rbot_ret_all   = cell(1, n_iwv);
+
+for jj = 1:n_iwv
+
+    folder = fullfile(base_path, folder_names{jj});
+    files  = dir(fullfile(folder, 'dropletRetrieval_noACPW_*_1.mat'));
+
+    % Pre-allocate with maximum possible size
+    n         = 0;
+    N_max     = numel(files);
+    rtop_t    = nan(N_max, 1);
+    rbot_t    = nan(N_max, 1);
+    tauc_t    = nan(N_max, 1);
+    actpw_t   = nan(N_max, 1);
+    rtop_r    = nan(N_max, 1);
+    rbot_r    = nan(N_max, 1);
+
+    for nn = 1:N_max
+        fpath = fullfile(files(nn).folder, files(nn).name);
+        ds    = load(fpath);
+
+        if ~isfield(ds, 'GN_outputs'), continue; end
+
+        n = n + 1;
+        rtop_t(n)  = ds.GN_inputs.measurement.r_top;
+        rbot_t(n)  = ds.GN_inputs.measurement.r_bot;
+        tauc_t(n)  = ds.GN_inputs.measurement.tau_c;
+        actpw_t(n) = ds.GN_inputs.measurement.actpw;
+        rtop_r(n)  = ds.GN_outputs.retrieval(1, end);  % row 1 = r_top
+        rbot_r(n)  = ds.GN_outputs.retrieval(2, end);  % row 2 = r_bot
+    end
+
+    rtop_true_all{jj}  = rtop_t(1:n);
+    rbot_true_all{jj}  = rbot_t(1:n);
+    tauc_true_all{jj}  = tauc_t(1:n);
+    actpw_true_all{jj} = actpw_t(1:n);
+    rtop_ret_all{jj}   = rtop_r(1:n);
+    rbot_ret_all{jj}   = rbot_r(1:n);
+
+    fprintf('  IWV = %f mm : %d retrievals loaded\n', iwv_aboveCloud_assumed(jj), n)
+
+end
+
+% Signed retrieval biases
+delta_rtop_all = cellfun(@(r,t) r - t, rtop_ret_all, rtop_true_all, 'UniformOutput', false);
+delta_rbot_all = cellfun(@(r,t) r - t, rbot_ret_all, rbot_true_all, 'UniformOutput', false);
+
+% -------------------------------------------------------------------------
+% Figure layout and style
+% -------------------------------------------------------------------------
+C            = mySavedColors([66:69], 'fixed');   % one color per IWV assumption
+fnt_sz       = 18;
+dot_sz       = 18;
+alpha_sc     = 0.20;    % scatter point transparency
+lw           = 2.5;     % line width for median curves
+mk_sz        = 30;
+
+% x-axis bins for actpw (above-cloud precipitable water)
+% actpw_edges = 3 : 1 : 12;          % 1 mm bins over [3, 12] mm range
+% actpw_edges = [3, 4.25, 5.5, 6.75, 8, 9.25, 11];          % custom bins to fit the true value modled in this data set
+% actpw_ctrs  = actpw_edges(1:end-1) + 0.5;
+actpw_ctrs = unique(actpw_true_all{1})';                     % The true centers of the 6 different ACPWs modeled in this data set
+actpw_edges = [actpw_ctrs - 0.25, actpw_ctrs(end) + 0.25];          % custom bins to fit the true value modled in this data set
+n_bins_pw   = numel(actpw_ctrs);
+
+fig1 = figure('Position', [50 50 1600 520]);
+
+% -------------------------------------------------------------------------
+% Panels (a) and (b): scatter + binned medians with IQR shading
+% -------------------------------------------------------------------------
+panel_titles    = {'(a) Cloud-top radius bias', '(b) Cloud-base radius bias'};
+delta_list      = {delta_rtop_all, delta_rbot_all};
+ylabels_list    = {'$\Delta r_{top}$ ($\mu$m)', '$\Delta r_{bot}$ ($\mu$m)'};
+
+for pp = 1:2
+
+    subplot(1, 2, pp);  hold on;  box on;  grid on;  grid minor
+
+    delta_all = delta_list{pp};
+
+    % --- raw scatter (context) ---
+    % for jj = 1:n_iwv
+    %     scatter(actpw_true_all{jj}, delta_all{jj}, dot_sz, ...
+    %         'MarkerFaceColor', C(jj,:), 'MarkerEdgeColor', 'none', ...
+    %         'MarkerFaceAlpha', alpha_sc)
+    % end
+
+    % --- binned medians + IQR shading ---
+    h_lines = gobjects(n_iwv, 1);
+    for jj = 1:n_iwv
+        med_bias = nan(1, n_bins_pw);
+        q25      = nan(1, n_bins_pw);
+        q75      = nan(1, n_bins_pw);
+
+        for bb = 1:n_bins_pw
+            in_bin = actpw_true_all{jj} >= actpw_edges(bb) & ...
+                     actpw_true_all{jj} <  actpw_edges(bb+1);
+            if sum(in_bin) > 0
+                med_bias(bb) = median(delta_all{jj}(in_bin));
+                q25(bb)      = prctile(delta_all{jj}(in_bin), 25);
+                q75(bb)      = prctile(delta_all{jj}(in_bin), 75);
+            end
+        end
+
+        valid = ~isnan(med_bias);
+
+        fill([actpw_ctrs(valid), fliplr(actpw_ctrs(valid))], ...
+             [q25(valid),        fliplr(q75(valid))], ...
+             C(jj,:), 'FaceAlpha', 0.18, 'EdgeColor', 'none', ...
+             'HandleVisibility', 'off')
+
+        h_lines(jj) = plot(actpw_ctrs(valid), med_bias(valid), '.-', ...
+            'Color', C(jj,:), 'LineWidth', lw, 'MarkerSize', mk_sz,...
+            'DisplayName', sprintf('Assumed IWV = %2.1f mm', iwv_aboveCloud_assumed(jj)));
+
+        % h_lines(jj) = errorbar(actpw_ctrs(valid), med_bias(valid), q25(valid), q75(valid),  '.-', ...
+        %     'Color', C(jj,:), 'LineWidth', lw, 'MarkerSize', mk_sz,...
+        %     'DisplayName', sprintf('Assumed IWV = %2.1f mm', iwv_aboveCloud_assumed(jj)));
+    end
+
+    yline(0, 'k--', 'LineWidth', 1.5, 'HandleVisibility', 'off')
+
+    xlabel('True $IWV_{ac}$ (mm)', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+    ylabel(ylabels_list{pp},       'Interpreter', 'latex', 'FontSize', fnt_sz)
+    title(panel_titles{pp},        'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+    if pp == 1
+        legend(h_lines, 'Interpreter', 'latex', 'FontSize', 19, 'Location', 'best')
+    end
+
+    set(gca, 'FontSize', fnt_sz)
+
+end
+
+% -------------------------------------------------------------------------
+% Overall title and final sizing
+% -------------------------------------------------------------------------
+sgtitle('Impact of IWV assumption on droplet size retrieval', ...
+    'Interpreter', 'latex', 'FontSize', 16)
+
+set(gcf, 'Color', 'w')
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'Retrieval bias due to assumed IWV content above cloud.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+subplot(1,2,1); title(''); subplot(1,2,2); title(''); sgtitle('');
+exportgraphics(fig1,[folderpath_figs,'Retrieval bias due to assumed IWV content above cloud.jpg'],...
+    'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
+
+
+% -------------------------------------------------------------------------
+% Panel (c): sensitivity d(delta_r)/d(IWV_assumed), binned by tau_c
+%
+% For each cloud present in all 4 assumption folders, fit a line through the
+% 4 (IWV_assumed, delta_r) points and record the slope as the sensitivity.
+% Use IWV=20 folder (index 3, 840 complete retrievals) as the reference set.
+% -------------------------------------------------------------------------
+ref = 3;        % index of the reference folder (IWV=20)
+N_ref = numel(actpw_true_all{ref});
+tol   = 5e-3;   % numerical tolerance for matching truth values
+
+sens_rtop = nan(N_ref, 1);
+sens_rbot = nan(N_ref, 1);
+tauc_sens = nan(N_ref, 1);
+
+for ii = 1:N_ref
+
+    rt = rtop_true_all{ref}(ii);
+    rb = rbot_true_all{ref}(ii);
+    tc = tauc_true_all{ref}(ii);
+    ap = actpw_true_all{ref}(ii);
+
+    d_top  = nan(1, n_iwv);
+    d_bot  = nan(1, n_iwv);
+
+    for jj = 1:n_iwv
+        idx = find( abs(rtop_true_all{jj} - rt) < tol & ...
+                    abs(rbot_true_all{jj} - rb) < tol & ...
+                    abs(tauc_true_all{jj} - tc) < tol & ...
+                    abs(actpw_true_all{jj} - ap) < tol, 1);
+        if ~isempty(idx)
+            d_top(jj) = delta_rtop_all{jj}(idx);
+            d_bot(jj) = delta_rbot_all{jj}(idx);
+        end
+    end
+
+    % Require at least 3 of 4 matched assumptions to fit the slope
+    valid_mask = ~isnan(d_top);
+    if sum(valid_mask) >= 3
+        p_top = polyfit(double(iwv_aboveCloud_assumed(valid_mask)), d_top(valid_mask), 1);
+        p_bot = polyfit(double(iwv_aboveCloud_assumed(valid_mask)), d_bot(valid_mask), 1);
+        sens_rtop(ii) = p_top(1);   % units: um / mm
+        sens_rbot(ii) = p_bot(1);
+        tauc_sens(ii) = tc;
+    end
+
+end
+
+fprintf('Sensitivity computed for %d matched clouds\n', sum(~isnan(sens_rtop)))
+
+% tau_c bins
+tauc_edges       = [6, 12, 18, 25];
+n_tauc_bins      = numel(tauc_edges) - 1;
+tauc_bin_labels  = {'6 \leq \tau_c < 12', '12 \leq \tau_c < 18', '18 \leq \tau_c \leq 24'};
+
+% Colors for r_top and r_bot boxes
+c_top = [0.22, 0.45, 0.77];   % blue
+c_bot = [0.80, 0.25, 0.18];   % red
+
+% Build a padded matrix (NaN-filled) for boxplot:
+%   odd columns  (1, 3, 5) = r_top sensitivity in each tau bin
+%   even columns (2, 4, 6) = r_bot sensitivity in each tau bin
+box_data_top = cell(1, n_tauc_bins);
+box_data_bot = cell(1, n_tauc_bins);
+
+for bb = 1:n_tauc_bins
+    in_bin = tauc_sens >= tauc_edges(bb) & tauc_sens < tauc_edges(bb+1);
+    box_data_top{bb} = sens_rtop(in_bin & ~isnan(sens_rtop));
+    box_data_bot{bb} = sens_rbot(in_bin & ~isnan(sens_rbot));
+end
+
+max_n = max(cellfun(@numel, [box_data_top, box_data_bot]));
+bmat  = nan(max_n, 2 * n_tauc_bins);
+for bb = 1:n_tauc_bins
+    bmat(1:numel(box_data_top{bb}), 2*bb-1) = box_data_top{bb};
+    bmat(1:numel(box_data_bot{bb}), 2*bb  ) = box_data_bot{bb};
+end
+
+% Box positions: pair of boxes per bin, bins spread 3 units apart
+bin_center = (1:n_tauc_bins) * 3;
+pos = zeros(1, 2 * n_tauc_bins);
+for bb = 1:n_tauc_bins
+    pos(2*bb-1) = bin_center(bb) - 0.5;   % r_top
+    pos(2*bb  ) = bin_center(bb) + 0.5;   % r_bot
+end
+
+subplot(1, 3, 3);  hold on;  box on;  grid on
+
+boxplot(bmat, 'Positions', pos, 'Widths', 0.75, 'Symbol', 'k+', ...
+    'Colors', repmat([0 0 0], 2*n_tauc_bins, 1))
+
+% Recolor box fill: findobj returns handles in reverse draw order
+% (last drawn = first element), so h(1) = rightmost box = r_bot_bin3
+h_boxes = findobj(gca, 'Tag', 'Box');
+n_boxes = numel(h_boxes);
+for kk = 1:n_boxes
+    group_idx = n_boxes - kk + 1;  % map from reverse order to forward (1..6)
+    if mod(group_idx, 2) == 1      % odd columns = r_top
+        fc = c_top;
+    else                           % even columns = r_bot
+        fc = c_bot;
+    end
+    patch(get(h_boxes(kk), 'XData'), get(h_boxes(kk), 'YData'), ...
+        fc, 'FaceAlpha', 0.70, 'EdgeColor', 'k', 'LineWidth', 1.5)
+end
+
+yline(0, 'k--', 'LineWidth', 1.5)
+
+% x-tick labels at bin centers
+set(gca, 'XTick', bin_center, 'XTickLabel', tauc_bin_labels, ...
+    'TickLabelInterpreter', 'latex', 'FontSize', fnt_sz)
+
+ylabel('$\partial(\Delta r) / \partial IWV_{\mathrm{assumed}}$ ($\mu$m mm$^{-1}$)', ...
+    'Interpreter', 'latex', 'FontSize', fnt_sz)
+title('(c) Retrieval sensitivity vs.\ $\tau_c$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+% Legend patches
+p_top_leg = patch(nan, nan, c_top, 'FaceAlpha', 0.70, 'EdgeColor', 'k', 'LineWidth', 1.5);
+p_bot_leg = patch(nan, nan, c_bot, 'FaceAlpha', 0.70, 'EdgeColor', 'k', 'LineWidth', 1.5);
+legend([p_top_leg, p_bot_leg], {'$r_{top}$', '$r_{bot}$'}, ...
+    'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best')
+
+set(gca, 'FontSize', fnt_sz)
+
+% -------------------------------------------------------------------------
+% Overall title and final sizing
+% -------------------------------------------------------------------------
+sgtitle('Impact of IWV assumption on droplet size retrieval', ...
+    'Interpreter', 'latex', 'FontSize', 16)
+
+set(gcf, 'Color', 'w')
+
+
+
+
+%% Make paneled figure showing how the assumption of total water vapor column impacts the retrieval of a droplet profile
+
+% *** 0.1% uncertainty ***
+
+clear variables
+
+
+% load 0.1% uncertainty data
+filenames_noACPW_10 = 'newRetrieval_logTransform_newCov_noACPW_10';
+filenames_noACPW_15 = 'newRetrieval_logTransform_newCov_noACPW_15';
+filenames_noACPW_20 = 'newRetrieval_logTransform_newCov_noACPW_20';
+filenames_noACPW_25 = 'newRetrieval_logTransform_newCov_noACPW_25';
+
+folder_path = ['/Users/', whatComputer, '/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+    'HySICS/Droplet_profile_retrievals/vza_7_subset_pt1percent/'];
+
+
+
+% what are the free parameters?
+r_top = 10;
+r_bot = 5;
+% tau_c = [5,11,17,23];
+tau_c = [5,11];
+% tcpw = [8, 14, 20];
+tcpw = [14];
+
+acpw_true = [2.8932, 4.6291, 6.3650, 8.1010,...
+    9.8369, 11.5728, 13.3088, 15.0447, 16.7806,...
+    18.5165, 20.2525];
+
+% length of each independent variable
+num_tauC = length(tau_c);
+num_tcpw = length(tcpw);
+
+
+
+
+% Step through each file
+
+% define the colors for each curve plotted
+C = mySavedColors(61:66, 'fixed');
+
+
+
+
+for pw = 1:length(tcpw)
+
+    f = figure;
+
+
+    for tc = 1:length(tau_c)
+
+        subplot(1,length(tau_c),tc)
+
+
+
+        % Load all 5 retrievals
+        fileNames = [dir([folder_path, filenames_noACPW_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);...
+            dir([folder_path, filenames_full_startsWith, '_tauC_', num2str(tau_c(tc)),...
+            '_tcwv_',  num2str(tcpw(pw)), '*.mat']);];
+
+        lgnd_str = cell(1, length(fileNames)+2);
+
+        for nn = 1:length(fileNames)
+
+
+
+            % Load a data set
+            ds = load([fileNames(nn).folder, '/', fileNames(nn).name]);
+
+
+            if nn==1
+
+
+                % first, plot the simulated profile values as two lines
+                xline(ds.GN_inputs.measurement.r_bot, ':', ['Simulated $r_{bot}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255],...
+                    'LabelHorizontalAlignment','left',...
+                    'LabelVerticalAlignment','bottom');
+
+                hold on
+
+                yline(ds.GN_inputs.measurement.r_top, ':', ['Simulated $r_{top}$'],...
+                    'Fontsize',20, 'Interpreter','latex','LineWidth',2,'Color', [147/255, 150/255, 151/255],...
+                    'LabelHorizontalAlignment','right',...
+                    'LabelVerticalAlignment','top');
+                hold on
+
+
+
+
+                % Skip the first two legend entries
+                lgnd_str{1} = '';
+                lgnd_str{2} = '';
+
+                % write titles and subtitles
+                if tc==1
+
+                    % what was the assumed above cloud column water vapor path?
+                    title(['Simulated measurements with $0.1\%$ uncertainty - $acpw$ = ',num2str(round(ds.GN_inputs.measurement.actpw, 2)), ' $mm$'],...
+                        'Fontsize', 25, 'Interpreter', 'latex');
+
+                    % Create textbox
+                    annotation(f,'textbox',...
+                        [0.25 0.841666666666667 0.0369591836734694 0.0716666666666671],...
+                        'String',{['$\tau_c = $ ', num2str(tau_c(tc))]},...
+                        'Interpreter','latex',...
+                        'FontSize',23,...
+                        'FitBoxToText','off',...
+                        'EdgeColor','none');
+
+                elseif tc==2
+
+
+                    % Create textbox
+                    annotation(f,'textbox',...
+                        [0.45 0.841666666666667 0.0369591836734694 0.0716666666666671],...
+                        'String',{['$\tau_c = $ ', num2str(tau_c(tc))]},...
+                        'Interpreter','latex',...
+                        'FontSize',23,...
+                        'FitBoxToText','off',...
+                        'EdgeColor','none');
+
+                elseif tc==3
+
+
+                    % Create textbox
+                    annotation(f,'textbox',...
+                        [0.66 0.841666666666667 0.0369591836734694 0.0716666666666671],...
+                        'String',{['$\tau_c = $ ', num2str(tau_c(tc))]},...
+                        'Interpreter','latex',...
+                        'FontSize',23,...
+                        'FitBoxToText','off',...
+                        'EdgeColor','none');
+
+                elseif tc==4
+
+                    % Create textbox
+                    annotation(f,'textbox',...
+                        [0.87 0.841666666666667 0.0369591836734694 0.0716666666666671],...
+                        'String',{['$\tau_c = $ ', num2str(tau_c(tc))]},...
+                        'Interpreter','latex',...
+                        'FontSize',23,...
+                        'FitBoxToText','off',...
+                        'EdgeColor','none');
+
+
+
+                end
+
+
+
+
+
+
+            end
+
+
+
+            % plot the retrieved droplet profile
+            if nn<length(fileNames)
+
+                hold on
+
+
+                % Plot the retrieval uncertainty of the radius at cloud top and
+                % bottom
+                e1 = errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:));
+
+                e1.Bar.LineStyle = 'dotted';
+
+                hold on
+
+
+
+            else
+
+                % give a different marker type for the retrieval using 66 bands
+                % that also retrieved above cloud column water vapor
+
+
+                errorbar(ds.GN_outputs.retrieval(2,end), ds.GN_outputs.retrieval(1,end), sqrt(ds.GN_outputs.posterior_cov(1,1))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(1,1))/2, sqrt(ds.GN_outputs.posterior_cov(2,2))/2,...
+                    sqrt(ds.GN_outputs.posterior_cov(2,2))/2, 'MarkerFaceColor', C(nn+1,:),...
+                    'MarkerEdgeColor', C(nn+1,:), 'Linewidth', 4, 'Marker', '.', 'MarkerSize', 40,...
+                    'Color', C(nn+1,:))
+
+                hold on
+
+
+            end
+
+
+
+            % create the legend string
+            if nn<length(fileNames)
+
+                % what was the assumed above cloud column water vapor path?
+                assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - assumed $acpw$ = ',...
+                    num2str(round(assumed_CWV,2)), ' $mm$'];
+
+
+
+
+
+            else
+
+                % create the string for the retrieval using CWV
+
+                % what was the retrieved above cloud column water vapor path above
+                % cloud?
+                retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
+
+                lgnd_str{nn+2} = [num2str(numel(ds.GN_inputs.bands2run)), ' bands - retrieved $acpw$ = ',...
+                    num2str(round(retrieved_CWV, 2)), ' $mm$'];
+
+            end
+
+
+
+
+
+        end
+
+
+
+
+
+
+        % Create a Legend with only the two black curves
+        legend(lgnd_str, 'Interpreter','latex', 'FontSize', 18,...
+            'Position',[0.166173414792696 0.16735419938909 0.142261290258291 0.153166666030884])
+
+        grid on; grid minor
+        ylabel('$r_{top}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+        xlabel('$r_{bot}$ ($\mu m$)', 'Interpreter','latex', 'FontSize',30)
+
+        % set x and y lims
+        % set figure limits
+        dx = 2;
+        dy = 1;
+
+        xlim([ds.GN_inputs.measurement.r_bot - dx, ds.GN_inputs.measurement.r_bot + dx])
+        ylim([ds.GN_inputs.measurement.r_top - dy, ds.GN_inputs.measurement.r_top + dy])
+
+
+
+    end
+
+    if strcmp(whatComputer, 'anbu8374')==true
+
+        set(gcf,'Position',[0 0 2450 600])
+
+    elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+        set(gcf,'Position',[0 0 1200 600])
+
+    end
+
+end
+
+
+
+
+
+
+
+
+
 %% Plot the HySICS retrieval along with the in-situ measurement
 
 % ** only considering re_profile uncertainty **
@@ -832,6 +1461,10 @@ con = physical_constants;
 rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 
 
+% store the effective radii
+re_modis = zeros(size(filenames_retrieval));
+re_top = zeros(size(filenames_retrieval));
+re_base = zeros(size(filenames_retrieval));
 
 % store the LWP retrieval
 % store the TBLUT LWP estimate
@@ -855,6 +1488,7 @@ lwp_amsr = zeros(size(filenames_retrieval));
 % store the true ACPW used in the forward model - measured by....
 acpw_retrieval = zeros(size(filenames_retrieval));
 acpw_modis = zeros(size(filenames_retrieval));
+acpw_modis_corrected = zeros(size(filenames_retrieval));
 acpw_airs = zeros(size(filenames_retrieval));
 
 % store the AIRS acpw retrieval uncertainty estiamte
@@ -972,6 +1606,17 @@ for nn = 1:length(filenames_retrieval)
 
     % -------------------------------------------------------
     % -------------------------------------------------------
+    % store the MODIS retrieved effective radius
+    re_modis(nn) = modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) );  % microns
+
+    % store the radius at cloud top and base from the hyperspectral
+    % retrieval
+    re_top(nn) = ds.GN_outputs.retrieval(1,end);                     % microns
+    re_base(nn) = ds.GN_outputs.retrieval(2,end);                    % microns
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
     % store the liquid water paths
     lwp_retrieval(nn) = ds.GN_outputs.LWP;    % g/m^2
 
@@ -985,9 +1630,9 @@ for nn = 1:length(filenames_retrieval)
     % change in LWP with respect to each variable
     % 
     lwp_modis_err(nn) = 2/3 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)))^2 +...
-        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)))^2 );
+        modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
+        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
+        modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
 
     % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
     lwp_modis_WH(nn) = 5/9 * rho_h2o *...
@@ -997,11 +1642,11 @@ for nn = 1:length(filenames_retrieval)
     % compute the uncertainty of LWP - the uncertaities of effective radius
     % and optical depth add in quadrature and you must account for the
     % change in LWP with respect to each variable
-    % 
+    % !! MODIS retrieval uncertainties are listed as percents !!
     lwp_modis_WH_err(nn) = 5/9 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)))^2 +...
-        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)))^2 );
+        modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
+        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
+        modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
 
     % store the AMSR-E LWP estimate
     lwp_amsr(nn) = amsr.cloud.LiquidWaterPath;  % g/m^2
@@ -1084,6 +1729,7 @@ for nn = 1:length(filenames_retrieval)
 
     % What is the MODIS retrieved LWP
     acpw_modis(nn) = modis.vapor.col_nir( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
+    acpw_modis_corrected(nn) = modis.vapor.col_nir_corrected( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
 
     % store the ACPW estimate from AIRS retrievals
     acpw_airs(nn) = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );  % mm
@@ -1118,12 +1764,23 @@ lwp_modis(idx_2delete_round2) = [];
 lwp_modis_WH(idx_2delete_round2) = [];
 lwp_amsr(idx_2delete_round2) = [];
 
+lwp_modis_err(idx_2delete_round2) = [];
+lwp_modis_WH_err(idx_2delete_round2) = [];
+
+
 acpw_retrieval(idx_2delete_round2) = [];
 acpw_modis(idx_2delete_round2) = [];
+acpw_modis_corrected(idx_2delete_round2) = [];
 acpw_airs(idx_2delete_round2) = [];
+
+acpw_airs_err(idx_2delete_round2) = [];
 
 tauC_retrieval(idx_2delete_round2) = [];
 tauC_modis(idx_2delete_round2) = [];
+tauC_modis_err(idx_2delete_round2) = [];
+
+re_modis(idx_2delete_round2) = [];
+re_top(idx_2delete_round2) = [];
 
 % -------------------------------------------------------
 % Compute statistics!!
@@ -1156,6 +1813,7 @@ avg_percent_ACPW_diff_newCacl_MODIS = mean( abs( 100 .* (1 - acpw_retrieval./acp
 avg_percent_ACPW_diff_newCalc_AIRS = mean( abs( 100 .* (1 - acpw_retrieval./acpw_airs) ));
 
 avg_percent_ACPW_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis) ));
+avg_percent_ACPW_diff_newCacl_MODIS_with_NIRcorrection_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis_corrected) ));
 avg_percent_ACPW_diff_newCalc_AIRS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_airs) ));
 
 avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_modis) ));
@@ -1165,6 +1823,11 @@ avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_mod
 avg_percent_tau_diff_newCacl_MODIS = mean( abs( 100 .* (1 - tauC_retrieval./tauC_modis) ));
 
 avg_percent_tau_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - tauC_retrieval./tauC_modis) ));
+
+% Compute the average retrieval bias between MODIS retrieved effective
+% radius and the hyperspetral retrieval of radius at cloud top
+re_rTop_avg_percent_diff = mean( ( 100 .* (1 - re_top./re_modis) ));
+
 
 
 

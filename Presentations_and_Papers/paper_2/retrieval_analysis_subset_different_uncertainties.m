@@ -12,8 +12,20 @@ clear variables
 % load 1% uncertainty files
 filenames_startWith = 'dropletRetrieval_noACPW_HySICS_35bands_1%_uncert_rTop_10_rBot_5';
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+
+if strcmp(whatComputer, 'anbu8374')==true
+
+    folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+elseif strcmp(whatComputer, 'andrewbuggee')==true
+
+    folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+    'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
+
+end
+
+
 
 % % Access specific file or folder
 % filenames_noACPW_1percent = dir(['//Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
@@ -206,7 +218,7 @@ clear variables
 filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_5%_uncert_rTop_10_rBot_5';
 filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_5%_uncert_rTop_10_rBot_5';
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset/'];
 
 % % Access specific file or folder
@@ -673,7 +685,7 @@ clear variables
 filenames_noACPW_startsWith = 'dropletRetrieval_noACPW_HySICS_35bands_1%_uncert_rTop_10_rBot_5';
 filenames_full_startsWith = 'dropletRetrieval_HySICS_66bands_1%_uncert_rTop_10_rBot_5';
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+folder_path = ['/Users/andrewbuggee/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_7_vaz_210_sza_10_saz_91_subset2/'];
 
 % % Access specific file or folder
@@ -1245,7 +1257,7 @@ filenames_noACPW_startsWith = ['dropletRetrieval_noACPW_HySICS_35bands_',...
 filenames_full_startsWith = ['dropletRetrieval_HySICS_66bands_',...
     num2str(plt_uncert), '%_uncert_rTop_10_rBot_5'];
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+folder_path = ['/Users/', whatComputer, '/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_lowUncert/'];
 
 % % Access specific file or folder
@@ -1521,7 +1533,7 @@ filenames_noACPW_startsWith = ['dropletRetrieval_noACPW_HySICS_35bands_',...
 filenames_full_startsWith = ['dropletRetrieval_HySICS_66bands_',...
     num2str(plt_uncert), '%_uncert_rTop_10_rBot_5'];
 
-folder_path = ['/Users/anbu8374/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
+folder_path = ['/Users/', whatComputer, '/MATLAB-Drive/HySICS/Droplet_profile_retrievals/',...
     'paper2_variableSweep/rTop_10/vza_4_vaz_257_sza_31_saz_96_subset_highUncert/'];
 
 % % Access specific file or folder

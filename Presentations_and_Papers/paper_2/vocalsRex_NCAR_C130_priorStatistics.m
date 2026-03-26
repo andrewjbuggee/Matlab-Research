@@ -1781,7 +1781,7 @@ grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('')
-title('Above Cloud Precipitable Water', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('Above Cloud Integrated Water Vapor', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
@@ -1871,7 +1871,7 @@ grid on; grid minor;
 xlabel('Standard Normal Quantiles', 'Interpreter','latex', 'FontSize', fnt_sz)
 % ylabel('Quantiles of Input Sample', 'Interpreter','latex', 'FontSize', fnt_sz)
 ylabel('')
-title('$\ln($Above Cloud Precipitable Water$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
+title('$\ln($Above Cloud Integrated Water Vapor$)$', 'Interpreter','latex', 'FontSize', fnt_sz)
 % compute the R^2 value from the figure handle and print this in the legend
 legend(['$R^2 = $', num2str(compute_qqplot_R2(qp4))], 'location',...
     'best','Interpreter','latex', 'Location','best', 'FontSize', lgnd_fnt,...
@@ -1885,18 +1885,18 @@ set(gcf, 'Position', [0,0, 1700, 950])
 % ** Paper Worthy **
 % -------------------------------------
 % ---------- Save figure --------------
-% % save .fig file
-% if strcmp(whatComputer,'anbu8374')==true
-%         error(['Where do I save the figure?'])
-% elseif strcmp(whatComputer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
-% 
-% 
-% % save .png with 400 DPI resolution
-% % remove title
-% exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 500);
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+        error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.fig']);
+
+
+% save .png with 400 DPI resolution
+% remove title
+exportgraphics(fig1,[folderpath_figs,'Quantile-Quantile plot for all 4 variables.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -2067,7 +2067,7 @@ try chol(prior_cov_lin)
     % define the variable names along the x and y axis
     % Define variable names for the heat map axes
     % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
-    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$pw_{ac}$'};
+    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$IWV_{ac}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
         'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
@@ -2102,19 +2102,19 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-    elseif strcmp(whatComputer,'andrewbuggee')==true
-        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    end
-    saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
-
-
-    % save .png with 400 DPI resolution
-    % remove title
-    title('');
-    exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],...
-        'Resolution', 500);
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.fig']);
+    % 
+    % 
+    % % save .png with 500 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig2,[folderpath_figs,'Linear a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],...
+    %     'Resolution', 500);
     % -------------------------------------
     % -------------------------------------
 
@@ -2141,7 +2141,7 @@ try chol(prior_cov_lin)
     % define the variable names along the x and y axis
     % Define variable names for the heat map axes
     % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
-    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$pw_{ac}$'};
+    variableNames = {'$r_{top}$', '$r_{bot}$', '$\tau_c$', '$IWV_{ac}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
         'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
@@ -2175,19 +2175,19 @@ try chol(prior_cov_lin)
     % -------------------------------------
     % ---------- Save figure --------------
     % save .fig file
-    if strcmp(whatComputer,'anbu8374')==true
-        error(['Where do I save the figure?'])
-    elseif strcmp(whatComputer,'andrewbuggee')==true
-        folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-    end
-    saveas(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.fig']);
-
-
-    % save .png with 400 DPI resolution
-    % remove title
-    title('');
-    exportgraphics(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.jpg'],...
-        'Resolution', 500);
+    % if strcmp(whatComputer,'anbu8374')==true
+    %     error(['Where do I save the figure?'])
+    % elseif strcmp(whatComputer,'andrewbuggee')==true
+    %     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+    % end
+    % saveas(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.fig']);
+    % 
+    % 
+    % % save .png with 500 DPI resolution
+    % % remove title
+    % title('');
+    % exportgraphics(fig2,[folderpath_figs,'Linear correlation coefficient matrix using acpw from ERA5 with VR adjustment.jpg'],...
+    %     'Resolution', 500);
     % -------------------------------------
     % -------------------------------------
 
@@ -2220,7 +2220,7 @@ try chol(prior_cov_lin)
     % Define variable names for the heat map axes
     % variableNames = {'log(Effective Radius Top)', 'log(Effective Radius Bottom)',...
     %     'log(Optical Depth)', 'log(Above Cloud PW)'};
-    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(pw_{ac})}$'};
+    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(IWV_{ac})}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
         'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
@@ -2257,7 +2257,7 @@ try chol(prior_cov_lin)
     % ** Paper Worthy **
     % -------------------------------------
     % ---------- Save figure --------------
-    % % save .fig file
+    % save .fig file
     % if strcmp(whatComputer,'anbu8374')==true
     %     error(['Where do I save the figure?'])
     % elseif strcmp(whatComputer,'andrewbuggee')==true
@@ -2269,7 +2269,8 @@ try chol(prior_cov_lin)
     % % save .png with 400 DPI resolution
     % % remove title
     % title('');
-    % exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
+    % exportgraphics(fig3,[folderpath_figs,'Logarithmic a prioiri covariance matrix using acpw',...
+    %     'from ERA5 with VR adjustment.jpg'],'Resolution', 500);
     % % -------------------------------------
     % ----------------------------------------
 
@@ -2293,7 +2294,7 @@ try chol(prior_cov_lin)
     % define the variable names along the x and y axis
     % Define variable names for the heat map axes
     % variableNames = {'Effective Radius Top', 'Effective Radius Bottom', 'Optical Depth', 'Above Cloud PW'};
-    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(pw_{ac})}$'};
+    variableNames = {'$\ln{(r_{top})}$', '$\ln{(r_{bot})}$', '$\ln{(\tau_c)}$', '$\ln{(IWV_{ac})}$'};
     set(gca, 'XTick', 1:length(variableNames), 'XTickLabel', variableNames, 'YTick', 1:length(variableNames),...
         'YTickLabel', variableNames, 'TickLabelInterpreter', 'latex');
     
@@ -2337,7 +2338,8 @@ try chol(prior_cov_lin)
     % % save .png with 500 DPI resolution
     % % remove title
     % title('');
-    % exportgraphics(fig5,[folderpath_figs,'Logarithmic Correlation Coefficient matrix using acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
+    % exportgraphics(fig5,[folderpath_figs,'Logarithmic Correlation Coefficient matrix using',...
+    %     'acpw from ERA5 with VR adjustment.jpg'],'Resolution', 500);
     % % -------------------------------------
     % ----------------------------------------
 

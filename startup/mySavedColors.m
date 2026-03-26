@@ -85,10 +85,10 @@ savedColors = [8.492724501845559e-01     5.437108503990062e-02     9.68109025296
     [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
     [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
     [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
-    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10
-    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11
-    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12
-    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
      ];
 
 

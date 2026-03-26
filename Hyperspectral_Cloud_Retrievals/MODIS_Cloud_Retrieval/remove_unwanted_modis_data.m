@@ -57,6 +57,7 @@ modis.geo.long = modis.geo.long(keep_modis_data_index);
 % col_nir and col_nir_correction are 2030×1354
 modis.vapor.col_nir = modis.vapor.col_nir(keep_modis_data_index);
 modis.vapor.col_nir_correction = modis.vapor.col_nir_correction(keep_modis_data_index);
+modis.vapor.col_nir_corrected = modis.vapor.col_nir_corrected(keep_modis_data_index);
 
 % col_ir is lower resolution (406×270), needs special handling
 if ~isempty(modis.vapor.col_ir)
