@@ -11,15 +11,15 @@
 #SBATCH --time=23:59:59   # Request 23 hours and 59 minutes for longer computation
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=75G
+#SBATCH --mem=50G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=20
-#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0_removeModuleLoading
-#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0_removeModuleLoading_%A_%a.out
-#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza0_removeModuleLoading_%A_%a.err
+#SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza59_removeModuleLoading
+#SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza59_removeModuleLoading_%A_%a.out
+#SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza59_removeModuleLoading_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=101-173    # 73 measurements from the ensemble_profiles to process
+#SBATCH --array=701-773    # 73 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
@@ -48,11 +48,14 @@ cd /projects/anbu8374/
 # Load MATLAB
 module load matlab/R2024b
 
-# Define the solar zenith angle for the measurements (0 degrees for this case)
-SZA=0
+# Define the solar zenith angle for the measurements 
+# The range should be linear in cosine space
+# mu_samples = linspace(cosd(0), cosd(65), 8);
+# acosd(mu_samples) = 0   23.4343   33.3806   41.1882   47.9277   54.0142   59.6619   65.0000
+SZA=59.6619
 
 # define the offset for the job array so that the measurement index ranges from 1 to 73 instead of 101 to 173
-offset=100
+offset=700
 
 # define the output directory for the results
 # ** Needs a trailing slash at the end for the MATLAB script to work properly **
