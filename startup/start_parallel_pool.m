@@ -128,23 +128,22 @@ if isempty(p)==true
         % Pass the cluster object 'p' (not just the worker count) so
         % that the updated JobStorageLocation is actually used.
 
-
-        % start the cluster with the number of workers available
-        if p.NumWorkers>64
-            % Likely the amilan128c partition with 2.1 GB per core
-            % Leave some cores for overhead
-            fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers - 8);
-            parpool(p, p.NumWorkers - 8);
-
-        elseif p.NumWorkers<=64 && p.NumWorkers>10
-            fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
-            parpool(p, p.NumWorkers);
-
-        elseif p.NumWorkers<=10
-            fprintf('Starting parallel pool with %d workers...\n', p.NumWorkers);
-            parpool(p, p.NumWorkers);
-
+        % Use SLURM_CPUS_PER_TASK to get the actual allocated CPU count.
+        % p.NumWorkers can return the physical node core count (e.g. 64 on
+        % amilan) rather than the SLURM allocation, causing oversubscription.
+        slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK'));
+        
+        if ~isnan(slurm_cpus) && slurm_cpus > 0
+            num_workers = slurm_cpus;
+            fprintf('SLURM_CPUS_PER_TASK = %d; using %d workers.\n', slurm_cpus, num_workers);
+        else
+            % Fallback for non-SLURM runs
+            num_workers = p.NumWorkers;
+            fprintf('SLURM_CPUS_PER_TASK not set; falling back to p.NumWorkers = %d.\n', num_workers);
         end
+
+        fprintf('Starting parallel pool with %d workers...\n', num_workers);
+        parpool(p, num_workers);
 
 
 
