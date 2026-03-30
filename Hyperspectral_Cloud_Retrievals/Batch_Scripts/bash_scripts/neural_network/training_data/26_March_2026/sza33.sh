@@ -11,9 +11,9 @@
 #SBATCH --time=23:59:59   # Request 23 hours and 59 minutes for longer computation
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=50G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
+#SBATCH --mem=70G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33_removeModuleLoading
 #SBATCH --output=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33_removeModuleLoading_%A_%a.out
 #SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza33_removeModuleLoading_%A_%a.err
