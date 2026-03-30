@@ -66,11 +66,12 @@ for nn = 1:length(filenames)
 end
 
 %% Compute retrieval using just one file?
-
+% Retrieve a profile from a single file
 [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list(3), folder_paths, print_status_updates, print_libRadtran_err);
 
 
 %% Full Retrieval from all files
+% This will process multiple files at once
 
 [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropletProfile_HySICS_ver3_lowUncertainty(file_list, folder_paths, print_status_updates, print_libRadtran_err);
 
