@@ -132,7 +132,7 @@ if isempty(p)==true
         % p.NumWorkers can return the physical node core count (e.g. 64 on
         % amilan) rather than the SLURM allocation, causing oversubscription.
         slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK'));
-        
+
         if ~isnan(slurm_cpus) && slurm_cpus > 0
             num_workers = slurm_cpus;
             fprintf('SLURM_CPUS_PER_TASK = %d; using %d workers.\n', slurm_cpus, num_workers);
@@ -141,6 +141,8 @@ if isempty(p)==true
             num_workers = p.NumWorkers;
             fprintf('SLURM_CPUS_PER_TASK not set; falling back to p.NumWorkers = %d.\n', num_workers);
         end
+
+        pctconfig('poolstarttimeout', 2400);   % 40 min instead of default 20 min
 
         fprintf('Starting parallel pool with %d workers...\n', num_workers);
         parpool(p, num_workers);
