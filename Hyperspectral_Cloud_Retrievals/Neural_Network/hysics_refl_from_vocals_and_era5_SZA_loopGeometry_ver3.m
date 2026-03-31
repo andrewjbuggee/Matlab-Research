@@ -1351,10 +1351,11 @@ Refl_model_allStateVectors = reshape(Refl_model_allStateVectors, num_wl, []);
 
 %% Add Gaussian Noise to the measurements
 
-% --- meausrement uncertainty ---
+% --- HYSICS meausrement uncertainty ---
 % define this as a fraction of the measurement
 % inputs.measurement.uncert = [0.003, 0.01:0.01:0.1];
-inputs.measurement.uncert = 0.003;
+inputs.measurement.uncert_hysics = 0.003;
+inputs.measurement.uncert_emit = 0.04;
 
 % Define a gaussian where the mean value is the true measurement, and twice
 % the standard deviation is the product of the measurement uncertainty and
@@ -1375,28 +1376,43 @@ inputs.measurement.uncert = 0.003;
 % by three. Therefore, after sample a large number of times, 99% of
 % measurements will be within +/- measurement uncertainy of the mean
 
-if any(inputs.measurement.uncert > 0)
+% -----------------------------------------------------
+% ***--- compute spectra with HySICS uncertainty ---***
+% -----------------------------------------------------
 
-    inputs.measurement.standard_dev = inputs.measurement.uncert/3;       % this is still just a fraction
+if inputs.measurement.uncert_hysics > 0
 
-    for uu = 1:length(inputs.measurement.uncert)
-
-        clear Refl_model_with_noise_allStateVectors Refl_model_uncert_allStateVectors
-
-
-        Refl_model_with_noise_allStateVectors = (inputs.measurement.standard_dev(uu) .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
-            + Refl_model_allStateVectors;
+    inputs.measurement.standard_dev_hysics = inputs.measurement.uncert_hysics/3;       % this is still just a fraction
 
 
-        % define the synthetic relfectance uncertainty
-        Refl_model_uncert_allStateVectors = inputs.measurement.uncert(uu) .* Refl_model_with_noise_allStateVectors;    % 1/sr
+    Refl_model_with_noise_allStateVectors_hysics = (inputs.measurement.standard_dev_hysics .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
+        + Refl_model_allStateVectors;
 
+    % define the synthetic relfectance uncertainty
+    Refl_model_uncert_allStateVectors_hysics = inputs.measurement.uncert_hysics .* Refl_model_with_noise_allStateVectors_hysics;    % 1/sr
 
-
-    end
 
 end
 
+
+
+% -----------------------------------------------------
+% ***---- compute spectra with EMIT uncertainty ----***
+% -----------------------------------------------------
+
+if inputs.measurement.uncert_emit > 0
+
+    inputs.measurement.standard_dev_emit = inputs.measurement.uncert_emit/3;       % this is still just a fraction
+
+
+    Refl_model_with_noise_allStateVectors_emit = (inputs.measurement.standard_dev_emit .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
+        + Refl_model_allStateVectors;
+
+    % define the synthetic relfectance uncertainty
+    Refl_model_uncert_allStateVectors_emit = inputs.measurement.uncert_emit .* Refl_model_with_noise_allStateVectors_emit;    % 1/sr
+
+
+end
 
 
 %%
@@ -1466,7 +1482,7 @@ end
 % *** save all spectral calculations for this single in-situ measurement as one ***
 
 filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
-    num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert), '%_uncert_',...
+    num2str(numel(inputs.bands2run)), 'bands_',num2str(100*inputs.measurement.uncert_hysics), '%_uncert_',...
     campaign_name, '_inSitu_re_lwc_tauC_z_', char(date_of_flight{1}),'_', num2str(time_of_flight),...
     'UTC_prof-nn_', num2str(measurement_idx), '_vzaRange_', num2str(round(vza(1))),...
     '-', num2str(vza(end)),'_vazRange_', num2str(round(vaz(1))),...
@@ -1476,8 +1492,9 @@ filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
     '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
-save(filename, "Refl_model_allStateVectors", "Refl_model_with_noise_allStateVectors",...
-    "Refl_model_uncert_allStateVectors","inputs", "spec_response",...
+save(filename, "Refl_model_allStateVectors", "Refl_model_with_noise_allStateVectors_hysics",...
+    "Refl_model_uncert_allStateVectors_hysics", "Refl_model_with_noise_allStateVectors_emit",...
+    "Refl_model_uncert_allStateVectors_emit","inputs", "spec_response",...
     "changing_variables_allStateVectors", "re", "tau", "lwc", "z", "era5");
 
 
