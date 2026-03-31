@@ -89,10 +89,10 @@ disp(['Loaded ', num2str(N_profiles), ' vertical profiles.'])
 
 %% -------------------------------------------------------------------------
 %  1. Separate profiles: drizzling vs non-drizzling
-%     Criterion: rain/drizzle liquid water path (D > 50 µm) >= threshold
+%     Criterion: rain/drizzle liquid water path >= threshold
 %  -------------------------------------------------------------------------
 
-drizzle_LWP_threshold = 5;   % g/m²  (D > 50 µm droplets)
+drizzle_LWP_threshold = 5;   % g/m²
 
 is_drizzle = false(1, N_profiles);
 for nn = 1:N_profiles
@@ -106,15 +106,21 @@ disp(['Drizzling profiles:     ', num2str(length(idx_drizzle))])
 disp(['Non-drizzling profiles: ', num2str(length(idx_no_drizzle))])
 
 % --- Pie / bar summary plot ---
+plt_clr_1 = mySavedColors(62, 'fixed');
+plt_clr_2 = mySavedColors(62, 'fixed');
 figure;
-bar([length(idx_no_drizzle), length(idx_drizzle)], 0.5, ...
+num_driz_nonDriz = [length(idx_no_drizzle), length(idx_drizzle)];
+bar(num_driz_nonDriz, 0.5, ...
     'FaceColor', plt_clr_1)
-set(gca, 'XTickLabel', {'Non-drizzling', 'Drizzling'})
-ylabel('Number of profiles')
-title(['ORACLES vertical profiles  |  drizzle LWP threshold = ', ...
-    num2str(drizzle_LWP_threshold), ' g/m²'])
+text(1:length(num_driz_nonDriz), num_driz_nonDriz, num2str(num_driz_nonDriz'),...
+    'vert','bottom','horiz','center');
+set(gca, 'XTickLabel', {'Non-drizzling', 'Drizzling'}, 'Fontsize', 20)
+ylabel('Number of profiles', 'fontsize', 20)
+title(['ORACLES vertical profiles', newline', 'drizzle LWP threshold ($D > 50 \mu m $) = ', ...
+    num2str(drizzle_LWP_threshold), ' $g/m^{2}$'], 'interpreter', 'latex',...
+    'fontsize', 20)
 grid on; grid minor
-set(gcf, 'Position', [0 0 500 450])
+set(gcf, 'Position', [0 0 600 600])
 
 
 %% -------------------------------------------------------------------------
@@ -156,7 +162,7 @@ for nn = 1:N_profiles
 
     % Moist/saturated adiabatic lapse rate at cloud base [K/m]
     SALR = g * (1 + L_v * r_s_base / (R_d * T_base)) / ...
-           (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
+        (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
 
     % Adiabatic LWC lapse rate [kg/m^4], converted to [g/m^4]
     Gamma_L = rho_a_base * (DALR - SALR) * 1000;    % g/m^4
@@ -272,7 +278,7 @@ for nn = 1:N_profiles
     rho_a_base = P_base / (R_d * T_base);
     DALR = g / c_pd;
     SALR = g * (1 + L_v * r_s_base / (R_d * T_base)) / ...
-           (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
+        (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
     H_total = abs(alt_p(end) - alt_p(1));   % cloud depth [m]
     T_moist_adiabat_top = T_base - SALR * H_total;   % predicted T at cloud top
 
@@ -384,7 +390,7 @@ coeff_nd = polyfit(log10(all_tau_phase_nodrizzle), log10(all_LWC_nodrizzle), 1);
 coeff_d  = polyfit(log10(all_tau_phase_drizzle),   log10(all_LWC_drizzle),   1);
 
 tau_fit  = logspace(log10(min([all_tau_phase_nodrizzle, all_tau_phase_drizzle])), ...
-                    log10(max([all_tau_phase_nodrizzle, all_tau_phase_drizzle])), 100);
+    log10(max([all_tau_phase_nodrizzle, all_tau_phase_drizzle])), 100);
 LWC_fit_nd = 10.^polyval(coeff_nd, log10(tau_fit));
 LWC_fit_d  = 10.^polyval(coeff_d,  log10(tau_fit));
 
@@ -500,11 +506,12 @@ sgtitle({'$N_c$ vs $r_v$ — ORACLES  |  Mixing regime diagnostics', ...
 set(gcf, 'Position', [0 0 1200 550])
 
 
+
 %% -------------------------------------------------------------------------
 %  5 & 6. Ensemble MEDIAN profiles of r_e, LWC, N_c vs normalized optical depth
 %         for non-precipitating (no-drizzle) clouds
 %
-%  Analogous to first_paper_figures.m (VOCALS-REx version).
+%  Analogous to first_paper_figures.m (VOCALS-REx version). Take 1
 %  -------------------------------------------------------------------------
 
 n_bins    = 30;
@@ -524,7 +531,7 @@ for nn = 1:N_profiles
     % Orient profile so index 1 is cloud top (tau = 0)
     % dz_dt > 0 → ascending (starts at base, tau increases going up)
     dz_dt = mean(diff(ensemble_profiles{nn}.altitude) ./ ...
-                 diff(ensemble_profiles{nn}.time));
+        diff(ensemble_profiles{nn}.time));
     if dz_dt > 0
         % Ascending: flip so cloud top is first
         re_bin  = fliplr(ensemble_profiles{nn}.re);
@@ -536,6 +543,12 @@ for nn = 1:N_profiles
         lwc_bin = ensemble_profiles{nn}.lwc;
         Nc_bin  = ensemble_profiles{nn}.total_Nc;
     end
+
+    % get rid of zeros
+    % Remove zeros from the accumulated data
+    re_bin(re_bin == 0) = 0.01;
+    lwc_bin(lwc_bin == 0) = 0.001;
+    Nc_bin(Nc_bin == 0) = 0.01;
 
     for bb = 1:n_bins
         if bb == 1
@@ -556,6 +569,9 @@ for nn = 1:N_profiles
     end
 
 end
+
+
+
 
 % Compute median and IQR for each bin
 re_med_nd  = zeros(n_bins,1);  re_iqr_nd  = zeros(n_bins,1);
@@ -580,6 +596,484 @@ for bb = 1:n_bins
     re_iqr_d(bb)   = iqr(vertSeg_d{bb,1});
     lwc_iqr_d(bb)  = iqr(vertSeg_d{bb,2});
     Nc_iqr_d(bb)   = iqr(vertSeg_d{bb,3});
+end
+
+% --- Plot ensemble median profiles for non-drizzling clouds ---
+figure;
+
+plt_clr_1 = mySavedColors(64,'fixed');
+plt_clr_2 = mySavedColors(62,'fixed');
+
+fnt_sz = 22;
+ttl_fnt = 26;
+
+% r_e
+subplot(1,3,1)
+x = [re_med_nd - re_iqr_nd/2; flipud(re_med_nd + re_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+hold on
+plot(re_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle r_e(z) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+xlim([0, max(re_med_nd)*1.3])
+
+% LWC
+subplot(1,3,2)
+x = [lwc_med_nd - lwc_iqr_nd/2; flipud(lwc_med_nd + lwc_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+hold on
+plot(lwc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle LWC(z) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+title(['Median profiles — Non-drizzling ORACLES  |  ', ...
+    num2str(length(idx_no_drizzle)), ' profiles'], 'Interpreter', 'latex', 'FontSize', ttl_fnt)
+
+% N_c
+subplot(1,3,3)
+x = [Nc_med_nd - Nc_iqr_nd/2; flipud(Nc_med_nd + Nc_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+hold on
+plot(Nc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle N_c(z) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+set(gcf, 'Position', [0 0 1200 600])
+
+% --- Overlay drizzling vs non-drizzling on same axes ---
+% Create figure
+figure1 = figure;
+
+% Create axes
+axes1 = axes('Parent',figure1,...
+    'Position',[0.213894399154591 0.144881944444444 0.189354393115943 0.771350694444444]);
+hold(axes1,'on');
+
+subplot(1,3,1)
+hold on
+x = [re_med_nd - re_iqr_nd/2; flipud(re_med_nd + re_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(re_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+x = [re_med_d - re_iqr_d/2; flipud(re_med_d + re_iqr_d/2)];
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(re_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle r_e(z) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+legend({'','Non-drizzling','','Drizzling'}, 'Location', 'best',...
+    'Interpreter', 'latex', 'FontSize', fnt_sz-2, 'Color', 'white', 'TextColor', 'black',...
+    'Position',[0.0153049178561151 0.812493412950304 0.171744791666667 0.114166666666667])
+
+
+
+subplot(1,3,2)
+hold on
+x = [lwc_med_nd - lwc_iqr_nd/2; flipud(lwc_med_nd + lwc_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(lwc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+x = [lwc_med_d - lwc_iqr_d/2; flipud(lwc_med_d + lwc_iqr_d/2)];
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(lwc_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle LWC(z) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+
+subplot(1,3,3)
+hold on
+x = [Nc_med_nd - Nc_iqr_nd/2; flipud(Nc_med_nd + Nc_iqr_nd/2)];
+y = [bin_center; flipud(bin_center)];
+fill(x, y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(Nc_med_nd, bin_center, '-', 'Color', plt_clr_1, 'LineWidth', 1.5)
+x = [Nc_med_d - Nc_iqr_d/2; flipud(Nc_med_d + Nc_iqr_d/2)];
+fill(x, y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
+plot(Nc_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
+set(gca, 'YDir', 'reverse')
+grid on; grid minor
+xlabel('$\langle N_c(z) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+
+set(gcf, 'Position', [0 0 1200 600])
+
+hold on; subplot(1,3,2)
+title('ORACLES median profiles: drizzling vs non-drizzling', 'Interpreter', 'latex',...
+    'FontSize', ttl_fnt)
+
+
+
+
+
+%% -------------------------------------------------------------------------
+%  5 & 6. Ensemble MEDIAN profiles of r_e, LWC, N_c vs normalized optical depth
+%         for non-precipitating (no-drizzle) clouds
+%
+%  Analogous to first_paper_figures.m (VOCALS-REx version).  Take 2
+%  -------------------------------------------------------------------------
+
+n_bins    = 30;
+bin_edges = 0:1/n_bins:1;
+bin_center = ((bin_edges(1:end-1) + bin_edges(2:end)) / 2)';
+
+% Accumulate by vertical bin (normalized optical depth, 0 = cloud top, 1 = base)
+vertSeg_nd = cell(n_bins, 3);   % {re, lwc, Nc}
+vertSeg_d  = cell(n_bins, 3);
+
+for nn = 1:N_profiles
+
+    % Normalize optical depth to [0,1] (0 = cloud top, 1 = cloud base)
+    tau_prof = ensemble_profiles{nn}.tau;
+    tau_norm = tau_prof ./ max(tau_prof);
+
+    % Orient profile so index 1 is cloud top (tau = 0)
+    % dz_dt > 0 → ascending (starts at base, tau increases going up)
+    dz_dt = mean(diff(ensemble_profiles{nn}.altitude) ./ ...
+        diff(ensemble_profiles{nn}.time));
+    if dz_dt > 0
+        % Ascending: flip so cloud top is first
+        re_bin  = fliplr(ensemble_profiles{nn}.re);
+        lwc_bin = fliplr(ensemble_profiles{nn}.lwc);
+        Nc_bin  = fliplr(ensemble_profiles{nn}.total_Nc);
+    else
+        % Descending: data already starts at cloud top
+        re_bin  = ensemble_profiles{nn}.re;
+        lwc_bin = ensemble_profiles{nn}.lwc;
+        Nc_bin  = ensemble_profiles{nn}.total_Nc;
+    end
+
+    % get rid of zeros
+    % Remove zeros from the accumulated data
+    re_bin(re_bin == 0) = 0.01;
+    lwc_bin(lwc_bin == 0) = 0.001;
+    Nc_bin(Nc_bin == 0) = 0.01;
+
+    for bb = 1:n_bins
+        if bb == 1
+            idx_seg = tau_norm >= bin_edges(bb) & tau_norm <= bin_edges(bb+1);
+        else
+            idx_seg = tau_norm >  bin_edges(bb) & tau_norm <= bin_edges(bb+1);
+        end
+
+        if is_drizzle(nn)
+            vertSeg_d{bb,1} = [vertSeg_d{bb,1},  re_bin(idx_seg)];
+            vertSeg_d{bb,2} = [vertSeg_d{bb,2},  lwc_bin(idx_seg)];
+            vertSeg_d{bb,3} = [vertSeg_d{bb,3},  Nc_bin(idx_seg)];
+        else
+            vertSeg_nd{bb,1} = [vertSeg_nd{bb,1}, re_bin(idx_seg)];
+            vertSeg_nd{bb,2} = [vertSeg_nd{bb,2}, lwc_bin(idx_seg)];
+            vertSeg_nd{bb,3} = [vertSeg_nd{bb,3}, Nc_bin(idx_seg)];
+        end
+    end
+
+end
+
+
+
+
+% Create a PDF object at each level in the cloud and fit a distribution to this PDF
+
+% store the refection of each null hypothesis and the p-value for each
+% chi-squared test
+
+% re_reject_normal_nd = zeros(1, size(vertSeg_nd,1));
+% re_p_normal_nd = zeros(1, size(vertSeg_nd,1));
+
+re_reject_lognormal_nd = zeros(1, size(vertSeg_nd,1));
+re_p_lognormal_nd = zeros(1, size(vertSeg_nd,1));
+
+% re_reject_gamma_nd = zeros(1, size(vertSeg_nd,1));
+% re_p_gamma_nd = zeros(1, size(vertSeg_nd,1));
+
+
+re_reject_normal_d = zeros(1, size(vertSeg_d,1));
+re_p_normal_d = zeros(1, size(vertSeg_d,1));
+
+re_reject_lognormal_d = zeros(1, size(vertSeg_d,1));
+re_p_lognormal_d = zeros(1, size(vertSeg_d,1));
+
+re_reject_gamma_d = zeros(1, size(vertSeg_d,1));
+re_p_gamma_d = zeros(1, size(vertSeg_d,1));
+
+
+
+
+
+
+lwc_reject_normal_nd = zeros(1, size(vertSeg_nd,1));
+lwc_p_normal_nd = zeros(1, size(vertSeg_nd,1));
+
+% lwc_reject_lognormal = zeros(1, size(vertSeg_nd,1));
+% lwc_p_lognormal = zeros(1, size(vertSeg_nd,1));
+%
+% lwc_reject_gamma = zeros(1, size(vertSeg_nd,1));
+% lwc_p_gamma = zeros(1, size(vertSeg_nd,1));
+
+
+lwc_reject_normal_d = zeros(1, size(vertSeg_d,1));
+lwc_p_normal_d = zeros(1, size(vertSeg_d,1));
+
+lwc_reject_lognormal_d = zeros(1, size(vertSeg_d,1));
+lwc_p_lognormal_d = zeros(1, size(vertSeg_d,1));
+
+lwc_reject_gamma_d = zeros(1, size(vertSeg_d,1));
+lwc_p_gamma_d = zeros(1, size(vertSeg_d,1));
+
+
+
+
+
+% Nc_reject_normal = zeros(1, size(vertSeg_nd,1));
+% Nc_p_normal = zeros(1, size(vertSeg_nd,1));
+%
+% Nc_reject_lognormal = zeros(1, size(vertSeg_nd,1));
+% Nc_p_lognormal = zeros(1, size(vertSeg_nd,1));
+
+Nc_reject_gamma_nd = zeros(1, size(vertSeg_nd,1));
+Nc_p_gamma_nd = zeros(1, size(vertSeg_nd,1));
+
+
+Nc_reject_normal_d = zeros(1, size(vertSeg_d,1));
+Nc_p_normal_d = zeros(1, size(vertSeg_d,1));
+
+Nc_reject_lognormal_d = zeros(1, size(vertSeg_d,1));
+Nc_p_lognormal_d = zeros(1, size(vertSeg_d,1));
+
+Nc_reject_gamma_d = zeros(1, size(vertSeg_d,1));
+Nc_p_gamma_d = zeros(1, size(vertSeg_d,1));
+
+
+
+
+
+
+
+for bb = 1:size(vertSeg_nd, 1)
+
+
+    % -----------------------------------------------
+    % ------- EFFECTIVE DROPLET RADIUS FITTING ------
+    % -----------------------------------------------
+
+
+    % fit the effective radius data to a normal distribution
+    % re_fit_normal(bb) = fitdist(vertSeg_nd{bb,1}', 'normal');
+    % [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertSeg_nd{bb,1}', 'CDF',re_fit_normal(bb));
+
+    % fit the effective radius data to a log-normal distribution
+    re_fit_lognormal(bb) = fitdist(vertSeg_nd{bb,1}', 'lognormal');
+    [re_reject_lognormal_nd(bb), re_p_lognormal_nd(bb)] = chi2gof(vertSeg_nd{bb,1}', 'CDF',re_fit_lognormal(bb));
+
+    % fit the effective radius data to a gamma distribution
+    % re_fit_gamma(bb) = fitdist(vertSeg_nd{bb,1}', 'gamma');
+    % [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertSeg_nd{bb,1}', 'CDF', re_fit_gamma(bb));
+
+    
+    % fit the effective radius data to a normal distribution
+    re_fit_normal_d(bb) = fitdist(vertSeg_d{bb,1}', 'normal');
+    [re_reject_normal_d(bb), re_p_normal_d(bb)] = chi2gof(vertSeg_d{bb,1}', 'CDF',re_fit_normal_d(bb));
+
+    % fit the effective radius data to a log-normal distribution
+    re_fit_lognormal_d(bb) = fitdist(vertSeg_d{bb,1}', 'lognormal');
+    [re_reject_lognormal_n(bb), re_p_lognormal_d(bb)] = chi2gof(vertSeg_d{bb,1}', 'CDF',re_fit_lognormal_d(bb));
+
+    % fit the effective radius data to a gamma distribution
+    re_fit_gamma_d(bb) = fitdist(vertSeg_d{bb,1}', 'gamma');
+    [re_reject_gamma_d(bb), re_p_gamma_d(bb)] = chi2gof(vertSeg_d{bb,1}', 'CDF', re_fit_gamma_d(bb));
+
+
+
+
+
+
+
+    % -------------------------------------------
+    % ------- LIQUID WATER CONTENT FITTING ------
+    % -------------------------------------------
+
+
+    % fit the liquid water content data to a normal distribution
+    lwc_fit_normal(bb) = fitdist(vertSeg_nd{bb,2}', 'normal');
+    [lwc_reject_normal_nd(bb), lwc_p_normal_nd(bb)] = chi2gof(vertSeg_nd{bb,2}', 'CDF',lwc_fit_normal(bb));
+
+    % % fit the liquid water content data to a log-normal distribution
+    % lwc_fit_lognormal(bb) = fitdist(vertSeg_nd{bb,2}', 'lognormal');
+    % [lwc_reject_lognormal(bb), lwc_p_lognormal(bb)] = chi2gof(vertSeg_nd{bb,2}', 'CDF',lwc_fit_lognormal(bb));
+    %
+    % % fit the liquid water content data to a gamma distribution
+    % lwc_fit_gamma(bb) = fitdist(vertSeg_nd{bb,2}', 'gamma');
+    % [lwc_reject_gamma(bb), lwc_p_gamma(bb)] = chi2gof(vertSeg_nd{bb,2}', 'CDF', lwc_fit_gamma(bb));
+
+    
+    % fit the liquid water content data to a normal distribution
+    lwc_fit_normal_d(bb) = fitdist(vertSeg_d{bb,2}', 'normal');
+    [lwc_reject_normal_d(bb), lwc_p_normal_d(bb)] = chi2gof(vertSeg_d{bb,2}', 'CDF', lwc_fit_normal_d(bb));
+
+    % fit the liquid water content data to a log-normal distribution
+    lwc_fit_lognormal_d(bb) = fitdist(vertSeg_d{bb,2}', 'lognormal');
+    [lwc_reject_lognormal_n(bb), lwc_p_lognormal_d(bb)] = chi2gof(vertSeg_d{bb,2}', 'CDF',lwc_fit_lognormal_d(bb));
+
+    % fit the liquid water content data to a gamma distribution
+    lwc_fit_gamma_d(bb) = fitdist(vertSeg_d{bb,2}', 'gamma');
+    [lwc_reject_gamma_d(bb), lwc_p_gamma_d(bb)] = chi2gof(vertSeg_d{bb,2}', 'CDF', lwc_fit_gamma_d(bb));
+
+
+
+
+
+
+
+    % -------------------------------------------
+    % ------- NUMBER CONCENTRATION FITTING ------
+    % -------------------------------------------
+
+
+    % % fit the number concentration data to a normal distribution
+    % Nc_fit_normal(bb) = fitdist(vertSeg_nd{bb,3}', 'normal');
+    % [Nc_reject_normal(bb), Nc_p_normal(bb)] = chi2gof(vertSeg_nd{bb,3}', 'CDF',Nc_fit_normal(bb));
+    %
+    % % fit the number concentration content data to a log-normal distribution
+    % Nc_fit_lognormal(bb) = fitdist(vertSeg_nd{bb,3}', 'lognormal');
+    % [Nc_reject_lognormal(bb), Nc_p_lognormal(bb)] = chi2gof(vertSeg_nd{bb,3}', 'CDF',Nc_fit_lognormal(bb));
+
+    % fit the number concentration content data to a gamma distribution
+    Nc_fit_gamma_nd(bb) = fitdist(vertSeg_nd{bb,3}', 'gamma');
+    [Nc_reject_gamma_nd(bb), Nc_p_gamma_nd(bb)] = chi2gof(vertSeg_nd{bb,3}', 'CDF', Nc_fit_gamma_nd(bb));
+
+
+    % fit the number concentration data to a normal distribution
+    Nc_fit_normal_d(bb) = fitdist(vertSeg_d{bb,3}', 'normal');
+    [Nc_reject_normal_d(bb), Nc_p_normal_d(bb)] = chi2gof(vertSeg_d{bb,3}', 'CDF',Nc_fit_normal_d(bb));
+
+    % fit the number concentration content data to a log-normal distribution
+    Nc_fit_lognormal_d(bb) = fitdist(vertSeg_d{bb,3}', 'lognormal');
+    [Nc_reject_lognormal_d(bb), Nc_p_lognormal_d(bb)] = chi2gof(vertSeg_d{bb,3}', 'CDF',Nc_fit_lognormal_d(bb));
+
+    % fit the number concentration content data to a gamma distribution
+    Nc_fit_gamma_d(bb) = fitdist(vertSeg_d{bb,3}', 'gamma');
+    [Nc_reject_gamma_d(bb), Nc_p_gamma_d(bb)] = chi2gof(vertSeg_d{bb,3}', 'CDF', Nc_fit_gamma_d(bb));
+
+
+
+
+
+
+end
+
+
+
+% Now let's find the where the hypothesis was not rejected (reject_ = 0)
+% which means the chi-squared test is confident in the choice of
+% distribution to within 5% uncertainty
+
+% bin_names = {'Normal', 'Log-Normal', 'Gamma'};
+% % -----------------------------------------------
+% % ------- EFFECTIVE DROPLET RADIUS FITTING ------
+% % -----------------------------------------------
+% [max_re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
+%
+% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
+% title('r_e best distribution fit'); ylabel('Counts')
+%
+%
+%
+% % -------------------------------------------
+% % ------- LIQUID WATER CONTENT FITTING ------
+% % -------------------------------------------
+% [max__lwc_p, idx_lwc_p] = max([lwc_p_normal; lwc_p_lognormal; lwc_p_gamma],[], 1);
+%
+% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_lwc_p==1), sum(idx_lwc_p==2), sum(idx_lwc_p==3)]);
+% title('LWC best distribution fit'); ylabel('Counts')
+%
+%
+% % -------------------------------------------
+% % ------- NUMBER CONCENTRATION FITTING ------
+% % -------------------------------------------
+%
+% [max__Nc_p, idx_Nc_p] = max([Nc_p_normal; Nc_p_lognormal; Nc_p_gamma],[], 1);
+%
+% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_Nc_p==1), sum(idx_Nc_p==2), sum(idx_Nc_p==3)]);
+% title('N_c best distribution fit'); ylabel('Counts')
+
+
+
+bin_names = {'Normal', 'Log-Normal', 'Gamma'};
+% -----------------------------------------------
+% ------- EFFECTIVE DROPLET RADIUS FITTING ------
+% -----------------------------------------------
+[max_re_p_d, idx_re_p_d] = max([re_p_normal_d; re_p_lognormal_d; re_p_gamma_d],[], 1);
+
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p_d==1), sum(idx_re_p_d==2), sum(idx_re_p_d==3)]);
+title('r_e best distribution fit (w/ drizzle)'); ylabel('Counts')
+
+
+
+% -------------------------------------------
+% ------- LIQUID WATER CONTENT FITTING ------
+% -------------------------------------------
+[max__lwc_p_d, idx_lwc_p_d] = max([lwc_p_normal_d; lwc_p_lognormal_d; lwc_p_gamma_d],[], 1);
+
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_lwc_p_d==1), sum(idx_lwc_p_d==2), sum(idx_lwc_p_d==3)]);
+title('LWC best distribution fit (w/ drizzle)'); ylabel('Counts')
+
+
+% -------------------------------------------
+% ------- NUMBER CONCENTRATION FITTING ------
+% -------------------------------------------
+
+[max__Nc_p_d, idx_Nc_p_d] = max([Nc_p_normal_d; Nc_p_lognormal_d; Nc_p_gamma_d],[], 1);
+
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_Nc_p_d==1), sum(idx_Nc_p_d==2), sum(idx_Nc_p_d==3)]);
+title('N_c best distribution fit (w/ drizzle)'); ylabel('Counts')
+
+
+
+
+
+% Because of the asymmetry of log-normal distributions, it is indeed common
+%  — and arguably more natural — to characterize lognormal distributions using
+%  the geometric mean and geometric standard deviation (GSD) rather than
+%  the arithmetic equivalents.
+
+% If ln(X) ~ N(μ, σ²), then:
+%   Geometric mean (GM): exp(μ) — this equals the median of X, which for a lognormal is a more representative center than the arithmetic mean.
+%   Geometric standard deviation (GSD): exp(σ)
+
+
+% Compute median and IQR for each bin
+re_GM_nd  = zeros(n_bins,1);  re_GSD_nd  = zeros(n_bins,1);
+lwc_GM_nd = zeros(n_bins,1);  lwc_GSD_nd = zeros(n_bins,1);
+Nc_GM_nd  = zeros(n_bins,1);  Nc_GSD_nd  = zeros(n_bins,1);
+
+re_GM_d   = zeros(n_bins,1);  re_GSD_d   = zeros(n_bins,1);
+lwc_GM_d  = zeros(n_bins,1);  lwc_GSD_d  = zeros(n_bins,1);
+Nc_GM_d   = zeros(n_bins,1);  Nc_GSD_d   = zeros(n_bins,1);
+
+for bb = 1:n_bins
+    re_GM_nd(bb)  = exp(re_fit_lognormal(bb).mu);         % microns
+    lwc_GM_nd(bb) = lwc_fit_lognormal(bb).mu;
+    Nc_GM_nd(bb)  = exp(re_fit_lognormal(bb).mu);
+    re_GSD_nd(bb)  = iqr(vertSeg_nd{bb,1});
+    lwc_GSD_nd(bb) = iqr(vertSeg_nd{bb,2});
+    Nc_GSD_nd(bb)  = iqr(vertSeg_nd{bb,3});
+
+    re_GSD_d(bb)   = exp(re_fit_lognormal(bb).mu);         % microns
+    lwc_GSD_d(bb)  = median(vertSeg_d{bb,2}, 'omitnan');
+    Nc_GSD_d(bb)   = median(vertSeg_d{bb,3}, 'omitnan');
+    re_GSD_d(bb)   = iqr(vertSeg_d{bb,1});
+    lwc_GSD_d(bb)  = iqr(vertSeg_d{bb,2});
+    Nc_GSD_d(bb)   = iqr(vertSeg_d{bb,3});
 end
 
 % --- Plot ensemble median profiles for non-drizzling clouds ---
@@ -743,35 +1237,35 @@ function [re, lwc, Nc, alt, T_K, P_Pa, rv] = orientProfile(prof)
 %   and index end corresponds to cloud top, regardless of whether the
 %   aircraft was ascending or descending.
 
-    dz_dt = mean(diff(prof.altitude) ./ diff(prof.time));
+dz_dt = mean(diff(prof.altitude) ./ diff(prof.time));
 
-    if dz_dt > 0
-        % Ascending: data starts at cloud base — no flip needed
-        re   = prof.re;
-        lwc  = prof.lwc;
-        Nc   = prof.total_Nc;    % cm⁻³
-        alt  = prof.altitude;    % m MSL
-        T_K  = prof.temp + 273.15;
-        P_Pa = prof.pres * 100;  % mb → Pa
-        rv   = prof.rv;          % µm
-    else
-        % Descending: data starts at cloud top — flip to cloud-base-first
-        re   = fliplr(prof.re);
-        lwc  = fliplr(prof.lwc);
-        Nc   = fliplr(prof.total_Nc);
-        alt  = fliplr(prof.altitude);
-        T_K  = fliplr(prof.temp + 273.15);
-        P_Pa = fliplr(prof.pres * 100);
-        rv   = fliplr(prof.rv);
-    end
+if dz_dt > 0
+    % Ascending: data starts at cloud base — no flip needed
+    re   = prof.re;
+    lwc  = prof.lwc;
+    Nc   = prof.total_Nc;    % cm⁻³
+    alt  = prof.altitude;    % m MSL
+    T_K  = prof.temp + 273.15;
+    P_Pa = prof.pres * 100;  % mb → Pa
+    rv   = prof.rv;          % µm
+else
+    % Descending: data starts at cloud top — flip to cloud-base-first
+    re   = fliplr(prof.re);
+    lwc  = fliplr(prof.lwc);
+    Nc   = fliplr(prof.total_Nc);
+    alt  = fliplr(prof.altitude);
+    T_K  = fliplr(prof.temp + 273.15);
+    P_Pa = fliplr(prof.pres * 100);
+    rv   = fliplr(prof.rv);
+end
 
-    % Convert row → column vectors for consistency
-    re   = re(:)';
-    lwc  = lwc(:)';
-    Nc   = Nc(:)';
-    alt  = alt(:)';
-    T_K  = T_K(:)';
-    P_Pa = P_Pa(:)';
-    rv   = rv(:)';
+% Convert row → column vectors for consistency
+re   = re(:)';
+lwc  = lwc(:)';
+Nc   = Nc(:)';
+alt  = alt(:)';
+T_K  = T_K(:)';
+P_Pa = P_Pa(:)';
+rv   = rv(:)';
 
 end

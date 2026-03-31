@@ -10,9 +10,9 @@
 %   oracles  - structure with fields analogous to readVocalsRex output:
 %
 %     Instruments:
-%       CAS    : 3  < D < 45 um (analogous to CDP in VOCALS-REx)
-%       2DS    : 45 < D < 975 um (analogous to 2DC)
-%       HVPS-3 : 975 < D < 10575 um
+%       CAS    : 0.5  < D < 50 um (analogous to CDP in VOCALS-REx)
+%       2DS    : 10 < D < 1280 um (analogous to 2DC)
+%       HVPS-3 : 150 < D < 19200 um
 %
 %     Size distribution:
 %       Nd                   - (N_bins x N_time) number concentration per bin [cm^-3]
@@ -91,11 +91,11 @@ bin_mid = double(ncread(filename, 'bin_mid'));           % µm diameter, center 
 % Bins are contiguous: bin_max(i) == bin_min(i+1)
 % Construct edge array from min values plus the final max
 drop_diameter_bin_edges = [bin_min; bin_max(end)];          % 173x1, µm diameter
-drop_radius_bin_edges   = reshape(drop_diameter_bin_edges / 2, 1, []);  % 1x173, µm radius
-drop_radius_bin_center  = reshape(bin_mid / 2, 1, []);                  % 1x172, µm radius
+drop_radius_bin_edges   = reshape(drop_diameter_bin_edges ./ 2, 1, []);  % 1x173, µm radius
+drop_radius_bin_center  = reshape(bin_mid ./ 2, 1, []);                  % 1x172, µm radius
 
 % Index for CAS-equivalent bins (D <= 50 µm, analogous to CDP)
-% This matches the ORACLES Nc variable definition (D < 50 µm)
+% This matches the ORACLES variable definition (D < 50 µm)
 idx_CAS = (bin_mid <= 50)';     % 172x1 logical
 
 

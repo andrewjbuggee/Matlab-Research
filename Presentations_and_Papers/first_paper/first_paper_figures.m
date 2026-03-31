@@ -269,8 +269,8 @@ bin_names = {'Normal', 'Log-Normal', 'Gamma'};
 % -----------------------------------------------
 [max_re_p, idx_re_p] = max([re_p_normal; re_p_lognormal; re_p_gamma],[], 1);
 
-% figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
-% title('r_e best distribution fit'); ylabel('Counts')
+figure; histogram('Categories', bin_names, 'BinCounts', [sum(idx_re_p==1), sum(idx_re_p==2), sum(idx_re_p==3)]);
+title('r_e best distribution fit'); ylabel('Counts')
 
 
 
@@ -854,7 +854,7 @@ for bb = 1:n_bins
 
     % ----- COMPUTE STATISTICS FOR DROPLET SIZE -----
 
-    % find the mean of the log normal distribution
+    % find the median of the log normal distribution
     re_logNormal_median(bb) = re_fit_lognormal(bb).median;
 
     % find squareroot of the variance of the lognormal distribution
