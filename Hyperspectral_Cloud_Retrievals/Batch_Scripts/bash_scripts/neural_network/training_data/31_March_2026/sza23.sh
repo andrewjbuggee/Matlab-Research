@@ -59,7 +59,7 @@ offset=200
 
 # define the output directory for the results
 # ** Needs a trailing slash at the end for the MATLAB script to work properly **
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_30_March_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_31_March_2026/"
 mkdir -p $output_dir
 
 # Create unique temp directory for this array task to avoid race conditions

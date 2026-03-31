@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_VR_insitu_ERA5_trainingData_sza47_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=501-573    # 73 measurements from the ensemble_profiles to process
+#SBATCH --array=501-573%10    # 73 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
@@ -59,7 +59,7 @@ offset=500
 
 # define the output directory for the results
 # ** Needs a trailing slash at the end for the MATLAB script to work properly **
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_26_March_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/dataSet_created_on_31_March_2026/"
 mkdir -p $output_dir
 
 # Create unique temp directory for this array task to avoid race conditions
@@ -67,7 +67,7 @@ export TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_A
 mkdir -p $TMPDIR
 
 # Add a small random delay to prevent simultaneous MATLAB startups
-sleep $((SLURM_ARRAY_TASK_ID % 10))
+sleep $((SLURM_ARRAY_TASK_ID % 120))
 
 # Run MATLAB script for the specific measurement index
 echo "Starting MATLAB job for measurement ${SLURM_ARRAY_TASK_ID} at $(date)"
