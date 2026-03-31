@@ -1185,6 +1185,10 @@ changing_variables_allStateVectors = [
     phi0(idx(:,3))', ...
     inputs.RT.wavelengths2run(idx(:,4), :) ];
 
+% set the first column to be the sza
+changing_variables_allStateVectors = [repmat(sza, size(changing_variables_allStateVectors, 1), 1),...
+    changing_variables_allStateVectors];
+
 
 
 % Add a final column that includes the index for the spectral response
@@ -1232,7 +1236,7 @@ spec_response_value = spec_response.value;
 source_flux_perIter = cell(num_INP_files, 1);
 for nn = 1:num_INP_files
     idx_wl = source_wavelength >= (changing_variables_allStateVectors(nn, num_cols-2) - wl_perturb) & ...
-             source_wavelength <= (changing_variables_allStateVectors(nn, num_cols-1) + wl_perturb);
+        source_wavelength <= (changing_variables_allStateVectors(nn, num_cols-1) + wl_perturb);
     source_flux_perIter{nn} = source_flux(idx_wl);
 end
 
@@ -1272,7 +1276,7 @@ tic
 % -----------------------------------------------------------------------
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
     % extract per-iteration geometry values as scalars
     vza_nn  = changing_variables_allStateVectors(nn, 1);
@@ -1380,19 +1384,17 @@ inputs.measurement.uncert_emit = 0.04;
 % ***--- compute spectra with HySICS uncertainty ---***
 % -----------------------------------------------------
 
-if inputs.measurement.uncert_hysics > 0
-
-    inputs.measurement.standard_dev_hysics = inputs.measurement.uncert_hysics/3;       % this is still just a fraction
+inputs.measurement.standard_dev_hysics = inputs.measurement.uncert_hysics/3;       % this is still just a fraction
 
 
-    Refl_model_with_noise_allStateVectors_hysics = (inputs.measurement.standard_dev_hysics .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
-        + Refl_model_allStateVectors;
+Refl_model_with_noise_allStateVectors_hysics = (inputs.measurement.standard_dev_hysics .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
+    + Refl_model_allStateVectors;
 
-    % define the synthetic relfectance uncertainty
-    Refl_model_uncert_allStateVectors_hysics = inputs.measurement.uncert_hysics .* Refl_model_with_noise_allStateVectors_hysics;    % 1/sr
+% define the synthetic relfectance uncertainty
+Refl_model_uncert_allStateVectors_hysics = inputs.measurement.uncert_hysics .* Refl_model_with_noise_allStateVectors_hysics;    % 1/sr
 
 
-end
+
 
 
 
@@ -1400,19 +1402,16 @@ end
 % ***---- compute spectra with EMIT uncertainty ----***
 % -----------------------------------------------------
 
-if inputs.measurement.uncert_emit > 0
-
-    inputs.measurement.standard_dev_emit = inputs.measurement.uncert_emit/3;       % this is still just a fraction
+inputs.measurement.standard_dev_emit = inputs.measurement.uncert_emit/3;       % this is still just a fraction
 
 
-    Refl_model_with_noise_allStateVectors_emit = (inputs.measurement.standard_dev_emit .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
-        + Refl_model_allStateVectors;
+Refl_model_with_noise_allStateVectors_emit = (inputs.measurement.standard_dev_emit .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
+    + Refl_model_allStateVectors;
 
-    % define the synthetic relfectance uncertainty
-    Refl_model_uncert_allStateVectors_emit = inputs.measurement.uncert_emit .* Refl_model_with_noise_allStateVectors_emit;    % 1/sr
+% define the synthetic relfectance uncertainty
+Refl_model_uncert_allStateVectors_emit = inputs.measurement.uncert_emit .* Refl_model_with_noise_allStateVectors_emit;    % 1/sr
 
 
-end
 
 
 %%
@@ -1423,48 +1422,48 @@ end
 % Save all geometries as one mat file
 
 % if strcmp(which_computer,'anbu8374')==true
-% 
+%
 %     % -----------------------------------------
 %     % ------ Folders on my Mac Desktop --------
 %     % -----------------------------------------
-% 
+%
 %     % inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
 %     %     'Hyperspectral_Cloud_Retrievals/HySICS/Simulated_spectra/paper2_variableSweep/',...
 %     %     'log_newCov_subset_allBands_VR_inSitu_1/'];
-% 
+%
 %     inputs.folderpath_2save = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/',...
 %         'Hyperspectral_Cloud_Retrievals/Neural_Network/Training_data_set/just_VOCALS_24_Feb_2026/'];
-% 
-% 
-% 
+%
+%
+%
 % elseif strcmp(which_computer,'andrewbuggee')==true
-% 
+%
 %     % -------------------------------------
 %     % ------ Folders on my Macbook --------
 %     % -------------------------------------
-% 
+%
 %     % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
 %     %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_1/'];
-% 
+%
 %     % inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
 %     %     'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_subset_allBands_VR_inSitu_2/'];
-% 
-% 
+%
+%
 %     inputs.folderpath_2save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
 %         'HySICS/Simulated_spectra/paper2_variableSweep/log_newCov_all636Bands_VR_inSitu_2/'];
-% 
-% 
+%
+%
 % elseif strcmp(which_computer,'curc')==true
-% 
+%
 %     % ------------------------------------------------
 %     % ------ Folders on the CU Super Computer --------
 %     % ------------------------------------------------
-% 
+%
 %     inputs.folderpath_2save = ['/scratch/alpine/anbu8374/neural_network_training_data/',...
 %         'dataSet_created_on_24_Feb_2026/'];
-% 
-% 
-% 
+%
+%
+%
 % end
 
 
