@@ -1279,9 +1279,9 @@ parfor nn = 1:num_INP_files
     % for nn = 1:num_INP_files
 
     % extract per-iteration geometry values as scalars
-    vza_nn  = changing_variables_allStateVectors(nn, 1);
-    vaz_nn  = changing_variables_allStateVectors(nn, 2);
-    phi0_nn = changing_variables_allStateVectors(nn, 3);
+    vza_nn  = changing_variables_allStateVectors(nn, 2);
+    vaz_nn  = changing_variables_allStateVectors(nn, 3);
+    phi0_nn = changing_variables_allStateVectors(nn, 4);
     wavelengths = changing_variables_allStateVectors(nn, num_cols-2:num_cols-1);
 
     % ------------------------------------------------
@@ -1376,15 +1376,16 @@ inputs.measurement.uncert_emit = 0.04;
 % To sample a normal distribution with mean mu, and standard deviation s,
 % we compute the following: y = s * randn() + mu
 
-% We define the standard deviation as the measurement uncertainty divided
-% by three. Therefore, after sample a large number of times, 99% of
-% measurements will be within +/- measurement uncertainy of the mean
+% Ny convention, most instruments report radiometric uncertainty as the
+% 1-sigma value, so that is what we will assume. Therefore, for HySICS, 68%
+% of the measurements will fall within +/- 0.3% of the true value, and for
+% EMIT, 68% of the measurements will fall within +/- 4% of the true value.
 
 % -----------------------------------------------------
 % ***--- compute spectra with HySICS uncertainty ---***
 % -----------------------------------------------------
 
-inputs.measurement.standard_dev_hysics = inputs.measurement.uncert_hysics/3;       % this is still just a fraction
+inputs.measurement.standard_dev_hysics = inputs.measurement.uncert_hysics;       % this is still just a fraction
 
 
 Refl_model_with_noise_allStateVectors_hysics = (inputs.measurement.standard_dev_hysics .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
@@ -1402,7 +1403,7 @@ Refl_model_uncert_allStateVectors_hysics = inputs.measurement.uncert_hysics .* R
 % ***---- compute spectra with EMIT uncertainty ----***
 % -----------------------------------------------------
 
-inputs.measurement.standard_dev_emit = inputs.measurement.uncert_emit/3;       % this is still just a fraction
+inputs.measurement.standard_dev_emit = inputs.measurement.uncert_emit;       % this is still just a fraction
 
 
 Refl_model_with_noise_allStateVectors_emit = (inputs.measurement.standard_dev_emit .* Refl_model_allStateVectors) .* randn(size(Refl_model_allStateVectors))...
