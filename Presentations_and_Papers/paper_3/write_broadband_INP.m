@@ -87,7 +87,7 @@ fprintf(fid, 'phi0 %.2f    # Solar azimuth angle [degrees from due South]\n\n', 
 
 %% Wavelength range — full solar spectrum
 
-fprintf(fid, 'wavelength 250 4000    # nm: full solar spectral range\n\n');
+fprintf(fid, 'wavelength 250.5 4000.5    # nm: full solar spectral range\n\n');
 
 %% Output level: top of atmosphere only
 

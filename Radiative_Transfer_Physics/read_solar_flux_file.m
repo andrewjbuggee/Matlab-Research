@@ -406,6 +406,43 @@ elseif strcmp(file_name, 'hybrid_reference_spectrum_p025nm_resolution_c2022-11-3
     solar_flux = solar_flux./1000;
 
 
+
+
+   elseif strcmp(file_name, 'binned_fs_hybrid_reference_spectrum_c2022-11-30_with_unc.dat')==true
+
+    % Use the TSIS-1 hybrid full extension solar reference spectrum (mW/m^2/nm)
+
+    % Lets check to make sure the wavelength input is within bounds of the
+    % file selected
+
+    wavelength_regime = [115.5, 199999.5];            % nanometers - wavelength boundaries
+
+    if wavelength_boundaries(1)<wavelength_regime(1) || wavelength_boundaries(2)>wavelength_regime(2)
+        error([newline, 'Wavelength is out of the range of atlas_lus_modtran.txt. Must be between [200, 800] nm.', newline])
+    end
+
+    % ------------------------------------------------------
+    % -------- Reading .dat file using textscan ------------
+    % ------------------------------------------------------
+    % Or we could use the textscan() function instead, which allows us to define comments to ignore
+
+    file_id = fopen([solar_source_folder,file_name], 'r');   % 'r' tells the function to open the file for reading
+
+
+    format_spec = '%f %f';                                  % two floating point numbers
+    B = textscan(file_id, format_spec, 'CommentStyle','#');
+
+    index_wavelength = B{1}>=wavelength_boundaries(1) & B{1}<=wavelength_boundaries(2);
+
+    wavelength = B{1}(index_wavelength);                % wavelengths within the user specified range
+
+    solar_flux = B{2}(index_wavelength);                % milli-Watts/m^2/nm - flux values at the corresponding wavelength values
+
+    % lets convert solar flux to Watts/nm/m^2
+
+    solar_flux = solar_flux./1000;
+
+
 else
 
     error([newline,'I dont recognize the source file you entered!',newline])

@@ -1,5 +1,3 @@
-function albedo = compute_broadband_albedo(re, lwc, z_km, RT, folder_paths, ...
-    index, profile_tag, date_str, time_val, campaign_name)
 %% COMPUTE_BROADBAND_ALBEDO
 %
 % Writes a water-cloud file and libRadtran input file, runs uvspec, reads
@@ -36,6 +34,11 @@ function albedo = compute_broadband_albedo(re, lwc, z_km, RT, folder_paths, ...
 %   albedo  – broadband shortwave albedo [0–1]
 %
 % By Andrew John Buggee
+
+
+function albedo = compute_broadband_albedo(re, lwc, z_km, RT, folder_paths, ...
+    index, profile_tag, date_str, time_val, campaign_name)
+
 
 %% Input validation
 

@@ -34,6 +34,9 @@ ttl_fnt = 20;
 ax_fnt = 30;
 lgnd_fnt = 18;
 
+ln_sz = 1;
+mk_sz = 20;
+
 
 if iscell(vert_profiles)
 
@@ -49,7 +52,8 @@ if iscell(vert_profiles)
 
             % First plot the LWC
             ax1 = subplot(1,3,1); plot(vert_profiles{indices(nn)}.lwc, norm_alt, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                'Color', mySavedColors(clr_start + (nn-1), 'fixed'), '.-',...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             hold on
 
             % next plot the effective radius
@@ -57,25 +61,29 @@ if iscell(vert_profiles)
             % using both instruments
             if vert_profiles{indices(nn)}.flag_2DC_data_is_conforming==true
                 ax2 = subplot(1,3,2); plot(vert_profiles{indices(nn)}.re, norm_alt, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
                 ax2 = subplot(1,3,2); plot(vert_profiles{indices(nn)}.re_CDP, norm_alt, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             end
             hold on
 
             % Lastly, plot the total droplet number concentration
             ax3 = subplot(1,3,3); plot(vert_profiles{indices(nn)}.total_Nc, norm_alt, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);;
             hold on
 
         else
 
             % First plot the LWC
             ax1 = subplot(1,3,1); plot(vert_profiles{indices(nn)}.lwc, vert_profiles{indices(nn)}.altitude, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             hold on
 
             % next plot the effective radius
@@ -83,18 +91,21 @@ if iscell(vert_profiles)
             % using both instruments
             if vert_profiles{indices(nn)}.flag_2DC_data_is_conforming==true
                 ax2 = subplot(1,3,2); plot(vert_profiles{indices(nn)}.re, vert_profiles{indices(nn)}.altitude, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             else
                 % if the 2DC data is non-conforming, use only the CDP data and
                 % make a note of it
                 ax2 = subplot(1,3,2); plot(vert_profiles{indices(nn)}.re_CDP, vert_profiles{indices(nn)}.altitude, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             end
             hold on
 
             % Lastly, plot the total droplet number concentration
             ax3 = subplot(1,3,3); plot(vert_profiles{indices(nn)}.total_Nc, vert_profiles{indices(nn)}.altitude, ...
-                'Color', mySavedColors(clr_start + (nn-1), 'fixed'));
+                '.-','Color', mySavedColors(clr_start + (nn-1), 'fixed'),...
+                'LineWidth', ln_sz, 'MarkerSize', mk_sz);
             hold on
 
         end

@@ -1,11 +1,11 @@
 %% Cloud Albedo vs. Vertical Droplet Profile Analysis
 %
 % Investigates how the vertical profile of droplet effective radius impacts
-% broadband cloud albedo, motivated by Borg & Bernard (2007, GRL).
+% broadband cloud albedo, motivated by Borg & Bennartz (2007, GRL).
 %
 % Two main comparisons are performed:
 %
-%   Part 1 — Fixed LWP (following Borg & Bernard 2007)
+%   Part 1 — Fixed LWP (following Borg & Bennartz 2007)
 %     For each VOCALS-REx in-situ profile, three idealized clouds are
 %     constructed with identical LWP and cloud boundaries but different r_e
 %     profile shapes:
@@ -145,8 +145,8 @@ rho_L = 1000;          % kg/m³  (liquid water density)
 if strcmp(campaign_name, 'vocalsRex')
 
     % Most recent VOCALS-REx non-precipitating ensemble file
-    vocals_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03', ...
-        '_Nc-threshold_25_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+    vocals_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold',...
+        '_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'];
 
     if ~exist([foldername_vocals, vocals_filename], 'file')
         % Fall back: find any ensemble_profiles file
@@ -192,6 +192,9 @@ for nn = 1:N_profiles
     % Drizzle flag
     if isfield(prof, 'lwp_2DS_HVPS')
         is_drizzle(nn) = prof.lwp_2DS_HVPS >= drizzle_LWP_threshold;
+
+    elseif isfield(prof, 'lwp_2DC')
+        is_drizzle(nn) = prof.lwp_2DC >= drizzle_LWP_threshold;
     end
 
     % Orient the profile and check minimum length
@@ -279,7 +282,7 @@ for kk = 1:N_use
     top_idx     = z_from_top <= cloud_top_fraction * H_total;
     if sum(top_idx) >= 2
         dre_dz = (re_p(end) - re_p(find(top_idx, 1, 'first'))) / ...
-                 (alt_p(end) - alt_p(find(top_idx, 1, 'first')));
+            (alt_p(end) - alt_p(find(top_idx, 1, 'first')));
         cloudTop_re_grad(kk) = dre_dz;   % µm/m (negative = decreasing toward top)
     end
 
@@ -291,7 +294,8 @@ for kk = 1:N_use
     %       [with LWC in g/m³, r_e in µm, rho_L=1e6 g/m³, dz in m]
     %  tau = (3/2) * integral(LWC * 1e-3 / (r_e * 1e-6)) dz
     %       = (3/2) * integral(LWC / r_e) * 1e3 dz  [m⁻¹ integrated over m]
-    tau_insitu(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_p) * 1e3 / rho_L);
+    % tau_insitu(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_p) * 1e3 / rho_L);
+    tau_insitu(kk) = max(prof.tau);
 
 
     % =======================================================================
@@ -368,7 +372,7 @@ for kk = 1:N_use
     RT.day_of_year    = day_of_year;
     RT.surface_albedo = surface_albedo;
     RT.atm_file       = 'afglus.dat';
-    RT.source_file    = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+    RT.source_file    = 'binned_fs_hybrid_reference_spectrum_c2022-11-30_with_unc.dat';     % Need full extension reference spectrum
 
     % -- (a) In-situ --
     try
@@ -505,7 +509,7 @@ for kk = 1:N_use
     tau_above = tau_cumTop;   % tau from cloud top to each level (0 at top)
     wt_above  = exp(-tau_above);   % exponential weight: largest at cloud top
     re_tblut  = sum(wt_above .* re_p(:) .* tau_incr(:)) / ...
-                max(sum(wt_above .* tau_incr(:)), eps);
+        max(sum(wt_above .* tau_incr(:)), eps);
 
     re_tblut_all(kk) = re_tblut;
 
@@ -633,7 +637,7 @@ for kk = 1:N_use
 
     % Moist adiabatic lapse rate at cloud base [K/m]
     SALR = g * (1 + L_v * r_s_base / (R_d * T_base)) / ...
-           (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
+        (c_pd + L_v^2 * r_s_base / (R_v * T_base^2));
 
     H_total = abs(alt_p(end) - alt_p(1));
     T_moist_adiabat_top = T_base - SALR * H_total;
@@ -656,6 +660,23 @@ for kk = 1:N_use
     end
 
 end
+
+
+
+
+
+
+%% =========================================================================
+%  PART 4 — Fixed-tau_c albedo comparison - different from Borg and Bennartz
+%  =========================================================================
+%
+%  For each profile the same measured cloud optical depth is
+%  kept.  Three effective-radius profile shapes are imposed:
+%    (a) in-situ measured r_e
+%    (b) adiabatic shape  r_e ∝ (z – z_base)^(1/3), scaled to same LWP-tau
+%    (c) constant r_e    = LWC-weighted mean of in-situ r_e
+%  =========================================================================
+
 
 
 %% =========================================================================
@@ -702,9 +723,9 @@ clr_linear    = [0.54, 0.17, 0.89];   % purple
 
 % ---- Mask out NaN rows ----
 ok1 = ~isnan(albedo_fixedLWP.insitu) & ~isnan(albedo_fixedLWP.adiabatic) & ...
-      ~isnan(albedo_fixedLWP.constant);
+    ~isnan(albedo_fixedLWP.constant);
 ok2 = ~isnan(albedo_retrieval.insitu) & ~isnan(albedo_retrieval.profile) & ...
-      ~isnan(albedo_retrieval.tblut);
+    ~isnan(albedo_retrieval.tblut);
 ok3 = ok1 & ~isnan(kappa_CTEI) & ~isnan(cloudTop_re_grad);
 
 
@@ -885,8 +906,8 @@ for jj = 1:N_highlight
 
     subplot(2, N_highlight, N_highlight + jj)
     bar([albedo_retrieval.insitu(kk), ...
-         albedo_retrieval.profile(kk), ...
-         albedo_retrieval.tblut(kk)], 0.5, 'FaceColor', 'flat', ...
+        albedo_retrieval.profile(kk), ...
+        albedo_retrieval.tblut(kk)], 0.5, 'FaceColor', 'flat', ...
         'CData', [clr_insitu; clr_linear; clr_tblut])
     set(gca, 'XTickLabel', {'In-situ', 'Linear', 'TBLUT'}, 'XTickLabelRotation', 30)
     ylabel('Broadband albedo')
@@ -910,31 +931,46 @@ fprintf('\n=== Analysis complete. Results saved. ===\n')
 
 function [re, lwc, Nc, alt, T_K, P_Pa, rv] = orientProfile(prof)
 % ORIENTPROFILE  Orient a vertical profile to cloud-base-first order.
-    dz_dt = mean(diff(prof.altitude) ./ diff(prof.time));
+dz_dt = mean(diff(prof.altitude) ./ diff(prof.time));
 
-    if dz_dt > 0
+if dz_dt > 0
+
+    if isfield(prof, 're')
         re   = prof.re;
-        lwc  = prof.lwc;
-        Nc   = prof.total_Nc;
-        alt  = prof.altitude;
-        T_K  = prof.temp + 273.15;
-        P_Pa = prof.pres * 100;
-        rv   = prof.rv;
-    else
-        re   = fliplr(prof.re);
-        lwc  = fliplr(prof.lwc);
-        Nc   = fliplr(prof.total_Nc);
-        alt  = fliplr(prof.altitude);
-        T_K  = fliplr(prof.temp + 273.15);
-        P_Pa = fliplr(prof.pres * 100);
-        rv   = fliplr(prof.rv);
+    elseif isfield(prof, 're_CDP')
+        re = prof.re_CDP;
     end
 
-    re   = re(:)';
-    lwc  = lwc(:)';
-    Nc   = Nc(:)';
-    alt  = alt(:)';
-    T_K  = T_K(:)';
-    P_Pa = P_Pa(:)';
-    rv   = rv(:)';
+    lwc  = prof.lwc;
+    Nc   = prof.total_Nc;
+    alt  = prof.altitude;
+    T_K  = prof.temp + 273.15;
+    P_Pa = prof.pres * 100;
+    % rv   = prof.rv;
+    rv = [];
+else
+
+    if isfield(prof, 're')
+        re   = fliplr(prof.re);
+    elseif isfield(prof, 're_CDP')
+        re = fliplr(prof.re_CDP);
+    end
+
+    lwc  = fliplr(prof.lwc);
+    Nc   = fliplr(prof.total_Nc);
+    alt  = fliplr(prof.altitude);
+    T_K  = fliplr(prof.temp + 273.15);
+    P_Pa = fliplr(prof.pres * 100);
+    % rv   = fliplr(prof.rv);
+    rv = [];
+end
+
+re   = re(:)';
+lwc  = lwc(:)';
+Nc   = Nc(:)';
+alt  = alt(:)';
+T_K  = T_K(:)';
+P_Pa = P_Pa(:)';
+% rv   = rv(:)';
+rv = [];
 end
