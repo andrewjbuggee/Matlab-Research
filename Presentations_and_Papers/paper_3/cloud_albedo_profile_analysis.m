@@ -49,11 +49,7 @@ which_computer = whatComputer();
 % ---- libRadtran folder paths ----
 if strcmp(which_computer, 'andrewbuggee')
 
-    folder_paths.which_computer           = which_computer;
-    folder_paths.libRadtran_inp           = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/HySICS/INP_OUT/';
-    folder_paths.libRadtran_data          = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/';
-    folder_paths.libRadtran_water_cloud_files = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/';
-    folder_paths.atm_folder_path          = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+    folder_paths = define_folderPaths_for_HySICS(5);
 
     foldername_vocals = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/', ...
         'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
