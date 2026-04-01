@@ -61,11 +61,7 @@ if strcmp(which_computer, 'andrewbuggee')
 
 elseif strcmp(which_computer, 'anbu8374')
 
-    folder_paths.which_computer           = which_computer;
-    folder_paths.libRadtran_inp           = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/HySICS/';
-    folder_paths.libRadtran_data          = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/';
-    folder_paths.libRadtran_water_cloud_files = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/wc/';
-    folder_paths.atm_folder_path          = '/Users/anbu8374/Documents/LibRadTran/libRadtran-2.0.4/data/atmmod/';
+    folder_paths = define_folderPaths_for_HySICS(5);
 
     foldername_vocals = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/', ...
         'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
@@ -119,6 +115,7 @@ drizzle_LWP_threshold = 5;
 
 % Fraction of cloud depth from cloud top used to compute cloud-top r_e gradient
 cloud_top_fraction = 0.15;   % top 15% of cloud depth
+cloud_bot_fraction = 0.15;   % bottom 15% of cloud depth
 
 
 %% -------------------------------------------------------------------------
@@ -237,6 +234,10 @@ tau_constant      = NaN(1, N_use);
 cloudTop_re_grad  = NaN(1, N_use);   % d(r_e)/d(z) near cloud top [µm/m]
 re_top_insitu     = NaN(1, N_use);   % r_e at cloud top [µm]
 re_base_insitu    = NaN(1, N_use);   % r_e at cloud base [µm]
+re_top_insitu_avg     = NaN(1, N_use);   % r_e at cloud top [µm]
+re_base_insitu_avg    = NaN(1, N_use);   % r_e at cloud base [µm]
+re_adiabatic          = cell(1, N_use);
+re_adiabatic2         = cell(1, N_use);
 cloud_depth_all   = NaN(1, N_use);   % geometric cloud depth [m]
 
 
@@ -276,14 +277,23 @@ for kk = 1:N_use
     % Use top fraction of cloud depth
     z_from_top  = alt_p(end) - alt_p;
     top_idx     = z_from_top <= cloud_top_fraction * H_total;
+    bot_idx     = z_from_top >= (1 - cloud_bot_fraction) * H_total;
     if sum(top_idx) >= 2
         dre_dz = (re_p(end) - re_p(find(top_idx, 1, 'first'))) / ...
             (alt_p(end) - alt_p(find(top_idx, 1, 'first')));
         cloudTop_re_grad(kk) = dre_dz;   % µm/m (negative = decreasing toward top)
     end
 
+
+    % ----- avg re at cloud top and bottom -----
+    re_top_insitu_avg(kk)  = mean(re_p(top_idx));   % cloud top value
+    re_base_insitu_avg(kk) = mean(re_p(bot_idx));     % cloud base value
+
+    % ----- Keep in-situ re top and bot -----
     re_top_insitu(kk)  = re_p(end);   % cloud top value
     re_base_insitu(kk) = re_p(1);     % cloud base value
+
+
 
     % ---- Cloud-top optical depth ----
     % tau_c ≈ (3/2) * integral(LWC/r_e) dz / rho_L
@@ -312,9 +322,11 @@ for kk = 1:N_use
     re_mean_insitu  = sum(lwc_weights .* re_p);
     re_mean_shape   = sum(lwc_weights .* re_shape_ad);
     scale_ad        = re_mean_insitu / re_mean_shape;
-    re_adiabatic    = re_shape_ad * scale_ad;   % µm — same LWC-weighted mean
+    re_adiabatic{kk}    = re_shape_ad * scale_ad;   % µm — same LWC-weighted mean
+    re_adiabatic2{kk} = create_droplet_profile2([re_top_insitu_avg(kk), re_base_insitu_avg(kk)],...
+        alt_p, 'altitude', 'adiabatic');
 
-    tau_adiabatic(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_adiabatic) * 1e3 / rho_L);
+    tau_adiabatic(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_adiabatic{kk}) * 1e3 / rho_L);
 
 
     % =======================================================================
@@ -352,13 +364,13 @@ for kk = 1:N_use
         z_wc = flipud(z_km);
         lwc_wc_in    = flipud(lwc_col);
         re_wc_insitu = flipud(re_col);
-        re_wc_ad     = flipud(re_adiabatic(:));
+        re_wc_ad     = flipud(re_adiabatic{kk}(:));
         re_wc_const  = flipud(re_constant(:));
     else
         z_wc          = z_km;
         lwc_wc_in     = lwc_col;
         re_wc_insitu  = re_col;
-        re_wc_ad      = re_adiabatic(:);
+        re_wc_ad      = re_adiabatic{kk}(:);
         re_wc_const   = re_constant(:);
     end
 
