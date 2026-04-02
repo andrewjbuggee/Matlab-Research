@@ -142,7 +142,7 @@ if isempty(p)==true
             fprintf('SLURM_CPUS_PER_TASK not set; falling back to p.NumWorkers = %d.\n', num_workers);
         end
 
-        pctconfig('poolstarttimeout', 2400);   % 40 min instead of default 20 min
+        pctconfig('poolstarttimeout', seconds(2400));   % 40 min instead of default 20 min
 
         fprintf('Starting parallel pool with %d workers...\n', num_workers);
         parpool(p, num_workers);
