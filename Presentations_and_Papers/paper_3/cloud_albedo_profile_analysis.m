@@ -237,8 +237,9 @@ re_base_insitu    = NaN(1, N_use);   % r_e at cloud base [µm]
 re_top_insitu_avg     = NaN(1, N_use);   % r_e at cloud top [µm]
 re_base_insitu_avg    = NaN(1, N_use);   % r_e at cloud base [µm]
 re_adiabatic          = cell(1, N_use);
-re_adiabatic2         = cell(1, N_use);
-cloud_depth_all   = NaN(1, N_use);   % geometric cloud depth [m]
+re_adiabatic_old      = cell(1, N_use);
+re_mean_insitu        = NaN(1, N_use);    % store the constant effective radius [µm]
+cloud_depth_all       = NaN(1, N_use);   % geometric cloud depth [m]
 
 
 for kk = 1:N_use
@@ -319,11 +320,11 @@ for kk = 1:N_use
 
     % Scale to match LWC-weighted mean r_e of in-situ profile
     lwc_weights     = lwc_p / sum(lwc_p);
-    re_mean_insitu  = sum(lwc_weights .* re_p);
+    re_mean_insitu(kk)  = sum(lwc_weights .* re_p);
     re_mean_shape   = sum(lwc_weights .* re_shape_ad);
-    scale_ad        = re_mean_insitu / re_mean_shape;
-    re_adiabatic{kk}    = re_shape_ad * scale_ad;   % µm — same LWC-weighted mean
-    re_adiabatic2{kk} = create_droplet_profile2([re_top_insitu_avg(kk), re_base_insitu_avg(kk)],...
+    scale_ad        = re_mean_insitu(kk) / re_mean_shape;
+    re_adiabatic_old{kk}    = re_shape_ad * scale_ad;   % µm — same LWC-weighted mean
+    re_adiabatic{kk} = create_droplet_profile2([re_top_insitu_avg(kk), re_base_insitu_avg(kk)],...
         alt_p, 'altitude', 'adiabatic');
 
     tau_adiabatic(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_adiabatic{kk}) * 1e3 / rho_L);
@@ -335,7 +336,7 @@ for kk = 1:N_use
     % r_e_const = LWC-weighted mean of in-situ r_e → same LWC-weighted mean
     % This is equivalent to what a column-mean retrieval would assume.
 
-    re_constant = repmat(re_mean_insitu, size(re_p));
+    re_constant = repmat(re_mean_insitu(kk), size(re_p));
 
     tau_constant(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_constant) * 1e3 / rho_L);
 
@@ -729,6 +730,10 @@ clr_constant  = [0.89, 0.10, 0.11];   % red
 clr_tblut     = [1.00, 0.50, 0.05];   % orange
 clr_linear    = [0.54, 0.17, 0.89];   % purple
 
+% ---- line/marker/font ----
+fnt_sz = 20;
+mk_sz = 30;
+
 % ---- Mask out NaN rows ----
 ok1 = ~isnan(albedo_fixedLWP.insitu) & ~isnan(albedo_fixedLWP.adiabatic) & ...
     ~isnan(albedo_fixedLWP.constant);
@@ -738,33 +743,74 @@ ok3 = ok1 & ~isnan(kappa_CTEI) & ~isnan(cloudTop_re_grad);
 
 
 % -----------------------------------------------------------------------
-% Figure 1 — Fixed LWP: scatter of albedos for each profile type vs LWP
+% Figure 1.a — Fixed LWP: scatter of albedos for each profile type vs LWP
 % -----------------------------------------------------------------------
 figure('Position', [50 50 1300 450])
 subplot(1,3,1)
 scatter(LWP_all(ok1), albedo_fixedLWP.insitu(ok1), 30, clr_insitu, 'filled', ...
     'MarkerFaceAlpha', 0.7)
-xlabel('LWP (g m^{-2})'); ylabel('Broadband albedo')
-title('In-situ r_e profile')
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+ylabel('Broadband albedo', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('In-situ $r_e$ profile', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
 grid on; grid minor; ylim([0 1])
 
 subplot(1,3,2)
 scatter(LWP_all(ok1), albedo_fixedLWP.adiabatic(ok1), 30, clr_adiabatic, 'filled', ...
     'MarkerFaceAlpha', 0.7)
-xlabel('LWP (g m^{-2})');
-title('Adiabatic r_e profile')
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('Adiabatic $r_e$ profile', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
 grid on; grid minor; ylim([0 1])
 
 subplot(1,3,3)
 scatter(LWP_all(ok1), albedo_fixedLWP.constant(ok1), 30, clr_constant, 'filled', ...
     'MarkerFaceAlpha', 0.7)
-xlabel('LWP (g m^{-2})');
-title('Constant r_e profile')
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('Constant $r_e$ profile', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
 grid on; grid minor; ylim([0 1])
 
 sgtitle(['Fixed LWP broadband albedo — ', campaign_name, ...
     '   SZA = ', num2str(sza), '\circ'], 'FontSize', 13)
 set(gcf, 'Name', 'fig1_fixedLWP_albedo_vs_LWP')
+
+
+
+
+
+% -----------------------------------------------------------------------
+% Figure 1.b — Fixed LWP: albedo difference vs LWP
+% -----------------------------------------------------------------------
+figure('Position', [50 50 1300 450])
+subplot(1,3,1)
+scatter(LWP_all(ok1), albedo_fixedLWP.insitu(ok1) - albedo_fixedLWP.adiabatic(ok1),...
+    mk_sz, clr_insitu, 'filled', ...
+    'MarkerFaceAlpha', 0.7)
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+ylabel('Broadband albedo', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('In-situ - adiabatic', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+grid on; grid minor;
+
+subplot(1,3,2)
+scatter(LWP_all(ok1), albedo_fixedLWP.insitu(ok1) - albedo_fixedLWP.constant(ok1),...
+    mk_sz, clr_adiabatic, 'filled', ...
+    'MarkerFaceAlpha', 0.7)
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('In-situ - constant', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+grid on; grid minor;
+
+subplot(1,3,3)
+scatter(LWP_all(ok1), albedo_fixedLWP.adiabatic(ok1) - albedo_fixedLWP.constant(ok1),...
+    mk_sz, clr_constant, 'filled', ...
+    'MarkerFaceAlpha', 0.7)
+xlabel('$LWP$ $(g/m^{2})$', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+title('Adiabatic - constant', 'Interpreter', 'latex', 'Fontsize', fnt_sz);
+grid on; grid minor;
+
+sgtitle(['Fixed LWP broadband albedo — ', campaign_name, ...
+    '   SZA = ', num2str(sza), '\circ'], 'FontSize', 13)
+set(gcf, 'Name', 'fig1_fixedLWP_albedo_vs_LWP')
+
+
+
 
 
 % -----------------------------------------------------------------------
