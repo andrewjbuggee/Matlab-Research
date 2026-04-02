@@ -325,7 +325,7 @@ for kk = 1:N_use
     scale_ad        = re_mean_insitu(kk) / re_mean_shape;
     re_adiabatic_old{kk}    = re_shape_ad * scale_ad;   % µm — same LWC-weighted mean
     re_adiabatic{kk} = create_droplet_profile2([re_top_insitu_avg(kk), re_base_insitu_avg(kk)],...
-        alt_p, 'altitude', 'adiabatic');
+        alt_p, 'altitude', 'adiabatic')';
 
     tau_adiabatic(kk) = (3/2) * trapz(alt_p, (lwc_p ./ re_adiabatic{kk}) * 1e3 / rho_L);
 
