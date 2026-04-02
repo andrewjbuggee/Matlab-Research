@@ -737,9 +737,6 @@ mk_sz = 30;
 % ---- Mask out NaN rows ----
 ok1 = ~isnan(albedo_fixedLWP.insitu) & ~isnan(albedo_fixedLWP.adiabatic) & ...
     ~isnan(albedo_fixedLWP.constant);
-ok2 = ~isnan(albedo_retrieval.insitu) & ~isnan(albedo_retrieval.profile) & ...
-    ~isnan(albedo_retrieval.tblut);
-ok3 = ok1 & ~isnan(kappa_CTEI) & ~isnan(cloudTop_re_grad);
 
 
 % -----------------------------------------------------------------------
@@ -813,6 +810,12 @@ set(gcf, 'Name', 'fig1_fixedLWP_albedo_vs_LWP')
 
 
 
+
+% ---- Mask out NaN rows ----
+ok2 = ~isnan(albedo_retrieval.insitu) & ~isnan(albedo_retrieval.profile) & ...
+    ~isnan(albedo_retrieval.tblut);
+
+
 % -----------------------------------------------------------------------
 % Figure 2 — Fixed LWP: albedo differences between profile types
 % -----------------------------------------------------------------------
@@ -835,6 +838,12 @@ legend('Location', 'best')
 grid on; grid minor
 set(gcf, 'Name', 'fig2_fixedLWP_albedo_diff_hist')
 
+
+
+
+
+% ---- Mask out NaN rows ----
+ok3 = ok1 & ~isnan(kappa_CTEI) & ~isnan(cloudTop_re_grad);
 
 % -----------------------------------------------------------------------
 % Figure 3 — Fixed LWP: albedo vs albedo scatter (truth vs idealized)
