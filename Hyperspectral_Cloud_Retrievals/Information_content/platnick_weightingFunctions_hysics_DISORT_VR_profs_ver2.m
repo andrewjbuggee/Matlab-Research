@@ -649,32 +649,88 @@ end
 
 %%
 
- % ** Values used in Platnick (2000) **
-inputs.RT.r_top = 12;     % microns
-inputs.RT.r_bot = 5;        % microns
-inputs.RT.tau_c = 8;
 
-% set the sensor altitude at cloud top
-inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+% First, write all the wc files - now just for the single measurement
+wc_filename = cell(num_meas, 1);
 
-% Don't modify the total column water vapor
-inputs.RT.modify_total_columnWaterVapor = false;             % don't modify the full column
-% Don't modify the above cloud column water vapor
-inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % modify the column above the cloud
-
-
-% set the geometry
-inputs.RT.sza = 10;           % degree
-inputs.RT.phi0 = 0;         % degree
-inputs.RT.vza = 19;         % values are in degrees;
-inputs.RT.vaz = 210;            % degree
-
-% ----------------------------------------------------------------
-% ----------------------------------------------------------------
+% for storage
+tau_c = zeros(num_meas, 1);
+date_of_flight = cell(num_meas, 1);
+time_of_flight = zeros(num_meas, 1);
+re = cell(num_meas, 1);
+lwc = cell(num_meas, 1);
+z = cell(num_meas, 1);
+tau = cell(num_meas, 1);
+alpha_param = cell(num_meas, 1);
 
 
 
+% --------------------------------------------------------
+% ---- Write Water Cloud file for single measurement! ----
+% --------------------------------------------------------
 
+% Use nn=1 since we're only processing one measurement
+nn = 1;
+
+% define lwc, re, and z as column vectors
+% grab the LWC vector
+lwc{nn} = ds_cdp.ensemble_profiles{measurement_idx}.lwc';     % g/m^3
+% grab the altitude vector
+z{nn} = (ds_cdp.ensemble_profiles{measurement_idx}.altitude') ./ 1e3;   % kilometers
+% grab the optical depth vector
+tau{nn} = ds_cdp.ensemble_profiles{measurement_idx}.tau';
+% grab the date of flight
+date_of_flight{nn} = ds_cdp.ensemble_profiles{measurement_idx}.dateOfFlight;
+% grab the time of flight
+time_of_flight(nn) = ds_cdp.ensemble_profiles{measurement_idx}.time_utc(round(length(ds_cdp.ensemble_profiles{measurement_idx}.time_utc)/2));  % UTC time
+
+% store the optical depth of each profile
+tau_c(nn) = max(ds_cdp.ensemble_profiles{measurement_idx}.tau(end));
+
+
+% ------------------------------------------------------------------------------
+% --- Define the assumed effective variance of the droplet size distribution ---
+% ------------------------------------------------------------------------------
+% store the alpha parameter that best first the gamma distribution
+alpha_prof = ds_cdp.ensemble_profiles{measurement_idx}.gammaFit.alpha;
+z_prof = ds_cdp.ensemble_profiles{measurement_idx}.altitude;
+% get rid of any NaN values
+idx_nan = isnan(alpha_prof);
+alpha_prof_without_nan = alpha_prof;
+alpha_prof_without_nan(idx_nan) = [];
+
+z_without_nan = z_prof;
+z_without_nan(idx_nan) = [];
+
+% !! use custom mie tables that span 1-35 microns or 1-50 microns !!
+use_35_or_50 = 50;
+
+new_alpha_prof = interp1(z_without_nan, alpha_prof_without_nan, z_prof, 'linear', 'extrap')';
+
+out = find_custom_mieTable_closest_to_alpha_profile(new_alpha_prof, use_35_or_50, which_computer);
+
+inputs.RT.distribution_var = new_alpha_prof;
+inputs.RT.mean_distribution_var = mean(new_alpha_prof);
+
+% store the filename of the mie table closest to the mean alpha value
+inputs.RT.mean_distribution_var_closest_filename = out.mie_table_filename_closest_to_mean;
+
+% Use the new custom mie tables created on 1 Feb 2026
+inputs.RT.use_custom_mie_calcs = true;
+% ------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------
+
+
+
+% Define the parameterization scheme used to comptue the optical quantities
+% within the INP file, i.e. what function call that tells libRadtran how to
+% compute scattering and optical quantities
+% inputs.RT.wc_parameterization = '../data/wc/mie/wc.mie_test2_more_nmom.cdf interpolate';
+
+inputs.RT.wc_parameterization = 'mie interpolate';
+
+
+%% Read in the VOCALS-REx data and create the wc file
 
 % ********************************************
 % *** Vary The Optical Thickness Linearly! ***
@@ -683,183 +739,269 @@ tau_2run = linspace(0.001, inputs.RT.tau_c, 300)';
 
 
 
-tic
+% length of each independent variable
+num_wl = length(inputs.bands2run);
+num_tau_layers = length(tau_2run);
 
-if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
-
-
-
-    % ----------------------------------------
-    % --------- HOMOGENOUS CLOUD -------------
-    % ----------------------------------------
+num_INP_files = num_wl*num_tau_layers;
 
 
+% the wc_filenames should be the same for different wavelengths
+wc_filename = cell(num_tau_layers, 1);
 
 
 
+if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
 
+    % define the effective radius profile
+    re{nn} = ds_cdp.ensemble_profiles{measurement_idx}.re';        % microns
 
-elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
-
-    % --------------------------------------------
-    % --------- NON-HOMOGENOUS CLOUD -------------
-    % --------------------------------------------
-
-    
-    
-    % length of each independent variable
-    num_wl = length(inputs.bands2run);
-    num_tau_layers = length(tau_2run);
-
-    num_INP_files = num_wl*num_tau_layers;
-
-
-    % set up the input and output cell structures
-    inputFileName = cell(num_INP_files, 1);
-    outputFileName = cell(num_INP_files, 1);
-
-
-
-    % create a droplet profile
-    re = create_droplet_profile2([inputs.RT.r_top, inputs.RT.r_bot], inputs.RT.z,...
-        inputs.RT.indVar, inputs.RT.profile_type);     % microns - effective radius vector
-
-
-
-
-    % Compute the optical depth of each layer
-    % lwc and ext_bulk_coeff_per_LWC are reported from cloud bottom to
+    % rearrange z, lwc, and re so that all profiles are stored from cloud
+    % top to bottom. Therefore, the first value in the column vector is
     % cloud top
-    % therefore, the optical depth of each layer starts at cloud bottom
-    % inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.*(inputs.RT.z_edges(2) - inputs.RT.z_edges(1)))';  % the optical depth of each layer, starting from cloud top
-    %inputs.RT.tau_layers = (lwc.*ext_bulk_coeff_per_LWC.* diff(inputs.RT.z_edges'));  % the optical depth of each layer, starting from cloud top
+    if (z{nn}(2) - z{nn}(1))>0
+        % The the profile starts from cloud bottom and needs to be flipped
+        z{nn} = flipud(z{nn});
+        lwc{nn} = flipud(lwc{nn});
+        re{nn} = flipud(re{nn});
+        tau{nn} = flipud(tau{nn});
+    end
+
+    % If there are droplets
+    % larger than 50 microns, remove them for now. My custom Mie Table
+    % cannot process droplets larger than 50 microns, which is the limit of the
+    % pre-computed mie table
+
+    if any(re{nn}>=50)==true
+
+
+        % only the last two measurements exceed 35 microns. Remove
+        % them and use this profile
+        idx_remove = re{nn}>=50;
+        re{nn}(idx_remove) = [];
+        lwc{nn}(idx_remove) = [];
+        z{nn}(idx_remove) = [];
+        tau{nn}(idx_remove) = [];
+
+        tau_c(nn) = max(tau{nn});
+
+
+        % first, let's compute all water cloud files
+        % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
+        parfor nn = 1:num_tau_layers
+            % for nn = 1:num_tau_layers
+
+            % Some stuff for CURC debugging
+
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+            pause(0.01 * rand());
+
+            % -----------------------------------------------
+            % ----------- Write a Water Cloud file! ---------
+            % -----------------------------------------------
+            % re must be defined from cloud bottom to cloud top
+            % z_topBottom must be defined as the cloud top height first, then cloud bottom
+            % ***** RESET THE OPTICAL THICKNESS VALUE *****
+            [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
+                inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+                inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+                nn, inputs.RT.num_re_parameters);
+
+            % writing a water-cloud file from in-situ doesn't require mie
+            % calculations because the LWC doesn't need to be computed from
+            % optical thickness and effective radius. It is measured!
+            wc_filename_hold = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+                date_of_flight{nn}, time_of_flight(nn),...
+                inputs.compute_weighting_functions, which_computer,...
+                measurement_idx, wc_folder_path);
+
+            wc_filename{nn} = wc_filename_hold{1};
+
+        end
 
 
 
 
-    % Create the changing variables matrix that defines how each INP file
-    % is unique
-    if inputs.RT.monochromatic_calc==true
 
-        % Variables by column:
-        % (1) - monochromatic wavelength to run
-        % (2) - total optical depth (sum of all layers)
-        % (3) - index indicating which spectral response function is needed
-        changing_variables = [reshape(repmat(inputs.RT.wavelengths2run(:,1)', num_tau_layers,1), [],1)...
-            repmat(tau_2run, num_wl,1)];
 
     else
 
-        changing_variables = [repmat(inputs.RT.wavelengths2run, num_tau_layers,1),...
-            repmat(tau_2run, num_wl,1)];
+        % At times there are very thin gaps in the clouds
+        % as well. In these cases the droplet sizes go to 0. Get rid of
+        % these levels
+
+        idx_0 = re{nn}<=0.1;
+        sum(idx_0);
+        if sum(idx_0)>0
+
+            re{nn}(idx_0) = [];
+            lwc{nn}(idx_0) = [];
+            z{nn}(idx_0) = [];
+            tau{nn}(idx_0) = [];
+
+        end
+
+        % first, let's compute all water cloud files
+        % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
+        parfor nn = 1:num_tau_layers
+            % for nn = 1:num_tau_layers
+
+            % Some stuff for CURC debugging
+
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+            pause(0.01 * rand());
+
+            % -----------------------------------------------
+            % ----------- Write a Water Cloud file! ---------
+            % -----------------------------------------------
+            % re must be defined from cloud bottom to cloud top
+            % z_topBottom must be defined as the cloud top height first, then cloud bottom
+            % ***** RESET THE OPTICAL THICKNESS VALUE *****
+            [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
+                inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+                inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+                nn, inputs.RT.num_re_parameters);
+
+            wc_filename{nn} = wc_filename_hold{1};
+
+        end
+
+
+        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+            date_of_flight{nn}, time_of_flight(nn),...
+            inputs.compute_weighting_functions, which_computer,...
+            measurement_idx, wc_folder_path);
+
 
     end
 
 
-    % Add a final column that includes the index for the spectral response
-    % function. These always increase chronologically
-    changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_layers, 1), [],1)];
+
+elseif isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're_CDP') == true
 
 
-    % the wc_filenames should be the same for different wavelengths
-    wc_filename = cell(num_tau_layers, 1);
+    % define the effective radius profile
+    re{nn} = ds_cdp.ensemble_profiles{measurement_idx}.re_CDP';        % microns
 
-    % first, let's compute all water cloud files
-    % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
-    parfor nn = 1:num_tau_layers
-        % for nn = 1:num_tau_layers
-
-        % Some stuff for CURC debugging
-
-        disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
-        pause(0.1 * rand());
-
-        % -----------------------------------------------
-        % ----------- Write a Water Cloud file! ---------
-        % -----------------------------------------------
-        % re must be defined from cloud bottom to cloud top
-        % z_topBottom must be defined as the cloud top height first, then cloud bottom
-        % ***** RESET THE OPTICAL THICKNESS VALUE *****
-        [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
-            inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-            inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-            inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
-            nn, inputs.RT.num_re_parameters);
-
-        wc_filename{nn} = wc_filename_hold{1};
-
+    % rearrange z, lwc, and re so that all profiles are stored from cloud
+    % top to bottom. Therefore, the first value in the column vector is
+    % cloud top
+    if (z{nn}(2) - z{nn}(1))>0
+        % The the profile starts from cloud bottom and needs to be flipped
+        z{nn} = flipud(z{nn});
+        lwc{nn} = flipud(lwc{nn});
+        re{nn} = flipud(re{nn});
+        tau{nn} = flipud(tau{nn});
     end
 
-
-    % Repeat the water cloud file names so that each unique optical
-    % thickness uses the same file, despite the wavelength
-    wc_filename = repmat(wc_filename, num_wl);
-
-    % Now write all the INP files
-    parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
-
-        
+    % Sometimes droplets will be larger than 50 microns. If there are droplets
+    % larger than 50 microns, skip this in-situ measurement for now. libRadtran
+    % cannot process droplets larger than 35 microns, which is the limit of the
+    % pre-computed mie table
 
 
 
-        if inputs.RT.monochromatic_calc==true
+    if any(re{nn}>=50)==true
 
-            % set the wavelengths for each file
-            wavelengths = changing_variables(nn,1);
+        % only the last two measurements exceed 35 microns. Remove
+        % them and use this profile
+        idx_remove = re{nn}>=50;
+        re{nn}(idx_remove) = [];
+        lwc{nn}(idx_remove) = [];
+        z{nn}(idx_remove) = [];
+        tau{nn}(idx_remove) = [];
 
-            % ------------------------------------------------
-            % ---- Define the input and output filenames! ----
-            % ------------------------------------------------
-            % input_names need a unique identifier. Let's give them the nn value so
-            % they can be traced, and are writen over in memory
+        tau_c(nn) = max(tau{nn});
 
-
-            inputFileName{nn} = ['weightingFunction_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
-
-
-
-            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
-
-
-        else
-
-            % set the wavelengths for each file
-            wavelengths = changing_variables(nn, 1:2);
-
-            % ------------------------------------------------
-            % ---- Define the input and output filenames! ----
-            % ------------------------------------------------
-            % input_names need a unique identifier. Let's give them the nn value so
-            % they can be traced, and are writen over in memory
+        % writing a water-cloud file from in-situ doesn't require mie
+        % calculations because the LWC doesn't need to be computed from
+        % optical thickness and effective radius. It is measured!
+        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+            date_of_flight{nn}, time_of_flight(nn),...
+            inputs.compute_weighting_functions, which_computer,...
+            measurement_idx, wc_folder_path);
 
 
-            inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-                '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)), '.INP'];
+        % first, let's compute all water cloud files
+        % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
+        parfor nn = 1:num_tau_layers
+            % for nn = 1:num_tau_layers
 
+            % Some stuff for CURC debugging
 
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+            pause(0.01 * rand());
 
-            outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+            % -----------------------------------------------
+            % ----------- Write a Water Cloud file! ---------
+            % -----------------------------------------------
+            % re must be defined from cloud bottom to cloud top
+            % z_topBottom must be defined as the cloud top height first, then cloud bottom
+            % ***** RESET THE OPTICAL THICKNESS VALUE *****
+            [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
+                inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+                inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+                nn, inputs.RT.num_re_parameters);
 
+            wc_filename{nn} = wc_filename_hold{1};
 
         end
 
 
 
+    else
 
-        % ------------------ Write the INP File --------------------
-        if inputs.RT.modify_wc_opticalDepth==false
+        % At times there are very thin gaps in the clouds
+        % as well. In these cases the droplet sizes go to 0. Get rid of
+        % these levels
 
-            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                wavelengths, wc_filename{nn});
-        else
+        idx_0 = re{nn}<=0.1;
+        sum(idx_0)
+        if sum(idx_0)>0
 
-            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                wavelengths, wc_filename{nn}, [], changing_variables(nn,2), []);
+            re{nn}(idx_0) = [];
+            lwc{nn}(idx_0) = [];
+            z{nn}(idx_0) = [];
+            tau{nn}(idx_0) = [];
 
         end
 
+
+        % first, let's compute all water cloud files
+        % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
+        parfor nn = 1:num_tau_layers
+            % for nn = 1:num_tau_layers
+
+            % Some stuff for CURC debugging
+
+            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+            pause(0.01 * rand());
+
+            % -----------------------------------------------
+            % ----------- Write a Water Cloud file! ---------
+            % -----------------------------------------------
+            % re must be defined from cloud bottom to cloud top
+            % z_topBottom must be defined as the cloud top height first, then cloud bottom
+            % ***** RESET THE OPTICAL THICKNESS VALUE *****
+            [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
+                inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
+                inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
+                inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
+                nn, inputs.RT.num_re_parameters);
+
+            wc_filename{nn} = wc_filename_hold{1};
+
+        end
+
+
+
+        wc_filename{nn} = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
+            date_of_flight{nn}, time_of_flight(nn),...
+            inputs.compute_weighting_functions, which_computer,...
+            measurement_idx, wc_folder_path);
 
     end
 
@@ -867,7 +1009,143 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 end
 
-toc
+
+% *** we dont' need the ensemble profiles anymore ***
+clear ds_cdp
+
+
+%%
+
+
+
+
+
+% set up the input and output cell structures
+inputFileName = cell(num_INP_files, 1);
+outputFileName = cell(num_INP_files, 1);
+
+
+
+
+
+
+
+% Create the changing variables matrix that defines how each INP file
+% is unique
+if inputs.RT.monochromatic_calc==true
+
+    % Variables by column:
+    % (1) - monochromatic wavelength to run
+    % (2) - total optical depth (sum of all layers)
+    % (3) - index indicating which spectral response function is needed
+    changing_variables = [reshape(repmat(inputs.RT.wavelengths2run(:,1)', num_tau_layers,1), [],1)...
+        repmat(tau_2run, num_wl,1)];
+
+else
+
+    changing_variables = [repmat(inputs.RT.wavelengths2run, num_tau_layers,1),...
+        repmat(tau_2run, num_wl,1)];
+
+end
+
+
+% Add a final column that includes the index for the spectral response
+% function. These always increase chronologically
+changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_layers, 1), [],1)];
+
+
+% Double check that the number of rows for 'changing_variables' is equal
+% to the number of INP files
+if num_INP_files ~= size(changing_variables_allStateVectors, 1)
+
+    error([newline, 'Number of rows in changing_variables not equal to number of INP files', newline])
+
+end
+
+num_cols = size(changing_variables_allStateVectors, 2);
+
+
+%%
+
+
+
+
+
+
+% Repeat the water cloud file names so that each unique optical
+% thickness uses the same file, despite the wavelength
+wc_filename = repmat(wc_filename, num_wl);
+
+% Now write all the INP files
+parfor nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
+
+
+
+
+
+    if inputs.RT.monochromatic_calc==true
+
+        % set the wavelengths for each file
+        wavelengths = changing_variables(nn,1);
+
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
+        % input_names need a unique identifier. Let's give them the nn value so
+        % they can be traced, and are writen over in memory
+
+
+        inputFileName{nn} = ['weightingFunction_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
+
+
+
+        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+    else
+
+        % set the wavelengths for each file
+        wavelengths = changing_variables(nn, 1:2);
+
+        % ------------------------------------------------
+        % ---- Define the input and output filenames! ----
+        % ------------------------------------------------
+        % input_names need a unique identifier. Let's give them the nn value so
+        % they can be traced, and are writen over in memory
+
+
+        inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
+            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)), '.INP'];
+
+
+
+        outputFileName{nn} = ['OUTPUT_',inputFileName{nn}(1:end-4)];
+
+
+    end
+
+
+
+
+    % ------------------ Write the INP File --------------------
+    if inputs.RT.modify_wc_opticalDepth==false
+
+        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+            wavelengths, wc_filename{nn});
+    else
+
+        write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
+            wavelengths, wc_filename{nn}, [], changing_variables(nn,2), []);
+
+    end
+
+
+end
+
+
+
 
 
 
@@ -915,7 +1193,7 @@ end
 
 
 parfor nn = 1:num_INP_files
-% for nn = 1:num_INP_files
+    % for nn = 1:num_INP_files
 
 
     disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_INP_files),']', newline])
@@ -994,27 +1272,27 @@ end
 
 % %% Let's renormalize the weighting functions so that they integrate to 1
 % % Then, fit a moving average
-% 
+%
 % f = zeros(size(w));
-% 
+%
 % N_mov_avg = 10;
-% 
-% 
+%
+%
 % tau_midPoint = tau_2run(1:end-1,:) + diff(tau_2run, 1, 1);
-% 
+%
 % for ww = 1:num_wl
-% 
+%
 %     a = 1/trapz(tau_midPoint, w(:,ww));
-% 
+%
 %     w(:,ww) = w(:,ww).*a;
-% 
-% 
+%
+%
 %     % find the moving average
 %     % --- overlay a smoothed spline fit ---
 %     % Create smooth spline function
 %     %f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
 %     f = movmean(w, N_mov_avg);
-% 
+%
 % end
 
 
@@ -1042,7 +1320,7 @@ for ww = 1:num_wl
     f(:,ww) = f(:,ww).*a;
 
 
-    
+
 
 end
 
@@ -1059,7 +1337,7 @@ figure;
 
 
 if inputs.RT.monochromatic_calc==true
-    
+
     for ww = 1:length(wl_2plot)
 
         [~,idx2plot] = min(abs(inputs.RT.wavelengths2run(:,1) - wl_2plot(ww)));
@@ -1075,7 +1353,7 @@ if inputs.RT.monochromatic_calc==true
 
     end
 
-    
+
 
 else
 
@@ -1167,7 +1445,7 @@ figure;
 
 
 if inputs.RT.monochromatic_calc==true
-    
+
     for ww = 1:length(wl_2plot)
 
         [~,idx2plot] = min(abs(inputs.RT.wavelengths2run(:,1) - wl_2plot(ww)));
@@ -1180,7 +1458,7 @@ if inputs.RT.monochromatic_calc==true
 
     end
 
-    
+
 
 else
 
@@ -1284,7 +1562,7 @@ else
     % Create smooth spline function
     f=fit(diff(flipud(changing_variables(:,2)))/2 + flipud(tau), w, 'smoothingspline','SmoothingParam',0.95);
 
-end 
+end
 
 
 % Set up axes labels
@@ -1378,7 +1656,7 @@ elseif strcmp(inputs.which_computer,'curc')==true
     % ------ Folders on the CU Super Computer --------
     % ------------------------------------------------
 
-    
+
     inputs.folderpath_2save = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/weighting_functions/';
 
 
@@ -1469,7 +1747,7 @@ end
 eig_val = eig(C);
 
 
-% According to Platnick (2000): "Then for all weightings to contribute unique 
+% According to Platnick (2000): "Then for all weightings to contribute unique
 % information,the minimum eigenvalue of the scaled covariance matrix must be
 % greater than about e^2/(N r_m^2), where N is the number of measurements,
 % r_m is the mean value of the unknown re(tau) profile, and e is the relative
@@ -1489,7 +1767,7 @@ if min(eig_val)>twomey_fraction
 else
 
     % How many unique pieces of information do these weightings contribute?
-    
+
 end
 
 
@@ -1565,7 +1843,7 @@ for nn = 1:length(re_2Plot)
 
     hold on
     yline(tau_2run(idx(nn), 1), 'LineWidth', 1, 'Color', 'k')
-    
+
 end
 
 
