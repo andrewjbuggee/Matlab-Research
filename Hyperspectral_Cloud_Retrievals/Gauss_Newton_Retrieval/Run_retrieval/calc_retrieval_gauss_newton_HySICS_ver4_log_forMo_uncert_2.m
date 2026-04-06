@@ -1016,7 +1016,10 @@ dof_signal_lin_perVariable = diag(A_lin);
 dof_signal_log_perVariable = diag(A_log);
 
 
-% Compute the shannon information content
+
+% ------------------------------------------------------------
+% -------- Compute the shannon information content ---------
+% ------------------------------------------------------------
 H_lin = -1/2 * log(det(eye(num_parameters) - A_lin));      % bits
 H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
 

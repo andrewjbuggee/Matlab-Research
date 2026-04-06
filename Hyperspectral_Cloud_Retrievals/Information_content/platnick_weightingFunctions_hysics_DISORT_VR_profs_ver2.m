@@ -112,18 +112,182 @@ delete([inputs.folderpath_inp, '*.OUT'])
 % delete old wc files
 delete([inputs.water_cloud_folder_path, '*.DAT'])
 
+% delete old MIE files
+delete([folder_paths.libRadtran_mie_folder, '*.INP'])
+delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
+
+
+%% Start parallel pool
+
+start_parallel_pool(folder_paths.which_computer)
+
+
+%% Load the ensemble profiles from VOCALS-REx
+
+
+
+
+% load the save in-situ profiles
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Find the folder where the mie calculations are stored
+% find the folder where the water cloud files are stored.
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    % Location of VOCALS-REx airborne ensemble data
+    folderpath_air = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/',...
+        'VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+
+    saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+    % % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
+
+
+
+
+    % Load the airborne data
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
+
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    % Location of VOCALS-REx airborne ensemble data
+    folderpath_air = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+        'vocals_rex_data/NCAR_C130/SPS_1/'];
+
+    saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
+
+
+
+
+    % Load the airborne data
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+    % Location of ensemble data
+    folderpath_air = ['/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
+        'vocals_rex_data/NCAR_C130/SPS_1/'];
+
+    % ** 73 profiles that met the criteria with or without drizzle sized drops,
+    % LWC-threshold=0.03, Nc-threshold=25  ***
+    saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+        '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
+
+    % ** 69 profiles that met the criteria of without_precip,
+    % LWC-threshold=0.03, Nc-threshold=25, drizzleLWPthreshold = 5 ***
+    % saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
+    %     '_drizzleLWP-threshold_5_04-Dec-2025.mat'];
+
+
+
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    ds_cdp = load([folderpath_air, saved_profiles_filename]);
+
+end
+
+
+% define the campaign name from which the data came
+campaign_name = 'vocalsRex';
+
+%% Validate measurement_idx input
+
+% Check that measurement_idx is valid
+total_measurements = length(ds_cdp.ensemble_profiles);
+
+if measurement_idx < 1 || measurement_idx > total_measurements
+    error('measurement_idx must be between 1 and %d', total_measurements);
+end
+
+fprintf('\n Processing measurement %d of %d\n', measurement_idx, total_measurements);
+
+
+
+%% Find ERA5 vertical profiles closest to the VOCALS-REx measurement
+
+era5 = findClosestProfile_ERA5_VOCALS_REx(ds_cdp.ensemble_profiles{measurement_idx},...
+    true, which_computer);
+
+
+
+
+%% Inputs needed to create the measurement input structure
+
+% define the number of measurements being created - now just processing one
+num_meas = 1;
+
+
+
+
+% ----- unpack parallel for loop variables ------
+% We want to avoid large broadcast variables!
+libRadtran_inp = folder_paths.libRadtran_inp;
+libRadtran_data_path = folder_paths.libRadtran_data;
+wc_folder_path = folder_paths.libRadtran_water_cloud_files;
+which_computer = folder_paths.which_computer;
+% store which_computer in inputs structure
+inputs.which_computer = which_computer;
+
+
+
+
+% ---- First, let's simulate water clouds ----
+
+
+% Define the parameters of the INP file
+print_libRadtran_err = false;
+
+% -----------------------------------------------
+% --- Stuff for the Assumed Vertical Profile ---
+% -----------------------------------------------
+
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+
+% I'm simulating a real cloud profile, but I'll leave this for now
+inputs.RT.num_re_parameters = 2;
+
+
 
 %% Write the INP files
 
-% Set the number of free parameters for the droplet profile
-inputs.RT.num_re_parameters=2;
+
+% *** compute weighting functions! ***
+% This will create n wc_files where n is equal to the number of layers in
+% the cloud. Starting with the entire cloud, each file will have one less
+% layer
+inputs.compute_weighting_functions = false;
 
 % how similar should the forward model be to the simulated measurements?
 % options: (1) 'exact'  (2) 'subset'
 simulated_measurements_likeness = 'exact';
 
-% set up the inputs to create an INP file for DISORT!
-[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], simulated_measurements_likeness);
+% % set up the inputs to create an INP file for DISORT!
+% [inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], simulated_measurements_likeness);
 
 % ----------------------------------------------------------------
 % ******************* Redefine a few settings ********************
@@ -136,9 +300,354 @@ inputs.calc_type = 'weighting_functions';
 inputs.RT.surface_albedo = 0;             % Use a value of 0 when creating weighting functions
 
 
-% compute monochromatic caluclations and reflectance
-inputs.RT.monochromatic_calc = true;
-inputs.RT.compute_reflectivity_uvSpec = true;
+% ----- Define the RTE Solver -----
+inputs.RT.rte_solver = 'disort';
+
+
+% Define the number of streams to use in your radiative transfer model
+inputs.RT.num_streams = 16;
+
+% --- Do you want to use the Nakajima and Tanka radiance correction? -----
+inputs.RT.use_nakajima_phaseCorrection = true;
+
+
+% ------------------------------------------------------------------------
+% -------------- Define the source file and resolution -------------------
+
+
+% source_file = 'hybrid_reference_spectrum_p1nm_resolution_c2022-11-30_with_unc.dat';
+% source_file_resolution = 0.025;         % nm
+
+% these data have 0.1nm sampling resolution, despite what the file name
+% suggests
+inputs.RT.source_file = 'hybrid_reference_spectrum_1nm_resolution_c2022-11-30_with_unc.dat';
+inputs.RT.source_file_resolution = 0.1;         % nm
+
+% these data have 1nm sampling resolution
+% inputs.RT.source_file = 'kurudz_1.0nm.dat';
+% inputs.RT.source_file_resolution = 1;         % nm
+
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ---------------------- DEFINE THE WAVELENGTHS! -------------------------
+% ------------------------------------------------------------------------
+% define the wavelength range. If monochromatic, enter the same number
+% twice
+
+% ----------------- Simulating HySICS spectral channels ------------------
+% number of channels = 636 ranging from center wavelengths: [351, 2297]
+inputs.bands2run = (1:1:636)';
+
+
+% ------------------------------------------------------------------------
+% Do you want to compute radiance/reflectance over a spectral region, or at
+% a single wavelength?
+% ------------------------------------------------------------------------
+inputs.RT.monochromatic_calc = false;
+
+
+% --------------------------------------------------------------
+% --- Do you want to uvSpec to compute reflectivity for you? ---
+inputs.RT.compute_reflectivity_uvSpec = false;
+% --------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% ----------------- What band model do you want to use? ------------------
+
+% reptran coarse is the default
+% if using reptran, provide one of the following: coarse (default), medium
+% or fine
+
+inputs.RT.band_parameterization = 'reptran coarse';
+
+% ------------------------------------------------------------------------
+
+
+% define the atmospheric data file
+% Values above the radiosond file will be defined using the atm file
+% provided.
+inputs.RT.atm_file = 'afglus.dat';
+
+
+% ----------------------------------------------------
+% *** Use ERA5 temp/press and water vapor profiles ***
+% ----------------------------------------------------
+
+% first, write a radiosonde.dat file with ERA5 temperature, pressure and
+% relative humidity
+inputs.RT.use_radiosonde_file = true;
+inputs.RT.radiosonde_num_vars = 3;
+
+[inputs.RT.radiosonde_file, era5] = write_ERA5_radiosonde_DAT_with_multiPixels(era5,...
+    folder_paths, 1, [], inputs.RT.radiosonde_num_vars, [],...
+    inputs.RT.atm_file, true);
+
+% ------------------------------------------------------------------------
+% ------------------------------------------------------------------------
+
+
+
+% ----- Define the day of the year to account for Earth-Sun distance -----
+
+% day of the year
+inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% -------------- Do you want a cloud in your model? ----------------------
+
+
+inputs.RT.yesCloud = true;
+
+% Do you want to manually set the optical depth?
+inputs.RT.modify_wc_opticalDepth = true;
+% ------------------------------------------------------------------------
+
+
+
+
+% ------------------------------------------------------------------------
+% --------------------- Various Cloud modeling inputs --------------------
+% ------------------------------------------------------------------------
+% Do you want use your custom mie calculation file?
+% If false, the default file is the precomputed mie table from libRadtran
+inputs.RT.use_custom_mie_calcs = false;
+
+
+% define how liquid water content will be computed in the write_wc_file
+% function.
+inputs.RT.parameterization_str = 'mie';
+
+% define the wavelength used for the optical depth as the 500 nm
+% band1 = modisBands(1);
+% lambda_forTau = band1(1);            % nm
+inputs.RT.lambda_forTau = 500;            % nm
+% ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% ----------- Define the vertical atmospheric grid -----------
+% --------------------------------------------------------------
+inputs.RT.define_atm_grid=false;
+
+
+
+% --------------------------------------------------------------
+% ----------- Define the Solar and Viewing Gemometry -----------
+% --------------------------------------------------------------
+
+% Define the altitude of the sensor
+
+% I think the sensor altitude, for now, is the cloud top
+% inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
+% inputs.RT.sensor_altitude = [0.1, 0.5, 0.9, inputs.RT.z_edges'];
+% inputs.RT.sensor_altitude = [inputs.RT.z_edges'];
+inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
+
+
+
+
+% -----------------------------
+% define the solar zenith angle
+% -----------------------------
+% define sza so cos(vza) is sampled linearly
+% sza = 0;
+
+
+
+
+% -------------------------------
+% define the solar azimuith angle
+% -------------------------------
+
+% The libRadTran solar azimuth is defined as 0-360 degrees
+% clockwise from due south.
+phi0 =  [0, 45, 90, 180];     % degree -
+
+
+
+
+% --------------------------------
+% define the viewing Zenith angle
+% --------------------------------
+% define vza so cos(vza) is sampled linearly
+mu_sample = linspace(cosd(0), cosd(65), 8);
+vza = acosd(mu_sample);                                   % degree
+
+
+
+
+% --------------------------------
+% define the viewing azimuth angle
+% --------------------------------
+
+% define the viewing azimuth angle
+% The libRadTran sensor azimuth is defined as 0-360 degrees
+% clockwise from due North.
+vaz = [0, 45, 90, 180];     % degree -
+
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% --- Do you want to use the Cox-Munk Ocean Surface Model? -----
+inputs.RT.use_coxMunk = true;
+inputs.RT.wind_speed = 3;             % m/s
+% --------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- specify various cross-section models for  -----------
+inputs.RT.specify_cross_section_model = true;
+
+inputs.RT.crs_model_rayleigh = 'Bodhaine29';               %  Rayleigh scattering cross section using Bodhaine et al. (1999) equation 29
+% inputs.RT.crs_model_rayleigh = 'Bodhaine';                   %  Rayleigh scattering cross section using Bodhaine et al. (1999) equations 22-23
+
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want boundary layer aerosols in your model? -----------
+inputs.RT.yesAerosols = true;
+
+inputs.RT.aerosol_type = 4;               % 4 = maritime aerosols
+inputs.RT.aerosol_opticalDepth = 0.1;     % MODIS algorithm always set to 0.1
+% ------------------------------------------------------------------------
+
+
+
+
+% --------------------------------------------------------------------
+% --------- What is total column water vapor amount? -----------------
+
+% Using measurements from the AMSR2 instrument, a passive microwave
+% radiometer for 17 Jan 2024
+inputs.RT.modify_total_columnWaterVapor = false;
+
+inputs.RT.waterVapor_column = 20;   % mm - milimeters of water condensed in a column
+% ------------------------------------------------------------------------
+
+
+
+% -----------------------------------------------------------------------
+% -------- Write a custom water vapor profile for above cloud -----------
+
+% Alter the above cloud column water vapor amount
+inputs.RT.modify_aboveCloud_columnWaterVapor = true;
+
+% ------------------------------------------------------------------------
+
+
+
+% ------------------------------------------------------------------------
+% ------- Do you want to modify concentration of Carbon dioxide? ---------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_CO2 = true;
+
+inputs.RT.CO2_mixing_ratio = 418;       % ppm
+% inputs.RT.CO2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular nitrogen (N2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_N2 = false;
+
+inputs.RT.N2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of NO2? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_NO2 = false;
+
+inputs.RT.NO2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --- Do you want to modify concentration of molecular oxygen (O2)? ----
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O2 = false;
+
+inputs.RT.O2_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+% ------------------------------------------------------------------------
+% --------- Do you want to modify concentration of Ozone (O3)? -----------
+
+% 400 ppm = 1.0019 * 10^23 molecules/cm^2
+inputs.RT.modify_O3 = false;
+
+inputs.RT.O3_mixing_ratio = 0;       % ppm
+% ------------------------------------------------------------------------
+
+
+
+% --------------------------------------------------------------
+% ------- Do you want to turn off molecular absorption? --------
+% Note, that thermal emission of molecules is also switched off.
+
+
+inputs.RT.no_molecular_abs = false;
+
+
+% --------------------------------------------------------------
+
+
+% --------------------------------------------------------------
+% ------------ Do you want to turn off scattering? -------------
+
+
+% Possible choises for the optional argument name are:
+%   mol - Switch off molecular scattering.
+%   aer - Switch off scattering by aerosols.
+%   wc - Switch off scattering by water clouds.
+%   ic - Switch off scattering by ice clouds.
+%   profile - Switch off scattering by any profile defined in profile typename.
+inputs.RT.no_scattering_mol = false;
+inputs.RT.no_scattering_aer = false;
+% --------------------------------------------------------------
+
+
+
+
+
+% --------------------------------------------------------------
+% Do you want to print an error message?
+
+if print_libRadtran_err==true
+
+    inputs.RT.errMsg = 'verbose';
+
+else
+
+    inputs.RT.errMsg = 'quiet';
+
+end
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+% --------------------------------------------------------------
+
+
+%%
 
  % ** Values used in Platnick (2000) **
 inputs.RT.r_top = 12;     % microns

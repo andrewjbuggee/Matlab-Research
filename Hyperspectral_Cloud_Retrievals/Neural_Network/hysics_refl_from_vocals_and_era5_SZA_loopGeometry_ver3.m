@@ -227,13 +227,10 @@ inputs.calc_type = 'simulated_spectra';
 inputs.RT.rte_solver = 'disort';
 
 
-
 % Define the number of streams to use in your radiative transfer model
 inputs.RT.num_streams = 16;
 
 % --- Do you want to use the Nakajima and Tanka radiance correction? -----
-
-
 inputs.RT.use_nakajima_phaseCorrection = true;
 
 
@@ -254,9 +251,6 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 % these data have 1nm sampling resolution
 % inputs.RT.source_file = 'kurudz_1.0nm.dat';
 % inputs.RT.source_file_resolution = 1;         % nm
-
-
-
 
 % ------------------------------------------------------------------------
 
@@ -332,7 +326,6 @@ inputs.RT.monochromatic_calc = false;
 
 % --------------------------------------------------------------
 % --- Do you want to uvSpec to compute reflectivity for you? ---
-
 inputs.RT.compute_reflectivity_uvSpec = false;
 % --------------------------------------------------------------
 
@@ -400,7 +393,6 @@ end
 
 inputs.RT.band_parameterization = 'reptran coarse';
 
-
 % ------------------------------------------------------------------------
 
 
@@ -439,7 +431,6 @@ inputs.RT.surface_albedo = 0.04;            % Ocean water albedo
 
 % day of the year
 inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from paper 1
-
 % ------------------------------------------------------------------------
 
 
@@ -451,11 +442,8 @@ inputs.RT.day_of_year = 316;       % value for pixel used in Figure 3.a from pap
 
 inputs.RT.yesCloud = true;
 
-
-
 % Do you want to manually set the optical depth?
 inputs.RT.modify_wc_opticalDepth = true;
-
 % ------------------------------------------------------------------------
 
 
@@ -487,7 +475,6 @@ inputs.RT.lambda_forTau = 500;            % nm
 % --------------------------------------------------------------
 % ----------- Define the vertical atmospheric grid -----------
 % --------------------------------------------------------------
-
 inputs.RT.define_atm_grid=false;
 
 
@@ -679,8 +666,6 @@ inputs.RT.no_molecular_abs = false;
 %   profile - Switch off scattering by any profile defined in profile typename.
 inputs.RT.no_scattering_mol = false;
 inputs.RT.no_scattering_aer = false;
-
-
 % --------------------------------------------------------------
 
 
