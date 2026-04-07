@@ -1260,8 +1260,8 @@ tic
 % --- Issue 1: pause(rand) has been removed entirely.                 ---
 % -----------------------------------------------------------------------
 
-parfor nn = 1:num_INP_files
-    % for nn = 1:num_INP_files
+% parfor nn = 1:num_INP_files
+for nn = 1:num_INP_files
 
     % extract per-iteration geometry values as scalars
     vza_nn  = changing_variables_allStateVectors(nn, 2);

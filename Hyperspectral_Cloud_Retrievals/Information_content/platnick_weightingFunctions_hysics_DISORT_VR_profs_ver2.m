@@ -4,6 +4,9 @@
 
 clear variables
 
+% Define the profile number for which weighting functions will be computed
+measurement_idx = 11;
+
 
 %% Which computer are you using?
 
@@ -58,7 +61,8 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
     inputs.water_cloud_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/weighting_func/';
 
 
-
+    % mie folder location
+    folder_paths.libRadtran_mie_folder = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/weighting_func/';
 
 
 

@@ -57,6 +57,8 @@ elseif strcmp(inputs.which_computer,'andrewbuggee')==true
     % water cloud file location
     inputs.water_cloud_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/weighting_func/';
 
+     % mie scattering files location
+    inputs.mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
 
 
 
@@ -118,12 +120,20 @@ delete([inputs.water_cloud_folder_path, '*.DAT'])
 % Set the number of free parameters for the droplet profile
 inputs.RT.num_re_parameters=2;
 
+
+% Set the vertical homogeneous string
+inputs.RT.vert_homogeneous_str = 'vert-non-homogeneous';
+
+% Would you like to print the libRadtran error file?
+print_libRadtran_err = true;
+
 % how similar should the forward model be to the simulated measurements?
 % options: (1) 'exact'  (2) 'subset'
 simulated_measurements_likeness = 'exact';
 
 % set up the inputs to create an INP file for DISORT!
-[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [], simulated_measurements_likeness);
+[inputs, spec_response] = create_uvSpec_DISORT_inputs_for_HySICS(inputs, false, [],...
+    simulated_measurements_likeness, print_libRadtran_err);
 
 % ----------------------------------------------------------------
 % ******************* Redefine a few settings ********************
@@ -141,7 +151,7 @@ inputs.RT.monochromatic_calc = true;
 inputs.RT.compute_reflectivity_uvSpec = true;
 
  % ** Values used in Platnick (2000) **
-inputs.RT.r_top = 12;     % microns
+inputs.RT.r_top = 9;     % microns
 inputs.RT.r_bot = 5;        % microns
 inputs.RT.tau_c = 8;
 
@@ -275,7 +285,8 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
             inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
             inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
             inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
-            nn, inputs.RT.num_re_parameters);
+            nn, inputs.RT.num_re_parameters, inputs.water_cloud_folder_path,...
+            inputs.mie_folder_path);
 
         wc_filename{nn} = wc_filename_hold{1};
 
@@ -342,12 +353,12 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
         % ------------------ Write the INP File --------------------
         if inputs.RT.modify_wc_opticalDepth==false
 
-            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                wavelengths, wc_filename{nn});
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputs.water_cloud_folder_path,...
+                inputFileName{nn}, inputs, wavelengths, wc_filename{nn});
         else
 
-            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputFileName{nn}, inputs,...
-                wavelengths, wc_filename{nn}, [], changing_variables(nn,2), []);
+            write_INP_file(inputs.folderpath_inp, inputs.libRadtran_data_path, inputs.water_cloud_folder_path,...
+                inputFileName{nn}, inputs, wavelengths, wc_filename{nn}, [], changing_variables(nn,2));
 
         end
 
@@ -542,7 +553,7 @@ end
 
 
 % *** define which wavelengths to plot ***
-wl_2plot = inputs.RT.wavelengths2run(:,1);
+wl_2plot = mean(inputs.RT.wavelengths2run(10,:), 2);
 
 lgnd_str = cell(numel(wl_2plot), 1);
 
@@ -831,6 +842,17 @@ t.FontWeight = 'bold';
 t.EdgeColor = 'black';
 t.FitBoxToText = 'on';
 
+
+
+%% Check that all weighting functions integrate to 1
+
+f_int = trapz(tau_midPoint, f, 1);
+
+figure; plot(mean(inputs.RT.wavelengths2run, 2), f_int, '.',...
+    'MarkerSize', 25)
+grid on; grid minor
+xlabel('Wavelength $(nm)$','Interpreter','latex');
+ylabel('$\int \, f_{\lambda}(\tau) \, d\tau$','Interpreter','latex')
 
 
 
