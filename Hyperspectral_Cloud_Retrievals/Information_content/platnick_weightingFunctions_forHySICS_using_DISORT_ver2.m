@@ -4,6 +4,7 @@
 
 clear variables
 
+tic
 
 %% Which computer are you using?
 
@@ -151,9 +152,9 @@ inputs.RT.monochromatic_calc = true;
 inputs.RT.compute_reflectivity_uvSpec = true;
 
  % ** Values used in Platnick (2000) **
-inputs.RT.r_top = 9;     % microns
+inputs.RT.r_top = 12;        % microns
 inputs.RT.r_bot = 5;        % microns
-inputs.RT.tau_c = 8;
+inputs.RT.tau_c = 24;
 
 % set the sensor altitude at cloud top
 inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
@@ -184,7 +185,6 @@ tau_2run = linspace(0.001, inputs.RT.tau_c, 300)';
 
 
 
-tic
 
 if strcmp(inputs.RT.vert_homogeneous_str, 'vert-homogeneous') == true
 
@@ -369,7 +369,7 @@ elseif strcmp(inputs.RT.vert_homogeneous_str, 'vert-non-homogeneous') == true
 
 end
 
-toc
+
 
 
 
@@ -402,7 +402,6 @@ end
 
 
 
-tic
 
 
 
