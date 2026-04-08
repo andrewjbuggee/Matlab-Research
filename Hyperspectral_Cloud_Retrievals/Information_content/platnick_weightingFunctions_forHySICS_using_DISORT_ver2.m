@@ -154,7 +154,7 @@ inputs.RT.compute_reflectivity_uvSpec = true;
  % ** Values used in Platnick (2000) **
 inputs.RT.r_top = 12;        % microns
 inputs.RT.r_bot = 5;        % microns
-inputs.RT.tau_c = 24;
+inputs.RT.tau_c = 4;
 
 % set the sensor altitude at cloud top
 inputs.RT.sensor_altitude = inputs.RT.z_topBottom(1);      % km - sensor altitude at cloud top
