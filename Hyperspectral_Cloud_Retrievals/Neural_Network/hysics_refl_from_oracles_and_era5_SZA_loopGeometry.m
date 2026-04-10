@@ -364,8 +364,11 @@ end
 % Guard against non-positive alpha values
 new_alpha_prof(new_alpha_prof <= 0 | isnan(new_alpha_prof)) = 7;
 
+% !! use custom mie tables that span 1-35 microns or 1-50 microns !!
+use_35_or_50 = 50;
+
 % Find the closest pre-computed Mie table
-out = find_custom_mieTable_closest_to_alpha_profile(new_alpha_prof, which_computer);
+out = find_custom_mieTable_closest_to_alpha_profile(new_alpha_prof, use_35_or_50, which_computer);
 
 inputs.RT.distribution_var                    = new_alpha_prof;
 inputs.RT.mean_distribution_var               = mean(new_alpha_prof);
@@ -375,11 +378,11 @@ inputs.RT.use_custom_mie_calcs                = true;
 alpha_param{nn} = new_alpha_prof;
 
 
-%% Handle re >= 35 µm (limit of the Mie look-up table)
+%% Handle re >= 50 µm (limit of the custom Mie look-up table)
 
-if any(re{nn} >= 35)
+if any(re{nn} >= use_35_or_50)
 
-    idx_remove = re{nn} >= 35;
+    idx_remove = re{nn} >= use_35_or_50;
     n_removed  = sum(idx_remove);
 
     re{nn}(idx_remove)  = [];
@@ -390,8 +393,8 @@ if any(re{nn} >= 35)
     % Update tau_c to the maximum remaining optical depth
     tau_c(nn) = tau{nn}(end);
 
-    fprintf('  Warning: removed %d level(s) with re >= 35 um from ORACLES profile %d\n', ...
-        n_removed, measurement_idx);
+    fprintf('  Warning: removed %d level(s) with re >= %d um from ORACLES profile %d\n', ...
+        n_removed, use_35_or_50, measurement_idx);
 
 end
 
