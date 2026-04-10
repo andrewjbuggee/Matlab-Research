@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza0_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=101-106%6    # throttling to 6 concurrent jobs to avoid overwhelming the filesystem with too many simultaneous MATLAB startups and libRadtran runs
+#SBATCH --array=101-339%6    # throttling to 6 concurrent jobs to avoid overwhelming the filesystem with too many simultaneous MATLAB startups and libRadtran runs
 
 # Load modules
 ml purge
