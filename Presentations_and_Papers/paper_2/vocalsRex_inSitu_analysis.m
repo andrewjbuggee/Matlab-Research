@@ -31,8 +31,13 @@ elseif strcmp(whatComputer, 'andrewbuggee')==true
     % load([folderpath,...
     % 'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_30-Oct-2025_rev1.mat'])
 
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
     load([folderpath,...
       'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_02-Nov-2025.mat'])
+
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
+    % load([folderpath,...
+    %   'ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_drizzleLWP-threshold_5_04-Dec-2025.mat'])
 
 
 end
