@@ -165,7 +165,8 @@ inputs.RT.source_file_resolution = 0.1;         % nm
 
 % ---- Wavelength / band selection ----
 % All 636 HySICS spectral channels (351 – 2297 nm)
-inputs.bands2run = (1:1:636)';
+% inputs.bands2run = (1:1:636)';
+inputs.bands2run = (1:1:3)';
 
 inputs.RT.monochromatic_calc          = false;
 inputs.RT.compute_reflectivity_uvSpec = false;
@@ -174,6 +175,7 @@ inputs.RT.compute_reflectivity_uvSpec = false;
 % ---- Spectral response functions ----
 spec_response = create_HySICS_specResponse(inputs.bands2run, inputs.RT.source_file, ...
     inputs.which_computer);
+
 
 inputs.RT.wavelengths2run = zeros(length(inputs.bands2run), 2);
 

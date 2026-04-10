@@ -89,6 +89,175 @@ savedColors = [8.492724501845559e-01     5.437108503990062e-02     9.68109025296
     [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
     [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
     [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
+    [255,147,215]./255;...                                                                          % (61) colorblind friendly #1 - bright pink
+    [114,226,115]./255;...                                                                          % (62) colorblind friendly #2 - bright green
+    [99,0,25]./255;...                                                                              % (63) colorblind friendly #3 - dark red
+    [55,57,169]./255;...                                                                            % (64) colorblind friendly #4 - eggplant
+    [238,172,47]./255;...                                                                           % (65) colorblind friendly #5
+    [199,171,255]./255;...                                                                          % (66) colorblind friendly #6
+    [75,114,0]./255;...                                                                             % (67) colorblind friendly #7
+    [255,118,180]./255;...                                                                          % (68) colorblind friendly #8 
+    [167,44,1]./255;...                                                                             % (69) colorblind friendly #9
+    [0,219,233]./255;...                                                                            % (70) colorblind friendly #10 - electric blue
+    [145,127,197]./255;...                                                                          % (71) colorblind friendly #11 - purple
+    [255,105,101]./255;...                                                                          % (72) colorblind friendly #12 - orange
+    [217,39,97]./255;...                                                                            % (73) colorblind friendly #13 - red
      ];
 
 
