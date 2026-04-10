@@ -370,10 +370,10 @@ use_35_or_50 = 50;
 % Find the closest pre-computed Mie table
 out = find_custom_mieTable_closest_to_alpha_profile(new_alpha_prof, use_35_or_50, which_computer);
 
-inputs.RT.distribution_var                    = new_alpha_prof;
-inputs.RT.mean_distribution_var               = mean(new_alpha_prof);
+inputs.RT.distribution_var                       = new_alpha_prof;
+inputs.RT.mean_distribution_var                  = mean(new_alpha_prof);
 inputs.RT.mean_distribution_var_closest_filename = out.mie_table_filename_closest_to_mean;
-inputs.RT.use_custom_mie_calcs                = true;
+inputs.RT.use_custom_mie_calcs                   = true;
 
 alpha_param{nn} = new_alpha_prof;
 
@@ -382,26 +382,32 @@ alpha_param{nn} = new_alpha_prof;
 
 if any(re{nn} >= use_35_or_50)
 
-    idx_remove = re{nn} >= use_35_or_50;
-    n_removed  = sum(idx_remove);
+    % For now, ignore profiles with droplets larger than 50 microns
+    warning([newline, 'Droplet profile #', num2str(measurement_idx), ' has an effective radius larger',...
+        ' than 50 microns. This profile is being skipped...',newline])
 
-    re{nn}(idx_remove)  = [];
-    lwc{nn}(idx_remove) = [];
-    z{nn}(idx_remove)   = [];
-    tau{nn}(idx_remove) = [];
+    return
 
-    % Update tau_c to the maximum remaining optical depth
-    tau_c(nn) = tau{nn}(end);
-
-    fprintf('  Warning: removed %d level(s) with re >= %d um from ORACLES profile %d\n', ...
-        n_removed, use_35_or_50, measurement_idx);
+    % idx_remove = re{nn} >= use_35_or_50;
+    % n_removed  = sum(idx_remove);
+    % 
+    % re{nn}(idx_remove)  = [];
+    % lwc{nn}(idx_remove) = [];
+    % z{nn}(idx_remove)   = [];
+    % tau{nn}(idx_remove) = [];
+    % 
+    % % Update tau_c to the maximum remaining optical depth
+    % tau_c(nn) = tau{nn}(end);
+    % 
+    % fprintf('  Warning: removed %d level(s) with re >= %d um from ORACLES profile %d\n', ...
+    %     n_removed, use_35_or_50, measurement_idx);
 
 end
 
 
-%% Remove levels with re <= 0.1 µm (thin gap / bad data)
+%% Remove levels with re <= 1 µm (thin gap / bad data)
 
-idx_0 = re{nn} <= 0.1;
+idx_0 = re{nn} <= 1;
 
 if any(idx_0)
     re{nn}(idx_0)  = [];
