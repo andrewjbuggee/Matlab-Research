@@ -20,7 +20,7 @@ folder_paths = define_folderPaths_for_HySICS(1);
 % the valid index range.  The saved ensemble_profiles_with_precip_from_33_files
 % file (13-Mar-2026) contains 243 profiles.
 
-measurement_idx = 100;
+measurement_idx = 131;
 
 % -------------------------------------------------------------------------
 % --- Define the solar zenith angle grid ----------------------------------

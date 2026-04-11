@@ -90,22 +90,24 @@ end
 % Find the most recent saved ensemble profiles file (with precipitation, which
 % includes all profiles).  If you want only non-precipitating profiles, change
 % the search pattern accordingly.
-ensemble_files = dir([folderpath_oracles, 'ensemble_profiles_with_precip_from_*.mat']);
+% ensemble_files = dir([folderpath_oracles,...
+%     'ensemble_profiles_with_precip_from_*.mat']);
+% 
+% if isempty(ensemble_files)
+%     % fall back: look for any ensemble profiles file
+%     ensemble_files = dir([folderpath_oracles, 'ensemble_profiles_*.mat']);
+% end
+% 
+% if isempty(ensemble_files)
+%     error([newline, 'No ORACLES ensemble profiles file found in: ', folderpath_oracles, newline])
+% end
+% 
+% % Use the most recently modified file
+% [~, idx_newest] = max([ensemble_files.datenum]);
+% saved_profiles_filename = ensemble_files(idx_newest).name;
 
-if isempty(ensemble_files)
-    % fall back: look for any ensemble profiles file
-    ensemble_files = dir([folderpath_oracles, 'ensemble_profiles_*.mat']);
-end
-
-if isempty(ensemble_files)
-    error([newline, 'No ORACLES ensemble profiles file found in: ', folderpath_oracles, newline])
-end
-
-% Use the most recently modified file
-[~, idx_newest] = max([ensemble_files.datenum]);
-saved_profiles_filename = ensemble_files(idx_newest).name;
-
-ds_oracles = load([folderpath_oracles, saved_profiles_filename]);
+ds_oracles = load([folderpath_oracles,...
+    'ensemble_profiles_with_precip_from_33_files_LWC-threshold_0.05_Nc-threshold_10_no_rEff_greaterThan50_microns_16-Mar-2026.mat']);
 
 % Field naming: ensemble_profiles is a cell array of profile structs
 ensemble_profiles = ds_oracles.ensemble_profiles;
@@ -323,17 +325,7 @@ tau_c(nn) = ensemble_profiles{measurement_idx}.tau(end);
 % ORACLES profiles store '.re' (combined CAS + 2DS + HVPS effective radius)
 re{nn} = ensemble_profiles{measurement_idx}.re';    % microns
 
-% --- Orient all profile vectors so index 1 = cloud top ---
-if (z{nn}(2) - z{nn}(1)) > 0
-    % Profile was sampled bottom-up; flip to cloud-top-first ordering
-    z{nn}   = flipud(z{nn});
-    lwc{nn} = flipud(lwc{nn});
-    re{nn}  = flipud(re{nn});
-    tau{nn} = flipud(tau{nn});
-end
-
-
-%% Fit the droplet size distribution to get the gamma shape parameter
+% Fit the droplet size distribution to get the gamma shape parameter
 
 % This is the ORACLES equivalent of the pre-stored gammaFit.alpha from
 % VOCALS-REx profiles.  We compute it here because find_verticalProfiles_ORACLES
@@ -348,20 +340,88 @@ significance_lvl = 0.1;
     significance_lvl);
 
 alpha_prof = gammaFit.alpha;            % per-altitude gamma shape parameter
-z_prof     = ensemble_profiles{measurement_idx}.altitude;
+
+
+% --- Orient all profile vectors so index 1 = cloud top ---
+if (z{nn}(2) - z{nn}(1)) > 0
+    % Profile was sampled bottom-up; flip to cloud-top-first ordering
+    z{nn}   = flipud(z{nn});
+    lwc{nn} = flipud(lwc{nn});
+    re{nn}  = flipud(re{nn});
+    tau{nn} = flipud(tau{nn});
+    alpha_prof = flipud(alpha_prof);
+end
+
+
+%% Check if there are redundant altitude points. If there are, delete them
+
+% 1. Get unique values and their index mapping
+[z_prof_u, ~, idx_u] = unique(z{nn}); 
+% 2. Count occurrences of each unique value
+counts = accumarray(idx_u, 1);
+% 3. Identify values that appear more than once
+repeatedValues = z_prof_u(counts > 1);
+% 4. Create logical index mask
+isRedundant = ismember(z{nn}, repeatedValues);
+
+if sum(isRedundant)>0 && sum(isRedundant)==2
+    % There is one pair of identical z values
+    redun_lin = find(isRedundant);
+
+    % adjust z prof
+    new_z_prof = zeros(size(z{nn}));
+    new_z_prof(~isRedundant) = z{nn}(~isRedundant);
+    new_z_prof(redun_lin(1)) =  z{nn}(redun_lin(1));
+    new_z_prof(redun_lin(2)) =  [];
+
+    % adjust alpha prof
+    new_alpha_prof = zeros(size(alpha_prof));
+    new_alpha_prof(~isRedundant) = alpha_prof(~isRedundant);
+    new_alpha_prof(redun_lin(1)) =  alpha_prof(redun_lin(1));
+    new_alpha_prof(redun_lin(2)) =  [];
+
+    % adjust re
+    new_reff_prof = zeros(size(re{nn}));
+    new_reff_prof(~isRedundant) = re{nn}(~isRedundant);
+    new_reff_prof(redun_lin(1)) =  re{nn}(redun_lin(1));
+    new_reff_prof(redun_lin(2)) =  [];
+
+    % adjust LWC
+    new_lwc_prof = zeros(size(lwc{nn}));
+    new_lwc_prof(~isRedundant) = lwc{nn}(~isRedundant);
+    new_lwc_prof(redun_lin(1)) =  lwc{nn}(redun_lin(1));
+    new_lwc_prof(redun_lin(2)) =  [];
+
+    % reset profile vectors
+    alpha_prof = new_alpha_prof;
+    z{nn} = new_z_prof;
+    re{nn} = new_reff_prof;
+    lwc{nn} = new_lwc_prof;
+
+end
+
+
 
 % Interpolate / extrapolate over any NaN values in the alpha profile
 idx_nan = isnan(alpha_prof);
-alpha_prof_valid  = alpha_prof;  alpha_prof_valid(idx_nan) = [];
-z_prof_valid      = z_prof;      z_prof_valid(idx_nan)     = [];
+alpha_prof_valid  = alpha_prof;  
+alpha_prof_valid(idx_nan) = [];
+
+z_prof_valid              = z{nn};      
+z_prof_valid(idx_nan)     = [];
+z_interp = z{nn}(idx_nan);
 
 if isempty(alpha_prof_valid)
     % Edge case: all NaN -- use a sensible default
     new_alpha_prof = repmat(7, size(alpha_prof))';
     warning('All alpha values are NaN for ORACLES profile %d; using default alpha = 7.', measurement_idx);
 else
-    new_alpha_prof = interp1(z_prof_valid, alpha_prof_valid, z_prof, 'linear', 'extrap')';
+    alpha_interp = interp1(z_prof_valid', alpha_prof_valid, z_interp, 'linear', 'extrap')';
 end
+
+new_alpha_prof = zeros(size(alpha_prof));
+new_alpha_prof(idx_nan) = alpha_interp;
+new_alpha_prof(~idx_nan) = alpha_prof_valid;
 
 % Guard against non-positive alpha values
 new_alpha_prof(new_alpha_prof <= 0 | isnan(new_alpha_prof)) = 7;
