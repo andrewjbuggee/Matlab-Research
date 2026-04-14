@@ -787,6 +787,10 @@ if isfield(ds_cdp.ensemble_profiles{measurement_idx}, 're') == true
         tau{nn} = flipud(tau{nn});
     end
 
+    % If tau is cumulative from cloud base (decreasing after flip):
+    idx_tau = find((tau_c_val - tau_profile) >= tau_2run(nn), 1, 'last');
+
+
     % If there are droplets
     % larger than 50 microns, remove them for now. My custom Mie Table
     % cannot process droplets larger than 50 microns, which is the limit of the
@@ -912,6 +916,14 @@ clear ds_cdp
 % ********************************************
 tau_2run = linspace(0.001, max(tau{1}), 300)';
 
+% Extract scalars/arrays from cell arrays to avoid large parfor broadcast vars
+re_profile        = re{1};
+lwc_profile       = lwc{1};
+z_profile         = z{1};
+tau_profile       = tau{1};      % cumulative tau, ordered from cloud top to cloud bottom
+campaign_name_loc = campaign_name;
+date_local        = date_of_flight{1};
+time_local        = time_of_flight(1);
 
 
 % length of each independent variable
@@ -954,38 +966,34 @@ changing_variables = [changing_variables, reshape(repmat((1:num_wl), num_tau_lay
 
 
 % first, let's compute all water cloud files
-        % ***** THIS PARFOR LOOP DOESNT WORK ON THE CU SUPER COMPUTER *****
-        parfor nn = 1:num_tau_layers
-            % for nn = 1:num_tau_layers
+% first, compute all water cloud files — one per tau_2run value
+parfor nn = 1:num_tau_layers
 
-            % Some stuff for CURC debugging
+    disp(['WC file nn/total = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
+    pause(0.01 * rand());
 
-            disp(['Iteration: nn/total_files = [', num2str(nn), '/', num2str(num_tau_layers),']', newline])
-            pause(0.01 * rand());
+    % ---------------------------------------------------------------
+    % Truncate the in-situ profile from cloud top down to the depth
+    % where the cumulative optical depth equals tau_2run(nn).
+    % tau_profile(1) = 0 at cloud top, tau_profile(end) = tau_c.
+    % ---------------------------------------------------------------
+    idx_tau = find(tau_profile >= tau_2run(nn), 1, 'first');
+    if isempty(idx_tau)
+        idx_tau = length(tau_profile);
+    end
 
-            % -----------------------------------------------
-            % ----------- Write a Water Cloud file! ---------
-            % -----------------------------------------------
-            % re must be defined from cloud bottom to cloud top
-            % z_topBottom must be defined as the cloud top height first, then cloud bottom
-            % ***** RESET THE OPTICAL THICKNESS VALUE *****
-            [wc_filename_hold, ~, ~] = write_wc_file(re, tau_2run(nn),...
-                inputs.RT.z_topBottom, inputs.RT.lambda_forTau, inputs.RT.distribution_str,...
-                inputs.RT.distribution_var,inputs.RT.vert_homogeneous_str, inputs.RT.parameterization_str,...
-                inputs.RT.indVar, inputs.compute_weighting_functions, inputs.which_computer,...
-                nn, inputs.RT.num_re_parameters);
+    re_sub  = re_profile(1:idx_tau);
+    lwc_sub = lwc_profile(1:idx_tau);
+    z_sub   = z_profile(1:idx_tau);
 
-            % writing a water-cloud file from in-situ doesn't require mie
-            % calculations because the LWC doesn't need to be computed from
-            % optical thickness and effective radius. It is measured!
-            wc_filename_hold = write_wc_file_from_in_situ(re{nn}, lwc{nn}, z{nn}, campaign_name,...
-                date_of_flight{nn}, time_of_flight(nn),...
-                inputs.compute_weighting_functions, which_computer,...
-                measurement_idx, wc_folder_path);
+    % Write the water cloud file using the truncated in-situ profile
+    wc_filename_hold = write_wc_file_from_in_situ(re_sub, lwc_sub, z_sub, ...
+        campaign_name_loc, date_local, time_local, ...
+        false, which_computer, nn, wc_folder_path);
 
-            wc_filename{nn} = wc_filename_hold{1};
+    wc_filename{nn} = wc_filename_hold{1};
 
-        end
+end
 
 
 %%
@@ -1008,13 +1016,13 @@ outputFileName = cell(num_INP_files, 1);
 
 % Double check that the number of rows for 'changing_variables' is equal
 % to the number of INP files
-if num_INP_files ~= size(changing_variables_allStateVectors, 1)
+if num_INP_files ~= size(changing_variables, 1)
 
     error([newline, 'Number of rows in changing_variables not equal to number of INP files', newline])
 
 end
 
-num_cols = size(changing_variables_allStateVectors, 2);
+num_cols = size(changing_variables, 2);
 
 
 %%
@@ -1027,6 +1035,10 @@ num_cols = size(changing_variables_allStateVectors, 2);
 % Repeat the water cloud file names so that each unique optical
 % thickness uses the same file, despite the wavelength
 wc_filename = repmat(wc_filename, num_wl);
+
+inputs.folderpath_inp          = folder_paths.libRadtran_inp;
+inputs.water_cloud_folder_path = folder_paths.libRadtran_water_cloud_files;
+
 
 % Now write all the INP files
 parfor nn = 1:num_INP_files
@@ -1047,9 +1059,9 @@ parfor nn = 1:num_INP_files
         % input_names need a unique identifier. Let's give them the nn value so
         % they can be traced, and are writen over in memory
 
+        inputFileName{nn} = ['weightingFunction_', num2str(mean(wavelengths)), '_nm_measIdx_', ...
+                num2str(measurement_idx), '_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
 
-        inputFileName{nn} = ['weightingFunction_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
 
 
 
@@ -1068,8 +1080,8 @@ parfor nn = 1:num_INP_files
         % they can be traced, and are writen over in memory
 
 
-        inputFileName{nn} = ['monteCarlo_',num2str(mean(wavelengths)), '_','nm_rTop_', num2str(inputs.RT.r_top),...
-            '_rBot_', num2str(inputs.RT.r_bot),'_tauC_', num2str(round(changing_variables(nn,3),4)), '.INP'];
+        inputFileName{nn} = ['monteCarlo_', num2str(mean(wavelengths)), '_nm_measIdx_', ...
+                num2str(measurement_idx), '_tauC_', num2str(round(changing_variables(nn,2),4)), '.INP'];
 
 
 

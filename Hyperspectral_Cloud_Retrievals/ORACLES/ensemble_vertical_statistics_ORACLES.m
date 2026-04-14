@@ -281,9 +281,10 @@ re_std    = zeros(n_bins, 1);
 bin_center = zeros(n_bins, 1);
 
 for bb = 1:n_bins
-    re_mean(bb)   = mean(vertically_segmented_attributes{bb, 1});
-    re_median(bb) = median(vertically_segmented_attributes{bb, 1});
-    re_std(bb)    = std(vertically_segmented_attributes{bb, 1});
+    re_mean(bb)                 = mean(vertically_segmented_attributes{bb, 1});
+    re_median(bb)               = median(vertically_segmented_attributes{bb, 1});
+    re_std(bb)                  = std(vertically_segmented_attributes{bb, 1});
+    % re_avg_dev_below_median(bb) = 
     bin_center(bb) = (bin_edges(bb+1) - bin_edges(bb))/2 + bin_edges(bb);
 end
 
