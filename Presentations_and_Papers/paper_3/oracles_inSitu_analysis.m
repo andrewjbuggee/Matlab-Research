@@ -116,8 +116,8 @@ text(1:length(num_driz_nonDriz), num_driz_nonDriz, num2str(num_driz_nonDriz'),..
     'vert','bottom','horiz','center');
 set(gca, 'XTickLabel', {'Non-drizzling', 'Drizzling'}, 'Fontsize', 20)
 ylabel('Number of profiles', 'fontsize', 20)
-title(['ORACLES vertical profiles', newline', 'drizzle LWP threshold ($D > 50 \mu m $) = ', ...
-    num2str(drizzle_LWP_threshold), ' $g/m^{2}$'], 'interpreter', 'latex',...
+title(['ORACLES vertical profiles', newline', 'drizzle LWP threshold ($LWP_{2DS} > $', ...
+    num2str(drizzle_LWP_threshold), ' $g/m^{2}$)'], 'interpreter', 'latex',...
     'fontsize', 20)
 grid on; grid minor
 set(gcf, 'Position', [0 0 600 600])
@@ -186,7 +186,7 @@ for nn = 1:N_profiles
 end
 
 % --- Plot histogram of adiabaticity for drizzle vs non-drizzle ---
-figure;
+figure1 = figure;
 hold on
 histogram(adiabaticity(~is_drizzle), 'BinWidth', 0.05, ...
     'FaceColor', plt_clr_1, 'FaceAlpha', 0.6, ...
@@ -202,6 +202,29 @@ legend({'Non-drizzling', 'Drizzling', 'Adiabatic'}, 'Location', 'best')
 grid on; grid minor
 set(gcf, 'Position', [0 0 650 500])
 
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+end
+saveas(figure1,[folderpath_figs,'Histogram of Adiabaticity from ORACLES in-situ measurements.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+title('');
+exportgraphics(figure1,[folderpath_figs, 'Histogram of Adiabaticity from ORACLES in-situ measurements.png'],...
+    'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
 % --- Adiabaticity vs LWP scatter ---
 figure; hold on
 scatter(LWP_measured(~is_drizzle), adiabaticity(~is_drizzle), 30, ...
@@ -216,6 +239,10 @@ legend({'Non-drizzling', 'Drizzling', 'Adiabatic ($A_d=1$)'}, ...
     'Location', 'best', 'Interpreter', 'latex')
 grid on; grid minor
 set(gcf, 'Position', [0 0 650 500])
+
+
+
+
 
 
 %% -------------------------------------------------------------------------
@@ -648,13 +675,17 @@ ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 
 set(gcf, 'Position', [0 0 1200 600])
 
+
+
+
+
+
 % --- Overlay drizzling vs non-drizzling on same axes ---
 % Create figure
 figure1 = figure;
 
 % Create axes
-axes1 = axes('Parent',figure1,...
-    'Position',[0.213894399154591 0.144881944444444 0.189354393115943 0.771350694444444]);
+axes1 = axes('Parent',figure1,'Position',[0.185000000000001 0.11 0.21340579710145 0.815]);
 hold(axes1,'on');
 
 subplot(1,3,1)
@@ -673,11 +704,19 @@ ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 
 legend({'','Non-drizzling','','Drizzling'}, 'Location', 'best',...
     'Interpreter', 'latex', 'FontSize', fnt_sz-2, 'Color', 'white', 'TextColor', 'black',...
-    'Position',[0.0153049178561151 0.812493412950304 0.171744791666667 0.114166666666667])
+    'Position',[0.00447158452278369 0.806666666666669 0.14136174881055 0.111660079616977])
+
+
+
+
 
 
 
 subplot(1,3,2)
+
+% axes2 = axes('Parent',figure1,'Position',[0.465797101449277 0.11 0.21340579710145 0.815]);
+% hold(axes2,'on');
+
 hold on
 x = [lwc_med_nd - lwc_iqr_nd/2; flipud(lwc_med_nd + lwc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
@@ -690,9 +729,17 @@ set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle LWC(z) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
+title('ORACLES median profiles: drizzling vs non-drizzling', 'Interpreter', 'latex',...
+    'FontSize', ttl_fnt)
+
 
 
 subplot(1,3,3)
+
+% Create axes
+% axes3 = axes('Parent',figure1,'Position',[0.746594202898554 0.11 0.213405797101449 0.815]);
+% hold(axes3,'on');
+
 hold on
 x = [Nc_med_nd - Nc_iqr_nd/2; flipud(Nc_med_nd + Nc_iqr_nd/2)];
 y = [bin_center; flipud(bin_center)];
@@ -708,11 +755,28 @@ ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 
 set(gcf, 'Position', [0 0 1200 600])
 
-hold on; subplot(1,3,2)
-title('ORACLES median profiles: drizzling vs non-drizzling', 'Interpreter', 'latex',...
-    'FontSize', ttl_fnt)
 
 
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% % save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+% end
+% saveas(figure1,[folderpath_figs,'ORACLES in-situ profiles separated by drizzle and non drizzle.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% title('');
+% exportgraphics(figure1,[folderpath_figs,'ORACLES in-situ profiles separated by drizzle and non drizzle',...
+%     '.png'],'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
 
 
 
