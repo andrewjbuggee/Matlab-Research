@@ -11,7 +11,7 @@
 #SBATCH --time=23:59:59   # Request 23 hours and 59 minutes for longer computation
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=90G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
+#SBATCH --mem=85G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41
@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1239%16    # 239 measurements from the ensemble_profiles to process
+#SBATCH --array=1001-1237%10    # 237 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
