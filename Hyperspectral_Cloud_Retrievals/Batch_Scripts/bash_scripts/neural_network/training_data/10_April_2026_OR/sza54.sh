@@ -19,7 +19,7 @@
 #SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza54_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1601-1837%10    # 237 measurements from the ensemble_profiles to process
+#SBATCH --array=1601-1837%13    # 237 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
