@@ -150,7 +150,7 @@ for pp = 1:2
 
         for bb = 1:n_bins_pw
             in_bin = actpw_true_all{jj} >= actpw_edges(bb) & ...
-                     actpw_true_all{jj} <  actpw_edges(bb+1);
+                actpw_true_all{jj} <  actpw_edges(bb+1);
             if sum(in_bin) > 0
                 med_bias(bb) = median(delta_all{jj}(in_bin));
                 q25(bb)      = prctile(delta_all{jj}(in_bin), 25);
@@ -161,9 +161,9 @@ for pp = 1:2
         valid = ~isnan(med_bias);
 
         fill([actpw_ctrs(valid), fliplr(actpw_ctrs(valid))], ...
-             [q25(valid),        fliplr(q75(valid))], ...
-             C(jj,:), 'FaceAlpha', 0.18, 'EdgeColor', 'none', ...
-             'HandleVisibility', 'off')
+            [q25(valid),        fliplr(q75(valid))], ...
+            C(jj,:), 'FaceAlpha', 0.18, 'EdgeColor', 'none', ...
+            'HandleVisibility', 'off')
 
         h_lines(jj) = plot(actpw_ctrs(valid), med_bias(valid), '.-', ...
             'Color', C(jj,:), 'LineWidth', lw, 'MarkerSize', mk_sz,...
@@ -247,9 +247,9 @@ for ii = 1:N_ref
 
     for jj = 1:n_iwv
         idx = find( abs(rtop_true_all{jj} - rt) < tol & ...
-                    abs(rbot_true_all{jj} - rb) < tol & ...
-                    abs(tauc_true_all{jj} - tc) < tol & ...
-                    abs(actpw_true_all{jj} - ap) < tol, 1);
+            abs(rbot_true_all{jj} - rb) < tol & ...
+            abs(tauc_true_all{jj} - tc) < tol & ...
+            abs(actpw_true_all{jj} - ap) < tol, 1);
         if ~isempty(idx)
             d_top(jj) = delta_rtop_all{jj}(idx);
             d_bot(jj) = delta_rbot_all{jj}(idx);
@@ -742,8 +742,8 @@ fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_
 % end
 % saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
 %     num2str(plt_idx), '.fig']);
-% 
-% 
+%
+%
 % % save .png with 500 DPI resolution
 % % remove title
 % title('');
@@ -1405,7 +1405,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
 
     % define the folder where retrievals are located
     % *** 2/13/2026 - Retrieval with overlapping EMIT/Aqua data
-    %          
+    %
     % folder_paths.retrieval = '/Users/andrewbuggee/MATLAB-Drive/EMIT/overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_5';
 
 
@@ -1531,13 +1531,13 @@ for nn = 1:length(filenames_retrieval)
     % ----------------------------------------
 
     if strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
+            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
 
         pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
             'pixel_', '_'));
 
     elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
+            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
 
         pixel_num = 1;
 
@@ -1546,7 +1546,7 @@ for nn = 1:length(filenames_retrieval)
 
 
 
-    
+
     % ----------------------------------------
     % *** Load MODIS, AIRS and AMSR-E data ***
     % ----------------------------------------
@@ -1628,7 +1628,7 @@ for nn = 1:length(filenames_retrieval)
     % compute the uncertainty of LWP - the uncertaities of effective radius
     % and optical depth add in quadrature and you must account for the
     % change in LWP with respect to each variable
-    % 
+    %
     lwp_modis_err(nn) = 2/3 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
         modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
         (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
@@ -1789,7 +1789,7 @@ re_top(idx_2delete_round2) = [];
 % rms_err_lwp_hyperspectral = 100 * sqrt( mean( (1 - lwp_retrieval./lwp_inSitu).^2 ));  % percent
 % rms_err_lwp_tblut = 100 * sqrt( mean( (1 - lwp_tblut./lwp_inSitu).^2 ));  % percent
 % rms_err_lwp_tblut_WH = 100 * sqrt( mean( (1 - lwp_tblut_WH./lwp_inSitu).^2 ));  % percent
-% 
+%
 % % using the new LWP calc!
 % rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
 
@@ -1850,6 +1850,16 @@ re_rTop_avg_percent_diff = mean( ( 100 .* (1 - re_top./re_modis) ));
 
 
 clear variables
+
+fnt_sz = 20;
+ln_wdth = 2.5;
+
+% Define an optical depth range to plot
+tauC_min = 21;
+tauC_max = 22;
+
+make_mre_figure = false;
+make_single_figure = true;
 
 
 % Determine which computer you're using
@@ -1931,9 +1941,7 @@ rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 
 
 
-% Define an optical depth range to plot
-tauC_min = 5;
-tauC_max = 6;
+
 
 
 
@@ -1960,7 +1968,7 @@ for nn = 1:length(filenames_retrieval)
 
     end
 
-   
+
 
 
     % ----------------------------------------
@@ -1968,13 +1976,13 @@ for nn = 1:length(filenames_retrieval)
     % ----------------------------------------
 
     if strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
+            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
 
         pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
             'pixel_', '_'));
 
     elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
+            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
 
         pixel_num = 1;
 
@@ -1983,26 +1991,50 @@ for nn = 1:length(filenames_retrieval)
 
 
 
-    
-    % ----------------------------------------
-    % *** Load MODIS and EMIT data ***
-    % ----------------------------------------
+
+    % ----------------------------------------------
+    % *** Load EMIT data and comptue Reflectance ***
+    % ----------------------------------------------
 
     % Load EMIT data
     [emit, ~] = retrieveEMIT_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+    % Remove data that is not needed
+    % ----------------------------------------
+    emit = remove_unwanted_emit_data(emit, ds.overlap_pixels.emit);
 
+    % Create an input structure that helps write the INP files
+    GN_inputs = create_gauss_newton_inputs_for_emit_ver4_log(emit, false);
+
+    % define the solar zenith angle
+    GN_inputs.RT.sza = emit.obs.solar.zenith;           % degree
+
+    % Define the spectral response function of EMIT for the desired Bands
+    [GN_inputs, spec_response] = create_EMIT_specResponse(emit, GN_inputs);
+
+    % Define the solar source file name and read in the solar source data
+    % ********* IMPORTANT *************
+    % The source flux is integrated with the EMIT spectral response function
+    % define the source file using the input resolution
+    GN_inputs = define_source_for_EMIT(GN_inputs, emit);
+
+    % Convert radiance measurements to TOA reflectance for the desired pixel
+    emit = convert_EMIT_radiance_2_reflectance(emit, GN_inputs);
+
+    % Compute the radiance measurement uncertainty
+    [emit.radiance.uncertainty, emit.radiance.uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit);
+
+    %Compute the reflectance uncertainty
+    emit.reflectance.uncertainty = compute_EMIT_reflectance_uncertainty(emit, GN_inputs);
+
+
+    % ----------------------------------------------
+    % ******** Load MODIS Data ********
+    % ----------------------------------------------
     % Load Aqua/MODIS Data
     [modis, ~] = retrieveMODIS_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
 
-
-
-    % ----------------------------------------
-
-    % ----------------------------------------
     % Remove data that is not needed
     % ----------------------------------------
-    emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
-
     modis = remove_unwanted_modis_data(modis, ds.overlap_pixels.modis);
 
 
@@ -2060,8 +2092,56 @@ for nn = 1:length(filenames_retrieval)
 
     % -------------------------------------------------------
     % -------------------------------------------------------
-    % Grab the true measurement spectrum and the predicted spectrum
-    
+    % plot the true measurement spectrum and the predicted spectrum
+    % -------------------------------------------------------------
+    R_est = emit.reflectance.value(ds.GN_inputs.bands2run)./exp(ds.GN_outputs.residual(:,end));
+
+
+    if make_single_figure == true
+
+        % compute the mean realtive error
+        mre = mean( 100* abs(emit.reflectance.value(ds.GN_inputs.bands2run) - R_est) ./...
+            emit.reflectance.value(ds.GN_inputs.bands2run));    % mean relative percent error
+
+        figure;
+        plot(emit.radiance.wavelength, emit.reflectance.value,...
+            'Color', mySavedColors(63, 'fixed'), 'Linewidth', ln_wdth)
+        hold on
+        plot(emit.radiance.wavelength(ds.GN_inputs.bands2run(1:100)), R_est(1:100),...
+            'Color', mySavedColors(62, 'fixed'), 'Linewidth', ln_wdth)
+        plot(emit.radiance.wavelength(ds.GN_inputs.bands2run(101:end)), R_est(101:end),...
+            'Color', mySavedColors(62, 'fixed'), 'LineWidth', ln_wdth)
+        grid on; grid minor
+
+        xlabel('Wavelength ($nm$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+        ylabel('Reflectance ($1/sr$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+
+        title(['$\tau_c = $', num2str(round(ds.GN_outputs.retrieval(3,end), 2)), '    -   ',...
+            'Mean Relative \% Error = ', num2str(round(mre, 2)), '\%'],...
+            'Interpreter','latex', 'FontSize', fnt_sz)
+        legend('EMIT Reflectance', 'Estimated Reflectance',...
+            'Interpreter','latex', 'FontSize', fnt_sz)
+
+        set(gcf,'Position',[0 0 1000 650])
+
+
+        break
+
+
+    elseif make_mre_figure == true
+
+        if exist('mre', "var") == false
+
+            mre = zeros(length(filenames_retrieval));
+        end
+        % compute the mean realtive error
+        mre(nn) = mean( 100* abs(emit.reflectance.value(ds.GN_inputs.bands2run) - R_est) ./...
+            emit.reflectance.value(ds.GN_inputs.bands2run));    % mean relative percent error
+
+    end
+
+
+
     % -------------------------------------------------------
     % -------------------------------------------------------
 
@@ -2222,7 +2302,7 @@ text(0.05, 0.95, eq_str_tau, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
 
 
 % MODIS ACPW_err according to https://atmosphere-imager.gsfc.nasa.gov/products/water-vapor
-acpw_modis_err = 0.1; 
+acpw_modis_err = 0.1;
 
 % *** Plot MODIS ACPW versus hyperspectral retrieval ***
 subplot(2,3,5)
@@ -2297,8 +2377,8 @@ set(gcf,'Position',[0 0 1350 750])
 % end
 % saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
 %     'TauC and ACPW against the True values.fig']);
-% 
-% 
+%
+%
 % % save .png with 500 DPI resolution
 % % remove title
 % exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
