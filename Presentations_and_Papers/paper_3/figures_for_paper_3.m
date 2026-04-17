@@ -2087,7 +2087,7 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 % median value at each level instead. 
 
 
-% -------------------------------------------------------------------------
+% ------------------------------------------------------------------------
 % ------ Create median profiles of re, vEff, lwc, and tau_c from VOCALS-REx data ---
 % -------------------------------------------------------------------------
 clear variables
@@ -2360,7 +2360,7 @@ plot(re_med_d, bin_center, '-', 'Color', plt_clr_2, 'LineWidth', 1.5)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([3, 15])
+xlim([3, 17])
 
 % Create textbox
 annotation(figure1,'textbox',[0.130138 0.836 0.0373 0.0666],'String',{'(a)'},...
@@ -2388,7 +2388,7 @@ set(gca, 'YDir', 'reverse')
 set(gca, 'XScale', 'log')
 grid on; grid minor
 % ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([0.005, 0.175])
+xlim([0.01, 0.175])
 
 % Create textbox
 annotation(figure1,'textbox',[0.451315023418542 0.836 0.0373 0.0666],'String',{'(b)'},...
@@ -2461,7 +2461,7 @@ annotation(figure1,'textbox',[0.746454846227638 0.836 0.0373 0.0666],'String','(
     'FontName','Helvetica Neue',...
     'FitBoxToText','off',...
     'EdgeColor','none');
-xlim([0, 240])
+xlim([0, 270])
 
 legend({'','Non-drizzling',...
     '','Drizzling'}, 'Location', 'best',...
@@ -2755,7 +2755,7 @@ set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle r_e(\tau) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([3, 15])
+xlim([3, 17])
 
 % Create textbox
 annotation(figure1,'textbox',[0.132465746741153 0.367111111111112 0.0373 0.0666],'String',{'(e)'},...
@@ -2783,7 +2783,7 @@ set(gca, 'XScale', 'log')
 grid on; grid minor
 xlabel('$\langle \nu_{e}(\tau) \rangle$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 % ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([0.005, 0.175])
+xlim([0.01, 0.175])
 
 % Create textbox
 annotation(figure1,'textbox',[0.343867473506009 0.367111111111112 0.0373 0.0666],'String',{'(f)'},...
@@ -2854,7 +2854,7 @@ set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle N_c(\tau) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 % ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([0, 240])
+xlim([0, 270])
 
 % Create textbox
 annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666],'String','(h)',...
@@ -2877,20 +2877,20 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-% if strcmp(whatComputer,'anbu8374')==true
-%     error(['Where do I save the figure?'])
-% elseif strcmp(whatComputer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
-% end
-% saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
-%     '- 4 panels with logNorm uncert.fig']);
-% 
-% 
-% % save .png with 500 DPI resolution
-% % remove title
-% title('');
-% exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
-%     'and non drizzle - 4 panels with logNorm uncert.png'],'Resolution', 500);
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+end
+saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
+    '- 4 panels with logNorm uncert.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+title('');
+exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
+    'and non drizzle - 4 panels with logNorm uncert.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
