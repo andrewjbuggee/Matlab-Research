@@ -1832,6 +1832,258 @@ re_rTop_avg_percent_diff = mean( ( 100 .* (1 - re_top./re_modis) ));
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Plot true and predicted EMIT spectrum with Mean relative error
+
+
+
+clear variables
+
+
+% Determine which computer you're using
+which_computer = whatComputer();
+
+% Load simulated measurements
+if strcmp(which_computer,'anbu8374')==true
+
+    % -----------------------------------------
+    % ------ Folders on my Mac Desktop --------
+    % -----------------------------------------
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    % define the folder where the Vocals-Rex in-situ derived measurements
+    % are located
+    folder_paths.retrieval = ['/Users/anbu8374/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12/'];
+
+
+elseif strcmp(which_computer,'andrewbuggee')==true
+
+    % -------------------------------------
+    % ------ Folders on my Macbook --------
+    % -------------------------------------
+
+    coincident_dataPath = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/'];
+
+    % mie folder location
+    mie_folder_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations/';
+
+    atm_data_directory = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/atmmod/';
+
+    % define the folder where retrievals are located
+    % *** 2/23/2026 - Retrieval with overlapping EMIT/Aqua data ***
+    % !! 672 retrievals !!
+    folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12'];
+
+
+
+elseif strcmp(which_computer,'curc')==true
+
+
+    % ------------------------------------------------
+    % ------ Folders on the CU Super Computer --------
+    % ------------------------------------------------
+
+
+end
+
+
+% First step through all files in the directory and remove invisble files
+% or directories
+
+% Grab filenames in drive
+filenames_retrieval = dir(folder_paths.retrieval);
+idx_2delete = [];
+for nn = 1:length(filenames_retrieval)
+
+    if contains(filenames_retrieval(nn).name, "EMIT_dropRetrieval", "IgnoreCase", true) == false
+
+        idx_2delete = [idx_2delete, nn];
+
+
+    end
+
+end
+
+% delete rows that don't have retrieval filenames
+filenames_retrieval(idx_2delete) = [];
+
+
+
+con = physical_constants;
+rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
+
+
+
+% Define an optical depth range to plot
+tauC_min = 5;
+tauC_max = 6;
+
+
+
+for nn = 1:length(filenames_retrieval)
+
+    clear ds
+
+    ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+
+
+    % Check to see if the retrieval converged
+    if isfield(ds, 'GN_outputs')==false
+
+        % skip this file
+        continue
+
+    end
+
+    % check that the optical depth is between the min and max values
+    if (ds.GN_outputs.retrieval(3,end) < tauC_min) || (ds.GN_outputs.retrieval(3,end) > tauC_max)
+
+        % skip this file
+        continue
+
+    end
+
+   
+
+
+    % ----------------------------------------
+    % *** Extract the EMIT pixel number ***
+    % ----------------------------------------
+
+    if strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
+
+        pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
+            'pixel_', '_'));
+
+    elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
+
+        pixel_num = 1;
+
+    end
+
+
+
+
+    
+    % ----------------------------------------
+    % *** Load MODIS and EMIT data ***
+    % ----------------------------------------
+
+    % Load EMIT data
+    [emit, ~] = retrieveEMIT_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+
+    % Load Aqua/MODIS Data
+    [modis, ~] = retrieveMODIS_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
+
+
+
+    % ----------------------------------------
+
+    % ----------------------------------------
+    % Remove data that is not needed
+    % ----------------------------------------
+    emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
+
+    modis = remove_unwanted_modis_data(modis, ds.overlap_pixels.modis);
+
+
+
+
+
+
+    % ** use the MODIS measurement closest to EMIT **
+    unique_modis_pix = unique(ds.overlap_pixels.modis.linear_idx);
+    unique_pix_idx_modis = zeros(1, length(ds.overlap_pixels.modis.linear_idx));
+    for xx = 1:length(unique_pix_idx_modis)
+
+        unique_pix_idx_modis(xx) = find(unique_modis_pix==ds.overlap_pixels.modis.linear_idx(xx));
+
+    end
+
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % store the MODIS retrieved effective radius
+    re_modis(nn) = modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) );  % microns
+
+    % store the radius at cloud top and base from the hyperspectral
+    % retrieval
+    re_top(nn) = ds.GN_outputs.retrieval(1,end);                     % microns
+    re_base(nn) = ds.GN_outputs.retrieval(2,end);                    % microns
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % store the retrieved optical depth
+    tauC_retrieval(nn) = ds.GN_outputs.retrieval(3,end);    %
+
+    % What is the MODIS optical depth
+    tauC_modis(nn) = modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) );
+
+    % Store the optical thickness retrieval uncertainty
+    tauC_modis_err(nn) = modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num));
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+
+
+
+
+
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % Grab the true measurement spectrum and the predicted spectrum
+    
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Create plot showing hyperspectral retrieval of LWP with AMSR retrieval of LWP and its uncertainty
 
 % Define the linewidth
