@@ -145,7 +145,8 @@ end
 if three_panel_flag
     ax1 = subplot(1, 3, 1);
 else
-    ax1 = axes; %#ok<LAXES>
+    ax1 = axes;
+
 end
 
 imagesc(ax1, r_bins_plot, altitude, Nc_img);

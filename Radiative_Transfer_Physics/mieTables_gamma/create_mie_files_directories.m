@@ -84,8 +84,8 @@ end
 % set the mie file parameters
 % Set the mie file parameters
 mie_program = 'MIEV0';               % type of mie algorithm to run
-index_of_refraction = 'water';    % This function only deals with liquid water clouds
-size_distribution = 'lognormal';     % Example size distribution type
+index_of_refraction = 'water';      % This function only deals with liquid water clouds
+size_distribution = 'gamma';        % Example size distribution type
 mie_radius = [r_eff(1), r_eff(end), 1];    % microns
 err_msg_str = [];
 create_netCDF = true;

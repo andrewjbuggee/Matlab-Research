@@ -99,6 +99,7 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     folderpath_air = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Hyperspectral_Cloud_Retrievals/VOCALS_REx/',...
         'vocals_rex_data/NCAR_C130/SPS_1/'];
 
+    % --- non-precip profiles only, LWC>0.03, Nc>25 ----
     saved_profiles_filename = ['ensemble_profiles_without_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25',...
         '_drizzleLWP-threshold_5_10-Nov-2025.mat'];
 
