@@ -2901,7 +2901,7 @@ exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median p
 
 
 
-%% Combine VOCALS-REx and ORACLES - percentile bands (10-90 outer, 25-75 inner)
+%% Combine VOCALS-REx and ORACLES - 25-75 filled band, 10th/90th as dashed lines
 %
 % The cell blocks above display "spread" in two ways that both hide the
 % asymmetry of the underlying lognormal-like distributions:
@@ -2918,13 +2918,14 @@ exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median p
 % construction. Skewness in the distribution is thrown away.
 %
 % Here we plot percentiles directly:
-%   outer (lighter) band : 10th to 90th percentile
-%   inner (darker)  band : 25th to 75th percentile
-%   solid line           : median (50th percentile)
+%   filled band  : 25th to 75th percentile
+%   dashed lines : 10th and 90th percentiles (same color as the median)
+%   solid line   : median (50th percentile)
 %
-% Because each edge of each band is the actual percentile of the sampled
-% data at that vertical level, the left/right widths relative to the
-% median reflect the true asymmetry in the distribution.
+% Because each edge of the band and each dashed line is the actual
+% percentile of the sampled data at that vertical level, the left/right
+% widths relative to the median reflect the true asymmetry in the
+% distribution.
 
 
 % -------------------------------------------------------------------------
@@ -3065,81 +3066,96 @@ plt_clr_2   = mySavedColors(62,'fixed');
 
 fnt_sz      = 18;
 ttl_fnt     = 20;
-alpha_outer = 0.17;
 alpha_inner = 0.30;
 ln_w        = 1.5;
-
+pnl_fnt     = 21;
 
 y = [bin_center; flipud(bin_center)];
 
 % --- (a) r_e ---
 subplot(2,4,1)
 hold on
-fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([re_p_nd(:,2); flipud(re_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(re_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(re_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(re_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([re_p_d(:,2);  flipud(re_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 xlim([3, 18])
 
 annotation(figure1,'textbox',[0.130138 0.836 0.0373 0.0666],'String',{'(a)'},...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % --- (b) v_eff ---
 subplot(2,4,2)
 hold on
-fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([vEff_p_nd(:,2); flipud(vEff_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(vEff_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(vEff_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(vEff_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([vEff_p_d(:,2);  flipud(vEff_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 set(gca, 'XScale', 'log')
 grid on; grid minor
 xlim([0.005, 0.175])
 
 annotation(figure1,'textbox',[0.451315023418542 0.836 0.0373 0.0666],'String',{'(b)'},...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % --- (c) LWC ---
 subplot(2,4,3)
 hold on
-fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([lwc_p_nd(:,2); flipud(lwc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(lwc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(lwc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(lwc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([lwc_p_d(:,2);  flipud(lwc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 title(['VOCALS-REx median profiles - N = ', num2str(num_kept),' - $\tau_{c} \geq$ ', num2str(tauC_limit)],...
     'Interpreter', 'latex','FontSize', ttl_fnt)
 annotation(figure1,'textbox',[0.540879493143727 0.836 0.0373 0.0666],'String','(c)',...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
-xlim([0, 0.7])
+xlim([0, 0.725])
 
 % --- (d) N_c ---
 subplot(2,4,4)
 hold on
-fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([Nc_p_nd(:,2); flipud(Nc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-h_nd = plot(Nc_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w);
-fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(Nc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+h_nd = plot(Nc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w);
+plot(Nc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([Nc_p_d(:,2);  flipud(Nc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-h_d  = plot(Nc_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w);
+plot(Nc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+h_d  = plot(Nc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w);
+plot(Nc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
-xlim([0, 300])
+xlim([0, 325])
 annotation(figure1,'textbox',[0.746454846227638 0.836 0.0373 0.0666],'String','(d)',...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 legend([h_nd h_d], {'Non-drizzling','Drizzling'}, ...
@@ -3152,7 +3168,7 @@ legend([h_nd h_d], {'Non-drizzling','Drizzling'}, ...
 % ------ ORACLES: load, separate drizzle, compute percentiles -------------
 % -------------------------------------------------------------------------
 clearvars -except figure1 bin_center n_bins bin_edges fnt_sz ttl_fnt ...
-    plt_clr_1 plt_clr_2 alpha_outer alpha_inner ln_w
+    plt_clr_1 plt_clr_2 alpha_inner ln_w pnl_fnt
 
 tauC_limit = 3;
 
@@ -3276,79 +3292,123 @@ y = [bin_center; flipud(bin_center)];
 % --- (e) r_e ---
 subplot(2,4,5)
 hold on
-fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([re_p_nd(:,2); flipud(re_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(re_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(re_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(re_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([re_p_d(:,2);  flipud(re_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(re_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle r_e(\tau) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 xlim([3, 18])
 annotation(figure1,'textbox',[0.132465746741153 0.367111111111112 0.0373 0.0666],'String',{'(e)'},...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize', pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % --- (f) v_eff ---
 subplot(2,4,6)
 hold on
-fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([vEff_p_nd(:,2); flipud(vEff_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(vEff_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(vEff_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(vEff_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([vEff_p_d(:,2);  flipud(vEff_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(vEff_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 set(gca, 'XScale', 'log')
 grid on; grid minor
 xlabel('$\langle \nu_{e}(\tau) \rangle$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 xlim([0.005, 0.175])
 annotation(figure1,'textbox',[0.343867473506009 0.367111111111112 0.0373 0.0666],'String',{'(f)'},...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % --- (g) LWC ---
 subplot(2,4,7)
 hold on
-fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([lwc_p_nd(:,2); flipud(lwc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(lwc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(lwc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(lwc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([lwc_p_d(:,2);  flipud(lwc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(lwc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle LWC(\tau) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
 title(['ORACLES median profiles - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(tauC_limit)],...
     'Interpreter', 'latex','FontSize', ttl_fnt)
-xlim([0, 0.7])
+xlim([0, 0.725])
 annotation(figure1,'textbox',[0.542078635404322 0.361555555555556 0.0372999999999999 0.0666],'String','(g)',...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % --- (h) N_c ---
 subplot(2,4,8)
 hold on
-fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([Nc_p_nd(:,2); flipud(Nc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_nd(:,3), bin_center, '-', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_outer)
+plot(Nc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(Nc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+plot(Nc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
+fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
 fill([Nc_p_d(:,2);  flipud(Nc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_d(:,3),  bin_center, '-', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(Nc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(Nc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
+plot(Nc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle N_c(\tau) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
-xlim([0, 300])
+xlim([0, 325])
 annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666],'String','(h)',...
-    'Interpreter','latex','FontSize',25,'FontName','Helvetica Neue',...
+    'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
 % IEEE-column sizing
 w = 7.16; h = 3;
 figure1.Units    = 'inches';
 figure1.Position = [1, 1, 2.75*w, 2.75*h];
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+end
+saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
+    '- 4 panels with 10 25 50 75 and 90 percentiles.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+title('');
+exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
+    'and non drizzle - 4 panels with 10 25 50 75 and 90 percentiles.png'],'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
+
+
+
 
 
 
