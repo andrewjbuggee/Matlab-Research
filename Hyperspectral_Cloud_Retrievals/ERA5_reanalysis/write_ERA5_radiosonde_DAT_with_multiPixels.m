@@ -199,7 +199,7 @@ use_virtual_temp = true;  % More accurate (~1% improvement)
 
 % For integration, we need data sorted from surface to TOA (increasing altitude)
 % First, determine the current ordering
-if altitGude(1) > altitude(end)
+if altitude(1) > altitude(end)
     % Currently TOA to surface, need to flip
     altitude_sorted = flipud(altitude);
     rho_v_sorted = flipud(rho_v);
