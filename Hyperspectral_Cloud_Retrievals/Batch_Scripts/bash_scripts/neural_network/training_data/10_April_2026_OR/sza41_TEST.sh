@@ -13,7 +13,7 @@
 #SBATCH --qos=testing
 #SBATCH --mem=85G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=16
 #SBATCH --job-name=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41
 #SBATCH --output=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_%A_%a.out
 #SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_%A_%a.err
