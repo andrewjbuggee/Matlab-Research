@@ -8,18 +8,18 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
-#SBATCH --time=00:59:00   # Request 23 hours and 59 minutes for longer computation
+#SBATCH --time=00:59:00   # Request 10 hours and 59 minutes for longer computation
 #SBATCH --partition=atesting
 #SBATCH --qos=testing
 #SBATCH --mem=85G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
-#SBATCH --job-name=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41
-#SBATCH --output=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_%A_%a.out
-#SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_%A_%a.err
+#SBATCH --cpus-per-task=10
+#SBATCH --job-name=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_TEST
+#SBATCH --output=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_TEST_%A_%a.out
+#SBATCH --error=create_meas_pt3_percent_OR_insitu_ERA5_trainingData_sza41_TEST_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1002%2    # test 2 measurements from the ensemble_profiles to process
+#SBATCH --array=1001    # test 2 measurements from the ensemble_profiles to process
 
 # Load modules
 ml purge
