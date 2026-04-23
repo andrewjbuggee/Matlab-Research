@@ -663,7 +663,7 @@ exportgraphics(figure1,[folderpath_figs,'VOCALS-REx in-situ median profiles sepa
 
 
 
-%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR 
+%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR
 
 
 % -------------------------------------------------------------------------
@@ -1295,7 +1295,7 @@ exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median p
 
 
 
-%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR 
+%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR
 % *** 4 panels including effective variance ***
 % *** Plot the Inter-quartile range (25% - 75%) as the uncertainty
 
@@ -1490,7 +1490,7 @@ vEff_med_d   = zeros(n_bins,1);  vEff_iqr_d   = zeros(n_bins,1);
 
 for bb = 1:n_bins
 
-     % --- without drizzle ---
+    % --- without drizzle ---
     re_med_nd(bb)    = median(vertSeg_nd{bb,1}, 'omitnan');
     lwc_med_nd(bb)   = median(vertSeg_nd{bb,2}, 'omitnan');
     Nc_med_nd(bb)    = median(vertSeg_nd{bb,3}, 'omitnan');
@@ -1507,7 +1507,7 @@ for bb = 1:n_bins
     lwc_med_d(bb)    = median(vertSeg_d{bb,2}, 'omitnan');
     Nc_med_d(bb)     = median(vertSeg_d{bb,3}, 'omitnan');
     vEff_med_d(bb)   = median(vertSeg_d{bb,4}, 'omitnan');
-    
+
     re_iqr_d(bb)    = iqr(vertSeg_d{bb,1});
     lwc_iqr_d(bb)   = iqr(vertSeg_d{bb,2});
     Nc_iqr_d(bb)    = iqr(vertSeg_d{bb,3});
@@ -1825,7 +1825,7 @@ for nn = 1:N_profiles
     lwc_bin(lwc_bin == 0) = 0.001;
     Nc_bin(Nc_bin == 0) = 0.01;
 
-    
+
 
     for bb = 1:n_bins
         if bb == 1
@@ -1882,7 +1882,7 @@ for bb = 1:n_bins
     lwc_med_d(bb)    = median(vertSeg_d{bb,2}, 'omitnan');
     Nc_med_d(bb)     = median(vertSeg_d{bb,3}, 'omitnan');
     vEff_med_d(bb)   = median(vertSeg_d{bb,4}, 'omitnan');
-    
+
     re_iqr_d(bb)    = iqr(vertSeg_d{bb,1});
     lwc_iqr_d(bb)   = iqr(vertSeg_d{bb,2});
     Nc_iqr_d(bb)    = iqr(vertSeg_d{bb,3});
@@ -2052,8 +2052,8 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 % end
 % saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
 %     '- 4 panels with IQR.fig']);
-% 
-% 
+%
+%
 % % save .png with 500 DPI resolution
 % % remove title
 % title('');
@@ -2076,7 +2076,7 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 
 
 
-%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR 
+%% Combine VOCALS-REx and ORACLES in a subplot to show median profiles and the IQR
 % *** 4 panels including effective variance ***
 % *** With asymmetric uncert ***
 
@@ -2084,7 +2084,7 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 % spread in the values of each variable. These variables tend to follow log
 % normal distributions, and the IQR doesn't show the asymmetric nature of
 % the distribution. Try plotting the average deviation above and below the
-% median value at each level instead. 
+% median value at each level instead.
 
 
 % ------------------------------------------------------------------------
@@ -2277,7 +2277,7 @@ vEff_med_d   = zeros(n_bins,1);  vEff_avgDevAbove_d  = zeros(n_bins,1); vEff_avg
 
 for bb = 1:n_bins
 
-     % --- without drizzle ---
+    % --- without drizzle ---
     re_med_nd(bb)    = median(vertSeg_nd{bb,1}, 'omitnan');
     lwc_med_nd(bb)   = median(vertSeg_nd{bb,2}, 'omitnan');
     Nc_med_nd(bb)    = median(vertSeg_nd{bb,3}, 'omitnan');
@@ -2635,7 +2635,7 @@ for nn = 1:N_profiles
     lwc_bin(lwc_bin == 0) = 0.001;
     Nc_bin(Nc_bin == 0) = 0.01;
 
-    
+
 
     for bb = 1:n_bins
         if bb == 1
@@ -2877,20 +2877,20 @@ annotation(figure1,'textbox',[0.745932819705434 0.367111111111112 0.0373 0.0666]
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(whatComputer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(whatComputer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
-end
-saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
-    '- 4 panels with logNorm uncert.fig']);
-
-
-% save .png with 500 DPI resolution
-% remove title
-title('');
-exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
-    'and non drizzle - 4 panels with logNorm uncert.png'],'Resolution', 500);
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+% end
+% saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
+%     '- 4 panels with logNorm uncert.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% title('');
+% exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
+%     'and non drizzle - 4 panels with logNorm uncert.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -3035,11 +3035,11 @@ for nn = 1:N_profiles
 end
 
 % Percentiles: [p10, p25, p50, p75, p90] per bin
-pct = [10 25 50 75 90];
-re_p_nd   = zeros(n_bins, 5);  re_p_d   = zeros(n_bins, 5);
-lwc_p_nd  = zeros(n_bins, 5);  lwc_p_d  = zeros(n_bins, 5);
-Nc_p_nd   = zeros(n_bins, 5);  Nc_p_d   = zeros(n_bins, 5);
-vEff_p_nd = zeros(n_bins, 5);  vEff_p_d = zeros(n_bins, 5);
+pct = [10 50 90];
+re_p_nd   = zeros(n_bins, length(pct));  re_p_d   = zeros(n_bins, length(pct));
+lwc_p_nd  = zeros(n_bins, length(pct));  lwc_p_d  = zeros(n_bins, length(pct));
+Nc_p_nd   = zeros(n_bins, length(pct));  Nc_p_d   = zeros(n_bins, length(pct));
+vEff_p_nd = zeros(n_bins, length(pct));  vEff_p_d = zeros(n_bins, length(pct));
 
 for bb = 1:n_bins
     re_p_nd(bb,:)   = prctile(vertSeg_nd{bb,1}, pct);
@@ -3061,8 +3061,8 @@ disp(['# profiles removed: ', num2str(num_removed)])
 % -------------------------------------------------------------------------
 figure1 = figure;
 
-plt_clr_1   = mySavedColors(64,'fixed');
-plt_clr_2   = mySavedColors(62,'fixed');
+plt_clr_1   = mySavedColors(68,'fixed');
+plt_clr_2   = mySavedColors(67,'fixed');
 
 fnt_sz      = 18;
 ttl_fnt     = 20;
@@ -3075,16 +3075,14 @@ y = [bin_center; flipud(bin_center)];
 % --- (a) r_e ---
 subplot(2,4,1)
 hold on
-fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([re_p_nd(:,2); flipud(re_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(re_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(re_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([re_p_d(:,2);  flipud(re_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(re_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(re_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([re_p_nd(:,1); flipud(re_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(re_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([re_p_d(:,1);  flipud(re_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(re_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 ylabel('Normalized Optical Depth', 'Interpreter', 'latex', 'FontSize', fnt_sz)
@@ -3097,16 +3095,14 @@ annotation(figure1,'textbox',[0.130138 0.836 0.0373 0.0666],'String',{'(a)'},...
 % --- (b) v_eff ---
 subplot(2,4,2)
 hold on
-fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([vEff_p_nd(:,2); flipud(vEff_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(vEff_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(vEff_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([vEff_p_d(:,2);  flipud(vEff_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(vEff_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(vEff_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(vEff_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(vEff_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 set(gca, 'XScale', 'log')
 grid on; grid minor
@@ -3119,16 +3115,14 @@ annotation(figure1,'textbox',[0.451315023418542 0.836 0.0373 0.0666],'String',{'
 % --- (c) LWC ---
 subplot(2,4,3)
 hold on
-fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([lwc_p_nd(:,2); flipud(lwc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(lwc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(lwc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([lwc_p_d(:,2);  flipud(lwc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(lwc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(lwc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(lwc_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(lwc_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 title(['VOCALS-REx median profiles - N = ', num2str(num_kept),' - $\tau_{c} \geq$ ', num2str(tauC_limit)],...
@@ -3141,16 +3135,14 @@ xlim([0, 0.725])
 % --- (d) N_c ---
 subplot(2,4,4)
 hold on
-fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([Nc_p_nd(:,2); flipud(Nc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-h_nd = plot(Nc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w);
-plot(Nc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([Nc_p_d(:,2);  flipud(Nc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-h_d  = plot(Nc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w);
-plot(Nc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(Nc_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(Nc_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlim([0, 325])
@@ -3158,7 +3150,7 @@ annotation(figure1,'textbox',[0.746454846227638 0.836 0.0373 0.0666],'String','(
     'Interpreter','latex','FontSize',pnl_fnt,'FontName','Helvetica Neue',...
     'FitBoxToText','off','EdgeColor','none');
 
-legend([h_nd h_d], {'Non-drizzling','Drizzling'}, ...
+legend('', 'Non-drizzling','', 'Drizzling', ...
     'Location','best','Interpreter','latex', ...
     'FontSize', fnt_sz-2, 'Color','white','TextColor','black', ...
     'Position',[0.871976270152657 0.82592592592596 0.122791322836865 0.111660079616977])
@@ -3262,11 +3254,11 @@ for nn = 1:N_profiles
 
 end
 
-pct = [10 25 50 75 90];
-re_p_nd   = zeros(n_bins, 5);  re_p_d   = zeros(n_bins, 5);
-lwc_p_nd  = zeros(n_bins, 5);  lwc_p_d  = zeros(n_bins, 5);
-Nc_p_nd   = zeros(n_bins, 5);  Nc_p_d   = zeros(n_bins, 5);
-vEff_p_nd = zeros(n_bins, 5);  vEff_p_d = zeros(n_bins, 5);
+pct = [10 50 90];
+re_p_nd   = zeros(n_bins, length(pct));  re_p_d   = zeros(n_bins, length(pct));
+lwc_p_nd  = zeros(n_bins, length(pct));  lwc_p_d  = zeros(n_bins, length(pct));
+Nc_p_nd   = zeros(n_bins, length(pct));  Nc_p_d   = zeros(n_bins, length(pct));
+vEff_p_nd = zeros(n_bins, length(pct));  vEff_p_d = zeros(n_bins, length(pct));
 
 for bb = 1:n_bins
     re_p_nd(bb,:)   = prctile(vertSeg_nd{bb,1}, pct);
@@ -3292,16 +3284,14 @@ y = [bin_center; flipud(bin_center)];
 % --- (e) r_e ---
 subplot(2,4,5)
 hold on
-fill([re_p_nd(:,1); flipud(re_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([re_p_nd(:,2); flipud(re_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(re_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(re_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([re_p_d(:,1);  flipud(re_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([re_p_d(:,2);  flipud(re_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(re_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(re_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(re_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([re_p_nd(:,1); flipud(re_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(re_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([re_p_d(:,1);  flipud(re_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(re_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle r_e(\tau) \rangle \; (\mu m)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
@@ -3314,16 +3304,14 @@ annotation(figure1,'textbox',[0.132465746741153 0.367111111111112 0.0373 0.0666]
 % --- (f) v_eff ---
 subplot(2,4,6)
 hold on
-fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([vEff_p_nd(:,2); flipud(vEff_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(vEff_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(vEff_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([vEff_p_d(:,2);  flipud(vEff_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(vEff_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(vEff_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(vEff_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([vEff_p_nd(:,1); flipud(vEff_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(vEff_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([vEff_p_d(:,1);  flipud(vEff_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(vEff_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 set(gca, 'XScale', 'log')
 grid on; grid minor
@@ -3336,16 +3324,14 @@ annotation(figure1,'textbox',[0.343867473506009 0.367111111111112 0.0373 0.0666]
 % --- (g) LWC ---
 subplot(2,4,7)
 hold on
-fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([lwc_p_nd(:,2); flipud(lwc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(lwc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(lwc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([lwc_p_d(:,2);  flipud(lwc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(lwc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(lwc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(lwc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([lwc_p_nd(:,1); flipud(lwc_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(lwc_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([lwc_p_d(:,1);  flipud(lwc_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(lwc_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle LWC(\tau) \rangle \; (g/m^3)$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
@@ -3359,16 +3345,14 @@ annotation(figure1,'textbox',[0.542078635404322 0.361555555555556 0.037299999999
 % --- (h) N_c ---
 subplot(2,4,8)
 hold on
-fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,5))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([Nc_p_nd(:,2); flipud(Nc_p_nd(:,4))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_nd(:,1), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(Nc_p_nd(:,3), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
-plot(Nc_p_nd(:,5), bin_center, ':', 'Color', plt_clr_1, 'LineWidth', ln_w)
-fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,5))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha',0)
-fill([Nc_p_d(:,2);  flipud(Nc_p_d(:,4))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
-plot(Nc_p_d(:,1),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(Nc_p_d(:,3),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
-plot(Nc_p_d(:,5),  bin_center, ':', 'Color', plt_clr_2, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([Nc_p_nd(:,1); flipud(Nc_p_nd(:,3))], y, plt_clr_1, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(Nc_p_nd(:,2), bin_center, '-',  'Color', plt_clr_1, 'LineWidth', ln_w)
+% plot 10-90% data range as shaded region
+fill([Nc_p_d(:,1);  flipud(Nc_p_d(:,3))],  y, plt_clr_2, 'EdgeAlpha', 0, 'FaceAlpha', alpha_inner)
+% plot the median value as a solid line
+plot(Nc_p_d(:,2),  bin_center, '-',  'Color', plt_clr_2, 'LineWidth', ln_w)
 set(gca, 'YDir', 'reverse')
 grid on; grid minor
 xlabel('$\langle N_c(\tau) \rangle \; (cm^{-3})$', 'Interpreter', 'latex', 'FontSize', fnt_sz)
@@ -3393,14 +3377,14 @@ elseif strcmp(whatComputer,'andrewbuggee')==true
     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
 end
 saveas(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle and non drizzle',...
-    '- 4 panels with 10 25 50 75 and 90 percentiles.fig']);
+    '- 4 panels with 10 and 90 percentiles.fig']);
 
 
 % save .png with 500 DPI resolution
 % remove title
 title('');
 exportgraphics(figure1,[folderpath_figs,'VOCALS-REx and ORACLES in-situ median profiles separated by drizzle',...
-    'and non drizzle - 4 panels with 10 25 50 75 and 90 percentiles.png'],'Resolution', 500);
+    'and non drizzle - 4 panels with 10 and 90 percentiles.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -3595,7 +3579,7 @@ re_med_all       = zeros(n_bins,1);  re_iqr_all   = zeros(n_bins,1); re_std_all 
 
 
 for bb = 1:n_bins
-    
+
     % --- profiles without drizzle ---
     re_med_nd(bb)          = median(vertSeg_nd{bb,1}, 'omitnan');
     lwc_med_nd(bb)         = median(vertSeg_nd{bb,2}, 'omitnan');
@@ -3624,7 +3608,7 @@ for bb = 1:n_bins
 
     re_med_all(bb)          = median([vertSeg_nd{bb,1}, vertSeg_d{bb,1}], 'omitnan');
     re_iqr_all(bb)          = iqr([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
-    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]); 
+    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
 
 end
 
@@ -4038,7 +4022,7 @@ re_med_all       = zeros(n_bins,1);  re_iqr_all   = zeros(n_bins,1); re_std_all 
 
 
 for bb = 1:n_bins
-    
+
     % --- profiles without drizzle ---
     re_med_nd(bb)          = median(vertSeg_nd{bb,1}, 'omitnan');
     lwc_med_nd(bb)         = median(vertSeg_nd{bb,2}, 'omitnan');
@@ -4067,7 +4051,7 @@ for bb = 1:n_bins
 
     re_med_all(bb)          = median([vertSeg_nd{bb,1}, vertSeg_d{bb,1}], 'omitnan');
     re_iqr_all(bb)          = iqr([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
-    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]); 
+    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
 
 end
 
@@ -4485,7 +4469,7 @@ re_med_all       = zeros(n_bins,1);  re_iqr_all   = zeros(n_bins,1); re_std_all 
 
 
 for bb = 1:n_bins
-    
+
     % --- profiles without drizzle ---
     re_med_nd(bb)          = median(vertSeg_nd{bb,1}, 'omitnan');
     lwc_med_nd(bb)         = median(vertSeg_nd{bb,2}, 'omitnan');
@@ -4514,7 +4498,7 @@ for bb = 1:n_bins
 
     re_med_all(bb)          = median([vertSeg_nd{bb,1}, vertSeg_d{bb,1}], 'omitnan');
     re_iqr_all(bb)          = iqr([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
-    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]); 
+    re_std_all(bb)          = std([vertSeg_nd{bb,1}, vertSeg_d{bb,1}]);
 
 end
 
@@ -4741,3 +4725,348 @@ set(gcf, 'Position', [0 0 1200 600])
 % -------------------------------------
 % -------------------------------------
 
+
+
+
+
+%% Plot a histogram of all the optical thickness from the VOCALS-REx and ORACLES data
+
+
+% ------------------------------------------------------------------------
+% ------           Load  VOCALS-REx data ---
+% -------------------------------------------------------------------------
+clear variables
+
+% *** Optical Depth Filter ***
+tauC_limit = 3;
+
+% -------------------------------------------------------------------------
+%  File locations
+%  -------------------------------------------------------------------------
+
+which_computer = whatComputer;
+
+if strcmp(which_computer, 'anbu8374')
+
+
+
+elseif strcmp(which_computer, 'andrewbuggee')
+
+    foldername_data = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/',...
+        'Hyperspectral_Cloud_Retrievals/VOCALS_REx/vocals_rex_data/NCAR_C130/SPS_1/'];
+
+    foldername_save = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/', ...
+        'Presentations_and_Papers/paper_3/'];
+
+end
+
+
+% -------------------------------------------------------------------------
+%  Load ensemble profiles mat file
+%  -------------------------------------------------------------------------
+
+load([foldername_data,...
+    'ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_04-Dec-2025.mat'])
+
+N_profiles = length(ensemble_profiles);
+disp(['Loaded ', num2str(N_profiles), ' vertical profiles.'])
+
+drizzle_LWP_threshold = 5;   % g/m^2
+is_drizzle = false(1, N_profiles);
+for nn = 1:N_profiles
+    is_drizzle(nn) = ensemble_profiles{nn}.lwp_2DC >= drizzle_LWP_threshold;
+end
+
+tauC_nd  = [];
+tauC_d   = [];
+tauC_all = [];
+
+num_removed = 0;
+num_kept    = 0;
+
+% step through all VOCALS-REx data
+
+for nn = 1:N_profiles
+
+    tau_prof = ensemble_profiles{nn}.tau;
+    if max(tau_prof) < tauC_limit
+        num_removed = num_removed + 1;
+        continue
+    else
+        num_kept = num_kept + 1;
+    end
+
+    tauC_all = [tauC_all; max(tau_prof)];
+
+    if is_drizzle(nn) == true
+
+        tauC_d = [tauC_d; max(tau_prof)];
+
+    else
+
+        tauC_nd = [tauC_nd; max(tau_prof)];
+
+    end
+
+
+end
+
+
+% Create histogram of the drizzle and non-drizzle profiles
+
+plt_clr_1   = mySavedColors(68,'fixed');  % bubble gum pink
+plt_clr_2   = mySavedColors(67,'fixed');  % Broccoli
+num_bins = 50;
+alpha_val_1 = 0.3;
+alpha_val_2 = 0.5;
+ttl_fnt = 20;
+ax_fnt = 20;
+
+% Set the height and width as multiples of the IEEE paper requirements
+w = 3.5; % inches
+h = 3.5;    % inches
+
+figure1 =     figure;
+figure1.Units = 'inches';
+figure1.Position = [1, 1, 2*w, 2*h]; % [left, bottom, width, height]
+subplot(2,1,1)
+
+histogram(tauC_nd, num_bins-15, 'FaceColor', plt_clr_1, 'FaceAlpha', alpha_val_1)
+hold on
+histogram(tauC_d, num_bins/2, 'FaceColor', plt_clr_2, 'FaceAlpha', alpha_val_2)
+grid on; grid minor
+
+legend('Non-drizzling', 'Drizzling', 'Interpreter', 'latex', 'Fontsize', ax_fnt,...
+    'location', 'best')
+
+xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
+ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
+title(['VOCALS-REx - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(tauC_limit)],...
+    'Interpreter', 'latex','FontSize', ttl_fnt)
+
+% update x-axis tick labels
+xticks([0, 10, 20, 30, 40, 50, 60, 70])
+xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
+xlim([0, 75])
+
+
+
+% -------------------------------------------------------------------------
+% ------ ORACLES: load, separate drizzle, compute percentiles -------------
+% -------------------------------------------------------------------------
+clear ensemble_profiles
+
+
+
+if strcmp(which_computer, 'anbu8374')
+
+    foldername_data = ['/Users/anbu8374/Documents/MATLAB/Matlab-Research/', ...
+        'Hyperspectral_Cloud_Retrievals/ORACLES/oracles_data/'];
+
+elseif strcmp(which_computer, 'andrewbuggee')
+
+    foldername_data = ['/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/', ...
+        'Hyperspectral_Cloud_Retrievals/ORACLES/oracles_data/'];
+
+end
+
+load([foldername_data,...
+    'ensemble_profiles_with_precip_from_33_files_LWC-threshold_0.05_Nc-threshold_10_no_rEff_greaterThan50_microns_16-Mar-2026.mat'])
+
+% step through all ORACLES data
+N_profiles = length(ensemble_profiles);
+disp(['Loaded ', num2str(N_profiles), ' vertical profiles.'])
+
+drizzle_LWP_threshold = 5;   % g/m^2
+is_drizzle = false(1, N_profiles);
+
+tauC_nd  = [];
+tauC_d   = [];
+tauC_all = [];
+
+
+num_removed = 0;
+num_kept    = 0;
+
+for nn = 1:N_profiles
+    is_drizzle(nn) = ensemble_profiles{nn}.lwp_2DS_HVPS >= drizzle_LWP_threshold;
+end
+
+for nn = 1:N_profiles
+
+    tau_prof = ensemble_profiles{nn}.tau;
+    if max(tau_prof) < tauC_limit
+        num_removed = num_removed + 1;
+        continue
+    else
+        num_kept = num_kept + 1;
+    end
+
+    tauC_all = [tauC_all; max(tau_prof)];
+
+    if is_drizzle(nn) == true
+
+        tauC_d = [tauC_d; max(tau_prof)];
+
+    else
+
+        tauC_nd = [tauC_nd; max(tau_prof)];
+
+    end
+
+
+end
+
+
+
+
+subplot(2,1,2)
+
+histogram(tauC_nd, num_bins, 'FaceColor', plt_clr_1, 'FaceAlpha', alpha_val_1)
+hold on
+histogram(tauC_d, num_bins/2, 'FaceColor', plt_clr_2, 'FaceAlpha', alpha_val_2)
+grid on; grid minor
+
+legend('Non-drizzling', 'Drizzling', 'Interpreter', 'latex', 'Fontsize', ax_fnt,...
+    'location', 'best')
+
+xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
+ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
+title(['ORACLES - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(tauC_limit)],...
+    'Interpreter', 'latex','FontSize', ttl_fnt)
+% update x-axis tick labels
+xticks([0, 10, 20, 30, 40, 50, 60, 70])
+xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
+xlim([0, 75])
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+end
+saveas(figure1,[folderpath_figs,'Histogram of drizzling and non-drizzling cloud optical thickness',...
+    ' for VOCALS-REx and ORACLES from in-situ data.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+% title('');
+exportgraphics(figure1,[folderpath_figs,'Histogram of drizzling and non-dizzling cloud optical thickness',...
+    ' for VOCALS-REx and ORALCES from in-situ data.png'],...
+    'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
+
+
+
+
+
+
+
+% Create histogram figure!
+ax_fnt = 20;
+% Set the height and width as multiples of the IEEE paper requirements
+w = 3.5; % inches
+h = 3.5;    % inches
+
+figure1 =     figure;
+figure1.Units = 'inches';
+figure1.Position = [1, 1, 2*w, 2*h]; % [left, bottom, width, height]
+
+histogram(tauC_all, 70, 'FaceColor', mySavedColors(70, 'fixed'))
+grid on; grid minor
+
+xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
+ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
+
+% update x-axis tick labels
+xticks([0, 10, 20, 30, 40, 50, 60, 70])
+xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+% end
+% saveas(figure1,[folderpath_figs,'Histogram of all cloud optical thickness from in-situ data.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% title('');
+% exportgraphics(figure1,[folderpath_figs,'Histogram of all cloud optical thickness from in-situ data.png'],...
+%     'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
+
+
+
+
+% Create histogram of the drizzle and non-drizzle profiles
+
+plt_clr_1   = mySavedColors(68,'fixed');  % bubble gum pink
+plt_clr_2   = mySavedColors(67,'fixed');  % Broccoli
+num_bins = 50;
+alpha_val_1 = 0.3;
+alpha_val_2 = 0.5;
+
+ax_fnt = 20;
+% Set the height and width as multiples of the IEEE paper requirements
+w = 3.5; % inches
+h = 3.5;    % inches
+
+figure1 =     figure;
+figure1.Units = 'inches';
+figure1.Position = [1, 1, 2*w, 2*h]; % [left, bottom, width, height]
+
+histogram(tauC_nd, num_bins, 'FaceColor', plt_clr_1, 'FaceAlpha', alpha_val_1)
+hold on
+histogram(tauC_d, num_bins/2, 'FaceColor', plt_clr_2, 'FaceAlpha', alpha_val_2)
+grid on; grid minor
+
+legend('Non-drizzling', 'Drizzling', 'Interpreter', 'latex', 'Fontsize', ax_fnt,...
+    'location', 'best')
+
+xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
+ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
+
+% update x-axis tick labels
+xticks([0, 10, 20, 30, 40, 50, 60, 70])
+xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
+
+
+
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+% if strcmp(whatComputer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(whatComputer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_3/saved_figures/';
+% end
+% saveas(figure1,[folderpath_figs,'Histogram of drizzling and non-drizzling cloud optical thickness',...
+%     ' from in-situ data.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% title('');
+% exportgraphics(figure1,[folderpath_figs,'Histogram of drizzling and non-dizzling cloud optical thickness',...
+%     ' from in-situ data.png'],...
+%     'Resolution', 500);
+% -------------------------------------
+% -------------------------------------
