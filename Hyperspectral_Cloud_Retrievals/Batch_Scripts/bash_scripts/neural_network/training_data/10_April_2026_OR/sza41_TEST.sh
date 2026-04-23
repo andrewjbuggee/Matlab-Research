@@ -10,7 +10,7 @@
 #SBATCH --nodes=1
 #SBATCH --time=10:59:00   # Request 10 hours and 59 minutes for longer computation
 #SBATCH --partition=amilan
-#SBATCH --qos=testing
+#SBATCH --qos=normal
 #SBATCH --mem=85G        # Should be closer to 80% efficiency based on previous runs, but giving some buffer for variability
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
