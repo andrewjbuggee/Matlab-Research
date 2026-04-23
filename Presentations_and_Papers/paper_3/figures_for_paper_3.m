@@ -4811,6 +4811,10 @@ for nn = 1:N_profiles
 
 end
 
+disp(['Mean cloud optical thickness for VOCALS-REx profiles: ', num2str(round(mean(tauC_all), 3))])
+disp(['Mean cloud optical thickness for non-drizzling clouds from VOCALS-REx profiles: ', num2str(round(mean(tauC_nd), 3))])
+disp(['Mean cloud optical thickness for drizzling clouds from VOCALS-REx profiles: ', num2str(round(mean(tauC_d), 3))])
+
 
 % Create histogram of the drizzle and non-drizzle profiles
 
@@ -4848,6 +4852,14 @@ title(['VOCALS-REx - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(ta
 xticks([0, 10, 20, 30, 40, 50, 60, 70])
 xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
 xlim([0, 75])
+
+% Create textbox
+annotation(figure1,'textbox',[0.806725301587295 0.686952380952378 0.0781953333333357 0.0666],'String',{'(a)'},...
+    'Interpreter','latex',...
+    'FontSize',ax_fnt,...
+    'FontName','Helvetica Neue',...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
 
 
 
@@ -4917,7 +4929,9 @@ for nn = 1:N_profiles
 
 end
 
-
+disp(['Mean cloud optical thickness for ORALCES profiles: ', num2str(round(mean(tauC_all), 3))])
+disp(['Mean cloud optical thickness for non-drizzling clouds from ORALCES profiles: ', num2str(round(mean(tauC_nd), 3))])
+disp(['Mean cloud optical thickness for drizzling clouds from ORALCES profiles: ', num2str(round(mean(tauC_d), 3))])
 
 
 subplot(2,1,2)
@@ -4927,8 +4941,6 @@ hold on
 histogram(tauC_d, num_bins/2, 'FaceColor', plt_clr_2, 'FaceAlpha', alpha_val_2)
 grid on; grid minor
 
-legend('Non-drizzling', 'Drizzling', 'Interpreter', 'latex', 'Fontsize', ax_fnt,...
-    'location', 'best')
 
 xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
 ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
@@ -4938,6 +4950,15 @@ title(['ORACLES - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(tauC_
 xticks([0, 10, 20, 30, 40, 50, 60, 70])
 xticklabels({'0', '10', '20', '30', '40', '50', '60', '70'})
 xlim([0, 75])
+
+% Create textbox
+annotation(figure1,'textbox',[0.806725301587295 0.313936507936503 0.0781953333333357 0.0665999999999995],'String',{'(b)'},...
+    'Interpreter','latex',...
+    'FontSize',ax_fnt,...
+    'FontName','Helvetica Neue',...
+    'FitBoxToText','off',...
+    'EdgeColor','none');
+
 
 
 % ** Paper Worthy **
