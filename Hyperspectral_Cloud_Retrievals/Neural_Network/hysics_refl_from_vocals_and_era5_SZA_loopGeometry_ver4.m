@@ -1,7 +1,15 @@
 
 
-function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver4(folder_paths, measurement_idx, sza, output_dir)
+function hysics_refl_from_vocals_and_era5_SZA_loopGeometry_ver4(folder_paths, measurement_idx, output_dir)
 %% Generate measurements from VOCALS-REx in-situ data
+%
+% Ver4 changes from Ver3:
+%   (1) Solar zenith and solar azimuth angles are no longer passed in or
+%       looped over. They are computed from the in-situ profile's date,
+%       UTC time, latitude, and longitude using
+%       solar_position_from_lat_lon_time. This means each in-situ
+%       measurement uses the actual solar geometry that was present at the
+%       time the profile was sampled.
 %
 % Ver3 uses new custom Mie table:
 %   (1) new tables span radii from 1 to 50 microns
@@ -495,22 +503,12 @@ inputs.RT.sensor_altitude = 'toa';      % km - sensor altitude at cloud top
 
 
 
-% -----------------------------
-% define the solar zenith angle
-% -----------------------------
-% define sza so cos(vza) is sampled linearly
-% sza = 0;
-
-
-
-
-% -------------------------------
-% define the solar azimuith angle
-% -------------------------------
-
-% The libRadTran solar azimuth is defined as 0-360 degrees
-% clockwise from due south.
-phi0 =  [0, 45, 90, 180];     % degree -
+% -----------------------------------------------------------------
+% Solar zenith and solar azimuth are computed from the in-situ
+% profile's date, UTC time, latitude, and longitude further below
+% (after the profile is loaded). The libRadTran solar azimuth is
+% defined as 0-360 degrees clockwise from due south.
+% -----------------------------------------------------------------
 
 
 
@@ -696,6 +694,33 @@ inputs.RT.modify_total_columnWaterVapor = false;             % modify the full c
 
 inputs.RT.modify_aboveCloud_columnWaterVapor = false;         % don't modify the column above the cloud
 
+
+
+%% Compute solar zenith and azimuth from the in-situ profile geometry
+
+% Use the mid-point of the profile for date/time/lat/lon. time_utc is in
+% decimal hours UTC, latitude is degrees North, longitude is degrees East.
+mid_idx = round(length(ds_cdp.ensemble_profiles{measurement_idx}.time_utc) / 2);
+
+profile_date     = ds_cdp.ensemble_profiles{measurement_idx}.dateOfFlight;
+profile_time_utc = ds_cdp.ensemble_profiles{measurement_idx}.time_utc(mid_idx);     % decimal hours UTC
+profile_lat      = ds_cdp.ensemble_profiles{measurement_idx}.latitude(mid_idx);     % deg N
+profile_lon      = ds_cdp.ensemble_profiles{measurement_idx}.longitude(mid_idx);    % deg E
+
+[sza, phi0] = solar_position_from_lat_lon_time(profile_date, profile_time_utc, ...
+    profile_lat, profile_lon);
+
+% Store for later use / record-keeping
+inputs.RT.sza  = sza;
+inputs.RT.phi0 = phi0;
+inputs.RT.profile_lat      = profile_lat;
+inputs.RT.profile_lon      = profile_lon;
+inputs.RT.profile_time_utc = profile_time_utc;
+
+fprintf('\n In-situ profile geometry: lat = %.3f deg, lon = %.3f deg, UTC = %.3f h\n', ...
+    profile_lat, profile_lon, profile_time_utc);
+fprintf(' Computed solar geometry:  sza = %.3f deg, phi0 = %.3f deg (libRadTran)\n', ...
+    sza, phi0);
 
 
 %%
@@ -1274,8 +1299,7 @@ filename = [inputs.folderpath_2save,'simulated_spectra_HySICS_reflectance_',...
     'UTC_prof-nn_', num2str(measurement_idx), '_vzaRange_', num2str(round(vza(1))),...
     '-', num2str(vza(end)),'_vazRange_', num2str(round(vaz(1))),...
     '-', num2str(vaz(end)), '_sza_', num2str(round(sza)),...
-    '_sazRange_', num2str(round(phi0(1))),...
-    '-', num2str(phi0(end)),...
+    '_saz_', num2str(round(phi0)),...
     '_sim-ran-on-',char(datetime("today")),'.mat'];
 
 
