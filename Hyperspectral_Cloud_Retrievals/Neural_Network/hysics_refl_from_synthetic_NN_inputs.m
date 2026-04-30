@@ -256,6 +256,7 @@ Refl_model_allStateVectors = zeros(num_INP_files, 1);
 
 tic
 parfor nn = 1:num_INP_files
+% for nn = 1:num_INP_files
 
     sza_nn  = changing_variables_allStateVectors(nn, 1);
     vza_nn  = changing_variables_allStateVectors(nn, 2);

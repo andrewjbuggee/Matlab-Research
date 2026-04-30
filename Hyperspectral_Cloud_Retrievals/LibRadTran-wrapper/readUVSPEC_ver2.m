@@ -145,6 +145,8 @@ if strcmp(rte_solver, 'disort')==true
 
 
         col1 = data(:,1);
+        % round everything in column 1 to have 4 significant digits
+        col1 = round(col1, 4);
         nonNanRows = sum(isnan(data),2)==0; % find rows where there are no nans
         index150 = col1>150; % find values in the first column greater than 150
         indexWave = logical(index150.*nonNanRows);
@@ -160,7 +162,7 @@ if strcmp(rte_solver, 'disort')==true
         % immediately after the wavelength values. So the umu values would have to
         % be atleast 2 rows belows the wavelength row.
 
-        indexRadRow = ismember(col1,umuVec); % rows where radiance data begins. 
+        indexRadRow = ismember(col1, round(double(umuVec), 4)); % rows where radiance data begins. 
 
 
         % Now we want to seperate the irradiance calculations from the radiance
