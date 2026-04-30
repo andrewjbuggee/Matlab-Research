@@ -20,7 +20,7 @@
 #SBATCH --error=create_meas_synthetic_NN_trainingData_test_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-2     # set to N_clouds in the .nc
+#SBATCH --array=2     # set to N_clouds in the .nc
 
 # Modules
 ml purge
