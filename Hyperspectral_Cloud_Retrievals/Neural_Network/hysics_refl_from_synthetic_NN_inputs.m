@@ -92,7 +92,7 @@ libRadtran_inp       = folder_paths.libRadtran_inp;
 libRadtran_data_path = folder_paths.libRadtran_data;
 wc_folder_path       = folder_paths.libRadtran_water_cloud_files;
 
-print_libRadtran_err = true;
+print_libRadtran_err = false;
 
 % Vertical-profile + RT solver block ---------------------------------
 inputs.RT.vert_homogeneous_str   = 'vert-non-homogeneous';
