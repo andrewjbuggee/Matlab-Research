@@ -9,10 +9,10 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1
 #SBATCH --nodes=1
-#SBATCH --time=23:59:59
+#SBATCH --time=02:00:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=50G
+#SBATCH --mem=31G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData
@@ -20,7 +20,7 @@
 #SBATCH --error=create_meas_synthetic_NN_trainingData_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-10000%50     # set to N_clouds in the .nc
+#SBATCH --array=3-1000%50     # set to N_clouds in the .nc
 
 # Modules
 ml purge
@@ -46,10 +46,10 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Input file (the .nc produced by 07_build_training_inputs.py)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N10000_L7.nc"
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N300000_L7.nc"
 
 # Output directory (trailing slash required)
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_26_March_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_29_April_2026/"
 mkdir -p "$output_dir"
 
 # Per-task scratch dirs (mirror the VOCALS bash patterns)
