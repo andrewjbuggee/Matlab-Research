@@ -20,7 +20,7 @@
 #SBATCH --error=create_meas_synthetic_NN_trainingData_test_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=2     # set to N_clouds in the .nc
+#SBATCH --array=1     # set to N_clouds in the .nc
 
 # Modules
 ml purge
@@ -46,7 +46,7 @@ cd /projects/anbu8374/
 module load matlab/R2024b
 
 # Input file (the .nc produced by 07_build_training_inputs.py)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N300000_L7.nc"
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N300001_L7.nc"
 
 # Output directory (trailing slash required)
 output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_29_April_2026/"
