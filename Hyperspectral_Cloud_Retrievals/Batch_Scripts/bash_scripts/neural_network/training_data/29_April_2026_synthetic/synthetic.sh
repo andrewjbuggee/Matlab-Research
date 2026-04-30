@@ -14,13 +14,13 @@
 #SBATCH --qos=normal
 #SBATCH --mem=50G
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=20
+#SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData
 #SBATCH --output=create_meas_synthetic_NN_trainingData_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-10000     # set to N_clouds in the .nc
+#SBATCH --array=1-10000%50     # set to N_clouds in the .nc
 
 # Modules
 ml purge
