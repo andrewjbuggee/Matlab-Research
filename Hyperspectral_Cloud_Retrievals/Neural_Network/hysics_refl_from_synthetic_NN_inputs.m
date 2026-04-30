@@ -163,7 +163,7 @@ end
 
 % Cloud + sensor geometry ------------------------------------------
 inputs.RT.yesCloud              = true;
-inputs.RT.modify_wc_opticalDepth = true;
+inputs.RT.modify_wc_opticalDepth = false;
 inputs.RT.sensor_altitude        = 'toa';
 
 %% Write the synthetic ERA5-style radiosonde file
