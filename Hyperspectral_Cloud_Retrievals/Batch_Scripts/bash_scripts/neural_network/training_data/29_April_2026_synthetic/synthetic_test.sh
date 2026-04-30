@@ -14,7 +14,7 @@
 #SBATCH --qos=testing
 #SBATCH --mem=50G
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=40
+#SBATCH --cpus-per-task=10
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData_test
 #SBATCH --output=create_meas_synthetic_NN_trainingData_test_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_test_%A_%a.err
