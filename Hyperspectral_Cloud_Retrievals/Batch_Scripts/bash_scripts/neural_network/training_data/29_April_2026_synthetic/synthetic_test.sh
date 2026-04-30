@@ -49,7 +49,7 @@ module load matlab/R2024b
 input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N300000_L7.nc"
 
 # Output directory (trailing slash required)
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_26_March_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_29_April_2026/"
 mkdir -p "$output_dir"
 
 # Per-task scratch dirs (mirror the VOCALS bash patterns)
