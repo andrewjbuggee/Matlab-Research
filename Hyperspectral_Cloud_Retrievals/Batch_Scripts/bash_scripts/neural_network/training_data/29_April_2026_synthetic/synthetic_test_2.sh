@@ -12,15 +12,15 @@
 #SBATCH --time=02:00:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=50G            # 2.5 GB / worker matches the working VOCALS sza0.sh ratio
+#SBATCH --mem=85G            # 2.5 GB / worker matches the working VOCALS sza0.sh ratio
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=20   # was 40 — caused 100% OOM kills with 31G allocation
+#SBATCH --cpus-per-task=40   # was 40 — caused 100% OOM kills with 31G allocation
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData
 #SBATCH --output=create_meas_synthetic_NN_trainingData_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-900%30     # was %50 — eased to reduce scratch-filesystem contention
+#SBATCH --array=1-3     # was %50 — eased to reduce scratch-filesystem contention
 
 # Modules
 ml purge
