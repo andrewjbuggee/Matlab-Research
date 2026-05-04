@@ -31,7 +31,7 @@
 #SBATCH --array=1
 
 # --- Chunk parameters (edit between batches) -----------------------------
-CHUNK_SIZE=57       # clouds per array task
+CHUNK_SIZE=3       # clouds per array task
 CLOUD_OFFSET=900    # already-completed clouds to skip (synthetic.sh did 1..900)
 N_TOTAL=300001      # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
