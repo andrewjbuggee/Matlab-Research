@@ -10,9 +10,23 @@ function [] = start_parallel_pool(which_computer)
 % Is parpool running?
 p = gcp('nocreate');
 
-% Clean up any existing parallel pool and its associated job files
+% Reuse an existing healthy pool if it has the right number of workers.
+% Tearing down and re-creating a parpool costs minutes of worker spin-up
+% on amilan, so reusing matters when callers wrap this function in a loop
+% (e.g., batched cloud chunks in a single MATLAB session).
 if ~isempty(p)
+    desired_workers = [];
+    if strcmp(which_computer,'curc')==true
+        slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK'));
+        if ~isnan(slurm_cpus) && slurm_cpus > 0
+            desired_workers = slurm_cpus;
+        end
+    end
+    if isempty(desired_workers) || p.NumWorkers == desired_workers
+        return;
+    end
     delete(p);
+    p = [];
 end
 
 
