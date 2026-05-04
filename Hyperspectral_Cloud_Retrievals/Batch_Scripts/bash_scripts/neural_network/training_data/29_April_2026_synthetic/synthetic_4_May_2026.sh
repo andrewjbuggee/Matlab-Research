@@ -104,37 +104,7 @@ sleep $((SLURM_ARRAY_TASK_ID % 10))
 
 echo "Starting MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
-time matlab -nodesktop -nodisplay -r "
-addpath(genpath('/projects/anbu8374/Matlab-Research'));
-addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/'));
-addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/'));
-addLibRadTran_paths;
-
-folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID});
-start_parallel_pool(folder_paths.which_computer);
-
-input_file = '${input_file}';
-output_dir = '${output_dir}';
-
-n_ok = 0; n_fail = 0;
-for cloud_id = ${start_id}:${end_id}
-    fprintf('\n=== STARTING cloud %d ===\n', cloud_id);
-    t0 = tic;
-    try
-        hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir);
-        fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0));
-        n_ok = n_ok + 1;
-    catch ME
-        fprintf('\n[CLOUD %d FAILED] %s: %s\n', cloud_id, ME.identifier, ME.message);
-        for k = 1:numel(ME.stack)
-            fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line);
-        end
-        n_fail = n_fail + 1;
-    end
-end
-fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail);
-exit
-"
+time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); start_parallel_pool(folder_paths.which_computer); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d ===\n', cloud_id); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED] %s: %s\n', cloud_id, ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); exit"
 
 echo "Finished MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
