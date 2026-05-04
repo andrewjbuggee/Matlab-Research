@@ -281,28 +281,32 @@ else
         folder_paths.HySICS_retrievals = '/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/HySICS/Droplet_profile_retrievals/';
 
 
-        % libRadtran data folder
+        % libRadtran data folder (read-only built-in tables — stays on /projects)
         folder_paths.libRadtran_data = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
 
-        % water cloud file location
-        folder_paths.libRadtran_water_cloud_files = ['/projects/anbu8374/software/libRadtran-2.0.5/data/wc_',...
-                                                        num2str(folder_extension_number), '/'];
+        % --- Per-task scratch paths -----------------------------------------
+        % When the batch script sets TMPDIR (node-local /tmp), put the
+        % per-task .INP/.OUT, water-cloud .DAT, and atmospheric/radiosonde
+        % .DAT files there to avoid Lustre metadata contention. Fall back
+        % to /scratch and /projects when TMPDIR is unset.
+        tmpdir_env = getenv('TMPDIR');
+        if ~isempty(tmpdir_env)
+            if tmpdir_env(end) ~= '/'
+                tmpdir_env = [tmpdir_env, '/'];
+            end
+            folder_paths.libRadtran_inp               = [tmpdir_env, 'INP_OUT_', num2str(folder_extension_number), '/'];
+            folder_paths.libRadtran_water_cloud_files = [tmpdir_env, 'wc_',      num2str(folder_extension_number), '/'];
+            folder_paths.atm_folder_path              = [tmpdir_env, 'atmmod_',  num2str(folder_extension_number), '/'];
+        else
+            folder_paths.libRadtran_inp               = ['/scratch/alpine/anbu8374/HySICS/INP_OUT_',                num2str(folder_extension_number), '/'];
+            folder_paths.libRadtran_water_cloud_files = ['/projects/anbu8374/software/libRadtran-2.0.5/data/wc_',     num2str(folder_extension_number), '/'];
+            folder_paths.atm_folder_path              = ['/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod_', num2str(folder_extension_number), '/'];
+        end
 
 
-
-        % libRadtran atmosphere folder location
-        folder_paths.atm_folder_path = ['/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod_',...
-                                                        num2str(folder_extension_number), '/'];
-
-
-
-        % Define the folder path where all .INP files will be saved
-        folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/HySICS/INP_OUT_', num2str(folder_extension_number), '/'];
-
-
-
-        % mie folder location
+        % mie folder location (kept on /scratch — Mie tables are reused
+        % across runs and shouldn't be wiped at task end)
         folder_paths.libRadtran_mie_folder = ['/scratch/alpine/anbu8374/Mie_Calculations/Mie_Calculations_', num2str(folder_extension_number), '/'];
 
 

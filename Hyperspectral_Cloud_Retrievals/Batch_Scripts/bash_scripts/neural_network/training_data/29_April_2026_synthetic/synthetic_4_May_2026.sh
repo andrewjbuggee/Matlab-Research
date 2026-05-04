@@ -96,7 +96,9 @@ else
 fi
 
 # Pre-create MATLAB-managed parent paths (Lustre mkdir can fail under load).
-mkdir -p "/scratch/alpine/${USER}/HySICS/"
+# INP_OUT/wc/atmmod now live under $TMPDIR (node-local /tmp), so only the
+# Mie parent — which stays on /scratch so tables can be reused across runs —
+# needs pre-creating here.
 mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
 
 # Stagger MATLAB starts across concurrent array tasks.
@@ -108,14 +110,10 @@ time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab
 
 echo "Finished MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
-# Cleanup — task-keyed folders only (one set per task, not one per cloud).
+# Cleanup — INP_OUT, wc, and atmmod all live under $TMPDIR now, so a single
+# rm -rf "$TMPDIR" covers them along with parpool's JobStorageLocation files.
 echo "Removing TMPDIR: $TMPDIR"
 rm -rf "$TMPDIR"
-echo "Removing INP_OUT directory for task ${SLURM_ARRAY_TASK_ID}..."
-rm -rf "/scratch/alpine/${USER}/HySICS/INP_OUT_${SLURM_ARRAY_TASK_ID}"
-echo "Removing atmmod and wc directories for task ${SLURM_ARRAY_TASK_ID}..."
-rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/atmmod_${SLURM_ARRAY_TASK_ID}"
-rm -rf "/scratch/alpine/${USER}/software/libRadtran-2.0.5/data/wc_${SLURM_ARRAY_TASK_ID}"
 
 # Prune older scratch dirs (>7 days)
 echo "Pruning scratch directories older than 7 days..."
