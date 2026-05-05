@@ -32,7 +32,7 @@
 
 # --- Chunk parameters (edit between batches) -----------------------------
 CHUNK_SIZE=57       # clouds per array task
-CLOUD_OFFSET=900    # already-completed clouds to skip (synthetic.sh did 1..900)
+CLOUD_OFFSET=908    # already-completed clouds to skip (synthetic.sh did 1..908)
 N_TOTAL=300001      # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
 
@@ -94,6 +94,11 @@ else
     mkdir -p "$TMPDIR"
     echo "TMPDIR (Lustre fallback): $TMPDIR"
 fi
+
+# Report headroom on the chosen TMPDIR so we can spot capacity problems
+# in the .out log without having to ssh into the node.
+echo "TMPDIR headroom:"
+df -h "$TMPDIR"
 
 # Pre-create MATLAB-managed parent paths (Lustre mkdir can fail under load).
 # INP_OUT/wc/atmmod now live under $TMPDIR (node-local /tmp), so only the
