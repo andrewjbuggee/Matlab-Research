@@ -24,6 +24,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData_BATCH
+#SBATCH --chdir=/projects/anbu8374/slurm_logs/29_April_2026_synthetic
 #SBATCH --output=create_meas_synthetic_NN_trainingData_BATCH_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_BATCH_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
@@ -32,7 +33,7 @@
 
 # --- Chunk parameters (edit between batches) -----------------------------
 CHUNK_SIZE=57       # clouds per array task
-CLOUD_OFFSET=908    # already-completed clouds to skip (synthetic.sh did 1..908)
+CLOUD_OFFSET=57908    # finished through cloud 57908 in array job 26685405
 N_TOTAL=300001      # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
 
@@ -110,6 +111,10 @@ mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
 sleep $((SLURM_ARRAY_TASK_ID % 10))
 
 echo "Starting MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
+
+# Set MATLAB preferences dir to a scratch path to avoid collisions with /home and stop ~/.matlab/local_cluster_jobs from refilling. This also ensures the parpool JobStorageLocation is on the local scratch, which eliminates the multi-minute "Job Queued" waits we saw on tasks 481 and 525 of the prior run. The preferences dir must be writable and persist for the duration of the MATLAB session, but can be shared across tasks since we set a unique JobStorageLocation below.
+export MATLAB_PREFDIR=/projects/$USER/.matlab_prefs/R2024b
+mkdir -p "$MATLAB_PREFDIR"
 
 time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); start_parallel_pool(folder_paths.which_computer); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d ===\n', cloud_id); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED] %s: %s\n', cloud_id, ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); exit"
 
