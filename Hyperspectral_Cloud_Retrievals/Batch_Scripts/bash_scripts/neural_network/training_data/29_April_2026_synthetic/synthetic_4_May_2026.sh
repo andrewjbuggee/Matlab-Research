@@ -29,7 +29,7 @@
 #SBATCH --error=create_meas_synthetic_NN_trainingData_BATCH_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-1000%48
+#SBATCH --array=1-900%48
 
 # --- Chunk parameters (edit between batches) -----------------------------
 CHUNK_SIZE=57       # clouds per array task
