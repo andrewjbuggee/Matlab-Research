@@ -24,7 +24,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData_BATCH
-#SBATCH --chdir=/projects/anbu8374/slurm_logs/29_April_2026_synthetic
+#SBATCH --chdir=/projects/anbu8374/slurm_logs/29_April_2026_synthetic_batch3
 #SBATCH --output=create_meas_synthetic_NN_trainingData_BATCH_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_BATCH_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
@@ -33,7 +33,7 @@
 
 # --- Chunk parameters (edit between batches) -----------------------------
 CHUNK_SIZE=57       # clouds per array task
-CLOUD_OFFSET=57908    # finished through cloud 57908 in array job 26685405
+CLOUD_OFFSET=109208    # finished through cloud 57908 in array job 26685405 - finished through cloud 109208 in array job 26918712
 N_TOTAL=300001      # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
 
@@ -107,8 +107,8 @@ df -h "$TMPDIR"
 # needs pre-creating here.
 mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
 
-# Stagger MATLAB starts across concurrent array tasks.
-sleep $((SLURM_ARRAY_TASK_ID % 10))
+# Stagger MATLAB starts across concurrent array tasks. The stagger delay (0-119 s) is short relative to the expected 1-2 min MATLAB startup time, but should be enough to reduce filesystem contention and other resource clashes that can occur when many tasks start simultaneously.
+sleep $((SLURM_ARRAY_TASK_ID % 120))
 
 echo "Starting MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
