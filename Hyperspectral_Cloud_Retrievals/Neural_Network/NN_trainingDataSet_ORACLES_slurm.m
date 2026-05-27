@@ -28,8 +28,7 @@ measurement_idx = 131;
 % Sample cos(sza) linearly so the sampling is uniform in optical path-length
 % space.  8 values from sza=0 to sza=65 degrees.
 
-mu_sample = linspace(cosd(0), cosd(65), 8);
-sza = acosd(mu_sample);     % degrees
+sza = 17;     % degrees
 
 % -------------------------------------------------------------------------
 % --- Output directory (adjust for local testing) -------------------------
@@ -67,5 +66,8 @@ end
 % -------------------------------------------------------------------------
 
 for nn = 1:length(sza)
-    hysics_refl_from_oracles_and_era5_SZA_loopGeometry(folder_paths, measurement_idx, sza(nn), output_dir)
+
+    % hysics_refl_from_oracles_and_era5_SZA_loopGeometry(folder_paths, measurement_idx, sza(nn), output_dir)
+      hysics_refl_from_oracles_and_era5_SZA_singleGeometry_smoothProf(folder_paths, measurement_idx, sza(nn), output_dir)
+
 end
