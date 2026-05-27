@@ -32,9 +32,9 @@
 #SBATCH --array=1-900%40
 
 # --- Chunk parameters (edit between batches) -----------------------------
-CHUNK_SIZE=57       # clouds per array task
-CLOUD_OFFSET=109208    # finished through cloud 57908 in array job 26685405 - finished through cloud 109208 in array job 26918712
-N_TOTAL=300001      # length of the 'cloud' dimension in the input .nc
+CHUNK_SIZE=${CHUNK_SIZE_OVERRIDE:-57}       # clouds per array task
+CLOUD_OFFSET=${CLOUD_OFFSET_OVERRIDE:-109208}    # finished through cloud 57908 in array job 26685405 - finished through cloud 109208 in array job 26918712
+N_TOTAL=${N_TOTAL_OVERRIDE:-300001}      # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
 
 # Modules
@@ -107,16 +107,26 @@ df -h "$TMPDIR"
 # needs pre-creating here.
 mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
 
-# Stagger MATLAB starts across concurrent array tasks. The stagger delay (0-119 s) is short relative to the expected 1-2 min MATLAB startup time, but should be enough to reduce filesystem contention and other resource clashes that can occur when many tasks start simultaneously.
-sleep $((SLURM_ARRAY_TASK_ID % 120))
+# Stagger MATLAB starts across concurrent array tasks. A wider stagger
+# reduces the chance that many 40-worker parpools all hit MATLAB startup,
+# preferences, and process launch at the same instant.
+STARTUP_STAGGER_MOD=${STARTUP_STAGGER_MOD_OVERRIDE:-40}
+STARTUP_STAGGER_STEP_SECONDS=${STARTUP_STAGGER_STEP_SECONDS_OVERRIDE:-20}
+STARTUP_STAGGER_SECONDS=$(( ((SLURM_ARRAY_TASK_ID - 1) % STARTUP_STAGGER_MOD) * STARTUP_STAGGER_STEP_SECONDS ))
+echo "Startup stagger: sleeping ${STARTUP_STAGGER_SECONDS}s before MATLAB launch"
+sleep "$STARTUP_STAGGER_SECONDS"
 
 echo "Starting MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
-# Set MATLAB preferences dir to a scratch path to avoid collisions with /home and stop ~/.matlab/local_cluster_jobs from refilling. This also ensures the parpool JobStorageLocation is on the local scratch, which eliminates the multi-minute "Job Queued" waits we saw on tasks 481 and 525 of the prior run. The preferences dir must be writable and persist for the duration of the MATLAB session, but can be shared across tasks since we set a unique JobStorageLocation below.
-export MATLAB_PREFDIR=/projects/$USER/.matlab_prefs/R2024b
+# Set MATLAB preferences dir to this task's scratch path to avoid collisions
+# with /home and with other concurrent array tasks.
+export MATLAB_PREFDIR="$TMPDIR/matlab_prefs/R2024b"
 mkdir -p "$MATLAB_PREFDIR"
+echo "MATLAB_PREFDIR: $MATLAB_PREFDIR"
 
-time matlab -nodesktop -nodisplay -r "addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); start_parallel_pool(folder_paths.which_computer); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d ===\n', cloud_id); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED] %s: %s\n', cloud_id, ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); exit"
+matlab_status=0
+time matlab -nodesktop -nodisplay -r "try, addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); for pool_attempt = 1:2, try, fprintf('\n=== PARPOOL START ATTEMPT %d of 2 ===\n', pool_attempt); start_parallel_pool(folder_paths.which_computer); break; catch ME_pool, fprintf(2, '\n[PARPOOL START FAILED attempt %d] %s: %s\n', pool_attempt, ME_pool.identifier, ME_pool.message); old_pool = gcp('nocreate'); if ~isempty(old_pool), delete(old_pool); end; if pool_attempt < 2, slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK')); if ~isnan(slurm_cpus) && slurm_cpus > 8, retry_workers = slurm_cpus - 8; setenv('SLURM_CPUS_PER_TASK', num2str(retry_workers)); fprintf(2, 'Retrying parpool with %d workers after a short pause.\n', retry_workers); end; pause(300 + randi(120)); else, rethrow(ME_pool); end; end; end; input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d ===\n', cloud_id); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED] %s: %s\n', cloud_id, ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); if n_fail > 0, exit(2); else, exit(0); end; catch ME, fprintf(2, '\n[FATAL MATLAB ERROR] %s: %s\n', ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; exit(1); end"
+matlab_status=$?
 
 echo "Finished MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
 
@@ -130,3 +140,8 @@ echo "Pruning scratch directories older than 7 days..."
 find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
 find /scratch/alpine/${USER}/HySICS/           -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
 find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "Mie_Calculations_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+
+if [ "$matlab_status" -ne 0 ]; then
+    echo "MATLAB exited with status ${matlab_status}; marking this Slurm task as failed."
+    exit "$matlab_status"
+fi
