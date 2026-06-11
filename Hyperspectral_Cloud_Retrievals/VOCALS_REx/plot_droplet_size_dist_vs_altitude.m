@@ -34,9 +34,9 @@ end
 % -------------------------------------------------------------------------
 % Font sizes
 % -------------------------------------------------------------------------
-ttl_fnt = 18;
-ax_fnt  = 18;
-cb_fnt  = 16;
+ttl_fnt = 22;
+ax_fnt  = 22;
+cb_fnt  = 22;
 ln_sz   = 2;
 
 % -------------------------------------------------------------------------
@@ -59,7 +59,7 @@ if strcmp(instrument, 'CDP') || ~vert_profile.flag_2DC_data_is_conforming
     cdp_mask     = r_bins_all <= CDP_r_max_um;
     r_bins_plot  = r_bins_all(cdp_mask);
     Nc_plot      = Nc_full(cdp_mask, :);
-    re_plot      = vert_profile.re_CDP;        % precomputed effective radius
+    rEff_plot      = vert_profile.re_CDP;        % precomputed effective radius
     instr_label  = 'CDP';
     if ~vert_profile.flag_2DC_data_is_conforming && strcmp(instrument, 'all')
         instr_label = 'CDP (2DC non-conforming)';
@@ -67,7 +67,7 @@ if strcmp(instrument, 'CDP') || ~vert_profile.flag_2DC_data_is_conforming
 else
     r_bins_plot  = r_bins_all;
     Nc_plot      = Nc_full;
-    re_plot      = vert_profile.re;            % precomputed effective radius
+    rEff_plot      = vert_profile.re;            % precomputed effective radius
     instr_label  = 'CDP + 2DC';
 end
 
@@ -119,7 +119,7 @@ if three_panel_flag
     for kk = 1:n_alt
         nc_col = Nc_plot(:, kk);
         nc_col(nc_col < 0) = 0;
-        r_e_k  = re_plot(kk);
+        r_e_k  = rEff_plot(kk);
         denom  = sum(r_col.^2 .* nc_col);
         if denom > 0 && isfinite(r_e_k) && r_e_k > 0
             v_eff(kk) = sum((r_col - r_e_k).^2 .* r_col.^2 .* nc_col) ...
@@ -154,24 +154,39 @@ set(ax1, 'YDir', 'normal');     % altitude increases upward
 colormap(ax1, 'turbo');
 
 cb1 = colorbar(ax1);
-cb1.Label.String     = '$\log_{10}(N_c \ [\mathrm{cm}^{-3}])$';
+cb1.Label.String     = '$\log_{10}(N_c)$';
 cb1.Label.Interpreter = 'latex';
 cb1.Label.FontSize   = cb_fnt;
 
 xlabel(ax1, 'Droplet radius ($\mu$m)', 'Interpreter', 'latex', 'FontSize', ax_fnt)
 ylabel(ax1, 'Altitude (m)',            'Interpreter', 'latex', 'FontSize', ax_fnt)
-title(ax1, ['$N_c$ distribution — ', instr_label], ...
-    'Interpreter', 'latex', 'FontSize', ttl_fnt)
+
+if strcmp(instrument, 'CDP')
+
+    title(ax1, '$N_{c}$ distribution — CDP', ...
+        'Interpreter', 'latex', 'FontSize', ttl_fnt)
+
+elseif strcmp(instrument, 'all')
+
+    title(ax1, '$N_{c}$ distribution — CDP + 2DC', ...
+        'Interpreter', 'latex', 'FontSize', ttl_fnt)
+
+end
 
 % overlay weighted mean and +/- 1 sigma lines
+% hold(ax1, 'on')
+% plot(ax1, r_mean, altitude, 'k-',  'LineWidth', ln_sz,   'DisplayName', 'Mean radius')
+% plot(ax1, r_lo,   altitude, 'k--', 'LineWidth', ln_sz-0.5, 'DisplayName', '$\mu \pm \sigma$')
+% plot(ax1, r_hi,   altitude, 'k--', 'LineWidth', ln_sz-0.5, 'HandleVisibility', 'off')
+% hold(ax1, 'off')
+
+% overlay the effective radius
 hold(ax1, 'on')
-plot(ax1, r_mean, altitude, 'k-',  'LineWidth', ln_sz,   'DisplayName', 'Mean radius')
-plot(ax1, r_lo,   altitude, 'k--', 'LineWidth', ln_sz-0.5, 'DisplayName', '$\mu \pm \sigma$')
-plot(ax1, r_hi,   altitude, 'k--', 'LineWidth', ln_sz-0.5, 'HandleVisibility', 'off')
+plot(ax1, rEff_plot, altitude, 'k-',  'LineWidth', ln_sz,   'DisplayName', 'Effective radius')
 hold(ax1, 'off')
 
 legend(ax1, 'Interpreter', 'latex', 'Location', 'best', ...
-    'Color', [0.15 0.15 0.15], 'TextColor', 'w', 'FontSize', 13)
+    'Color', 'w', 'TextColor', 'k', 'FontSize', 22)
 
 % =========================================================================
 % Panels 2 & 3 (only when three_panel_flag is true)
@@ -181,7 +196,7 @@ if three_panel_flag
     % --- Panel 2: effective radius vs altitude ----------------------------
     ax2 = subplot(1, 3, 2);
 
-    plot(ax2, re_plot, altitude, '.-', ...
+    plot(ax2, rEff_plot, altitude, '.-', ...
         'Color', [0.2 0.4 0.8], 'LineWidth', ln_sz, 'MarkerSize', 16)
     grid(ax2, 'on'); grid(ax2, 'minor');
 

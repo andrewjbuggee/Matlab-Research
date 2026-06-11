@@ -38,7 +38,9 @@ Radiative_Transfer_Physics/Monte_Carlo/Monte_Carlo_videos/*
 *.mie.cdf
 *.cdf
 *.err
-
+*.mp4
+*.xml
+*.tfw
 
 # Windows default autosave extension
 *.asv
