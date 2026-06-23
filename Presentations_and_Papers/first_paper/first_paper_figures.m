@@ -3705,9 +3705,21 @@ elseif strcmp(which_computer,'andrewbuggee')==true
         'MODIS_Cloud_Retrieval/MODIS_data/'];
 
     % Define the folder path where all .INP files will be saved
-    folder2save = ['/Users/andrewbuggee/Documents/CU-Boulder-ATOC/Hyperspectral-Cloud-Droplet-Retrieval/',...
-        'LibRadTran/libRadtran-2.0.4/reflectance_uniqueness/'];
+    folder2save = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/reflectance_uniqueness/';
 
+    % water cloud files
+    wc_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc_1/';
+
+    % mie path
+    mie_path = '/Users/andrewbuggee/Documents/libRadtran-2.0.6/Mie_Calculations_1/';
+
+end
+
+% Create the folder where .INP/.OUT files are saved if it doesn't exist yet.
+% If this folder is missing, fopen() below returns -1 on each parfor worker,
+% which surfaces as the "Invalid fileID for worker" error.
+if ~exist(folder2save, 'dir')
+    mkdir(folder2save)
 end
 
 
@@ -3982,7 +3994,7 @@ for tc = 1:length(tau_c)
     % ------------------------------------------------------
     wc_filename = write_wc_file(re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
         dist_var, vert_homogeneous_str, parameterization_str, indVar, compute_weighting_functions,...
-        which_computer, tc);
+        which_computer, tc, 2, wc_path, mie_path);
     wc_filename = wc_filename{1};
 
 
@@ -4070,7 +4082,7 @@ for tc = 1:length(tau_c)
             % Define the water cloud file
             % ------------------------------------------------
             formatSpec = '%s %s %5s %s \n';
-            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/',wc_filename], ' ', '# Location of water cloud file');
+            fprintf(fileID, formatSpec,'wc_file 1D', [wc_path, wc_filename], ' ', '# Location of water cloud file');
 
             % Define the percentage of horizontal cloud cover
             % This is a number between 0 and 1
@@ -4241,7 +4253,7 @@ for tc = 1:length(tau_c)
 
     new_wc_filename = write_wc_file(new_re_prof, tau_c(tc), z_topBottom, lambda_forTau, distribution_str,...
         dist_var, vert_homogeneous_str, parameterization_str, indVar, compute_weighting_functions,...
-        which_computer, loop_var);
+        which_computer, loop_var, 2, wc_path, mie_path);
     new_wc_filename = new_wc_filename{1};
 
 
@@ -4333,7 +4345,7 @@ for tc = 1:length(tau_c)
             % Define the water cloud file
             % ------------------------------------------------
             formatSpec = '%s %s %5s %s \n';
-            fprintf(fileID, formatSpec,'wc_file 1D', ['../data/wc/', new_wc_filename], ' ', '# Location of water cloud file');
+            fprintf(fileID, formatSpec,'wc_file 1D', [wc_path, new_wc_filename], ' ', '# Location of water cloud file');
 
             % Define the percentage of horizontal cloud cover
             % This is a number between 0 and 1
