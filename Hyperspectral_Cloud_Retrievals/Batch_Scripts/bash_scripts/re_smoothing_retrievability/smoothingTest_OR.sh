@@ -9,10 +9,10 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1
 #SBATCH --nodes=1
-#SBATCH --time=4:00:00
+#SBATCH --time=2:00:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=40G
+#SBATCH --mem=80G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=reSmoothTest_OR
@@ -20,7 +20,7 @@
 #SBATCH --error=reSmoothTest_OR_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=2101-2337%20    # 237 ORACLES profiles (task id = 2100 + profile index)
+#SBATCH --array=2101-2337%40    # 237 ORACLES profiles (task id = 2100 + profile index)
 
 # Load modules
 ml purge
@@ -60,7 +60,7 @@ CAMPAIGN=oracles
 offset=2100
 
 # Output directory (trailing slash required by the MATLAB script)
-output_dir="/scratch/alpine/anbu8374/re_smoothing_retrievability/dataSet_created_on_07_June_2026/"
+output_dir="/scratch/alpine/anbu8374/re_smoothing_retrievability/dataSet_created_on_23_June_2026/"
 mkdir -p $output_dir
 
 # Unique temp directory for this array task to avoid race conditions

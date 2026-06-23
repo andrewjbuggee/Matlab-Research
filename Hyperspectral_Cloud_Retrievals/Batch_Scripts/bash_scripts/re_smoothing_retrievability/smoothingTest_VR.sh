@@ -9,7 +9,7 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1
 #SBATCH --nodes=1
-#SBATCH --time=4:00:00
+#SBATCH --time=2:00:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --mem=80G
