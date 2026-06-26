@@ -1227,6 +1227,25 @@ forward_model_param_cov = G_log * jacobian_fm * forward_model_cov_log * jacobian
 forward_model_param_uncert = sqrt(diag(forward_model_param_cov));
 
 
+% --- Per-parameter decomposition ingredients (saved for the post-processing
+% --- error budget; see Presentations_and_Papers/paper_2). S_b is diagonal, so
+% --- the total forward-model error covariance separates into an independent
+% --- contribution from each forward model parameter j:
+% ---   S_f = sum_j  Var(ln b_j) * (G*K_b*e_j)(G*K_b*e_j)'
+% --- Hence column j of (G*K_b), scaled by sqrt(Var(ln b_j)), is that single
+% --- parameter's fractional contribution to each retrieved variable.
+% Sensitivity of the retrieval to each forward model parameter (log space):
+%   forMod_sensitivity_log(i,j) = d ln(x_hat_i) / d ln(b_j),  size NUM_PARAMETERS x p
+forMod_sensitivity_log = G_log * jacobian_fm;
+% Variance of each forward model parameter (log space), size p x 1
+forMod_param_variance_log = diag(forward_model_cov_log);
+% Physical grouping of each forward model parameter. Column order is set in
+% compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar:
+%   [ r_e profile (one entry per cloud layer), cloud top height, effective variance ]
+forMod_param_names = [repmat({'re_profile'}, 1, numel(forMod_param_variance_log) - 2), ...
+    {'cloud_top_height'}, {'effective_variance'}];
+
+
 % -------------------------------------------------------------------
 % -------------------------------------------------------------------
 
@@ -1260,6 +1279,14 @@ GN_output.forward_model_parameter_cov = forward_model_param_cov;
 
 % 1-sigma fractional uncertainty per retrieved variable (sqrt of the diagonal)
 GN_output.forward_model_parameter_uncert_log = forward_model_param_uncert;
+
+% Ingredients for the per-forward-model-parameter error budget (post-processing).
+% forMod_sensitivity_log is NUM_PARAMETERS x p; forMod_param_variance_log is p x 1;
+% forMod_param_names labels each of the p columns as re_profile / cloud_top_height /
+% effective_variance. See compute_forMod_error_budget_paper2.m.
+GN_output.forMod_sensitivity_log = forMod_sensitivity_log;
+GN_output.forMod_param_variance_log = forMod_param_variance_log;
+GN_output.forMod_param_names = forMod_param_names;
 
 
 
