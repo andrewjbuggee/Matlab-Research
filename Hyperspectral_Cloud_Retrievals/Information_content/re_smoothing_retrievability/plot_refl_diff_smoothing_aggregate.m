@@ -48,6 +48,10 @@ if isempty(files)
 end
 fprintf('Found %d result files in %s\n', numel(files), results_dir);
 
+
+% define plotting format and font size
+lbl_sz = 15;
+
 % load the first to establish the common grid
 first = load([results_dir, files(1).name], 'wl_nm', 'smoothing_windows_m');
 wl_nm    = first.wl_nm(:);
@@ -129,14 +133,19 @@ for ww = 1:num_win
     grid on; box on
     set(gca, 'YScale', p.Results.YScale)
     xlim([min(wl_nm), max(wl_nm)])
-    xlabel('Wavelength  [nm]')
-    if ww == 1; ylabel('|R_{raw} - R_{smoothed}|'); end
-    title(sprintf('window = %d m', windows_m(ww)))
-    if ww == num_win; legend('Location', 'northwest'); end
+    xlabel('Wavelength  (nm)', 'FontSize', lbl_sz, 'Interpreter','latex')
+    if ww == 1 
+        ylabel('|R_{raw} - R_{smoothed}|', 'FontSize', lbl_sz, 'Interpreter','latex'); 
+    end
+    title(sprintf('window = %d m', windows_m(ww)), 'FontSize', lbl_sz, 'Interpreter','latex')
+    if ww == num_win
+        legend('Location', 'northwest')
+    end
 end
 
 title(tl, sprintf(['HySICS reflectance sensitivity to vertical r_e smoothing ', ...
-    '(%d in-situ profiles, nadir)'], n_used), 'FontWeight', 'bold')
+    '(%d in-situ profiles, nadir)'], n_used), 'FontWeight', 'bold',...
+    'FontSize', lbl_sz, 'Interpreter','latex')
 
 if p.Results.SaveFig
     saveas(gcf, [results_dir, 'aggregate_refl_diff_vs_smoothing.png']);
@@ -160,12 +169,14 @@ for ww = 1:num_win
     plot(wl_nm, 100*frac_retrievable(:,ww), '-', 'Color', median_color, 'LineWidth', 1.5);
     yline(50, ':k');
     grid on; box on; ylim([0 100]); xlim([min(wl_nm), max(wl_nm)])
-    xlabel('Wavelength  [nm]')
-    if ww == 1; ylabel('% of profiles with |\DeltaR| > uncert'); end
-    title(sprintf('window = %d m', windows_m(ww)))
+    xlabel('Wavelength  (nm)', 'FontSize', lbl_sz, 'Interpreter','latex')
+    if ww == 1
+        ylabel('% of profiles with |\Triangle R| > uncert', 'FontSize', lbl_sz, 'Interpreter','latex')
+    end
+    title(sprintf('window = %d m', windows_m(ww)), 'FontSize', lbl_sz, 'Interpreter','latex')
 end
 title(tl2, 'Fraction of profiles whose smoothing is detectable, per band', ...
-    'FontWeight', 'bold')
+    'FontWeight', 'bold', 'FontSize', lbl_sz, 'Interpreter','latex')
 
 if p.Results.SaveFig
     saveas(gcf, [results_dir, 'aggregate_fraction_retrievable.png']);

@@ -9,9 +9,9 @@ function [GN_output, GN_inputs] = calc_retrieval_gauss_newton_EMIT_ver4_log_forM
 % ----- unpack inputs -----
 % ** 4 variables below should be in log space **
 model_apriori = GN_inputs.model.apriori'; % a priori expected values for the model parameters
-model_cov = GN_inputs.model.covariance; % model parameter covariance matrix
-measurement_cov = GN_inputs.measurement.covariance; % measurement covaraince matrix
-forward_model_cov = GN_inputs.model.forward_model.covariance;  % forward model parameter covariance
+model_cov_log = GN_inputs.model.covariance; % model parameter covariance matrix
+measurement_cov_log = GN_inputs.measurement.covariance; % measurement covaraince matrix
+forward_model_cov_log = GN_inputs.model.forward_model.covariance;  % forward model parameter covariance
 initialGuess = GN_inputs.model.initialGuess';      % Initial guess to start the Gauss-Newton iteration
 
 
@@ -54,7 +54,7 @@ end
 % 285 is the maximum number of spectral channels
 if GN_inputs.bands2run<285
 
-    measurement_cov = measurement_cov(GN_inputs.bands2run, GN_inputs.bands2run);
+    measurement_cov_log = measurement_cov_log(GN_inputs.bands2run, GN_inputs.bands2run);
     measurement_cov_lin = measurement_cov_lin(GN_inputs.bands2run, GN_inputs.bands2run);
 
 
@@ -260,7 +260,7 @@ if print_status_updates == true
         % -----------------------------------------------------------------
         % S_e = S_y + S_b'
         % S_b' = K_b * S_b * K_b'
-        total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+        total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -275,8 +275,8 @@ if print_status_updates == true
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
+        new_direction = (model_cov_log^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov_log^(-1) * diff_guess_prior(:,ii));
 
         % find the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + a*new_direction <u
@@ -696,7 +696,7 @@ else
         % -----------------------------------------------------------------
         % S_e = S_y + S_b'
         % S_b' = K_b * S_b * K_b'
-        total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+        total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -711,8 +711,8 @@ else
         % new guess using the modified bound-constraint algorithm (Docicu
         % et al 2003)
         % compute the Gauss-Newton direction for each retrevial variable
-        new_direction = (model_cov^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
-            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov^(-1) * diff_guess_prior(:,ii));
+        new_direction = (model_cov_log^(-1) + Jacobian' * total_meas_fm_cov^(-1) *Jacobian)^(-1) *...
+            (Jacobian' *  total_meas_fm_cov^(-1) * residual(:,ii) - model_cov_log^(-1) * diff_guess_prior(:,ii));
 
         % find the maximum non-negative value, a, that satisfies the
         % following: l< current_guess + a*new_direction <u
@@ -1093,15 +1093,15 @@ jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( retrieval(:,en
 % -----------------------------------------------------------------
 % S_e = S_y + S_b'
 % S_b' = K_b * S_b * K_b'
-total_meas_fm_cov = measurement_cov + (jacobian_fm * forward_model_cov * jacobian_fm');
+total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
 
 
 % How do I treat the posterior covariance matrix in log space? Do I simply
 % take the exponential of the covariance matrix?
-posterior_cov_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1);
+posterior_cov_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov_log^(-1))^(-1);
 
 
-A_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov^(-1))^(-1) *...
+A_log = ((Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log) + model_cov_log^(-1))^(-1) *...
     Jacobian_log' * total_meas_fm_cov^(-1) * Jacobian_log;
 % ---------------------------------------------------------------------
 % ---------------------------------------------------------------------
@@ -1126,8 +1126,9 @@ dof_signal_log_perVariable = diag(A_log);
 H_log = -1/2 * log(det(eye(num_parameters) - A_log));      % bits
 
 
-
+% -------------------------------------------------------------------
 % ---------------- COMPUTE LIQUID WATER PATH ------------------
+% -------------------------------------------------------------------
 % Compute the retireved Liquid water path with the final profile
 
 
@@ -1204,6 +1205,33 @@ end
 
 
 
+% -------------------------------------------------------------------
+% COMPUTE the retrieval uncertainty due to forward model uncertainty 
+% -------------------------------------------------------------------
+
+% compute the gain matrix in log space
+G_log = posterior_cov_log * Jacobian_log' * total_meas_fm_cov^(-1);
+
+% compute the retrieval error covariance due to forward model parameter
+% uncertainty in log space.
+% Rodgers (2000), Eq. 3.18:  S_f = G * K_b * S_b * K_b' * G'
+% where K_b = jacobian_fm (d ln(R)/d ln(b)) and S_b = forward_model_cov_log
+% (cov of ln(b)). The result is the covariance of d(ln x), so it is a
+% NUM_PARAMETERS x NUM_PARAMETERS matrix expressing the fractional retrieval
+% error contributed by the forward model parameters.
+forward_model_param_cov = G_log * jacobian_fm * forward_model_cov_log * jacobian_fm' * G_log';
+
+% 1-sigma fractional uncertainty contributed to each retrieved variable.
+% Because the retrieval is in log space, sqrt of the diagonal is the relative
+% (fractional) uncertainty in r_top, r_bot, tau_c, and acpw.
+forward_model_param_uncert = sqrt(diag(forward_model_param_cov));
+
+
+% -------------------------------------------------------------------
+% -------------------------------------------------------------------
+
+
+
 
 % ---- Collect all outputs ----
 
@@ -1225,6 +1253,13 @@ GN_output.infoContent_log = H_log;
 GN_output.dof_signal_log = dof_signal_log;
 
 GN_output.dof_signal_log_perVariable = dof_signal_log_perVariable;
+
+% full retrieval error covariance due to forward model parameter uncertainty
+% (Rodgers Eq. 3.18), in log space
+GN_output.forward_model_parameter_cov = forward_model_param_cov;
+
+% 1-sigma fractional uncertainty per retrieved variable (sqrt of the diagonal)
+GN_output.forward_model_parameter_uncert_log = forward_model_param_uncert;
 
 
 

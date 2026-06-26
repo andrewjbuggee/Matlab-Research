@@ -5,7 +5,7 @@
 
 %%
 
-function [radiance_uncertainty, radiance_uncertainty_percent_perChannel] = compute_EMIT_radiance_uncertainty(emit)
+function [radiance_uncertainty, radiance_absoluteCalibrationError_perChannel] = compute_EMIT_radiance_uncertainty(emit)
 
 
 %% Which computer is this?
@@ -69,8 +69,7 @@ eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 
 % take the real part of the equation below to ignore the cases where some
 % radiance measurements are less than 0
-%radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 .* emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
-%radiance_uncertainty = real( (eta_1 .* sqrt(eta_2 + emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
+radiance_noise = real( (eta_1 .* sqrt(eta_2 + emit.radiance.measurements)) + eta_3 );      % microW/cm^2/nm/sr
 
 
 %% ---- The above equations describe a noise model for the instrument ----
@@ -78,9 +77,27 @@ eta_3 = repmat(noise_model.data(:,4), 1, num_pixels);
 % Peter thinks I should set the EMIT radiance at uncertainty at 5% 
 % radiance_uncertainty = 0.05 .* emit.radiance.measurements;              % microW/cm^2/nm/sr
 
-% Let's set it to 3%
-radiance_uncertainty_percent_perChannel = 3;                         % percent
-radiance_uncertainty = (radiance_uncertainty_percent_perChannel/100) .* emit.radiance.measurements;              % microW/cm^2/nm/sr
+% -----------------------------------------------------------------------
+% ************ Update to the EMIT uncertainty (25 June 2026) ************
+% -----------------------------------------------------------------------
+% I exchanged a few emails with David Thompson at JPL, who is on the EMIT
+% mission team. David said that the the uncertainty in reflectance was about
+% 1% for comparisons with nearly simultaneous observations between EMIT and
+% an in-situ spectrometer. He also mentioned another analysis found the
+% unceratinty to be 2%. "For coincident acquisitions our Railroad Valley 
+% intercomparisons have given us one sigma discrepancies of ~1% 
+% (Thompson et al., 2024) and 2% (Coleman et al., RSE 2024), with the 
+% largest differences in the shortest wavelengths." 
+% -----------------------------------------------------------------------
+% -----------------------------------------------------------------------
+
+% Let's set it to 1.5% and let's add the noise model, even though its likely
+% so small it is negligible. 
+radiance_absoluteCalibrationError_perChannel = 1.5;                         % percent
+
+% Add the noise with the absolute calibration error in quadrature.
+radiance_uncertainty = sqrt( radiance_noise.^2 +...
+    ((radiance_absoluteCalibrationError_perChannel/100) .* emit.radiance.measurements).^2 );              % microW/cm^2/nm/sr
 
 
 
