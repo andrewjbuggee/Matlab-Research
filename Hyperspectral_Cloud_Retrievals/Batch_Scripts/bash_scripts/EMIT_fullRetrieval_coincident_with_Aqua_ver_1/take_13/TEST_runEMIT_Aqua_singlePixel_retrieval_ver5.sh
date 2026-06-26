@@ -27,7 +27,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
-#SBATCH --mem=80G
+#SBATCH --mem=100G
 #SBATCH --time=23:59:00                          # generous; lower once you know per-pixel runtime
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
@@ -111,10 +111,20 @@ CURRENT_MAT_FILE=${ALL_MAT_FILES[$TEST_FILE_INDEX]}
 FOLDER_EXT_NUM=${SLURM_ARRAY_TASK_ID}
 
 
-# Give the task its own isolated MATLAB preferences and job directory
-TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
-mkdir -p "${TMPDIR}"
-export TMPDIR
+# Per-task scratch for parpool's JobStorageLocation, on node-local /tmp (with a
+# Lustre fallback) to avoid the multi-minute "Job Queued" parpool waits seen on
+# the neural-network runs. Mirrors the production script.
+TMPDIR_LOCAL="/tmp/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+if mkdir -p "${TMPDIR_LOCAL}" 2>/dev/null && [ -w "${TMPDIR_LOCAL}" ]; then
+    export TMPDIR="${TMPDIR_LOCAL}"
+else
+    export TMPDIR="/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    mkdir -p "${TMPDIR}"
+fi
+
+# Per-task MATLAB preferences dir (node-local) to avoid ~/.matlab collisions.
+export MATLAB_PREFDIR="${TMPDIR}/matlab_prefs/R2024b"
+mkdir -p "${MATLAB_PREFDIR}"
 
 
 echo " "
@@ -124,6 +134,7 @@ echo "Job ID: ${SLURM_ARRAY_JOB_ID}, Task ID: ${SLURM_ARRAY_TASK_ID}"
 echo "SLURM_CPUS_PER_TASK: ${SLURM_CPUS_PER_TASK}"
 echo "PRE_MATLAB_LD_LIBRARY_PATH: ${PRE_MATLAB_LD_LIBRARY_PATH}"
 echo "TMPDIR: ${TMPDIR}"
+echo "MATLAB_PREFDIR: ${MATLAB_PREFDIR}"
 echo "Total .mat files found: ${TOTAL_FILES}"
 echo "Testing file index ${TEST_FILE_INDEX}: ${CURRENT_MAT_FILE}"
 echo "folder_extension_number: ${FOLDER_EXT_NUM}"
@@ -133,21 +144,27 @@ echo "=============================================="
 
 
 time matlab -nodesktop -nodisplay -r "\
-    addpath(genpath('/projects/anbu8374/Matlab-Research')); \
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
-    clear variables; \
-    addLibRadTran_paths; \
-    print_status_updates = true; \
-    print_libRadtran_err = true; \
-    delete_inp_out = true; \
-    mat_file_path = '${CURRENT_MAT_FILE}'; \
-    folder_extension_number = ${FOLDER_EXT_NUM}; \
-    output_dir = '${OUT_DIR}'; \
-    [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
-        run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, \
-        print_status_updates, print_libRadtran_err, output_dir, delete_inp_out); \
-    exit"
+    try; \
+        addpath(genpath('/projects/anbu8374/Matlab-Research')); \
+        addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
+        addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
+        clear variables; \
+        addLibRadTran_paths; \
+        print_status_updates = true; \
+        print_libRadtran_err = true; \
+        delete_inp_out = true; \
+        mat_file_path = '${CURRENT_MAT_FILE}'; \
+        folder_extension_number = ${FOLDER_EXT_NUM}; \
+        output_dir = '${OUT_DIR}'; \
+        [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
+            run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, \
+            print_status_updates, print_libRadtran_err, output_dir, delete_inp_out); \
+        exit(0); \
+    catch ME; \
+        fprintf(2, '\n[RETRIEVAL FAILED] %s: %s\n', ME.identifier, ME.message); \
+        for k = 1:numel(ME.stack); fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; \
+        exit(1); \
+    end"
 
 MATLAB_EXIT=$?
 

@@ -45,7 +45,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
-#SBATCH --mem=80G
+#SBATCH --mem=100G
 #SBATCH --time=23:59:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
@@ -170,12 +170,30 @@ echo "PRE_MATLAB_LD_LIBRARY_PATH: ${PRE_MATLAB_LD_LIBRARY_PATH}"
 
 
 # ----------------------------------------------------------
-# This code below is repeated in each loop iteration to ensure a clean MATLAB environment for each file
-# Give each SLURM task its own isolated MATLAB preferences and job directory
-TMPDIR=/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}
-mkdir -p "${TMPDIR}"
-export TMPDIR
-echo "TMPDIR: ${TMPDIR}"
+# Per-task scratch for parpool's JobStorageLocation and MATLAB temp files.
+# Prefer node-local /tmp over shared Lustre: start_parallel_pool.m sets
+# p.JobStorageLocation = $TMPDIR, and keeping those KB-sized job files off
+# Lustre eliminates the multi-minute "Job Queued" parpool waits seen on the
+# neural-network training runs. Falls back to Lustre if /tmp is unwritable.
+# (EMIT's libRadtran INP_OUT/wc/atmmod dirs come from
+# define_EMIT_dataPath_and_saveFolders and are unaffected by TMPDIR.)
+TMPDIR_LOCAL="/tmp/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+if mkdir -p "${TMPDIR_LOCAL}" 2>/dev/null && [ -w "${TMPDIR_LOCAL}" ]; then
+    export TMPDIR="${TMPDIR_LOCAL}"
+    echo "TMPDIR (node-local): ${TMPDIR}"
+else
+    export TMPDIR="/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    mkdir -p "${TMPDIR}"
+    echo "TMPDIR (Lustre fallback): ${TMPDIR}"
+fi
+echo "TMPDIR headroom:"
+df -h "${TMPDIR}"
+
+# Give MATLAB a per-task preferences dir (node-local) so concurrent array tasks
+# don't collide in ~/.matlab and don't keep refilling ~/.matlab/local_cluster_jobs.
+export MATLAB_PREFDIR="${TMPDIR}/matlab_prefs/R2024b"
+mkdir -p "${MATLAB_PREFDIR}"
+echo "MATLAB_PREFDIR: ${MATLAB_PREFDIR}"
 # ----------------------------------------------------------
 # ----------------------------------------------------------
 
@@ -197,9 +215,20 @@ echo "=================="
 
 
 
-# Add a small random delay to prevent simultaneous MATLAB startups
-# This is especially important if many tasks start at the same time, as it can prevent overwhelming the filesystem and reduce contention for resources.
-sleep $((SLURM_ARRAY_TASK_ID % 60))
+# Stagger MATLAB startups across the concurrency-limited wave of array tasks.
+# With the %40 throttle at most 40 tasks run at once, so spreading their
+# MATLAB+parpool launches over (idx mod 40)*15 s (0-585 s) avoids 40 forty-worker
+# pools all hitting startup, preferences, and process launch at the same instant.
+STARTUP_STAGGER_MOD=40
+STARTUP_STAGGER_STEP_SECONDS=15
+STARTUP_STAGGER_SECONDS=$(( ((SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) % STARTUP_STAGGER_MOD) * STARTUP_STAGGER_STEP_SECONDS ))
+echo "Startup stagger: sleeping ${STARTUP_STAGGER_SECONDS}s before MATLAB launch"
+sleep "${STARTUP_STAGGER_SECONDS}"
+
+
+# Track whether any file in this task failed, so the task can report a
+# non-zero exit status to SLURM (visible in sacct) for targeted reruns.
+TASK_FAILED=0
 
 
 # Loop over all .mat files assigned to this task
@@ -230,22 +259,36 @@ for (( FILE_IDX=START_IDX; FILE_IDX<=END_IDX; FILE_IDX++ )); do
     echo "Starting MATLAB at $(date)"
     echo "=============================================="
 
+    # try/catch so a failed pixel prints a stack trace and returns a non-zero
+    # exit status (instead of MATLAB exiting 0 on an uncaught error).
     time matlab -nodesktop -nodisplay -r "\
-        addpath(genpath('/projects/anbu8374/Matlab-Research')); \
-        addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
-        addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
-        clear variables; \
-        addLibRadTran_paths; \
-        print_status_updates = true; \
-        print_libRadtran_err = false; \
-        delete_inp_out = true; \
-        mat_file_path = '${CURRENT_MAT_FILE}'; \
-        folder_extension_number = ${FOLDER_EXT_NUM}; \
-        output_dir = '${OUT_DIR}'; \
-        [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
-            run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, \
-            print_status_updates, print_libRadtran_err, output_dir, delete_inp_out); \
-        exit"
+        try; \
+            addpath(genpath('/projects/anbu8374/Matlab-Research')); \
+            addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
+            addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
+            clear variables; \
+            addLibRadTran_paths; \
+            print_status_updates = true; \
+            print_libRadtran_err = false; \
+            delete_inp_out = true; \
+            mat_file_path = '${CURRENT_MAT_FILE}'; \
+            folder_extension_number = ${FOLDER_EXT_NUM}; \
+            output_dir = '${OUT_DIR}'; \
+            [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
+                run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, \
+                print_status_updates, print_libRadtran_err, output_dir, delete_inp_out); \
+            exit(0); \
+        catch ME; \
+            fprintf(2, '\n[RETRIEVAL FAILED] %s: %s\n', ME.identifier, ME.message); \
+            for k = 1:numel(ME.stack); fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; \
+            exit(1); \
+        end"
+    MATLAB_STATUS=$?
+
+    if [ ${MATLAB_STATUS} -ne 0 ]; then
+        echo "WARNING: MATLAB exited with status ${MATLAB_STATUS} for ${CURRENT_MAT_FILE}"
+        TASK_FAILED=1
+    fi
 
     echo " "
     echo "Finished processing: ${CURRENT_MAT_FILE} at $(date)"
@@ -262,9 +305,11 @@ rm -rf "${TMPDIR}"
 # Concurrent execution across array tasks is safe:
 # failed rm calls (already-deleted dirs) are suppressed.
 #
-# NOTE: for EMIT, define_EMIT_dataPath_and_saveFolders puts the per-task
-# wc_* and atmmod_* directories under /projects (NOT scratch), so those are
-# pruned separately below.
+# NOTE: with TMPDIR set (normal batch runs), define_EMIT_dataPath_and_saveFolders
+# now puts this task's INP_OUT/wc/atmmod under $TMPDIR (node-local /tmp), so the
+# "rm -rf ${TMPDIR}" above already removed them. The /projects wc_*/atmmod_*
+# prune below is a safety net for the TMPDIR-unset fallback and for stragglers
+# left by older (pre-node-local) runs.
 # -------------------------------------------------------
 echo "Pruning scratch directories older than 7 days..."
 find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
@@ -283,3 +328,7 @@ echo " "
 echo "=============================================="
 echo "Task ${SLURM_ARRAY_TASK_ID} finished all ${N_FILES_THIS_JOB} files at $(date)"
 echo "=============================================="
+
+# Report a non-zero status to SLURM if any pixel in this task failed, so the
+# task shows up as FAILED in sacct and can be resubmitted on its own.
+exit ${TASK_FAILED}
