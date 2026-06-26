@@ -226,19 +226,24 @@ else
         % libRadtran data folder
         folder_paths.libRadtran_data = '/projects/anbu8374/software/libRadtran-2.0.5/data/';
 
-        % Define the folder path where all .INP files will be saved
-        folder_paths.libRadtran_inp = ['/scratch/alpine/anbu8374/EMIT/INP_OUT_',...
-            num2str(folder_extension_number), '/'];
-
-
-        % water cloud file location
-        folder_paths.libRadtran_water_cloud_files = ['/projects/anbu8374/software/libRadtran-2.0.5/data/wc_',...
-            num2str(folder_extension_number), '/'];
-
-
-        % libRadtran atmosphere folder location
-        folder_paths.atm_folder_path = ['/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod_',...
-            num2str(folder_extension_number), '/'];
+        % --- Per-task libRadtran I/O paths --------------------------------
+        % When the SLURM script sets TMPDIR (node-local /tmp), put INP_OUT,
+        % wc, and atmmod there so the heavy small-file I/O stays off Lustre
+        % and /projects. Falls back to /scratch and /projects when TMPDIR is
+        % unset (e.g. interactive runs without the batch script).
+        tmpdir_env = getenv('TMPDIR');
+        if ~isempty(tmpdir_env)
+            if tmpdir_env(end) ~= '/'
+                tmpdir_env = [tmpdir_env, '/'];
+            end
+            folder_paths.libRadtran_inp               = [tmpdir_env, 'EMIT_INP_OUT_', num2str(folder_extension_number), '/'];
+            folder_paths.libRadtran_water_cloud_files = [tmpdir_env, 'wc_',           num2str(folder_extension_number), '/'];
+            folder_paths.atm_folder_path              = [tmpdir_env, 'atmmod_',       num2str(folder_extension_number), '/'];
+        else
+            folder_paths.libRadtran_inp               = ['/scratch/alpine/anbu8374/EMIT/INP_OUT_',                    num2str(folder_extension_number), '/'];
+            folder_paths.libRadtran_water_cloud_files = ['/projects/anbu8374/software/libRadtran-2.0.5/data/wc_',     num2str(folder_extension_number), '/'];
+            folder_paths.atm_folder_path              = ['/projects/anbu8374/software/libRadtran-2.0.5/data/atmmod_', num2str(folder_extension_number), '/'];
+        end
 
 
         % mie folder location
