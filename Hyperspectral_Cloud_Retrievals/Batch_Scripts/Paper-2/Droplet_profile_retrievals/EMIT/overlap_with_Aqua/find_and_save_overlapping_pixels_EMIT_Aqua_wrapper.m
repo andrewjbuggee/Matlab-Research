@@ -155,6 +155,7 @@ criteria.cld_tau_max = 50;         % cloud optical depth maximum
 criteria.H = 2;                    % horizontal inhomogeneity index
 criteria.findN_smallest_H = true;
 criteria.H_N_smallest = 1;         % keep the 5 MODIS pixels with smallest H
+criteria.rng_seed = 1;             % seed for reproducible random EMIT-pixel subsampling
 
 emit_pixels_per_modis = 2;        % select 30 EMIT pixels within each MODIS pixel
 

@@ -49,6 +49,13 @@ end
 
 folder_paths.coincident_dataFolder = sub_directory;
 
+% Set the RNG seed explicitly so the random EMIT-pixel selection is
+% reproducible, and so the seed is recorded with the saved data and the
+% manifest. Defaults to 1 if the caller did not specify one.
+if ~isfield(criteria, 'rng_seed') || isempty(criteria.rng_seed)
+    criteria.rng_seed = 1;
+end
+
 [overlap_pixels, emit, modis, airs, amsr] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths,...
     criteria, emit_pixels_per_modis);
 
@@ -114,6 +121,16 @@ end
 
 total_pixels = length(overlap_pixels.emit.linear_idx);
 n_pixels_saved = 0;
+
+% --- Lightweight manifest of saved pixels. One row per EMIT pixel; masked
+% --- pixels stay NaN and are trimmed before the manifest is written. ---
+manifest_emit_pixel_num   = nan(total_pixels, 1);
+manifest_emit_linear_idx  = nan(total_pixels, 1);
+manifest_emit_row         = nan(total_pixels, 1);
+manifest_emit_col         = nan(total_pixels, 1);
+manifest_modis_linear_idx = nan(total_pixels, 1);
+manifest_airs_linear_idx  = nan(total_pixels, 1);
+manifest_amsr_linear_idx  = nan(total_pixels, 1);
 
 % --- Build the mapping from EMIT pixel index to unique MODIS/AIRS/AMSR index ---
 % This replicates the logic in retrieve_dropProf_acpw_EMIT_Aqua_singlePix_ver2.m
@@ -186,6 +203,15 @@ for pp = 1:total_pixels
     % Define the output filename
     output_filename = [folder_paths.output_dir, 'overlap_EMIT_pixel_', num2str(pp, '%03d'), '_', subdir_name, '.mat'];
 
+    % ---- Record this (non-masked) pixel in the lightweight manifest ----
+    manifest_emit_pixel_num(pp)   = pp;
+    manifest_emit_linear_idx(pp)  = overlap_pixels.emit.linear_idx(pp);
+    manifest_emit_row(pp)         = overlap_pixels.emit.row(pp);
+    manifest_emit_col(pp)         = overlap_pixels.emit.col(pp);
+    manifest_modis_linear_idx(pp) = overlap_pixels.modis.linear_idx(pp);
+    manifest_airs_linear_idx(pp)  = overlap_pixels.airs.linear_idx(pp);
+    manifest_amsr_linear_idx(pp)  = overlap_pixels.amsr.linear_idx(pp);
+
     % Save all data needed for the single-pixel retrieval
     save(output_filename, 'emit_pp', 'modis_pp', 'airs_pp', 'amsr_pp',...
         'overlap_pixels_pp', 'folder_paths', 'pixel_num', 'criteria', '-v7.3');
@@ -196,6 +222,47 @@ for pp = 1:total_pixels
         disp(['Saved pixel ', num2str(pp), ' of ', num2str(total_pixels), ': ', output_filename])
     end
 
+end
+
+
+%% Save a lightweight pixel manifest to a PERSISTENT location
+% The manifest stores only the pixel identities (not the bulky per-pixel data),
+% so it is tiny. It lives on coincident_dataPath (e.g. /projects), NOT scratch,
+% so the exact selection survives a scratch purge and can be reproduced with the
+% recorded rng_seed. One row per saved (non-masked) EMIT pixel, with the
+% MODIS/AIRS/AMSR pixels it maps to.
+
+keep = ~isnan(manifest_emit_linear_idx);
+pixel_manifest = table( ...
+    repmat(string(subdir_name), sum(keep), 1), ...
+    manifest_emit_pixel_num(keep), ...
+    manifest_emit_linear_idx(keep), ...
+    manifest_emit_row(keep), ...
+    manifest_emit_col(keep), ...
+    manifest_modis_linear_idx(keep), ...
+    manifest_airs_linear_idx(keep), ...
+    manifest_amsr_linear_idx(keep), ...
+    repmat(criteria.rng_seed, sum(keep), 1), ...
+    'VariableNames', {'subdir', 'emit_pixel_num', 'emit_linear_idx', 'emit_row', 'emit_col', ...
+                      'modis_linear_idx', 'airs_linear_idx', 'amsr_linear_idx', 'rng_seed'});
+
+% Number of unique MODIS pixels represented in this subdirectory
+n_unique_modis_pixels = numel(unique(pixel_manifest.modis_linear_idx));
+
+% Persistent manifest directory (coincident_dataPath is on /projects, not scratch)
+manifest_dir = [folder_paths.coincident_dataPath, 'pixel_manifests/'];
+if ~exist(manifest_dir, 'dir')
+    mkdir(manifest_dir)
+end
+
+manifest_basename = ['pixel_manifest_', subdir_name, '_seed', num2str(criteria.rng_seed)];
+save([manifest_dir, manifest_basename, '.mat'], 'pixel_manifest', 'criteria', 'subdir_name', 'n_unique_modis_pixels');
+writetable(pixel_manifest, [manifest_dir, manifest_basename, '.csv']);
+
+if print_status_updates == true
+    disp([newline, 'Saved pixel manifest (', num2str(height(pixel_manifest)), ' EMIT pixels, ', ...
+        num2str(n_unique_modis_pixels), ' unique MODIS pixels) to:', newline, ...
+        '  ', manifest_dir, manifest_basename, '.csv', newline])
 end
 
 

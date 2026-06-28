@@ -136,6 +136,17 @@
 function [overlap, emit, modis, airs, amsr, folder_paths] = findOverlap_pixels_EMIT_Aqua_coincident_data(folder_paths, criteria, n_emit_per_modis)
 
 
+%% Seed the random number generator for reproducible pixel selection
+% The EMIT-pixel subsampling below uses randperm (in both the validity-check
+% loop and the final sampling loop). Seed it explicitly so the same coincident
+% data + criteria + seed always returns the same pixels. The seed is recorded
+% in criteria.rng_seed (saved with every per-pixel file and in the manifest).
+% Defaults to 1 if the caller did not specify one.
+if ~isfield(criteria, 'rng_seed') || isempty(criteria.rng_seed)
+    criteria.rng_seed = 1;
+end
+rng(criteria.rng_seed);
+
 
 %% Load EMIT Data
 
