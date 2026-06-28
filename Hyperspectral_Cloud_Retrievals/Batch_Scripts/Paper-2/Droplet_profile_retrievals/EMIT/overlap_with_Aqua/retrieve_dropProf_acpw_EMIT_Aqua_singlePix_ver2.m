@@ -102,12 +102,16 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % functions beyond 2500 nm.
     % GN_inputs.bands2run = (1:283)';
 
-    % *** There are calibration issues below 500 nm and order sorting
-    % filter seams to ignore ***
+    % *** There are calibration issues below 500 nm and at the order sorting filter seams ***
     % index 17 has a center wavelength of 499
     % skip the order sorting filter region between 1245 and 1320
     % skip last two bands due to range of the new custom mie tables (2/9/2026)
-    GN_inputs.bands2run = [18:117, 127:283]';
+    % GN_inputs.bands2run = [18:117, 127:283]';
+
+    % *** Remove wavelengths within saturated water vapor regions ***
+    % Indexes 195 - 206 space wavelengths 1826nm - 1908nm.
+    % Indexes 132 - 138 space wavelengths 1357nm - 1402nm.
+    GN_inputs.bands2run = [18:117, 127:131, 139:194, 207:270]';
 
     %% Override input settings with MODIS derived values
 

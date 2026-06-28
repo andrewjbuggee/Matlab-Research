@@ -93,7 +93,10 @@ a_largestVal = 1;
 array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
-array_length_newMax = 25;
+% (number of step lengths evaluated in the constrained line search; each one
+% costs a full forward-model evaluation, so this is a direct per-iteration cost
+% knob. Reduced 25 -> 15 for speed; verify convergence still lands on a test batch.)
+array_length_newMax = 15;
 
 % We want to make sure the new step is within the feasible
 % range, not at the boundaries. So we only accept a values that
@@ -237,30 +240,27 @@ if print_status_updates == true
         end
 
 
-        disp([newline, 'Computing the Forward Model Jacobian...', newline])
+        % Compute the forward-model-parameter Jacobian and the resulting total
+        % measurement covariance ONCE, at the initial guess (ii==1), and hold
+        % S_e fixed through the iterations. This avoids recomputing the expensive
+        % 22-parameter forward-model Jacobian every Gauss-Newton step; it is
+        % re-evaluated at the converged solution after the loop for the posterior.
+        % (total_meas_fm_cov persists across iterations, so it is reused for ii>1.)
+        if ii==1
 
-        % ** For uncertainty with re profile **
-        % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
-        %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+            disp([newline, 'Computing the Forward Model Jacobian (initial guess)...', newline])
 
-        % ** For uncertainty with re profile and cloud top height **
-        % jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-        %     spec_response.value, jacobian_barPlot_flag, folder_paths);
+            % ** For uncertainty with re profile, cloud top height and effective varaince **
+            jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess),...
+                measurement_estimate_ln, GN_inputs,spec_response.value, jacobian_barPlot_flag,...
+                folder_paths, radiosonde_datProfiles, pixel_num, delete_inp_out);
 
-        % ** For uncertainty with re profile, cloud top height and effective varaince **
-        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess),...
-            measurement_estimate_ln, GN_inputs,spec_response.value, jacobian_barPlot_flag,...
-            folder_paths, radiosonde_datProfiles, pixel_num, delete_inp_out);
+            % S_e = S_y + S_b'  ;  S_b' = K_b * S_b * K_b'
+            total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
+
+        end
         % --------------------------------------------------------------
         % --------------------------------------------------------------
-
-
-        % -----------------------------------------------------------------
-        % --------- Update the total measurement covariance ---------------
-        % -----------------------------------------------------------------
-        % S_e = S_y + S_b'
-        % S_b' = K_b * S_b * K_b'
-        total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
@@ -675,28 +675,23 @@ else
 
 
 
-        % ** For uncertainty with re profile **
-        % jacobian_fm = compute_forMod_jacobian_HySICS_log_reProf(exp(current_guess), measurement_estimate_ln, GN_inputs,...
-        %     hysics.spec_response.value, jacobian_barPlot_flag, folder_paths);
+        % Compute the forward-model-parameter Jacobian and the total measurement
+        % covariance ONCE, at the initial guess (ii==1); hold S_e fixed through
+        % the iterations (total_meas_fm_cov persists and is reused for ii>1) and
+        % re-evaluate at the converged solution after the loop for the posterior.
+        if ii==1
 
-        % ** For uncertainty with re profile and cloud top height **
-        % jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_cloudTopHeight( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-        %     spec_response.value, jacobian_barPlot_flag, folder_paths);
+            % ** For uncertainty with re profile, cloud top height and effective varaince **
+            jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
+                spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles,...
+                pixel_num, delete_inp_out);
 
-        % ** For uncertainty with re profile, cloud top height and effective varaince **
-        jacobian_fm = compute_forMod_jacobian_EMIT_log_reProf_CTH_effVar( exp(current_guess), measurement_estimate_ln, GN_inputs,...
-            spec_response.value, jacobian_barPlot_flag, folder_paths, radiosonde_datProfiles,...
-            pixel_num, delete_inp_out);
+            % S_e = S_y + S_b'  ;  S_b' = K_b * S_b * K_b'
+            total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
+
+        end
         % --------------------------------------------------------------
         % --------------------------------------------------------------
-
-
-        % -----------------------------------------------------------------
-        % --------- Update the total measurement covariance ---------------
-        % -----------------------------------------------------------------
-        % S_e = S_y + S_b'
-        % S_b' = K_b * S_b * K_b'
-        total_meas_fm_cov = measurement_cov_log + (jacobian_fm * forward_model_cov_log * jacobian_fm');
 
 
         diff_guess_prior(:,ii) = current_guess - model_apriori;
