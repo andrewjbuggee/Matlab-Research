@@ -51,6 +51,12 @@ export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH
 export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5
 export PATH=$GSL_BIN:$PATH
 
+# *** Capture the correct LD_LIBRARY_PATH before MATLAB contaminates it ***
+# runUVSPEC_ver2.m and runMIE.m read this to run uvspec/mie with the GSL
+# libraries instead of MATLAB's bundled libstdc++ (avoids GLIBCXX errors).
+# Without it, uvspec/mie launch with an empty LD_LIBRARY_PATH and fail.
+export PRE_MATLAB_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
 cd /projects/anbu8374/
 
 # Load MATLAB
@@ -124,14 +130,37 @@ done
 echo "=================="
 
 
-# Clean MATLAB temp directories
-echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
-rm -rf ~/.matlab/local_cluster_jobs/R2024b/Job*
-rm -rf /tmp/mathworks_${USER}_*
+# Per-task scratch for parpool's JobStorageLocation and the libRadtran INP_OUT/
+# wc/atmmod dirs (define_EMIT_dataPath_and_saveFolders puts those under $TMPDIR
+# when it is set). Prefer node-local /tmp over shared Lustre to avoid the
+# multi-minute "Job Queued" parpool waits seen on the neural-network runs;
+# falls back to Lustre if /tmp is unwritable. This replaces the old approach of
+# rm-ing the shared ~/.matlab/local_cluster_jobs dir, which could clobber other
+# concurrent jobs.
+TMPDIR_LOCAL="/tmp/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+if mkdir -p "${TMPDIR_LOCAL}" 2>/dev/null && [ -w "${TMPDIR_LOCAL}" ]; then
+    export TMPDIR="${TMPDIR_LOCAL}"
+    echo "TMPDIR (node-local): ${TMPDIR}"
+else
+    export TMPDIR="/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    mkdir -p "${TMPDIR}"
+    echo "TMPDIR (Lustre fallback): ${TMPDIR}"
+fi
+echo "TMPDIR headroom:"
+df -h "${TMPDIR}"
+
+# Per-task MATLAB preferences dir (node-local) so concurrent array tasks don't
+# collide in ~/.matlab or fight over ~/.matlab/local_cluster_jobs.
+export MATLAB_PREFDIR="${TMPDIR}/matlab_prefs/R2024b"
+mkdir -p "${MATLAB_PREFDIR}"
+echo "MATLAB_PREFDIR: ${MATLAB_PREFDIR}"
 
 
-# Add a small random delay to prevent simultaneous MATLAB startups
-sleep $((SLURM_ARRAY_TASK_ID % 10))
+# Stagger MATLAB startups so concurrent array tasks don't all hit MATLAB+parpool
+# launch at the same instant (15 s per task within each wave of 40).
+STARTUP_STAGGER_SECONDS=$(( ((SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) % 40) * 15 ))
+echo "Startup stagger: sleeping ${STARTUP_STAGGER_SECONDS}s before MATLAB launch"
+sleep "${STARTUP_STAGGER_SECONDS}"
 
 
 # Run MATLAB
@@ -143,24 +172,55 @@ sleep $((SLURM_ARRAY_TASK_ID % 10))
 echo " "
 echo "Starting MATLAB at $(date)"
 
+# try/catch so a failed subdirectory prints a stack trace and returns a non-zero
+# exit status (instead of MATLAB exiting 0 on an uncaught error), making the
+# task visible as FAILED in sacct for a targeted resubmit.
 time matlab -nodesktop -nodisplay -r "\
-    addpath(genpath('/projects/anbu8374/Matlab-Research')); \
-    addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
-    addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
-    clear variables; \
-    addLibRadTran_paths; \
-    print_status_updates = true; \
-    print_libRadtran_err = false; \
-    plot_figures = false; \
-    save_figures = false; \
-    folder_paths = define_EMIT_dataPath_and_saveFolders(${SLURM_ARRAY_TASK_ID}); \
-    folder_paths.coincident_dataPath = '${INPUT_DIR}/'; \
-    folder_paths.coincident_dataFolder = '${CURRENT_SUBDIR}/'; \
-    [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
-        run_dropProf_acpw_retrieval_EMIT_overlap_Terra_ver5(folder_paths, print_status_updates, print_libRadtran_err, \
-        plot_figures, save_figures); \
-    exit"
+    try; \
+        addpath(genpath('/projects/anbu8374/Matlab-Research')); \
+        addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
+        addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
+        clear variables; \
+        addLibRadTran_paths; \
+        print_status_updates = true; \
+        print_libRadtran_err = false; \
+        plot_figures = false; \
+        save_figures = false; \
+        folder_paths = define_EMIT_dataPath_and_saveFolders(${SLURM_ARRAY_TASK_ID}); \
+        folder_paths.coincident_dataPath = '${INPUT_DIR}/'; \
+        folder_paths.coincident_dataFolder = '${CURRENT_SUBDIR}/'; \
+        [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
+            run_dropProf_acpw_retrieval_EMIT_overlap_Terra_ver5(folder_paths, print_status_updates, print_libRadtran_err, \
+            plot_figures, save_figures); \
+        exit(0); \
+    catch ME; \
+        fprintf(2, '\n[RETRIEVAL FAILED] %s: %s\n', ME.identifier, ME.message); \
+        for k = 1:numel(ME.stack); fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; \
+        exit(1); \
+    end"
+MATLAB_STATUS=$?
 
 echo " "
-echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date)"
+echo "Finished MATLAB job array task ${SLURM_ARRAY_TASK_ID} at $(date) (MATLAB status ${MATLAB_STATUS})"
 echo "Processed subdirectory: ${CURRENT_SUBDIR}"
+
+# ----------------------------------------------------------
+# Cleanup. INP_OUT/wc/atmmod live under $TMPDIR (node-local) so removing TMPDIR
+# covers them along with parpool's JobStorageLocation; the Mie dir stays on
+# /scratch. A 7-day prune mops up anything left by killed jobs.
+# ----------------------------------------------------------
+echo "Removing TMPDIR: ${TMPDIR}"
+rm -rf "${TMPDIR}"
+
+echo "Removing this task's Mie directory on /scratch..."
+rm -rf "/scratch/alpine/${USER}/Mie_Calculations/emit_${SLURM_ARRAY_TASK_ID}" 2>/dev/null || true
+
+echo "Pruning scratch/projects directories older than 7 days..."
+find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"  -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/EMIT/             -maxdepth 1 -name "INP_OUT_*"      -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "emit_*"         -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /projects/${USER}/software/libRadtran-2.0.5/data/ -maxdepth 1 -name "wc_*"     -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /projects/${USER}/software/libRadtran-2.0.5/data/ -maxdepth 1 -name "atmmod_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+
+# Report a non-zero status to SLURM if the retrieval failed.
+exit ${MATLAB_STATUS}
