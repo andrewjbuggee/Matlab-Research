@@ -17,7 +17,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=25G
-#SBATCH --time=03:59:00
+#SBATCH --time=01:59:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=EMIT_saveOverlap_%A
