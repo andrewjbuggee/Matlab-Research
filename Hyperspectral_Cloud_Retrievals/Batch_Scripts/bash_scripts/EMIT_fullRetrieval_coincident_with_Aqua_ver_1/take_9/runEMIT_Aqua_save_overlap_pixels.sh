@@ -60,8 +60,8 @@ CLD_TAU_MIN=3
 CLD_TAU_MAX=50
 H=2
 FIND_N_SMALLEST_H=true
-H_N_SMALLEST=20
-EMIT_PIXELS_PER_MODIS=50
+H_N_SMALLEST=1
+EMIT_PIXELS_PER_MODIS=1
 PRINT_STATUS_UPDATES=true
 RNG_SEED=1                  # seed for the random EMIT-pixel subsampling (reproducibility)
 # ===========================================================
