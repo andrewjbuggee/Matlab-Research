@@ -17,7 +17,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=30
 #SBATCH --mem=25G
-#SBATCH --time=01:59:00
+#SBATCH --time=16:59:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=EMIT_saveOverlap_%A
@@ -60,8 +60,8 @@ CLD_TAU_MIN=3
 CLD_TAU_MAX=50
 H=2
 FIND_N_SMALLEST_H=true
-H_N_SMALLEST=1
-EMIT_PIXELS_PER_MODIS=1
+H_N_SMALLEST=20
+EMIT_PIXELS_PER_MODIS=30
 PRINT_STATUS_UPDATES=true
 RNG_SEED=1                  # seed for the random EMIT-pixel subsampling (reproducibility)
 # ===========================================================
@@ -73,7 +73,7 @@ RNG_SEED=1                  # seed for the random EMIT-pixel subsampling (reprod
 # *** DEFINE THE DIRECTORY WHERE ALL .mat FILES WILL BE SAVED ***
 # *** MUST HAVE TRAILING SLASH '/' AT THE END             ***
 # ---------------------------------------------------------------
-OUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2/"
+OUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver3/"
 # ----------------------------------------------------------
 
 
