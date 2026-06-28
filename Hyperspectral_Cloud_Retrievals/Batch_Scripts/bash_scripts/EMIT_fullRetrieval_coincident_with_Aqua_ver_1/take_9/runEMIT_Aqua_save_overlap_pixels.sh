@@ -15,9 +15,9 @@
 #SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=25
-#SBATCH --mem=90G
-#SBATCH --time=23:59:00
+#SBATCH --cpus-per-task=30
+#SBATCH --mem=25G
+#SBATCH --time=03:59:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --job-name=EMIT_saveOverlap_%A
@@ -60,9 +60,10 @@ CLD_TAU_MIN=3
 CLD_TAU_MAX=50
 H=2
 FIND_N_SMALLEST_H=true
-H_N_SMALLEST=10
-EMIT_PIXELS_PER_MODIS=10
+H_N_SMALLEST=20
+EMIT_PIXELS_PER_MODIS=50
 PRINT_STATUS_UPDATES=true
+RNG_SEED=1                  # seed for the random EMIT-pixel subsampling (reproducibility)
 # ===========================================================
 
 
@@ -91,6 +92,7 @@ echo "  H = ${H}"
 echo "  findN_smallest_H = ${FIND_N_SMALLEST_H}"
 echo "  H_N_smallest = ${H_N_SMALLEST}"
 echo "  emit_pixels_per_modis = ${EMIT_PIXELS_PER_MODIS}"
+echo "  rng_seed = ${RNG_SEED}"
 
 
 # Clean MATLAB temp directories
@@ -122,6 +124,7 @@ time matlab -nodesktop -nodisplay -r "\
     criteria.H = ${H}; \
     criteria.findN_smallest_H = ${FIND_N_SMALLEST_H}; \
     criteria.H_N_smallest = ${H_N_SMALLEST}; \
+    criteria.rng_seed = ${RNG_SEED}; \
     emit_pixels_per_modis = ${EMIT_PIXELS_PER_MODIS}; \
     print_status_updates = ${PRINT_STATUS_UPDATES}; \
     for nn = 1:length(sub_directories), \
