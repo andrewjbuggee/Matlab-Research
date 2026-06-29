@@ -12,7 +12,7 @@
 #SBATCH --time=2:00:00
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --mem=80G
+#SBATCH --mem=100G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --job-name=reSmoothTest_OR

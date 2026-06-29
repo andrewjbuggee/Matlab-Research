@@ -30,7 +30,7 @@
 #   (2) End-of-task cleanup now also prunes the per-task wc_* and atmmod_*
 #       directories that define_EMIT_dataPath_and_saveFolders creates under
 #       /projects/$USER/software/libRadtran-2.0.5/data/ (take_12 leaked these).
-#   (3) Resources: 40 cpus / 80G and a %40 concurrency throttle.
+#   (3) Resources: 40 cpus / 100G and a %40 concurrency throttle.
 # ----------------------------------------------------------------------
 
 # %A: Job ID
@@ -45,16 +45,19 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
-#SBATCH --mem=100G
-#SBATCH --time=23:59:00
+#SBATCH --mem=75G
+#SBATCH --time=23:59:59
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
-#SBATCH --job-name=EMIT_singlePix_%A_%a
-#SBATCH --output=EMIT_singlePix_%A_%a.out
-#SBATCH --error=EMIT_singlePix_%A_%a.err
+#SBATCH --job-name=EMIT_dropRet_%A_%a
+#SBATCH --output=EMIT_dropRet_%A_%a.out
+#SBATCH --error=EMIT_dropRet_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1001-1672%40       # There are 672 files, 1 file per job; cap to 40 concurrent
+#SBATCH --array=1-441%40       # 3965 pixels / 9 per job = 441 tasks (<1000 cap); throttle 40 concurrent.
+                               # Each task processes ~9 pixels sequentially (one MATLAB launch each).
+                               # ~9 pixels x ~2 h = ~18 h, inside the 24 h walltime. Completed pixels
+                               # are saved as they finish, so a rare over-run only loses the in-progress pixel.
 
 # Load modules
 ml purge
@@ -93,7 +96,7 @@ module load matlab/R2024b
 # *** DEFINE THE DIRECTORY CONTAINING PER-PIXEL .mat FILES ***
 # *** CANNOT HAVE TRAILING SLASH '/' AT THE END             ***
 # ----------------------------------------------------------
-INPUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver2"
+INPUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver3"
 # ----------------------------------------------------------
 
 # ---------------------------------------------------------------
@@ -118,7 +121,7 @@ if [ ${TOTAL_FILES} -eq 0 ]; then
 fi
 
 # Calculate the number of jobs in the array
-SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1001}  # Default to 1001 if unset
+SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1}  # Default to 1 if unset (array now starts at 1)
 NUM_JOBS=$(( SLURM_ARRAY_TASK_MAX - SLURM_ARRAY_TASK_MIN + 1 ))
 
 # Calculate files per job (ceiling division)
@@ -198,10 +201,10 @@ echo "MATLAB_PREFDIR: ${MATLAB_PREFDIR}"
 # ----------------------------------------------------------
 
 
-# List first 10 .mat files found:
+# List first 9 .mat files found:
 echo " "
-echo "First 10 .mat files found:"
-for (( j=0; j<10 && j<${#ALL_MAT_FILES[@]}; j++ )); do
+echo "First 9 .mat files found:"
+for (( j=0; j<9 && j<${#ALL_MAT_FILES[@]}; j++ )); do
     echo "  [$j]: ${ALL_MAT_FILES[$j]}"
 done
 
