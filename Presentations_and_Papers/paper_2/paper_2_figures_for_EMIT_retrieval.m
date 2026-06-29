@@ -561,19 +561,19 @@ fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(which_computer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
-
-
-% save .png with 500 DPI resolution
-% remove title
-exportgraphics(fig3,[folderpath_figs,...
-    'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
-    'pixelNum-', num2str(pixel_num), '.png'],'Resolution', 500);
+% if strcmp(which_computer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(which_computer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1), '.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% exportgraphics(fig3,[folderpath_figs,...
+%     'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
+%     'pixelNum-', num2str(pixel_num), '.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 

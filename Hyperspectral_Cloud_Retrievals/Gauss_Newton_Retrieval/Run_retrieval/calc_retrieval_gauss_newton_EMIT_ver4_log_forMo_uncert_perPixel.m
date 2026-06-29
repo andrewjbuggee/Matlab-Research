@@ -94,8 +94,8 @@ array_length_initialConstraints = 2000;
 
 % define the array of values between 0 and the maximum scalar value
 % (number of step lengths evaluated in the constrained line search; each one
-% costs a full forward-model evaluation, so this is a direct per-iteration cost
-% knob. Reduced 25 -> 15 for speed; verify convergence still lands on a test batch.)
+% costs a full forward-model evaluation. Set to 15 -- the value used in the
+% timing test that gave ~2 h/pixel -- to keep the per-iteration cost down.)
 array_length_newMax = 15;
 
 % We want to make sure the new step is within the feasible
