@@ -218,8 +218,11 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % set the directory for the custom mie tables
      GN_inputs.RT.mie_table_directory = custom_mie_tables_dir;
 
-    % first, read all the filenames in the custom mie tables dir
-    mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*.cdf'));
+    % first, read the 1-50 micron custom mie table filenames. The 1-35 and
+    % 1-50 micron sets share this folder, so restrict to the 1-50 range here;
+    % the VOCALS-derived effective-variance (alpha) profile below still selects
+    % the closest-alpha table (now from the wider 1-50 micron set).
+    mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*1-50microns*.cdf'));
     
     % step through each filename and extract the alpha value, which is in
     % the filename

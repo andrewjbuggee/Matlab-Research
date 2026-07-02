@@ -213,8 +213,10 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % set the directory for the custom mie tables
      GN_inputs.RT.mie_table_directory = custom_mie_tables_dir;
 
-    % first, read all the filenames in the custom mie tables dir
-    mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*.cdf'));
+    % first, read the 1-50 micron custom mie table filenames (restrict to the
+    % 1-50 range to match the shared rEff_limits=[1,50]; the VOCALS-derived
+    % alpha profile below still selects the closest-alpha table).
+    mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*1-50microns*.cdf'));
     
     % step through each filename and extract the alpha value, which is in
     % the filename

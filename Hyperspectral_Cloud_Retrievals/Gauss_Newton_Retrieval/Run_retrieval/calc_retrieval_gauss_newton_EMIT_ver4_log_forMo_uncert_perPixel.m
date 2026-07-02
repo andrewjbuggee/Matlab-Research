@@ -30,8 +30,8 @@ percent_change_limit = GN_inputs.percent_change_limit;
 
 % set the limits of the effective radius within the precomputed Mie table
 if GN_inputs.RT.use_custom_mie_calcs == true
-    % the files in custom_mieTables have a range of 1-35 microns
-    rEff_limits = [1, 35];
+    % the custom_mieTables used here span an effective radius range of 1-50 microns
+    rEff_limits = [1, 50];
 else
     % the default libRadtran file, wc.sol.mie.cdf has an effective radius
     % range of 1 to 25 microns
@@ -428,8 +428,13 @@ if print_status_updates == true
 
                 else
 
-                    error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
-                        'computed mie table.', newline])
+                    % Skip line-search candidates whose r_e falls outside the Mie
+                    % table range instead of erroring out. Marking the estimate
+                    % Inf gives this step an infinite RSS, so it is never selected
+                    % as the next guess; the search continues with the in-range
+                    % candidates. (The downstream bound-reset logic handles the
+                    % rare case where every candidate is out of range.)
+                    constrained_measurement_estimate(:,mm) = Inf;
 
 
                 end
@@ -848,8 +853,13 @@ else
 
                 else
 
-                    error([newline, 'The constrained guess is outside the effective radius range of the pre-',...
-                        'computed mie table.', newline])
+                    % Skip line-search candidates whose r_e falls outside the Mie
+                    % table range instead of erroring out. Marking the estimate
+                    % Inf gives this step an infinite RSS, so it is never selected
+                    % as the next guess; the search continues with the in-range
+                    % candidates. (The downstream bound-reset logic handles the
+                    % rare case where every candidate is out of range.)
+                    constrained_measurement_estimate(:,mm) = Inf;
 
 
                 end

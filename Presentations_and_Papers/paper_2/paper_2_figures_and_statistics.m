@@ -1419,8 +1419,19 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % define the folder where retrievals are located
     % *** 2/23/2026 - Retrieval with overlapping EMIT/Aqua data ***
     % !! 672 retrievals !!
+    % *** Used for initial paper 2 submission ***
+    % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+    %     'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12'];
+
+
+    % define the folder where retrievals are located
+    % *** 6/29/2026 - Retrieval with overlapping EMIT/Aqua data ***
+    % !! 7  test retrievals !!
+    % *** Used to test changes to EMIT retrieval ***
+    % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+    %     'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13_timingTest'];
     folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12'];
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13_initial_output'];
 
 
 
@@ -1538,6 +1549,11 @@ for nn = 1:length(filenames_retrieval)
 
     elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
             'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
+
+        pixel_num = 1;
+
+
+    else
 
         pixel_num = 1;
 

@@ -28,7 +28,13 @@
 
 function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = ...
     run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, ...
-    print_status_updates, print_libRadtran_err, output_dir, delete_inp_out)
+    print_status_updates, print_libRadtran_err, output_dir, delete_inp_out, skip_if_done)
+
+% skip_if_done (optional, default false): when true, skip the retrieval if an
+% output file for this pixel already exists in output_dir (idempotent resume).
+if nargin < 7 || isempty(skip_if_done)
+    skip_if_done = false;
+end
 
 
 %% Load the per-pixel .mat file
@@ -128,6 +134,23 @@ delete([folder_paths.libRadtran_mie_folder, '*.OUT'])
 
 
 folder_paths.saveOutput_directory = output_dir;
+
+
+% ---- Skip if this pixel was already retrieved (idempotent resume) ----
+% Match any prior output for this granule + EMIT linear index, regardless of the
+% run date or rev suffix, so a resubmitted array does not redo completed pixels.
+if skip_if_done == true
+    already_done = dir([folder_paths.saveOutput_directory, ...
+        'EMIT_dropRetrieval_', folder_paths.coincident_dataFolder(1:end-3), ...
+        '_EMIT-pixel-lin-idx_', num2str(overlap_pixels.emit.linear_idx), '_*.mat']);
+    if ~isempty(already_done)
+        disp([newline, 'Output already exists for EMIT pixel linear idx ', ...
+            num2str(overlap_pixels.emit.linear_idx), ' (', already_done(1).name, ...
+            '). Skipping.', newline])
+        GN_inputs = [];  GN_outputs = [];  tblut_retrieval = [];  acpw_retrieval = [];
+        return
+    end
+end
 
 
 rev = 1;
