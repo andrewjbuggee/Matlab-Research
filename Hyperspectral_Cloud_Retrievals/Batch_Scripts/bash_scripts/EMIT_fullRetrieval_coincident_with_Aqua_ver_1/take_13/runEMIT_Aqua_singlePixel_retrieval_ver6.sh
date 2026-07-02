@@ -1,0 +1,344 @@
+#!/bin/bash
+
+# SLURM Job Array Script to run EMIT droplet profile retrievals
+# MULTIPLE PIXELS PER SLURM TASK   (ver6 / take_13 -- k=7 idempotent RESUME)
+#
+# Resumes the ver5 run after the July-1 maintenance interruption: k=7 pixels/job
+# (down from 9, which brushed the walltime), and skip_if_done=true so pixels
+# already saved in OUT_DIR are not recomputed. Writes to the SAME OUT_DIR as ver5
+# (take_13/) so the skip check can see the completed outputs.
+#
+# This script is designed to work with per-pixel .mat files created by
+# save_overlap_data_perPixel_EMIT_Aqua.m. Each .mat file contains all the
+# data needed to run the retrieval for a single EMIT pixel.
+#
+# The INPUT_DIR should contain .mat files like:
+#   overlap_EMIT_pixel_001_2023_9_16_T191118_1.mat
+#   overlap_EMIT_pixel_002_2023_9_16_T191118_1.mat
+#   etc.
+#
+# The .mat files are distributed evenly across SLURM array tasks.
+# Each task processes ceil(TOTAL_FILES / NUM_JOBS) files (the last task
+# may process fewer if the division is not even).
+#
+# Example: 300 files with --array=1-100 → 3 files per task
+# Example: 5 files with --array=1-2   → task 1 gets 3, task 2 gets 2
+#
+# ----------------------------------------------------------------------
+# *** CHANGES SINCE take_12 / ver4 ***
+#   (1) Captures PRE_MATLAB_LD_LIBRARY_PATH before MATLAB loads. The updated
+#       runUVSPEC_ver2.m and runMIE.m no longer reload modules on every
+#       system() call; instead they read PRE_MATLAB_LD_LIBRARY_PATH and run
+#       uvspec/mie via `env LD_LIBRARY_PATH=...`. Without this export the env
+#       var is empty, LD_LIBRARY_PATH gets cleared, and uvspec/mie fail to
+#       find libgsl.
+#   (2) End-of-task cleanup now also prunes the per-task wc_* and atmmod_*
+#       directories that define_EMIT_dataPath_and_saveFolders creates under
+#       /projects/$USER/software/libRadtran-2.0.5/data/ (take_12 leaked these).
+#   (3) Resources: 40 cpus / 100G and a %40 concurrency throttle.
+# ----------------------------------------------------------------------
+
+# %A: Job ID
+# %a: Array Task ID
+
+# ----------------------------------------------------------
+# *** UPDATE JOB ARRAY RANGE ***
+# The array range does NOT need to match the number of .mat files.
+# Files are distributed evenly across the array tasks.
+# ----------------------------------------------------------
+#SBATCH --account=ucb762_asc1                   # Ascent Allocation on Alpine
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=40
+#SBATCH --mem=75G
+#SBATCH --time=23:59:59
+#SBATCH --partition=amilan
+#SBATCH --qos=normal
+#SBATCH --job-name=EMIT_dropRet_%A_%a
+#SBATCH --output=EMIT_dropRet_%A_%a.out
+#SBATCH --error=EMIT_dropRet_%A_%a.err
+#SBATCH --mail-user=anbu8374@colorado.edu
+#SBATCH --mail-type=ALL
+#SBATCH --array=1-567%40       # 3965 pixels / 7 per job = 567 tasks (<1000 cap); throttle 40 concurrent.
+                               # k=7 (not 9): the first run showed mean ~2.56 h/pixel with a tail to ~8 h, so
+                               # 9/job brushed the 24 h walltime (7/40 tasks hit it). 7 x ~2.56 h = ~18 h, margin.
+                               # skip_if_done=true makes this an idempotent RESUME: pixels already written to
+                               # OUT_DIR by the earlier run are skipped, so only the un-run + failed pixels execute.
+
+# Load modules
+ml purge
+ml gcc/11.2.0
+ml netcdf/4.8.1
+ml perl/5.36.0
+ml texlive/2021
+
+
+# Set up environment paths
+export PATH=/projects/$USER/software/libRadtran-2.0.5/:$PATH
+export PATH=/projects/$USER/software/libRadtran-2.0.5/data/:$PATH
+export PATH=/projects/$USER/software/libRadtran-2.0.5/bin/:$PATH
+export GSL_BIN=/projects/$USER/software/gsl-2.6/bin
+export GSL_LIB=/projects/$USER/software/gsl-2.6/lib
+export GSL_INC=/projects/$USER/software/gsl-2.6/include
+export LD_LIBRARY_PATH=$GSL_LIB:$LD_LIBRARY_PATH
+export INSTALL_DIR=/projects/$USER/software/libRadtran-2.0.5
+export PATH=$GSL_BIN:$PATH
+
+# *** Capture the correct LD_LIBRARY_PATH before MATLAB contaminates it ***
+# runUVSPEC_ver2.m and runMIE.m read this to run uvspec/mie with the GSL
+# libraries instead of MATLAB's bundled libstdc++ (avoids GLIBCXX errors).
+export PRE_MATLAB_LD_LIBRARY_PATH=$LD_LIBRARY_PATH
+
+cd /projects/anbu8374/
+
+
+
+
+# Load MATLAB
+module load matlab/R2024b
+
+
+# ----------------------------------------------------------
+# *** DEFINE THE DIRECTORY CONTAINING PER-PIXEL .mat FILES ***
+# *** CANNOT HAVE TRAILING SLASH '/' AT THE END             ***
+# ----------------------------------------------------------
+INPUT_DIR="/scratch/alpine/anbu8374/EMIT_pix_overlap_with_Aqua_paper2_ver3"
+# ----------------------------------------------------------
+
+# ---------------------------------------------------------------
+# *** DEFINE THE DIRECTORY WHERE ALL .mat FILES WILL BE SAVED ***
+# *** MUST HAVE TRAILING SLASH '/' AT THE END             ***
+# ---------------------------------------------------------------
+OUT_DIR="/projects/anbu8374/Matlab-Research/Hyperspectral_Cloud_Retrievals/Batch_Scripts/Paper-2/coincident_EMIT_Aqua_data/southEast_pacific/Droplet_profile_retrievals/take_13/"
+
+mkdir -p "${OUT_DIR}"
+# ----------------------------------------------------------
+
+
+
+# Get sorted list of .mat files (full paths)
+mapfile -t ALL_MAT_FILES < <(find "${INPUT_DIR}" -maxdepth 1 -name "*.mat" -type f | sort)
+
+TOTAL_FILES=${#ALL_MAT_FILES[@]}
+
+if [ ${TOTAL_FILES} -eq 0 ]; then
+    echo "ERROR: No .mat files found in ${INPUT_DIR}"
+    exit 1
+fi
+
+# Calculate the number of jobs in the array
+SLURM_ARRAY_TASK_MIN=${SLURM_ARRAY_TASK_MIN:-1}  # Default to 1 if unset (array now starts at 1)
+NUM_JOBS=$(( SLURM_ARRAY_TASK_MAX - SLURM_ARRAY_TASK_MIN + 1 ))
+
+# Calculate files per job (ceiling division)
+FILES_PER_JOB=$(( (TOTAL_FILES + NUM_JOBS - 1) / NUM_JOBS ))
+
+# Calculate the start and end indices for this task (0-based)
+JOB_IDX=$(( SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN ))
+START_IDX=$(( JOB_IDX * FILES_PER_JOB ))
+END_IDX=$(( START_IDX + FILES_PER_JOB - 1 ))
+
+# Clamp END_IDX to the last file
+if [ ${END_IDX} -ge ${TOTAL_FILES} ]; then
+    END_IDX=$(( TOTAL_FILES - 1 ))
+fi
+
+# If START_IDX is beyond the file list, this task has nothing to do
+if [ ${START_IDX} -ge ${TOTAL_FILES} ]; then
+    echo "Task ${SLURM_ARRAY_TASK_ID} has no files to process (${TOTAL_FILES} files, ${NUM_JOBS} jobs, ${FILES_PER_JOB} files/job)"
+    echo "Exiting gracefully."
+    exit 0
+fi
+
+N_FILES_THIS_JOB=$(( END_IDX - START_IDX + 1 ))
+
+
+# Start of the job
+echo " "
+echo "Starting MATLAB multi-pixel retrieval at $(date)"
+echo "Job ID: ${SLURM_ARRAY_JOB_ID}, Task ID: ${SLURM_ARRAY_TASK_ID}"
+echo "SLURM_CPUS_PER_TASK: ${SLURM_CPUS_PER_TASK}"
+echo "Total .mat files: ${TOTAL_FILES}, Jobs: ${NUM_JOBS}, Files/job: ${FILES_PER_JOB}"
+echo "This task processes files ${START_IDX} to ${END_IDX} (${N_FILES_THIS_JOB} files)"
+
+
+# -------------------------------------------------------------
+# Debugging section
+echo " "
+echo "=== DEBUG INFO ==="
+echo "SLURM_ARRAY_TASK_MIN: ${SLURM_ARRAY_TASK_MIN}"
+echo "SLURM_ARRAY_TASK_MAX: ${SLURM_ARRAY_TASK_MAX}"
+echo "SLURM_ARRAY_TASK_ID: ${SLURM_ARRAY_TASK_ID}"
+echo "Total .mat files found: ${TOTAL_FILES}"
+echo "NUM_JOBS: ${NUM_JOBS}"
+echo "FILES_PER_JOB: ${FILES_PER_JOB}"
+echo "JOB_IDX: ${JOB_IDX}"
+echo "START_IDX: ${START_IDX}"
+echo "END_IDX: ${END_IDX}"
+echo "PRE_MATLAB_LD_LIBRARY_PATH: ${PRE_MATLAB_LD_LIBRARY_PATH}"
+
+
+# ----------------------------------------------------------
+# Per-task scratch for parpool's JobStorageLocation and MATLAB temp files.
+# Prefer node-local /tmp over shared Lustre: start_parallel_pool.m sets
+# p.JobStorageLocation = $TMPDIR, and keeping those KB-sized job files off
+# Lustre eliminates the multi-minute "Job Queued" parpool waits seen on the
+# neural-network training runs. Falls back to Lustre if /tmp is unwritable.
+# (EMIT's libRadtran INP_OUT/wc/atmmod dirs come from
+# define_EMIT_dataPath_and_saveFolders and are unaffected by TMPDIR.)
+TMPDIR_LOCAL="/tmp/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+if mkdir -p "${TMPDIR_LOCAL}" 2>/dev/null && [ -w "${TMPDIR_LOCAL}" ]; then
+    export TMPDIR="${TMPDIR_LOCAL}"
+    echo "TMPDIR (node-local): ${TMPDIR}"
+else
+    export TMPDIR="/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+    mkdir -p "${TMPDIR}"
+    echo "TMPDIR (Lustre fallback): ${TMPDIR}"
+fi
+echo "TMPDIR headroom:"
+df -h "${TMPDIR}"
+
+# Give MATLAB a per-task preferences dir (node-local) so concurrent array tasks
+# don't collide in ~/.matlab and don't keep refilling ~/.matlab/local_cluster_jobs.
+export MATLAB_PREFDIR="${TMPDIR}/matlab_prefs/R2024b"
+mkdir -p "${MATLAB_PREFDIR}"
+echo "MATLAB_PREFDIR: ${MATLAB_PREFDIR}"
+# ----------------------------------------------------------
+# ----------------------------------------------------------
+
+
+# List first 9 .mat files found:
+echo " "
+echo "First 9 .mat files found:"
+for (( j=0; j<9 && j<${#ALL_MAT_FILES[@]}; j++ )); do
+    echo "  [$j]: ${ALL_MAT_FILES[$j]}"
+done
+
+# List the files assigned to this task:
+echo " "
+echo "Files assigned to this task:"
+for (( j=START_IDX; j<=END_IDX; j++ )); do
+    echo "  [$j]: ${ALL_MAT_FILES[$j]}"
+done
+echo "=================="
+
+
+
+# Stagger MATLAB startups across the concurrency-limited wave of array tasks.
+# With the %40 throttle at most 40 tasks run at once, so spreading their
+# MATLAB+parpool launches over (idx mod 40)*15 s (0-585 s) avoids 40 forty-worker
+# pools all hitting startup, preferences, and process launch at the same instant.
+STARTUP_STAGGER_MOD=40
+STARTUP_STAGGER_STEP_SECONDS=15
+STARTUP_STAGGER_SECONDS=$(( ((SLURM_ARRAY_TASK_ID - SLURM_ARRAY_TASK_MIN) % STARTUP_STAGGER_MOD) * STARTUP_STAGGER_STEP_SECONDS ))
+echo "Startup stagger: sleeping ${STARTUP_STAGGER_SECONDS}s before MATLAB launch"
+sleep "${STARTUP_STAGGER_SECONDS}"
+
+
+# Track whether any file in this task failed, so the task can report a
+# non-zero exit status to SLURM (visible in sacct) for targeted reruns.
+TASK_FAILED=0
+
+
+# Loop over all .mat files assigned to this task
+for (( FILE_IDX=START_IDX; FILE_IDX<=END_IDX; FILE_IDX++ )); do
+
+    CURRENT_MAT_FILE=${ALL_MAT_FILES[$FILE_IDX]}
+
+    # Verify the file exists
+    if [[ ! -f "${CURRENT_MAT_FILE}" ]]; then
+        echo "WARNING: .mat file ${CURRENT_MAT_FILE} does not exist! Skipping."
+        continue
+    fi
+
+    # Compute a unique folder_extension_number for each file within this task.
+    # This ensures each call gets unique INP_OUT, wc, atmmod, and Mie directories.
+    # Formula: (JOB_IDX * FILES_PER_JOB) + LOCAL_FILE_IDX + SLURM_ARRAY_TASK_MIN
+    #   - When FILES_PER_JOB=1 (current setup), this equals SLURM_ARRAY_TASK_ID (1001-1672)
+    #   - When FILES_PER_JOB>1, each file within a task still gets a unique number
+    LOCAL_FILE_IDX=$(( FILE_IDX - START_IDX ))
+    FOLDER_EXT_NUM=$(( JOB_IDX * FILES_PER_JOB + LOCAL_FILE_IDX + SLURM_ARRAY_TASK_MIN ))
+
+    echo " "
+    echo "=============================================="
+    echo "Processing file $(( LOCAL_FILE_IDX + 1 )) of ${N_FILES_THIS_JOB}"
+    echo "File index: ${FILE_IDX}"
+    echo "Mat file: ${CURRENT_MAT_FILE}"
+    echo "folder_extension_number: ${FOLDER_EXT_NUM}"
+    echo "Starting MATLAB at $(date)"
+    echo "=============================================="
+
+    # try/catch so a failed pixel prints a stack trace and returns a non-zero
+    # exit status (instead of MATLAB exiting 0 on an uncaught error).
+    time matlab -nodesktop -nodisplay -r "\
+        try; \
+            addpath(genpath('/projects/anbu8374/Matlab-Research')); \
+            addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); \
+            addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); \
+            clear variables; \
+            addLibRadTran_paths; \
+            print_status_updates = true; \
+            print_libRadtran_err = false; \
+            delete_inp_out = true; \
+            skip_if_done = true; \
+            mat_file_path = '${CURRENT_MAT_FILE}'; \
+            folder_extension_number = ${FOLDER_EXT_NUM}; \
+            output_dir = '${OUT_DIR}'; \
+            [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] = \
+                run_retrieval_singlePixel_EMIT_Aqua(mat_file_path, folder_extension_number, \
+                print_status_updates, print_libRadtran_err, output_dir, delete_inp_out, skip_if_done); \
+            exit(0); \
+        catch ME; \
+            fprintf(2, '\n[RETRIEVAL FAILED] %s: %s\n', ME.identifier, ME.message); \
+            for k = 1:numel(ME.stack); fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; \
+            exit(1); \
+        end"
+    MATLAB_STATUS=$?
+
+    if [ ${MATLAB_STATUS} -ne 0 ]; then
+        echo "WARNING: MATLAB exited with status ${MATLAB_STATUS} for ${CURRENT_MAT_FILE}"
+        TASK_FAILED=1
+    fi
+
+    echo " "
+    echo "Finished processing: ${CURRENT_MAT_FILE} at $(date)"
+
+done
+
+# Clean MATLAB temp directories
+echo "Cleaning MATLAB temp directories for task ${SLURM_ARRAY_TASK_ID}"
+# Clean up this task's unique MATLAB job directory after completion (at end of script)
+rm -rf "${TMPDIR}"
+
+# -------------------------------------------------------
+# Prune old scratch directories (older than 7 days).
+# Concurrent execution across array tasks is safe:
+# failed rm calls (already-deleted dirs) are suppressed.
+#
+# NOTE: with TMPDIR set (normal batch runs), define_EMIT_dataPath_and_saveFolders
+# now puts this task's INP_OUT/wc/atmmod under $TMPDIR (node-local /tmp), so the
+# "rm -rf ${TMPDIR}" above already removed them. The /projects wc_*/atmmod_*
+# prune below is a safety net for the TMPDIR-unset fallback and for stragglers
+# left by older (pre-node-local) runs.
+# -------------------------------------------------------
+echo "Pruning scratch directories older than 7 days..."
+find /scratch/alpine/${USER}/                  -maxdepth 1 -name "matlab_tmp_*"       -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/matlab_jobs/      -mindepth 1 -maxdepth 1                -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/EMIT/             -maxdepth 1 -name "INP_OUT_*"          -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /scratch/alpine/${USER}/Mie_Calculations/ -maxdepth 1 -name "emit_*"             -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+
+# Prune the per-task libRadtran wc_* and atmmod_* directories on /projects.
+# The trailing underscore in the glob protects the default libRadtran wc/ and
+# atmmod/ directories (which have no underscore).
+echo "Pruning /projects libRadtran wc_* and atmmod_* directories older than 7 days..."
+find /projects/${USER}/software/libRadtran-2.0.5/data/ -maxdepth 1 -name "wc_*"     -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+find /projects/${USER}/software/libRadtran-2.0.5/data/ -maxdepth 1 -name "atmmod_*" -type d -mtime +7 -exec rm -rf {} \; 2>/dev/null || true
+
+echo " "
+echo "=============================================="
+echo "Task ${SLURM_ARRAY_TASK_ID} finished all ${N_FILES_THIS_JOB} files at $(date)"
+echo "=============================================="
+
+# Report a non-zero status to SLURM if any pixel in this task failed, so the
+# task shows up as FAILED in sacct and can be resubmitted on its own.
+exit ${TASK_FAILED}
