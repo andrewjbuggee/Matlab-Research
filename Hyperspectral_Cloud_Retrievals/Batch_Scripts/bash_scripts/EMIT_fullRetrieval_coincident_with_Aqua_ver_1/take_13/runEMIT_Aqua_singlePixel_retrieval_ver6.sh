@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # SLURM Job Array Script to run EMIT droplet profile retrievals
-# MULTIPLE PIXELS PER SLURM TASK   (ver6 / take_13 -- k=7 idempotent RESUME)
+# MULTIPLE PIXELS PER SLURM TASK   (ver6 / take_13 -- k=4 idempotent RESUME, 140G)
 #
-# Resumes the ver5 run after the July-1 maintenance interruption: k=7 pixels/job
-# (down from 9, which brushed the walltime), and skip_if_done=true so pixels
-# already saved in OUT_DIR are not recomputed. Writes to the SAME OUT_DIR as ver5
-# (take_13/) so the skip check can see the completed outputs.
+# Resume #2, after job 29406768 (k=7, 75G): seff showed 288/567 tasks OOM-killed
+# at the 75G cap and 104 more hit the 24 h walltime, leaving 2159 of 3965 pixels
+# un-run. This pass bumps memory to 140G (every real-retrieval task needed >=62G;
+# completed tasks piled up at 74.9-75.0G, i.e. the old cap censored the demand)
+# and re-cuts the array to k=4 pixels/job so full-load tasks stay well under the
+# 24 h wall. skip_if_done=true, and this writes to the SAME OUT_DIR (take_13/),
+# so the 1806 pixels already saved by the earlier runs are skipped.
 #
 # This script is designed to work with per-pixel .mat files created by
 # save_overlap_data_perPixel_EMIT_Aqua.m. Each .mat file contains all the
@@ -35,7 +38,7 @@
 #   (2) End-of-task cleanup now also prunes the per-task wc_* and atmmod_*
 #       directories that define_EMIT_dataPath_and_saveFolders creates under
 #       /projects/$USER/software/libRadtran-2.0.5/data/ (take_12 leaked these).
-#   (3) Resources: 40 cpus / 100G and a %40 concurrency throttle.
+#   (3) Resources: 40 cpus / 140G and a %40 concurrency throttle.
 # ----------------------------------------------------------------------
 
 # %A: Job ID
@@ -50,7 +53,11 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
-#SBATCH --mem=75G
+#SBATCH --mem=140G             # seff on job 29406768: EVERY task that ran >=1 real retrieval used >=62G;
+                               # completed tasks piled up at 74.9-75.0G and 288/567 tasks were OOM-killed at
+                               # the old 75G cap (the distribution is censored there -- true demand is higher).
+                               # 40 cores x ~3.74G/core on amilan entitles ~150G at no extra SU cost; 140G
+                               # gives ~2x headroom over the observed 62-75G+ demand.
 #SBATCH --time=23:59:59
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
@@ -59,11 +66,15 @@
 #SBATCH --error=EMIT_dropRet_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-567%40       # 3965 pixels / 7 per job = 567 tasks (<1000 cap); throttle 40 concurrent.
-                               # k=7 (not 9): the first run showed mean ~2.56 h/pixel with a tail to ~8 h, so
-                               # 9/job brushed the 24 h walltime (7/40 tasks hit it). 7 x ~2.56 h = ~18 h, margin.
+#SBATCH --array=1-992%40       # 3965 pixels / 4 per job = 992 tasks (<1000 cap); throttle 40 concurrent.
+                               # k=4 (down from 7): seff on job 29406768 showed completed k=7 tasks at median
+                               # 16.5 h / p90 22.9 h, and 104 tasks hit the 24 h wall. The 393 OOM/timeout tasks
+                               # carry a median of 7 un-run pixels into this resume, so k=7 would repeat the
+                               # timeout pattern. k=4 caps a full task at ~9-11 h median.
                                # skip_if_done=true makes this an idempotent RESUME: pixels already written to
-                               # OUT_DIR by the earlier run are skipped, so only the un-run + failed pixels execute.
+                               # OUT_DIR by the earlier runs are skipped, so only the un-run + failed pixels
+                               # execute. The skip check keys on pixel identity (granule + EMIT linear idx),
+                               # NOT task position, so re-chunking from k=7 to k=4 is safe.
 
 # Load modules
 ml purge
