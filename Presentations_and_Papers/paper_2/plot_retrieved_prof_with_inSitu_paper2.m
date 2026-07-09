@@ -288,7 +288,7 @@ dim = [0.185672925359295 0.770354933354154 0.477184217497848 0.122654526321976];
 str = ['$LWP_{TBLUT} = \,$',num2str(round(lwp_tblut,1)),' $g/m^{2}$', newline,...
     '$LWP_{TBLUT-WH} = \,$',num2str(round(lwp_tblut_WH,1)),' $g/m^{2}$', newline,...
     '$LWP_{hyperspectral} = \,$',num2str(round(retrieved_LWP,1)),' $g/m^{2}$', newline...
-    '$LWP_{true} = \,$',num2str(round(LWP_true,1)),' $g/m^{2}$'];
+    '$LWP_{in-situ} = \,$',num2str(round(LWP_true,1)),' $g/m^{2}$'];
 
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',25,'FontWeight','bold');
 
@@ -302,8 +302,8 @@ if size(ds.GN_outputs.retrieval, 1)>3
     retrieved_CWV = ds.GN_outputs.retrieval(end, end);        % kg/m^2 (mm)
 
     % Print the simulated value and the retrieved value
-    str = ['$acpw_{true} = \,$',num2str(round(acpw_true, 2)),' $mm$', newline,...
-        '$acpw_{retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$'];
+    str = ['$IWV_{ac,\, in-situ} = \,$',num2str(round(acpw_true, 2)),' $mm$', newline,...
+        '$IWV_{ac, \,retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$'];
 
 else
 

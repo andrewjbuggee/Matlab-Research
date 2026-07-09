@@ -723,7 +723,7 @@ filenames_retrieval(idx_2delete) = [];
 % -- For full_retrieval_logSpace_newCov_VR_meas_allBands_with_reProf_and_cloudTop_uncert_3 ---
 % ---------------------------------------------------------------------------------------------
 % profile_indexes for paper = [2, 4, 10]
-plt_idx = 4;
+plt_idx = 10;
 % ------------------------------------------------------------
 
 
@@ -735,20 +735,20 @@ fig1 = plot_retrieved_prof_with_inSitu_paper2(folder_paths.retrieval, filenames_
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-% if strcmp(whatComputer,'anbu8374')==true
-%     error(['Where do I save the figure?'])
-% elseif strcmp(whatComputer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-%     num2str(plt_idx), '.fig']);
-%
-%
-% % save .png with 500 DPI resolution
-% % remove title
-% title('');
-% exportgraphics(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
-%     num2str(plt_idx), '.jpg'],'Resolution', 500);
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
+    num2str(plt_idx), '.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+title('');
+exportgraphics(fig1,[folderpath_figs,'HySICS retrieval with VR in-situ measurement - profile number ',...
+    num2str(plt_idx), '.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -991,6 +991,103 @@ rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSi
 avg_percent_diff_newCacl = mean( abs( 100 .* (1 - lwp_newCalc./lwp_inSitu) ));
 avg_percent_diff_tblut = mean( abs( 100 .* (1 - lwp_tblut./lwp_inSitu) ));
 avg_percent_diff_tblutWH = mean( abs( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) ));
+
+
+
+
+
+
+
+%% Compute correlation between cloud optical thickness and the LWP and ACPW retrieval errors
+
+
+% *** NOTE: Run the cell above first! This cell does NOT clear variables ***
+% It uses the arrays computed in the 'Compute HySICS retrieval statistics'
+% cell: tauC_inSitu, lwp_retrieval, lwp_newCalc, lwp_inSitu,
+% acpw_retrieval, acpw_inSitu
+
+% Question: Are larger cloud optical thicknesses associated with larger
+% retrieval errors in liquid water path (LWP) and above-cloud precipitable
+% water (ACPW)?
+
+% The true (in-situ) optical depth is used as the independent variable.
+% The retrieved LWP is computed using the retrieved tau_c, so correlating
+% the LWP error against the retrieved tau_c would introduce a spurious
+% correlation between the two. Swap tauC_inSitu for tauC_retrieval below
+% to test against the retrieved optical depth instead.
+
+
+% -------------------------------------------------------
+% ----- Compute the percent error of each retrieval -----
+% -------------------------------------------------------
+
+% signed percent error (positive = retrieval overestimates the truth)
+percent_err_lwp = 100 .* (lwp_retrieval - lwp_inSitu) ./ lwp_inSitu;            % percent
+percent_err_lwp_newCalc = 100 .* (lwp_newCalc - lwp_inSitu) ./ lwp_inSitu;      % percent
+percent_err_acpw = 100 .* (acpw_retrieval - acpw_inSitu) ./ acpw_inSitu;        % percent
+
+% absolute percent error (magnitude of the retrieval error)
+abs_percent_err_lwp = abs(percent_err_lwp);                     % percent
+abs_percent_err_lwp_newCalc = abs(percent_err_lwp_newCalc);     % percent
+abs_percent_err_acpw = abs(percent_err_acpw);                   % percent
+
+
+% -------------------------------------------------------------
+% ------ Compute the Pearson and Spearman correlations --------
+% -------------------------------------------------------------
+% Pearson r measures the strength of a linear relationship. Spearman rho
+% measures the strength of any monotonic relationship and is less
+% sensitive to outliers. The signed error tests whether the retrieval
+% bias depends on tau_c; the absolute error tests whether the error
+% magnitude grows with tau_c.
+
+err_names = {'LWP', 'LWP (new calc)', 'ACPW'};
+
+% each column holds the error for one retrieved quantity
+signed_percent_err = [percent_err_lwp(:), percent_err_lwp_newCalc(:), percent_err_acpw(:)];             % percent
+abs_percent_err = [abs_percent_err_lwp(:), abs_percent_err_lwp_newCalc(:), abs_percent_err_acpw(:)];    % percent
+
+% store the correlation coefficients and p-values for each quantity
+clear corr_tauC_err
+
+fprintf('\n----------------------------------------------------------------------\n')
+fprintf(' Correlation between true tau_c and retrieval percent error (N = %d)\n', numel(tauC_inSitu))
+fprintf(' Retrieval set: %s\n', folder_paths.retrieval)
+fprintf('----------------------------------------------------------------------\n')
+
+for ee = 1:length(err_names)
+
+    % --- correlations with the signed percent error ---
+    [r_pearson_signed, pVal_pearson_signed] = corr(tauC_inSitu(:), signed_percent_err(:,ee),...
+        'Type', 'Pearson', 'Rows', 'complete');
+    [r_spearman_signed, pVal_spearman_signed] = corr(tauC_inSitu(:), signed_percent_err(:,ee),...
+        'Type', 'Spearman', 'Rows', 'complete');
+
+    % --- correlations with the absolute percent error ---
+    [r_pearson_abs, pVal_pearson_abs] = corr(tauC_inSitu(:), abs_percent_err(:,ee),...
+        'Type', 'Pearson', 'Rows', 'complete');
+    [r_spearman_abs, pVal_spearman_abs] = corr(tauC_inSitu(:), abs_percent_err(:,ee),...
+        'Type', 'Spearman', 'Rows', 'complete');
+
+    % store the results
+    corr_tauC_err(ee).name = err_names{ee};
+    corr_tauC_err(ee).pearson_signedErr = r_pearson_signed;
+    corr_tauC_err(ee).pearson_signedErr_pVal = pVal_pearson_signed;
+    corr_tauC_err(ee).spearman_signedErr = r_spearman_signed;
+    corr_tauC_err(ee).spearman_signedErr_pVal = pVal_spearman_signed;
+    corr_tauC_err(ee).pearson_absErr = r_pearson_abs;
+    corr_tauC_err(ee).pearson_absErr_pVal = pVal_pearson_abs;
+    corr_tauC_err(ee).spearman_absErr = r_spearman_abs;
+    corr_tauC_err(ee).spearman_absErr_pVal = pVal_spearman_abs;
+
+    % print the results
+    fprintf('\n%s percent error vs true tau_c:\n', err_names{ee})
+    fprintf('   signed error:    Pearson r = %6.3f (p = %.3g)   |   Spearman rho = %6.3f (p = %.3g)\n',...
+        r_pearson_signed, pVal_pearson_signed, r_spearman_signed, pVal_spearman_signed)
+    fprintf('   absolute error:  Pearson r = %6.3f (p = %.3g)   |   Spearman rho = %6.3f (p = %.3g)\n',...
+        r_pearson_abs, pVal_pearson_abs, r_spearman_abs, pVal_spearman_abs)
+
+end
 
 
 
