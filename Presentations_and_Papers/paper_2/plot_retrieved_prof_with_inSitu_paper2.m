@@ -303,7 +303,7 @@ if size(ds.GN_outputs.retrieval, 1)>3
 
     % Print the simulated value and the retrieved value
     str = ['$IWV_{ac,\, in-situ} = \,$',num2str(round(acpw_true, 2)),' $mm$', newline,...
-        '$IWV_{ac, \,retrieved} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$'];
+        '$IWV_{ac, \,hyperspectral} = \,$',num2str(round(retrieved_CWV, 2)),' $mm$'];
 
 else
 
@@ -312,8 +312,8 @@ else
     assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(ds.GN_inputs); % kg/m^2
 
     % print the simulated value and the foward model assumption
-    str = ['$acpw_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
-        '$acpw_{MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
+    str = ['$IWV_{ac, forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$', newline,...
+        '$IWV_{ac, MODIS} = \,$',num2str(modis_retrieved_aboveCloud_CWV),' $mm$'];
 
 end
 

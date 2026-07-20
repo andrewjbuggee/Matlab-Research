@@ -237,7 +237,7 @@ tauc_sens = nan(N_ref, 1);
 
 for ii = 1:N_ref
 
-    rt = rtop_true_all{ref}(ii);
+    r = rtop_true_all{ref}(ii);
     rb = rbot_true_all{ref}(ii);
     tc = tauc_true_all{ref}(ii);
     ap = actpw_true_all{ref}(ii);
@@ -246,7 +246,7 @@ for ii = 1:N_ref
     d_bot  = nan(1, n_iwv);
 
     for jj = 1:n_iwv
-        idx = find( abs(rtop_true_all{jj} - rt) < tol & ...
+        idx = find( abs(rtop_true_all{jj} - r) < tol & ...
             abs(rbot_true_all{jj} - rb) < tol & ...
             abs(tauc_true_all{jj} - tc) < tol & ...
             abs(actpw_true_all{jj} - ap) < tol, 1);
@@ -860,6 +860,20 @@ tauC_retrieval = zeros(size(filenames_retrieval));
 tauC_inSitu = zeros(size(filenames_retrieval));
 
 
+% store the retrieved droplet size at cloud top and base
+% store the in-situ measured droplet size over top and bottom 20% 
+rTop_retrieval   = zeros(size(filenames_retrieval));
+rBot_retrieval = zeros(size(filenames_retrieval));
+
+rTop_inSitu_top20   = zeros(size(filenames_retrieval));
+rBot_inSitu_bot20 = zeros(size(filenames_retrieval));
+
+rTop_inSitu_top25   = zeros(size(filenames_retrieval));
+rBot_inSitu_bot25 = zeros(size(filenames_retrieval));
+
+rBot_inSitu_bot20_median = zeros(size(filenames_retrieval));
+rBot_inSitu_bot25_median = zeros(size(filenames_retrieval));
+
 
 for nn = 1:length(filenames_retrieval)
 
@@ -973,6 +987,43 @@ for nn = 1:length(filenames_retrieval)
 
 
 
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+    % average droplet size over the top and bottom 20% and store the values
+    z_inSitu = ds.GN_inputs.measurement.z;
+    z_norm_inSitu = (z_inSitu - min(z_inSitu))./(max(z_inSitu) - min(z_inSitu));
+    % [z_inSitu, z_norm_inSitu]
+    idx_top20 = z_norm_inSitu >= 0.8;
+    idx_bot20 = z_norm_inSitu <= 0.2;
+    idx_top25 = z_norm_inSitu >= 0.75;
+    idx_bot25 = z_norm_inSitu <= 0.25;
+    % 
+    % if z_norm(1) == 1
+    %     idx_top20 = z_norm>=0.8;
+    % elseif z_norm(1) == 0
+    %     idx_top20 = z_norm<=0.2;
+    % else
+    %     error([newline,'I dont understand the normalized z vector', newline])
+    % end
+    rTop_retrieval(nn) = ds.GN_outputs.retrieval(1,end);    %
+    rBot_retrieval(nn) = ds.GN_outputs.retrieval(2,end);    %
+
+    % What is the in-situ value for rTop?
+    rTop_inSitu_top20(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top20));   %
+    rTop_inSitu_top25(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top25));   %
+
+    % What is the in-situ value for rBot?
+    rBot_inSitu_bot20(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot20));   %
+    rBot_inSitu_bot25(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot25));   %
+
+    % What is the in-situ value for rBot? - Median over values
+    rBot_inSitu_bot20_median(nn) = median(ds.GN_inputs.measurement.re_prof(idx_bot20));   %
+    rBot_inSitu_bot25_median(nn) = median(ds.GN_inputs.measurement.re_prof(idx_bot25));   %
+    % -------------------------------------------------------
+    % -------------------------------------------------------
+
+
+
 end
 
 % -------------------------------------------------------
@@ -987,11 +1038,86 @@ rms_err_lwp_tblut_WH = 100 * sqrt( mean( (1 - lwp_tblut_WH./lwp_inSitu).^2 ));  
 rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
 
 
-% Let's compute the average percent difference
-avg_percent_diff_newCacl = mean( abs( 100 .* (1 - lwp_newCalc./lwp_inSitu) ));
-avg_percent_diff_tblut = mean( abs( 100 .* (1 - lwp_tblut./lwp_inSitu) ));
-avg_percent_diff_tblutWH = mean( abs( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) ));
+% ---- Average absolute difference ----
+% Let's compute the average percent difference between the in-situ measured
+% LWP and three different retrieval methods
+avg_abs_percent_diff_newCacl = mean( abs( 100 .* (1 - lwp_newCalc./lwp_inSitu) ));
+avg_abs_percent_diff_tblut = mean( abs( 100 .* (1 - lwp_tblut./lwp_inSitu) ));
+avg_abs_percent_diff_tblutWH = mean( abs( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) ));
 
+% ---- Average absolute difference ----
+% Let's compute the average percent difference between the in-situ measured
+% cloud optical thickness and above-cloud integrated water vapor with the
+% retrieved values
+avg_abs_percent_diff_acpw = mean( abs( 100 .* (1 - acpw_retrieval./acpw_inSitu) ));
+avg_abs_percent_diff_optThick = mean( abs( 100 .* (1 - tauC_retrieval./tauC_inSitu) ));
+
+
+% ------------ LWP -------------
+% ---- Average percent difference (%) ----
+% Let's compute the average percent difference between the in-situ measured
+% LWP and three different retrieval methods
+avg_percent_diff_LWP_newCalc = mean( 100 .* (1 - lwp_newCalc./lwp_inSitu) );
+avg_percent_diff_LWP_tblut = mean( 100 .* (1 - lwp_tblut./lwp_inSitu) );
+avg_percent_diff_LWP_tblutWH = mean( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) );
+
+% ------------ LWP -------------
+% ---- Average difference (g/m^2) ----
+% Let's compute the average percent difference between the in-situ measured
+% LWP and three different retrieval methods
+avg_diff_LWP_newCalc = mean( lwp_inSitu - lwp_newCalc );
+avg_diff_LWP_tblut = mean( lwp_inSitu - lwp_tblut );
+avg_diff_LWP_tblutWH = mean( lwp_inSitu - lwp_tblut_WH );
+
+
+% ------------ IWV_ac and tau_C -------------
+% ---- Average percent difference (%) ----
+% Let's compute the average percent difference between the in-situ measured
+% cloud optical thickness and above-cloud integrated water vapor with the
+% retrieved values
+avg_percent_diff_acpw = mean( 100 .* (1 - acpw_retrieval./acpw_inSitu) );
+avg_percent_diff_optThick = mean( 100 .* (1 - tauC_retrieval./tauC_inSitu) );
+
+
+% ------------ IWV_ac and tau_C -------------
+% ---- Average difference (mm) ----
+% Let's compute the average percent difference between the in-situ measured
+% cloud optical thickness and above-cloud integrated water vapor with the
+% retrieved values
+avg_diff_acpw = mean( acpw_inSitu - acpw_retrieval );
+avg_diff_optThick = mean( tauC_inSitu - tauC_retrieval );
+
+
+
+
+% ------------ rTop and rBot -------------
+% ---- Average percent difference (%) ----
+% Let's compute the average percent difference between the in-situ measured
+% droplet size at cloud top and base with the retrieved value. To do this
+% comparison without biasing the results by including the high spatial
+% variabiltiy in droplet size at cloud top and base, let's average over the
+% top and botto 25% of the cloud, with respect to the altitude vector. 
+avg_percent_diff_rTop_20 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top20) );
+avg_percent_diff_rBot_20 = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot20) );
+avg_percent_diff_rTop_25 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top25) );
+avg_percent_diff_rBot_25 = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot25) );
+
+% Using median to define in-situ r_bot
+avg_percent_diff_rBot_20_median = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot20_median) );
+avg_percent_diff_rBot_25_median = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot25_median) );
+
+
+% ---- rTop and rBot ---
+% ---- Average difference (microns) ----
+% Let's compute the average percent difference between the in-situ measured
+% droplet size at cloud top and base with the retrieved value. To do this
+% comparison without biasing the results by including the high spatial
+% variabiltiy in droplet size at cloud top and base, let's average over the
+% top and botto 25% of the cloud, with respect to the altitude vector. 
+avg_diff_rTop_20 = mean( rTop_inSitu_top20 - rTop_retrieval );   % microns
+avg_diff_rBot_20 = mean( rBot_inSitu_bot20 - rBot_retrieval );   % microns
+avg_diff_rTop_25 = mean( rTop_inSitu_top25 - rTop_retrieval );   % microns
+avg_diff_rBot_25 = mean( rBot_inSitu_bot25 - rBot_retrieval );   % microns
 
 
 
@@ -1435,20 +1561,20 @@ fig3 = plot_EMIT_retrieved_vertProf_with_MODIS_AIRS_AMSR_perPixel(GN_outputs, GN
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-if strcmp(which_computer,'anbu8374')==true
-    error(['Where do I save the figure?'])
-elseif strcmp(which_computer,'andrewbuggee')==true
-    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-end
-saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
-    '_pixel_num_', num2str(pixel_num_2Plot),'.fig']);
-
-
-% save .png with 500 DPI resolution
-% remove title
-exportgraphics(fig3,[folderpath_figs,...
-    'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
-    '_pixel_num_', num2str(pixel_num_2Plot), '.png'],'Resolution', 500);
+% if strcmp(which_computer,'anbu8374')==true
+%     error(['Where do I save the figure?'])
+% elseif strcmp(which_computer,'andrewbuggee')==true
+%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+% end
+% saveas(fig3,[folderpath_figs,'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
+%     '_pixel_num_', num2str(pixel_num_2Plot),'.fig']);
+% 
+% 
+% % save .png with 500 DPI resolution
+% % remove title
+% exportgraphics(fig3,[folderpath_figs,...
+%     'EMIT Retrieval with MODIS and AMSR comparisons - ', folder_paths.coincident_dataFolder(1:end-1),...
+%     '_pixel_num_', num2str(pixel_num_2Plot), '.png'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------
 
@@ -1527,8 +1653,16 @@ elseif strcmp(which_computer,'andrewbuggee')==true
     % *** Used to test changes to EMIT retrieval ***
     % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
     %     'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13_timingTest'];
+    % folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+    %     'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13_initial_output'];
+
+
+    % define the folder where retrievals are located
+    % *** 7/9/2026 - Retrieval with overlapping EMIT/Aqua data ***
+    % !! 2162 retrievals !!
+    % *** With EMIT uncertainty reduced to ~1.5%
     folder_paths.retrieval = ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13_initial_output'];
+        'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_13'];
 
 
 
@@ -1929,7 +2063,7 @@ avg_percent_ACPW_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./
 avg_percent_ACPW_diff_newCacl_MODIS_with_NIRcorrection_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis_corrected) ));
 avg_percent_ACPW_diff_newCalc_AIRS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_airs) ));
 
-avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_modis) ));
+avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_modis_corrected) ));
 
 
 % Let's compute the average percent difference for optical thickness
@@ -1944,12 +2078,8 @@ re_rTop_avg_percent_diff = mean( ( 100 .* (1 - re_top./re_modis) ));
 
 
 
-
-
-
-
-
-
+% Save the results
+save(['EMIT_retrieval_statistics_workspace_', char(datetime("Today")), '.mat'] )
 
 
 

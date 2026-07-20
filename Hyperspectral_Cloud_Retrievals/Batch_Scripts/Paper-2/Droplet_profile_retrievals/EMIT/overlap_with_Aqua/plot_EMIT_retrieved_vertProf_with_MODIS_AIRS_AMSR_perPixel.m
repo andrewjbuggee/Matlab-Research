@@ -292,15 +292,15 @@ if size(GN_outputs.retrieval, 1)>3
 
         disp([newline, 'AMSR-E data isnt valid at this paxiel: NaN', newline])
 
-        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
-            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+        str = ['$IWV_{ac, MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
+            '$IWV_{ac, Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     elseif isempty(airs) == false
 
 
-        str = ['$ACPW_{MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
-            '$ACPW_{AIRS} = \,$',num2str(round(airs.H2O.acpw_using_assumed_CTH, 1)),' $mm$', newline,...
-            '$ACPW_{Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
+        str = ['$IWV_{ac, MODIS} = \,$',num2str(round(modis.vapor.col_nir(unique_pix_idx_modis(pixel_num)) * 10, 1)),' $mm$', newline,...
+            '$IWV_{ac, AIRS} = \,$',num2str(round(airs.H2O.acpw_using_assumed_CTH, 1)),' $mm$', newline,...
+            '$IWV_{ac, Hyperspectral} = \,$',num2str(round(retrieved_CWV, 1)),' $mm$'];
 
     end
 
@@ -311,7 +311,7 @@ else
     assumed_CWV = aboveCloud_CWV_simulated_hysics_spectra(GN_inputs); % kg/m^2
 
     % print the simulated value and the foward model assumption
-    str = ['$ACPW_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$'];
+    str = ['$IWV_{forward \,model} = \,$',num2str(round(assumed_CWV, 2)),' $mm$'];
 
 end
 

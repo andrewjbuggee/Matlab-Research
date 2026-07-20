@@ -1828,11 +1828,28 @@ end
 
 
 % *** define which wavelengths to plot ***
-wl_2plot = inputs.RT.wavelengths2run(:,1);
+% Full set of all 66 HySICS channels:
+% wl_2plot = inputs.RT.wavelengths2run(:,1);
+%
+% Paper 2, Figure 1 uses the "best" 17-wavelength subset of the 66 (one
+% visible channel plus the 940 nm / 1.9-2.1 um water-vapor absorption
+% complex). These are all exact members of the 66-channel set.
+wl_2plot = [540 1432 1490 1766 1934 1937 1940 1943 1952 1956 1962 ...
+    1968 1974 1980 1992 2005 2075]';
 
 lgnd_str = cell(numel(wl_2plot), 1);
 
-figure;
+% *** colorblind-friendly line colors ***
+% cividis is a perceptually-uniform sequential colormap designed for
+% color-vision deficiency (Nunez, Anderton & Renslow, 2018). One color per
+% line, ordered by wavelength, so the color encodes the wavelength ordering.
+% Generate 2 extra colors and drop the palest so the brightest lines stay
+% legible on a white background.
+% cmap = cividis(numel(wl_2plot) + 2);
+% cmap = cmap(1:end-2, :);
+cmap = mySavedColors(61:(61+numel(wl_2plot)-1), 'fixed');
+
+fig1 = figure;
 
 
 if inputs.RT.monochromatic_calc==true
@@ -1841,7 +1858,8 @@ if inputs.RT.monochromatic_calc==true
 
         [~,idx2plot] = min(abs(inputs.RT.wavelengths2run(:,1) - wl_2plot(ww)));
 
-        plot(f(:,idx2plot), tau_midPoint, 'LineStyle', '-')
+        plot(f(:,idx2plot), tau_midPoint, 'LineStyle', '-', ...
+            'Color', cmap(ww,:), 'LineWidth', 2.5)
 
         hold on
 
@@ -1876,7 +1894,7 @@ ylabel('$\tau$','Interpreter','latex')
 
 % Create title
 % title(['Weighting Function at ', num2str(changing_variables(1,1)), ' nm'],'Interpreter','latex')
-title('Weighting Functions for first 7 MODIS Spectral Channels','Interpreter','latex')
+% title('Weighting Functions for first 7 MODIS Spectral Channels','Interpreter','latex')
 
 
 
@@ -1888,7 +1906,7 @@ set(gcf, 'Position',[0 0 1400 800])
 
 % Create Legend
 % legend(string(inputs.RT.wavelengths2run(:,1))','Interpreter','latex','Location','northwest','FontSize',22)
-legend(lgnd_str,'Interpreter','latex','Location','northwest','FontSize',22)
+legend(lgnd_str,'Interpreter','latex','Location','eastoutside','FontSize',22)
 
 % Create textbox with simulation properties
 
@@ -1926,3 +1944,22 @@ t.FitBoxToText = 'on';
 
 
 
+% ** Paper Worthy **
+% -------------------------------------
+% ---------- Save figure --------------
+% save .fig file
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'HySICS Weighting Functions.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+title('');
+exportgraphics(fig1,[folderpath_figs,'HySICS weighting functions.jpg'],...
+    'Resolution', 500);
+% -------------------------------------
+% -------------------------------------

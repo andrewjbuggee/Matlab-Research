@@ -109,8 +109,9 @@ function [GN_inputs, GN_outputs, tblut_retrieval, acpw_retrieval, folder_paths] 
     % GN_inputs.bands2run = [18:117, 127:283]';
 
     % *** Remove wavelengths within saturated water vapor regions ***
-    % Indexes 195 - 206 space wavelengths 1826nm - 1908nm.
-    % Indexes 132 - 138 space wavelengths 1357nm - 1402nm.
+    % This set uses 225 out of 285 wavelengths
+    % Indexes 195 - 206 corresponds to wavelengths 1826nm - 1908nm.
+    % Indexes 132 - 138 correspond to wavelengths 1357nm - 1402nm.
     GN_inputs.bands2run = [18:117, 127:131, 139:194, 207:270]';
 
     %% Override input settings with MODIS derived values
