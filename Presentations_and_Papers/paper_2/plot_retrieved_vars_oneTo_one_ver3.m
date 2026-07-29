@@ -226,16 +226,44 @@ acpw_true(idx_nan) = [];
 
 
 
+% % *** Plot new calc LWP vs in-situ LWP ***
+% subplot(1,5,1)
+% plot(LWP_true, lwp_newCalc, '.',...
+%     'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
+% hold on
+% % plot a one to one line
+% ax_lim = [0.9 * min(lwp_newCalc), 1.1 * max(lwp_newCalc)];
+% plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
+% % Compute and plot linear fit
+% p_lwp = polyfit(LWP_true, lwp_newCalc, 1);
+% lwp_fit = polyval(p_lwp, ax_lim);
+% plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
+% grid on; grid minor
+% xlabel('True LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize',fnt_sz)
+% ylabel('Retrieved LWP ($g/m^{2}$)', 'Interpreter','latex', 'FontSize', fnt_sz)
+% xlim(ax_lim)
+% ylim(ax_lim)
+% % Add textbox with equation
+% eq_str_lwp = sprintf('y = %.3fx + %.3f', p_lwp(1), p_lwp(2));
+% text(0.05, 0.95, eq_str_lwp, 'Units', 'normalized', 'FontSize', eq_fnt_sz,...
+%     'VerticalAlignment', 'top', 'BackgroundColor', 'white', 'EdgeColor', 'k',...
+%     'Position', [0.284442970682927 0.0479339227309894 0])
+% % plot legend
+% legend('', 'one-to-one', 'linear fit', 'Interpreter','latex',...
+%     'Position', [0.194507210511621 0.1673125 0.13906449167352 0.0699999999999998], 'FontSize', 20,...
+%     'Color', 'white', 'TextColor', 'k')
+
+
 % *** Plot retrieved LWP vs in-situ LWP ***
 subplot(1,5,1)
-plot(LWP_true, lwp_newCalc, '.',...
+plot(LWP_true, LWP_retrieved, '.',...
     'MarkerSize', circ_size, 'Color', mySavedColors(63, 'fixed'));
 hold on
 % plot a one to one line
-ax_lim = [0.9 * min(lwp_newCalc), 1.1 * max(lwp_newCalc)];
+ax_lim = [0.9 * min(LWP_retrieved), 1.1 * max(LWP_retrieved)];
 plot(ax_lim, ax_lim, 'k-', 'LineWidth', 1)
 % Compute and plot linear fit
-p_lwp = polyfit(LWP_true, lwp_newCalc, 1);
+p_lwp = polyfit(LWP_true, LWP_retrieved, 1);
 lwp_fit = polyval(p_lwp, ax_lim);
 plot(ax_lim, lwp_fit, 'k--', 'LineWidth', 1)
 grid on; grid minor
@@ -374,18 +402,18 @@ set(gcf,'Position',[0 0 1350 750])
 % -------------------------------------
 % ---------- Save figure --------------
 % save .fig file
-% if strcmp(whatComputer,'anbu8374')==true
-%     error(['Where do I save the figure?'])
-% elseif strcmp(whatComputer,'andrewbuggee')==true
-%     folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
-% end
-% saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
-%     'TauC and ACPW against the True values.fig']);
-% 
-% 
-% % save .png with 500 DPI resolution
-% % remove title
-% exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
-%     'TauC and ACPW against the True values.jpg'],'Resolution', 500);
+if strcmp(whatComputer,'anbu8374')==true
+    error(['Where do I save the figure?'])
+elseif strcmp(whatComputer,'andrewbuggee')==true
+    folderpath_figs = '/Users/andrewbuggee/Documents/MATLAB/Matlab-Research/Presentations_and_Papers/paper_2/saved_figures/';
+end
+saveas(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+    'TauC and ACPW against the True values.fig']);
+
+
+% save .png with 500 DPI resolution
+% remove title
+exportgraphics(fig1,[folderpath_figs,'One-to-one comparison between retrieval of LWP,',...
+    'TauC and ACPW against the True values.jpg'],'Resolution', 500);
 % -------------------------------------
 % -------------------------------------

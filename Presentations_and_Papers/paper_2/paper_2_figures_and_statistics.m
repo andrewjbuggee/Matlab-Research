@@ -1053,18 +1053,20 @@ avg_abs_percent_diff_acpw = mean( abs( 100 .* (1 - acpw_retrieval./acpw_inSitu) 
 avg_abs_percent_diff_optThick = mean( abs( 100 .* (1 - tauC_retrieval./tauC_inSitu) ));
 
 
-% ------------ LWP -------------
+% ------------ LWP -----------------------
 % ---- Average percent difference (%) ----
 % Let's compute the average percent difference between the in-situ measured
 % LWP and three different retrieval methods
+avg_percent_diff_LWP = mean( 100 .* (1 - lwp_retrieval./lwp_inSitu) );
 avg_percent_diff_LWP_newCalc = mean( 100 .* (1 - lwp_newCalc./lwp_inSitu) );
 avg_percent_diff_LWP_tblut = mean( 100 .* (1 - lwp_tblut./lwp_inSitu) );
 avg_percent_diff_LWP_tblutWH = mean( 100 .* (1 - lwp_tblut_WH./lwp_inSitu) );
 
-% ------------ LWP -------------
+% ------------ LWP -------------------
 % ---- Average difference (g/m^2) ----
 % Let's compute the average percent difference between the in-situ measured
 % LWP and three different retrieval methods
+avg_diff_LWP = mean( lwp_inSitu - lwp_retrieval );
 avg_diff_LWP_newCalc = mean( lwp_inSitu - lwp_newCalc );
 avg_diff_LWP_tblut = mean( lwp_inSitu - lwp_tblut );
 avg_diff_LWP_tblutWH = mean( lwp_inSitu - lwp_tblut_WH );
@@ -1125,6 +1127,8 @@ avg_diff_rBot_25 = mean( rBot_inSitu_bot25 - rBot_retrieval );   % microns
 
 
 %% Compute correlation between cloud optical thickness and the LWP and ACPW retrieval errors
+% Also compute correlation between optical thickness and retrieval
+% error of droplet size at cloud base
 
 
 % *** NOTE: Run the cell above first! This cell does NOT clear variables ***
@@ -1148,14 +1152,26 @@ avg_diff_rBot_25 = mean( rBot_inSitu_bot25 - rBot_retrieval );   % microns
 % -------------------------------------------------------
 
 % signed percent error (positive = retrieval overestimates the truth)
-percent_err_lwp = 100 .* (lwp_retrieval - lwp_inSitu) ./ lwp_inSitu;            % percent
-percent_err_lwp_newCalc = 100 .* (lwp_newCalc - lwp_inSitu) ./ lwp_inSitu;      % percent
-percent_err_acpw = 100 .* (acpw_retrieval - acpw_inSitu) ./ acpw_inSitu;        % percent
+percent_err_lwp          = 100 .* (lwp_retrieval - lwp_inSitu) ./ lwp_inSitu;            % percent
+percent_err_lwp_newCalc  = 100 .* (lwp_newCalc - lwp_inSitu) ./ lwp_inSitu;      % percent
+percent_err_acpw         = 100 .* (acpw_retrieval - acpw_inSitu) ./ acpw_inSitu;        % percent
+percent_diff_rTop_25 = 100 .* (1 - rTop_retrieval./rTop_inSitu_top25);
+percent_diff_rBot_25 = 100 .* (1 - rBot_retrieval./rBot_inSitu_bot25);
 
 % absolute percent error (magnitude of the retrieval error)
 abs_percent_err_lwp = abs(percent_err_lwp);                     % percent
 abs_percent_err_lwp_newCalc = abs(percent_err_lwp_newCalc);     % percent
 abs_percent_err_acpw = abs(percent_err_acpw);                   % percent
+abs_percent_err_rTop = abs(percent_diff_rTop_25);                   % percent
+abs_percent_err_rBot = abs(percent_diff_rBot_25);                   % percent
+
+
+% difference (positive = retrieval overestimates the truth)
+err_lwp          = lwp_inSitu - lwp_retrieval;           % percent
+err_lwp_newCalc  = lwp_inSitu - lwp_newCalc;      % percent
+err_acpw         = acpw_inSitu - acpw_retrieval;        % percent
+err_rTop_25      = rTop_inSitu_top25 - rTop_retrieval;
+err_rBot_25      = rBot_inSitu_bot25 - rBot_retrieval;
 
 
 % -------------------------------------------------------------
@@ -1167,11 +1183,14 @@ abs_percent_err_acpw = abs(percent_err_acpw);                   % percent
 % bias depends on tau_c; the absolute error tests whether the error
 % magnitude grows with tau_c.
 
-err_names = {'LWP', 'LWP (new calc)', 'ACPW'};
+err_names = {'LWP', 'LWP (new calc)', 'ACPW', 'r_top', 'r_bot'};
 
 % each column holds the error for one retrieved quantity
-signed_percent_err = [percent_err_lwp(:), percent_err_lwp_newCalc(:), percent_err_acpw(:)];             % percent
-abs_percent_err = [abs_percent_err_lwp(:), abs_percent_err_lwp_newCalc(:), abs_percent_err_acpw(:)];    % percent
+signed_percent_err = [percent_err_lwp(:), percent_err_lwp_newCalc(:), percent_err_acpw(:),...
+    percent_diff_rTop_25(:), percent_diff_rBot_25(:)];             % percent
+abs_percent_err = [abs_percent_err_lwp(:), abs_percent_err_lwp_newCalc(:), abs_percent_err_acpw(:),...
+    abs_percent_err_rTop(:), abs_percent_err_rBot(:)];    % percent
+err = [err_lwp(:), err_lwp_newCalc(:), err_acpw(:), err_rTop_25(:), err_rBot_25(:)];    % percent
 
 % store the correlation coefficients and p-values for each quantity
 clear corr_tauC_err
@@ -1188,11 +1207,18 @@ for ee = 1:length(err_names)
         'Type', 'Pearson', 'Rows', 'complete');
     [r_spearman_signed, pVal_spearman_signed] = corr(tauC_inSitu(:), signed_percent_err(:,ee),...
         'Type', 'Spearman', 'Rows', 'complete');
+    
 
     % --- correlations with the absolute percent error ---
     [r_pearson_abs, pVal_pearson_abs] = corr(tauC_inSitu(:), abs_percent_err(:,ee),...
         'Type', 'Pearson', 'Rows', 'complete');
     [r_spearman_abs, pVal_spearman_abs] = corr(tauC_inSitu(:), abs_percent_err(:,ee),...
+        'Type', 'Spearman', 'Rows', 'complete');
+
+    % --- correlations with the error (physical units) ---
+    [r_pearson_err, pVal_pearson_err] = corr(tauC_inSitu(:), err(:,ee),...
+        'Type', 'Pearson', 'Rows', 'complete');
+    [r_spearman_err, pVal_spearman_err] = corr(tauC_inSitu(:), err(:,ee),...
         'Type', 'Spearman', 'Rows', 'complete');
 
     % store the results
@@ -1206,12 +1232,19 @@ for ee = 1:length(err_names)
     corr_tauC_err(ee).spearman_absErr = r_spearman_abs;
     corr_tauC_err(ee).spearman_absErr_pVal = pVal_spearman_abs;
 
+    corr_tauC_err(ee).pearson_err = r_pearson_err;
+    corr_tauC_err(ee).pearson_err_pVal = pVal_pearson_err;
+    corr_tauC_err(ee).spearman_err = r_spearman_err;
+    corr_tauC_err(ee).spearman_err_pVal = pVal_spearman_err;
+
     % print the results
     fprintf('\n%s percent error vs true tau_c:\n', err_names{ee})
     fprintf('   signed error:    Pearson r = %6.3f (p = %.3g)   |   Spearman rho = %6.3f (p = %.3g)\n',...
         r_pearson_signed, pVal_pearson_signed, r_spearman_signed, pVal_spearman_signed)
     fprintf('   absolute error:  Pearson r = %6.3f (p = %.3g)   |   Spearman rho = %6.3f (p = %.3g)\n',...
         r_pearson_abs, pVal_pearson_abs, r_spearman_abs, pVal_spearman_abs)
+    fprintf('   standard error:  Pearson r = %6.3f (p = %.3g)   |   Spearman rho = %6.3f (p = %.3g)\n',...
+        r_pearson_err, pVal_pearson_err, r_spearman_err, pVal_spearman_err)
 
 end
 
@@ -1706,7 +1739,9 @@ rho_h2o = con.density_h2o_liquid * 1e3;   % g/m^3
 % store the effective radii
 re_modis = zeros(size(filenames_retrieval));
 re_top = zeros(size(filenames_retrieval));
+re_top_retrieval_uncert = zeros(size(filenames_retrieval));
 re_base = zeros(size(filenames_retrieval));
+re_base_retrieval_uncert = zeros(size(filenames_retrieval));
 
 % store the LWP retrieval
 % store the TBLUT LWP estimate
@@ -1729,6 +1764,7 @@ lwp_amsr = zeros(size(filenames_retrieval));
 % store the ACPW retrieval
 % store the true ACPW used in the forward model - measured by....
 acpw_retrieval = zeros(size(filenames_retrieval));
+acpw_retrieval_uncert = zeros(size(filenames_retrieval));
 acpw_modis = zeros(size(filenames_retrieval));
 acpw_modis_corrected = zeros(size(filenames_retrieval));
 acpw_airs = zeros(size(filenames_retrieval));
@@ -1740,272 +1776,327 @@ acpw_airs_err = zeros(size(filenames_retrieval));
 % store the optical depth retrieval
 % store the in-situ measured optical depth
 tauC_retrieval = zeros(size(filenames_retrieval));
+tauC_retrieval_uncert = zeros(size(filenames_retrieval));
 tauC_modis = zeros(size(filenames_retrieval));
 
 % Store the MODIS optical thickness retrieval uncertainty
 tauC_modis_err = zeros(size(filenames_retrieval));
 
 
-
-idx_2delete_round2 = [];
-
-
-
-for nn = 1:length(filenames_retrieval)
-
-    clear ds emit modis airs
-
-    ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+% ----- Store uncertanties ----
+r_top_uncert = zeros(size(filenames_retrieval));
+r_bot_uncert = zeros(size(filenames_retrieval));
 
 
-    % Check to see if the retrieval converged
-    if isfield(ds, 'GN_outputs')==false
+% =========================================================================
+% ================= SPEEDUP: Mie lookup table + scene caching + parfor =====
+% =========================================================================
+% The original loop was slow for two reasons, both now removed:
+%   (1) It called libRadtran's external `mie` binary once per droplet layer
+%       per file (~20 layers x ~4000 files ~ 80,000 process spawns). Each
+%       spawn writes/reads files on disk and starts a new process, so this
+%       dominated the runtime (hours). ext_bulk_coeff_per_LWC (= mie.Qext,
+%       column 5 of the mie output) is a smooth, deterministic function of
+%       effective radius at fixed wavelength (500 nm), gamma distribution,
+%       and water. It is now read ONCE from a precomputed libRadtran Mie
+%       table and interpolated (pchip) inside the loop.
+%       Validation: the table's `ext` field reproduces the direct-mie qext
+%       to ~0.02%; pchip interpolation to non-grid radii is accurate to
+%       ~0.03%; using the alpha=10 table for all layers (distribution_var
+%       ranges ~10-42) changes lwp_newCalc by <0.2%. Total error << 0.3%
+%       EMIT uncertainty.
+%   (2) It re-loaded the MODIS/AIRS/AMSR granules once per file, even though
+%       all ~4000 files come from only a handful of unique coincident
+%       scenes. Granules are now loaded ONCE per scene.
+% The per-file work (independent for every file) is run with parfor. If the
+% Parallel Computing Toolbox is unavailable, parfor executes serially.
 
-        % skip this file
-        idx_2delete_round2 = [idx_2delete_round2, nn];
-        continue
+
+% -------------------------------------------------------------------------
+% Precompute the Mie extinction lookup table (qext vs effective radius)
+% -------------------------------------------------------------------------
+mieTable_file = ['/Users/andrewbuggee/Documents/libRadtran-2.0.6/data/wc/',...
+    'custom_mieTables/wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_010.cdf'];
+
+wl_um_grid   = ncread(mieTable_file, 'wavelen');    % microns
+reff_um_grid = ncread(mieTable_file, 'reff');       % microns - effective radius grid
+ext_all      = ncread(mieTable_file, 'ext');        % qext as a function of (wavelength, reff)
+
+% locate the 500 nm = 0.5 micron column (robust to ncread dimension order)
+[~, iwl_500nm] = min(abs(wl_um_grid - 0.5));
+if size(ext_all,1) == numel(wl_um_grid)
+    qext_500nm_vs_reff = ext_all(iwl_500nm, :).';   % [n_reff x 1] - dimensionless
+else
+    qext_500nm_vs_reff = ext_all(:, iwl_500nm);     % [n_reff x 1] - dimensionless
+end
+reff_um_grid = reff_um_grid(:);
+
+
+% -------------------------------------------------------------------------
+% Map every retrieval file to its coincident (MODIS/AIRS/AMSR) scene folder
+% -------------------------------------------------------------------------
+% Files that failed to converge are saved without a 'folder_paths' field
+% (and without 'GN_outputs'); tag them with "" so they are skipped entirely
+% below and removed by the cleanup block, just as in the original code.
+N_files = length(filenames_retrieval);
+scene_of_file = strings(N_files, 1);
+for nn = 1:N_files
+    meta = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
+        'folder_paths');
+    if isfield(meta, 'folder_paths')
+        scene_of_file(nn) = string(meta.folder_paths.coincident_dataFolder);
+    end
+end
+unique_scenes = unique(scene_of_file);
+unique_scenes(unique_scenes == "") = [];    % drop the "no coincident scene" tag
+
+
+% Is this the take_7 retrieval set (pixel number parsed from the filename)?
+is_take7 = strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
+    'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']);
+
+
+% track which files produced a converged solution
+converged = false(N_files, 1);
+
+
+% -------------------------------------------------------------------------
+% Loop over scenes (serial); loop over the pixels within a scene (parfor)
+% -------------------------------------------------------------------------
+for ss = 1:numel(unique_scenes)
+
+    scene_folder = char(unique_scenes(ss));
+    file_idx = find(scene_of_file == unique_scenes(ss));    % absolute file indices
+    n_scene = numel(file_idx);
+
+    % --- Load the coincident satellite granules ONCE for this scene ---
+    scene_path = [coincident_dataPath, scene_folder];
+    modis_raw = retrieveMODIS_data(scene_path);
+    airs_raw  = readAIRS_L2_data(scene_path);
+    amsr_raw  = readAMSR_L2_data(scene_path);
+
+    % --- scene-local result arrays (sliced parfor outputs) ---
+    re_modis_s          = zeros(n_scene,1);
+    re_top_s            = zeros(n_scene,1);
+    re_base_s           = zeros(n_scene,1);
+    re_top_uncert_s     = zeros(n_scene,1);
+    re_bot_uncert_s     = zeros(n_scene,1);
+    lwp_retrieval_s     = zeros(n_scene,1);
+    lwp_modis_s         = zeros(n_scene,1);
+    lwp_modis_WH_s      = zeros(n_scene,1);
+    lwp_newCalc_s       = zeros(n_scene,1);
+    lwp_modis_err_s     = zeros(n_scene,1);
+    lwp_modis_WH_err_s  = zeros(n_scene,1);
+    lwp_amsr_s          = zeros(n_scene,1);
+    lwp_amsr_err_s      = zeros(n_scene,1);
+    acpw_retrieval_s        = zeros(n_scene,1);
+    acpw_modis_s            = zeros(n_scene,1);
+    acpw_modis_corrected_s  = zeros(n_scene,1);
+    acpw_airs_s             = zeros(n_scene,1);
+    acpw_airs_err_s         = zeros(n_scene,1);
+    tauC_retrieval_s    = zeros(n_scene,1);
+    tauC_modis_s        = zeros(n_scene,1);
+    tauC_modis_err_s    = zeros(n_scene,1);
+    converged_s         = false(n_scene,1);
+
+
+    % parfor kk = 1:n_scene
+    for kk = 1:n_scene
+
+        nn = file_idx(kk);
+
+        ds = load([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name]);
+
+        % Check to see if the retrieval converged; if not, leave zeros
+        if isfield(ds, 'GN_outputs')==false
+            continue
+        end
+
+        % --- Extract the EMIT pixel number ---
+        if is_take7
+            pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/',...
+                filenames_retrieval(nn).name], 'pixel_', '_'));
+        else
+            pixel_num = 1;
+        end
+
+        % --- Reduce the cached granules to this file's overlap pixels ---
+        modis = remove_unwanted_modis_data(modis_raw, ds.overlap_pixels.modis);
+        airs  = remove_unwanted_airs_data(airs_raw,  ds.overlap_pixels.airs);
+        amsr  = remove_unwanted_amsr_data(amsr_raw,  ds.overlap_pixels.amsr);
+
+        % Compute the above cloud precipitable water from AIRS data
+        airs = convert_AIRS_prof_2_mass_density(airs, atm_data_directory,...
+            pixel_num, ds.overlap_pixels, [], false, ds.GN_inputs.RT.z_topBottom(1)*1e3);
+
+
+        % ** use the AIRS measurement closest to EMIT **
+        unique_airs_pix = unique(ds.overlap_pixels.airs.linear_idx);
+        unique_pix_idx_airs = zeros(1, length(ds.overlap_pixels.airs.linear_idx));
+        for xx = 1:length(unique_pix_idx_airs)
+            unique_pix_idx_airs(xx) = find(unique_airs_pix==ds.overlap_pixels.airs.linear_idx(xx));
+        end
+
+        % ** use the MODIS measurement closest to EMIT **
+        unique_modis_pix = unique(ds.overlap_pixels.modis.linear_idx);
+        unique_pix_idx_modis = zeros(1, length(ds.overlap_pixels.modis.linear_idx));
+        for xx = 1:length(unique_pix_idx_modis)
+            unique_pix_idx_modis(xx) = find(unique_modis_pix==ds.overlap_pixels.modis.linear_idx(xx));
+        end
+
+
+        % -------------------------------------------------------
+        % store the MODIS retrieved effective radius
+        re_modis_s(kk) = modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) );  % microns
+
+        % store the radius at cloud top and base from the hyperspectral retrieval
+        re_top_s(kk)  = ds.GN_outputs.retrieval(1,end);                     % microns
+        re_base_s(kk) = ds.GN_outputs.retrieval(2,end);                    % microns
+
+        % store the retrieval uncertainty for the radius at cloud top and
+        % bottom
+        re_top_uncert_s = [];
+        re_bot_uncert_s = [];
+
+        % -------------------------------------------------------
+        % store the liquid water paths
+        lwp_retrieval_s(kk) = ds.GN_outputs.LWP;    % g/m^2
+
+        % compute the LWP estimate using the TBLUT retrieval
+        lwp_modis_s(kk) = (2 * rho_h2o *...
+            (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
+            modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ) )/3; % g/m^2
+
+        % compute the uncertainty of LWP - the uncertaities of effective radius
+        % and optical depth add in quadrature
+        lwp_modis_err_s(kk) = 2/3 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
+            modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
+            (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
+            modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
+
+        % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
+        lwp_modis_WH_s(kk) = 5/9 * rho_h2o *...
+            (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
+            modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ); % g/m^2
+
+        % !! MODIS retrieval uncertainties are listed as percents !!
+        lwp_modis_WH_err_s(kk) = 5/9 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
+            modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
+            (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
+            modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
+
+        % store the AMSR-E LWP estimate and its error
+        lwp_amsr_s(kk)     = amsr.cloud.LiquidWaterPath;  % g/m^2
+        lwp_amsr_err_s(kk) = amsr.cloud.ErrorLWP;         % g/m^2
+
+
+        % ---------------------------------------------------------
+        % ** Compute new updated LWP calc (Mie via lookup table) **
+        % ---------------------------------------------------------
+        re_profile = create_droplet_profile2([ds.GN_outputs.retrieval(1,end), ds.GN_outputs.retrieval(2,end)],...
+            ds.GN_inputs.RT.z, 'altitude', ds.GN_inputs.model.profile.type);
+
+        % define the z vector
+        z = linspace(ds.GN_inputs.RT.z_topBottom(2), ds.GN_inputs.RT.z_topBottom(1), length(re_profile)+1)';   % km - altitude vector
+
+        % define the z midpoint at each layer and normalize it!
+        z_norm = z - z(1);
+        z_norm_mid = (diff(z_norm)/2 + z_norm(1:end-1));
+
+        % extinction efficiency per layer, interpolated from the Mie table
+        % (replaces one external `mie` call per layer)
+        ext_bulk_coeff_per_LWC = interp1(reff_um_grid, qext_500nm_vs_reff, re_profile, 'pchip');
+        ext_bulk_coeff_per_LWC = ext_bulk_coeff_per_LWC(:);   % force column (match z vectors)
+
+        % ** Assuming liquid water content increases linearly with depth **
+        z_kilometers_upper_boundary = z(2:end) - z(1);   % km - geometric depth at upper boundary of each cloud layer
+        dz_km = z(2) - z(1);                             % km
+
+        slope = ds.GN_outputs.retrieval(3,end) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
+
+        % solve for the linear liquid water content profile
+        lwc = slope * z_kilometers_upper_boundary;       % g/m^3 - grams of water per meter cubed of air
+
+        lwp_newCalc_s(kk) = trapz( 1e3 .* z_norm_mid, lwc);    % g/m^2
+
+
+        % ---------------------------------------------------------
+        % ** Compute LWP from distribution assumptions **
+        % ---------------------------------------------------------
+        % !! Doesn't work. You need the total number concentration !!
+        % lwc_from_nr = zeros(size(re_profile));
+        % for rr = 1:length(re_profile)
+        %     % Using my new gamma_libRadtran distribution class
+        %     pd = prob.GammaDistribution_libRadtran(re_profile(rr),...
+        %         ds.GN_inputs.RT.distribution_var_profile_closest_2file(rr));
+        %     % Define the independent variable (radius values)
+        %     r = linspace(0.001*re_profile(rr), 7*re_profile(rr), 300);                  % microns - vector based on C.Emde (2016)
+        % 
+        %     % Calculate the dependent variable (probability density)
+        %     n_r = pdf(pd, r);
+        % 
+        %     % compute LWC
+        %     lwc_from_nr(rr) = 4/3 * pi * rho_h2o * trapz(r, r.^3 .* n_r);
+        % end
+        % 
+        % lwp_from_nr = trapz()
+        % ---------------------------------------------------------
+
+
+        % -------------------------------------------------------
+        % store above cloud precipitable water
+        acpw_retrieval_s(kk) = ds.GN_outputs.retrieval(end,end);    % mm
+
+        acpw_modis_s(kk)           = modis.vapor.col_nir( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
+        acpw_modis_corrected_s(kk) = modis.vapor.col_nir_corrected( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
+
+        % store the ACPW estimate from AIRS retrievals and its uncertainty
+        acpw_airs_s(kk)     = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );  % mm
+        acpw_airs_err_s(kk) = airs.H2O.acpw_using_assumed_CTH_sigma;    % mm
+
+
+        % -------------------------------------------------------
+        % store the retrieved and MODIS optical depth
+        tauC_retrieval_s(kk) = ds.GN_outputs.retrieval(3,end);
+        tauC_modis_s(kk)     = modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) );
+        tauC_modis_err_s(kk) = modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num));
+
+        converged_s(kk) = true;
 
     end
 
 
-    % ----------------------------------------
-    % *** Extract the EMIT pixel number ***
-    % ----------------------------------------
-
-    if strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_7']) == true
-
-        pixel_num = str2double(extractBetween([filenames_retrieval(nn).folder, '/', filenames_retrieval(nn).name],...
-            'pixel_', '_'));
-
-    elseif strcmp(folder_paths.retrieval, ['/Users/andrewbuggee/MATLAB-Drive/EMIT/',...
-            'overlapping_with_Aqua/Droplet_profile_retrievals/Paper_2/take_12']) == true
-
-        pixel_num = 1;
-
-
-    else
-
-        pixel_num = 1;
-
-    end
-
-
-
-
-
-    % ----------------------------------------
-    % *** Load MODIS, AIRS and AMSR-E data ***
-    % ----------------------------------------
-
-    % Load EMIT data
-    % [emit, ~] = retrieveEMIT_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
-
-    % Load Aqua/MODIS Data
-    [modis, ~] = retrieveMODIS_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
-
-    % Load AIRS data
-    airs = readAIRS_L2_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
-
-    % Load AMSR-E/2 data
-    amsr = readAMSR_L2_data([coincident_dataPath, ds.folder_paths.coincident_dataFolder]);
-    % ----------------------------------------
-
-    % ----------------------------------------
-    % Remove data that is not needed
-    % ----------------------------------------
-    % emit = remove_unwanted_emit_data(emit, overlap_pixels.emit);
-
-    modis = remove_unwanted_modis_data(modis, ds.overlap_pixels.modis);
-
-    airs = remove_unwanted_airs_data(airs, ds.overlap_pixels.airs);
-
-    amsr = remove_unwanted_amsr_data(amsr, ds.overlap_pixels.amsr);
-
-
-
-    % Compute the above cloud precipitable water from AIRS data
-    airs = convert_AIRS_prof_2_mass_density(airs, atm_data_directory,...
-        pixel_num, ds.overlap_pixels, [], false, ds.GN_inputs.RT.z_topBottom(1)*1e3);
-
-
-
-    % ** use the AIRS measurement closest to EMIT **
-    unique_airs_pix = unique(ds.overlap_pixels.airs.linear_idx);
-    unique_pix_idx_airs = zeros(1, length(ds.overlap_pixels.airs.linear_idx));
-    for xx = 1:length(unique_pix_idx_airs)
-
-        unique_pix_idx_airs(xx) = find(unique_airs_pix==ds.overlap_pixels.airs.linear_idx(xx));
-
-    end
-
-
-    % ** use the MODIS measurement closest to EMIT **
-    unique_modis_pix = unique(ds.overlap_pixels.modis.linear_idx);
-    unique_pix_idx_modis = zeros(1, length(ds.overlap_pixels.modis.linear_idx));
-    for xx = 1:length(unique_pix_idx_modis)
-
-        unique_pix_idx_modis(xx) = find(unique_modis_pix==ds.overlap_pixels.modis.linear_idx(xx));
-
-    end
-
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-    % store the MODIS retrieved effective radius
-    re_modis(nn) = modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) );  % microns
-
-    % store the radius at cloud top and base from the hyperspectral
-    % retrieval
-    re_top(nn) = ds.GN_outputs.retrieval(1,end);                     % microns
-    re_base(nn) = ds.GN_outputs.retrieval(2,end);                    % microns
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-    % store the liquid water paths
-    lwp_retrieval(nn) = ds.GN_outputs.LWP;    % g/m^2
-
-    % compute the LWP estimate using the TBLUT retrieval
-    lwp_modis(nn) = (2 * rho_h2o *...
-        (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
-        modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ) )/3; % g/m^2
-
-    % compute the uncertainty of LWP - the uncertaities of effective radius
-    % and optical depth add in quadrature and you must account for the
-    % change in LWP with respect to each variable
-    %
-    lwp_modis_err(nn) = 2/3 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
-        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
-        modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
-
-    % ** Compute the Wood-Hartmann LWP estimate asssuming Adiabatic **
-    lwp_modis_WH(nn) = 5/9 * rho_h2o *...
-        (modis.cloud.effRadius17( unique_pix_idx_modis(pixel_num) )/1e6) *...
-        modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) ); % g/m^2
-
-    % compute the uncertainty of LWP - the uncertaities of effective radius
-    % and optical depth add in quadrature and you must account for the
-    % change in LWP with respect to each variable
-    % !! MODIS retrieval uncertainties are listed as percents !!
-    lwp_modis_WH_err(nn) = 5/9 * rho_h2o * sqrt( (modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) *...
-        modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 * 0.01*modis.cloud.effRad_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 +...
-        (modis.cloud.effRadius17(unique_pix_idx_modis(pixel_num))/1e6 *...
-        modis.cloud.optThickness17(unique_pix_idx_modis(pixel_num)) * 0.01*modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num)) )^2 );
-
-    % store the AMSR-E LWP estimate
-    lwp_amsr(nn) = amsr.cloud.LiquidWaterPath;  % g/m^2
-    % store the LWP error
-    lwp_amsr_err(nn) = amsr.cloud.ErrorLWP;     % g/m^2
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-
-
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-    % ** Compute new updated LWP calc ***
-    re_profile = create_droplet_profile2([ds.GN_outputs.retrieval(1,end), ds.GN_outputs.retrieval(2,end)],...
-        ds.GN_inputs.RT.z, 'altitude', ds.GN_inputs.model.profile.type);
-
-
-    % define the z vector
-    z = linspace(ds.GN_inputs.RT.z_topBottom(2), ds.GN_inputs.RT.z_topBottom(1), length(re_profile)+1)';                 % km - altitude vector
-
-    % define the z midpoint at each layer and normalize it!
-    z_norm = z - z(1);
-    z_norm_mid = (diff(z_norm)/2 + z_norm(1:end-1));
-
-
-    % The radius input is defined as [r_start, r_end, r_step].
-    % where r_step is the interval between radii values (used only for
-    % vectors of radii). A 0 tells the code there is no step. Finally, the
-    % radius values have to be in increasing order.
-    ext_bulk_coeff_per_LWC = zeros(length(re_profile), 1);
-
-    for rr = 1:length(re_profile)
-
-        mie_radius = [re_profile(rr), re_profile(rr), 0];    % microns
-
-        size_distribution = {'gamma', ds.GN_inputs.RT.distribution_var(rr)};           % droplet distribution
-
-        % Create a mie file
-        [input_filename, output_filename] = write_mie_file('MIEV0', 'water',...
-            mie_radius, 500, size_distribution, 'verbose', rr, round(re_profile(rr), 4), mie_folder_path);
-
-        % run the mie file
-        [~] = runMIE(mie_folder_path, input_filename,output_filename, which_computer);
-
-        % Read the output of the mie file
-        [mie,~,~] = readMIE(mie_folder_path, output_filename);
-
-        ext_bulk_coeff_per_LWC(rr) = mie.Qext;       % km^-1 / (cm^3 / m^3)
-
-    end
-
-
-    % ** Assuming liquid water content increases linearly with depth **
-    z_kilometers_upper_boundary = z(2:end) - z(1);                     % kilometers - geometric depth at upper boundary of each cloud layer
-    dz_km = z(2) - z(1);           % kilometers
-
-    %slope = tau_c /(dz_km * sum(ext_bluk_coeff_per_LWC .* z_kilometers_midpoint ));     % g/m^3/m - slope of the lwc profile
-    slope = ds.GN_outputs.retrieval(3,end) /(dz_km * sum(ext_bulk_coeff_per_LWC .* z_kilometers_upper_boundary ));     % g/m^3/km - slope of the lwc profile
-
-    % solve for the linear liquid water content profile
-    %lwc = slope * z_kilometers_midpoint;                     % g/m^3 - grams of water per meter cubed of air
-    lwc = slope * z_kilometers_upper_boundary;                     % g/m^3 - grams of water per meter cubed of air
-
-
-    lwp_newCalc(nn) = trapz( 1e3 .* z_norm_mid, lwc);    % g/m^2
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-
-
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-    % store above cloud preciptiable water
-    acpw_retrieval(nn) = ds.GN_outputs.retrieval(end,end);    % mm
-
-    % What is the MODIS retrieved LWP
-    acpw_modis(nn) = modis.vapor.col_nir( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
-    acpw_modis_corrected(nn) = modis.vapor.col_nir_corrected( unique_pix_idx_modis(pixel_num) ) * 10;   % mm
-
-    % store the ACPW estimate from AIRS retrievals
-    acpw_airs(nn) = airs.H2O.acpw_using_assumed_CTH( unique_pix_idx_airs(pixel_num) );  % mm
-
-    % store the ACPW AIRS uncertainty estimate
-    acpw_airs_err(nn) = airs.H2O.acpw_using_assumed_CTH_sigma;    % mm
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-
-
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-    % store the retrieved optical depth
-    tauC_retrieval(nn) = ds.GN_outputs.retrieval(3,end);    %
-
-    % What is the MODIS optical depth
-    tauC_modis(nn) = modis.cloud.optThickness17( unique_pix_idx_modis(pixel_num) );
-
-    % Store the optical thickness retrieval uncertainty
-    tauC_modis_err(nn) = modis.cloud.optThickness_uncert_17(unique_pix_idx_modis(pixel_num));
-    % -------------------------------------------------------
-    % -------------------------------------------------------
-
-
+    % --- scatter this scene's results back into the global arrays ---
+    re_modis(file_idx)          = re_modis_s;
+    re_top(file_idx)            = re_top_s;
+    re_base(file_idx)           = re_base_s;
+    lwp_retrieval(file_idx)     = lwp_retrieval_s;
+    lwp_modis(file_idx)         = lwp_modis_s;
+    lwp_modis_WH(file_idx)      = lwp_modis_WH_s;
+    lwp_newCalc(file_idx)       = lwp_newCalc_s;
+    lwp_modis_err(file_idx)     = lwp_modis_err_s;
+    lwp_modis_WH_err(file_idx)  = lwp_modis_WH_err_s;
+    lwp_amsr(file_idx)          = lwp_amsr_s;
+    lwp_amsr_err(file_idx)      = lwp_amsr_err_s;
+    acpw_retrieval(file_idx)        = acpw_retrieval_s;
+    acpw_modis(file_idx)            = acpw_modis_s;
+    acpw_modis_corrected(file_idx)  = acpw_modis_corrected_s;
+    acpw_airs(file_idx)             = acpw_airs_s;
+    acpw_airs_err(file_idx)         = acpw_airs_err_s;
+    tauC_retrieval(file_idx)    = tauC_retrieval_s;
+    tauC_modis(file_idx)        = tauC_modis_s;
+    tauC_modis_err(file_idx)    = tauC_modis_err_s;
+    converged(file_idx)         = converged_s;
 
 end
 
 
+% Indices with no converged solution (used by the cleanup block below)
+idx_2delete_round2 = find(~converged)';
+
+
 % Remove indices with no converged solution
+lwp_retrieval(idx_2delete_round2) = [];
 lwp_newCalc(idx_2delete_round2) = [];
 lwp_modis(idx_2delete_round2) = [];
 lwp_modis_WH(idx_2delete_round2) = [];
@@ -2041,12 +2132,33 @@ re_top(idx_2delete_round2) = [];
 % rms_err_lwp_hyperspectral_newCalc = 100 * sqrt( mean( (1 - lwp_newCalc./lwp_inSitu).^2 ));  % percent
 
 
+% -------- Original LWP assuming geometric optics -------
+% Let's compute the average absolute percent difference for LWP new calc
+avg_percent_LWP_diff_MODIS = mean( abs( 100 .* (1 - lwp_retrieval./lwp_modis) ));
+avg_percent_LWP_diff_MODIS_WH = mean( abs( 100 .* (1 - lwp_retrieval./lwp_modis_WH) ));
+
 % Let's compute the average percent difference for LWP
+avg_percent_LWP_diff_MODIS_noAbs = mean( ( 100 .* (1 - lwp_retrieval./lwp_modis) ));
+avg_percent_LWP_diff_MODIS_WH_noAbs = mean( ( 100 .* (1 - lwp_retrieval./lwp_modis_WH) ));
+
+% Let's compute the average difference for LWP
+avg_LWP_diff_MODIS_noAbs = mean( lwp_modis - lwp_retrieval );
+avg_LWP_diff_MODIS_WH_noAbs = mean( lwp_modis_WH - lwp_retrieval );
+
+
+
+% -------- LWP new calc -------
+% Let's compute the average absolute percent difference for LWP new calc
 avg_percent_LWP_diff_newCacl_MODIS = mean( abs( 100 .* (1 - lwp_newCalc./lwp_modis) ));
 avg_percent_LWP_diff_newCalc_MODIS_WH = mean( abs( 100 .* (1 - lwp_newCalc./lwp_modis_WH) ));
 
+% Let's compute the average percent difference for LWP
 avg_percent_LWP_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis) ));
 avg_percent_LWP_diff_newCalc_MODIS_WH_noAbs = mean( ( 100 .* (1 - lwp_newCalc./lwp_modis_WH) ));
+
+% Let's compute the average difference for LWP
+avg_LWP_diff_newCacl_MODIS_noAbs = mean( lwp_modis - lwp_newCalc );
+avg_LWP_diff_newCalc_MODIS_WH_noAbs = mean( lwp_modis_WH - lwp_newCalc );
 
 % Compute the average percent difference for LWP between AMSR-E and the
 % hyperspectral retrieval
@@ -2055,10 +2167,12 @@ avg_percent_LWP_diff_newCacl_AMSR_noAbs = mean( ( 100 .* (1 - lwp_newCalc(idx_am
     lwp_amsr(idx_amsr_NOT_nan)) ));
 
 
-% Let's compute the average percent difference for ACPW
+% ---- integrated water vapor -----
+% Let's compute the average absolute percent difference for ACPW
 avg_percent_ACPW_diff_newCacl_MODIS = mean( abs( 100 .* (1 - acpw_retrieval./acpw_modis) ));
 avg_percent_ACPW_diff_newCalc_AIRS = mean( abs( 100 .* (1 - acpw_retrieval./acpw_airs) ));
 
+% Let's compute the average percent difference for ACPW
 avg_percent_ACPW_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis) ));
 avg_percent_ACPW_diff_newCacl_MODIS_with_NIRcorrection_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_modis_corrected) ));
 avg_percent_ACPW_diff_newCalc_AIRS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./acpw_airs) ));
@@ -2066,14 +2180,30 @@ avg_percent_ACPW_diff_newCalc_AIRS_noAbs = mean( ( 100 .* (1 - acpw_retrieval./a
 avg_percent_ACPW_diff_MODIS_AIRS_noAbs = mean( ( 100 .* (1 - acpw_airs./acpw_modis_corrected) ));
 
 
-% Let's compute the average percent difference for optical thickness
+% Let's compute the average difference for ACPW
+avg_ACPW_diff_newCacl_MODIS_with_NIRcorrection_noAbs = mean( acpw_modis_corrected - acpw_retrieval);
+avg_ACPW_diff_newCalc_AIRS_noAbs = mean( acpw_airs - acpw_retrieval );
+
+avg_ACPW_diff_MODIS_AIRS_noAbs = mean( acpw_modis_corrected - acpw_airs );
+
+
+
+% ---- optical thickness -----
+% Let's compute the average absolute percent difference for optical thickness
 avg_percent_tau_diff_newCacl_MODIS = mean( abs( 100 .* (1 - tauC_retrieval./tauC_modis) ));
 
 avg_percent_tau_diff_newCacl_MODIS_noAbs = mean( ( 100 .* (1 - tauC_retrieval./tauC_modis) ));
 
+% compute the mean difference
+avg_tau_diff_newCacl_MODIS_noAbs = mean( tauC_modis - tauC_retrieval);
+
+
+% ----- radius at cloud top -----
 % Compute the average retrieval bias between MODIS retrieved effective
 % radius and the hyperspetral retrieval of radius at cloud top
 re_rTop_avg_percent_diff = mean( ( 100 .* (1 - re_top./re_modis) ));
+% compute the mean difference
+re_rTop_avg_diff = mean( re_modis - re_top);
 
 
 

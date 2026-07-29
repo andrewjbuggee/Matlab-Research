@@ -243,8 +243,8 @@ files{1} = filenames.name;
 % *** CURRENT FORWARD MODEL UNCERTAINTIES CONSIDERED ***
 % (1) Adiabatic droplet profile assumption
 % (2) Cloud top height assumption
-% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(...
-%     files,folder_paths, print_status_updates, print_libRadtran_err);
+[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_2(...
+    files,folder_paths, print_status_updates, print_libRadtran_err);
 
 
 
@@ -253,7 +253,7 @@ files{1} = filenames.name;
 % (1) Adiabatic droplet profile assumption
 % (2) Cloud top height assumption
 % (3) Droplet distribution effective variance assumption
-[tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_3(...
-    files,folder_paths, print_status_updates, print_libRadtran_err);
+% [tblut_retrieval, acpw_retrieval, GN_inputs, GN_outputs] = run_retrieval_dropProf_HySICS_ver4_log_newCov_forMo_uncert_3(...
+%     files,folder_paths, print_status_updates, print_libRadtran_err);
 
 
