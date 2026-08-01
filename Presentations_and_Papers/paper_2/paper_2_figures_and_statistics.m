@@ -865,11 +865,17 @@ tauC_inSitu = zeros(size(filenames_retrieval));
 rTop_retrieval   = zeros(size(filenames_retrieval));
 rBot_retrieval = zeros(size(filenames_retrieval));
 
+rTop_inSitu_top10 = zeros(size(filenames_retrieval));
+rBot_inSitu_bot10 = zeros(size(filenames_retrieval));
+
+rTop_inSitu_top15 = zeros(size(filenames_retrieval));
+rBot_inSitu_bot15 = zeros(size(filenames_retrieval));
+
 rTop_inSitu_top20   = zeros(size(filenames_retrieval));
-rBot_inSitu_bot20 = zeros(size(filenames_retrieval));
+rBot_inSitu_bot20   = zeros(size(filenames_retrieval));
 
 rTop_inSitu_top25   = zeros(size(filenames_retrieval));
-rBot_inSitu_bot25 = zeros(size(filenames_retrieval));
+rBot_inSitu_bot25   = zeros(size(filenames_retrieval));
 
 rBot_inSitu_bot20_median = zeros(size(filenames_retrieval));
 rBot_inSitu_bot25_median = zeros(size(filenames_retrieval));
@@ -993,6 +999,10 @@ for nn = 1:length(filenames_retrieval)
     z_inSitu = ds.GN_inputs.measurement.z;
     z_norm_inSitu = (z_inSitu - min(z_inSitu))./(max(z_inSitu) - min(z_inSitu));
     % [z_inSitu, z_norm_inSitu]
+    idx_top10 = z_norm_inSitu >= 0.9;
+    idx_bot10 = z_norm_inSitu <= 0.1;
+    idx_top15 = z_norm_inSitu >= 0.85;
+    idx_bot15 = z_norm_inSitu <= 0.15;
     idx_top20 = z_norm_inSitu >= 0.8;
     idx_bot20 = z_norm_inSitu <= 0.2;
     idx_top25 = z_norm_inSitu >= 0.75;
@@ -1009,10 +1019,14 @@ for nn = 1:length(filenames_retrieval)
     rBot_retrieval(nn) = ds.GN_outputs.retrieval(2,end);    %
 
     % What is the in-situ value for rTop?
+    rTop_inSitu_top10(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top10));   %
+    rTop_inSitu_top15(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top15));   %
     rTop_inSitu_top20(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top20));   %
     rTop_inSitu_top25(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_top25));   %
 
     % What is the in-situ value for rBot?
+    rBot_inSitu_bot10(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot10));   %
+    rBot_inSitu_bot15(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot15));   %
     rBot_inSitu_bot20(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot20));   %
     rBot_inSitu_bot25(nn) = mean(ds.GN_inputs.measurement.re_prof(idx_bot25));   %
 
@@ -1099,6 +1113,10 @@ avg_diff_optThick = mean( tauC_inSitu - tauC_retrieval );
 % comparison without biasing the results by including the high spatial
 % variabiltiy in droplet size at cloud top and base, let's average over the
 % top and botto 25% of the cloud, with respect to the altitude vector. 
+avg_percent_diff_rTop_10 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top10) );
+avg_percent_diff_rBot_10 = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot10) );
+avg_percent_diff_rTop_15 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top15) );
+avg_percent_diff_rBot_15 = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot15) );
 avg_percent_diff_rTop_20 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top20) );
 avg_percent_diff_rBot_20 = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_bot20) );
 avg_percent_diff_rTop_25 = mean( 100 .* (1 - rTop_retrieval./rTop_inSitu_top25) );
@@ -1115,11 +1133,16 @@ avg_percent_diff_rBot_25_median = mean( 100 .* (1 - rBot_retrieval./rBot_inSitu_
 % droplet size at cloud top and base with the retrieved value. To do this
 % comparison without biasing the results by including the high spatial
 % variabiltiy in droplet size at cloud top and base, let's average over the
-% top and botto 25% of the cloud, with respect to the altitude vector. 
+% top and bottom 25% of the cloud, with respect to the altitude vector. 
+avg_diff_rTop_10 = mean( rTop_inSitu_top10 - rTop_retrieval );   % microns
+avg_diff_rBot_10 = mean( rBot_inSitu_bot10 - rBot_retrieval );   % microns
+avg_diff_rTop_15 = mean( rTop_inSitu_top15 - rTop_retrieval );   % microns
+avg_diff_rBot_15 = mean( rBot_inSitu_bot15 - rBot_retrieval );   % microns
 avg_diff_rTop_20 = mean( rTop_inSitu_top20 - rTop_retrieval );   % microns
 avg_diff_rBot_20 = mean( rBot_inSitu_bot20 - rBot_retrieval );   % microns
 avg_diff_rTop_25 = mean( rTop_inSitu_top25 - rTop_retrieval );   % microns
 avg_diff_rBot_25 = mean( rBot_inSitu_bot25 - rBot_retrieval );   % microns
+
 
 
 
