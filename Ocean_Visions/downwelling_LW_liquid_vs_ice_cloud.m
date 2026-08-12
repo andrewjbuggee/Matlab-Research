@@ -21,8 +21,11 @@
 %
 % Radiative transfer:
 %   - two-stream solver (rte_solver twostr)
-%   - REPTRAN coarse band parameterization over the full thermal range
-%     (2501.6 - 99808.6 nm), band-integrated irradiance summed to broadband.
+%   - REPTRAN coarse band parameterization, band-integrated irradiance summed
+%     to broadband. The spectral range follows the ice parameterization toggle
+%     (ice_parameterization, set below): 'yang' uses all 260 bands out to
+%     99808.6 nm, 'yang2013' drops the topmost band because its tables stop at
+%     99000 nm. See the ICE CLOUD OPTICS block for the full argument.
 %
 % *** A NOTE ON THE CLOUD FILES ***
 % The clouds are specified by column water path, not optical depth, and the
@@ -122,9 +125,8 @@ inputs.rte_solver_string = 'two-stream';
 
 inputs.mol_abs_param = 'reptran coarse';            % REPTRAN, broadband flux resolution
 
-% full REPTRAN thermal range. uvspec internally uses 2501.6 - 99808.6 nm; these
-% bounds simply ask for all of it.
-inputs.wavelength_bounds_nm = [2500, 100000];       % nm
+% *** The spectral selection is set further down, by the ice parameterization
+% toggle -- the two ice tables have different upper wavelength limits. ***
 
 % ----- define surface albedo -------
 % inputs.albedo_string = 'Ocean albedo';
@@ -141,14 +143,83 @@ inputs.zout_km = 0;                                 % km above the surface
 % liquid cloud optics: Hu and Stamnes (1993), valid 0.29 - 150 micron
 inputs.wc_properties = 'hu';
 
-% ice cloud optics: Key et al. (2002)/Yang, 0.2 - 100 micron.
-% solid columns are the habit assumed here (valid r_eff 5.96 - 84.22 micron).
-% 'fu' is an equally defensible alternative -- Fu (1996)/Fu et al. (1998) also
-% assume randomly oriented hexagonal columns -- and agrees to < 0.1 W/m^2.
-inputs.ic_properties = 'yang';
-inputs.ic_habit      = 'solid-column';
+% ------------------------- ICE CLOUD OPTICS ------------------------------
+%
+% Toggle between the two habit-aware parameterizations that cover the thermal.
+% The spectral selection is tied to this choice: the two tables have different
+% upper wavelength limits, and uvspec validates an ice table against the FULL
+% band set of the chosen mol_abs_param -- not against the subset asked for by
+% 'wavelength'.
+%
+%   'yang'      Key et al. (2002)/Yang. Covers 0.2 - 100 micron, so the whole
+%               260-band REPTRAN coarse thermal set (out to 99808.6 nm) is
+%               usable and the range is set the ordinary way, with 'wavelength'.
+%               Habits valid in the thermal at r_e = 27.5 micron:
+%                    solid-column   (r_eff 5.96 - 84.22 micron)
+%                    hollow-column  (r_eff 4.97 - 70.24 micron)
+%                    rough-aggregate(r_eff 3.55 - 108.10 micron)
+%                    rosette-6      (r_eff 2.85 - 46.01 micron)
+%                    plate          (r_eff 4.87 - 48.18 micron)
+%                    droxtal        (r_eff 9.48 - 293.32 micron)
+%               NOT usable here: rosette-4 (no data above 3.4 micron),
+%               dendrite (r_eff capped at 1.88 micron), and spheroid (rejected
+%               by uvspec for this parameterization).
+%
+%   'yang2013'  Yang et al. (2013). Tables stop at 99000 nm, so the topmost
+%               REPTRAN band (index 260 of 260, centred at 93478 nm and running
+%               out to 99808.6 nm) has to be dropped with wavelength_index.
+%               That band carries 0.85 W/m^2 of the 176.96 W/m^2 clear-sky
+%               downwelling flux -- 0.48% of the broadband total -- and the
+%               identical 259 bands are used for the clear sky and the liquid
+%               cloud, so it cancels exactly in every difference plotted.
+%               All 9 habits are valid over r_eff 5 - 90 micron, and each also
+%               needs a roughness (smooth | moderate | severe):
+%                    solid_column, hollow_column, column_8elements,
+%                    plate, plate_5elements, plate_10elements,
+%                    solid_bullet_rosette, hollow_bullet_rosette, droxtal
+%
+% 'fu' (Fu 1996; Fu et al. 1998) is a third option, also randomly oriented
+% hexagonal columns; it agrees with yang/solid-column to better than 0.1 W/m^2.
 
-inputs.err_msg = 'verbose';
+ice_parameterization = 'yang2013';                  % 'yang' or 'yang2013'
+
+
+if strcmp(ice_parameterization, 'yang')==true
+
+    inputs.ic_properties = 'yang';
+    inputs.ic_habit      = 'solid-column';
+
+    % full REPTRAN thermal range. uvspec internally uses 2501.6 - 99808.6 nm;
+    % these bounds simply ask for all of it.
+    inputs.wavelength_bounds_nm = [2500, 100000];   % nm
+    inputs.wavelength_index     = [];               % empty -> use wavelength
+
+    ice_legend_str = inputs.ic_habit;
+
+
+elseif strcmp(ice_parameterization, 'yang2013')==true
+
+    inputs.ic_properties     = 'yang2013 interpolate';
+    inputs.ic_habit_yang2013 = 'solid_column';
+    inputs.ic_roughness      = 'severe';            % smooth | moderate | severe
+
+    % bands 1-259 of 260, i.e. everything below 99000 nm. wavelength_index
+    % replaces wavelength -- uvspec aborts if both are present.
+    inputs.wavelength_index     = [1, 259];
+    inputs.wavelength_bounds_nm = [2500, 99000];    % nm - documentation only, ignored
+
+    ice_legend_str = [strrep(inputs.ic_habit_yang2013, '_', '\ '), ', ',...
+        inputs.ic_roughness];
+
+
+else
+
+    error([newline, 'ice_parameterization must be either ''yang'' or ''yang2013''.', newline])
+
+end
+
+
+inputs.err_msg = 'quiet';
 
 
 %% ------------------------------------------------------------------------
@@ -274,7 +345,7 @@ xlabel('Condensed water path ($g/m^{2}$)', 'Interpreter', 'latex', 'FontSize', 2
 ylabel('$F_{LW}^{\downarrow}$ at the surface ($W/m^{2}$)', 'Interpreter', 'latex', 'FontSize', 20)
 
 legend({['Liquid, $r_e = ', num2str(r_e_liquid_um), ' \mu m$'],...
-    ['Ice (solid columns), $r_e = ', num2str(r_e_ice_um), ' \mu m$']},...
+    ['Ice (', ice_legend_str, '), $r_e = ', num2str(r_e_ice_um), ' \mu m$']},...
     'Interpreter', 'latex', 'Location', 'southeast', 'FontSize', 16)
 
 title('Surface downwelling longwave', 'Interpreter', 'latex', 'FontSize', 18)
@@ -300,7 +371,8 @@ title('Effect of Cloud Phase for fixed column water mass', 'Interpreter', 'latex
 
 sgtitle(['Subarctic winter, ', inputs.albedo_string, ' = ', num2str(inputs.albedo),...
     ', cloud ', num2str(z_topBottom_km(2)), '--', num2str(z_topBottom_km(1)),...
-    ' km, ', inputs.rte_solver_string], 'Interpreter', 'latex', 'FontSize', 18)
+    ' km, ', inputs.rte_solver_string, ', ice optics: ', ice_parameterization],...
+    'Interpreter', 'latex', 'FontSize', 18)
 
 
 %% ------------------------------------------------------------------------
@@ -316,6 +388,7 @@ results.iwc_gPerMeterCubed              = iwc_gPerMeterCubed;
 results.r_e_liquid_um                   = r_e_liquid_um;
 results.r_e_ice_um                      = r_e_ice_um;
 results.z_topBottom_km                  = z_topBottom_km;
+results.ice_parameterization            = ice_parameterization;
 results.inputs                          = inputs;
 
 save([project_folder_path, 'downwelling_LW_liquid_vs_ice_', char(datetime("today")), '.mat'],...

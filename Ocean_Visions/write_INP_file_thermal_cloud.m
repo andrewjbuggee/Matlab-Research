@@ -40,11 +40,15 @@
 %                           default and also assumes randomly oriented hexagonal
 %                           columns; it agrees with yang/solid-column to better
 %                           than 0.1 W/m^2 for these cases, and is a useful
-%                           cross-check. Note that ic_properties yang2013 and
-%                           baum_v36 CANNOT be used here: uvspec validates the
-%                           optical property table against the *full* reptran
-%                           thermal range (out to 99808.6 nm) and those tables
-%                           stop at 99000 nm.
+%                           cross-check.
+%
+%   ic_properties yang2013  Yang et al. (2013); 0.2 - 99 micron, 9 habits x 3
+%                           roughness levels, r_eff 5 - 90 micron for every
+%                           habit. Selected with ic_habit_yang2013 (habit AND
+%                           roughness). It can only be used together with
+%                           inputs.wavelength_index -- see the spectral range
+%                           block below for why. baum_v36 (tables also stop at
+%                           99000 nm) would need the same treatment.
 %
 %   albedo                  In the thermal, uvspec sets the surface emissivity to
 %                           (1 - albedo). Surface properties affect the upwelling
@@ -73,6 +77,16 @@
 %       inputs.ic_properties        - e.g. 'yang'        (ice clouds only)
 %       inputs.ic_habit             - e.g. 'solid-column' (ice clouds only; set
 %                                     to [] or '' to fall back to the default habit)
+%
+%       Optional fields:
+%
+%       inputs.wavelength_index     - [idx_lo, idx_hi] band indices. When present
+%                                     and non-empty this REPLACES the wavelength
+%                                     option (uvspec rejects both together).
+%       inputs.ic_habit_yang2013    - e.g. 'solid_column'. REQUIRED when
+%                                     ic_properties is yang2013.
+%       inputs.ic_roughness         - 'smooth', 'moderate', or 'severe'. REQUIRED
+%                                     when ic_properties is yang2013.
 %
 %
 % OUTPUTS:
@@ -140,9 +154,30 @@ if strcmp(inputs.rte_solver, 'disort')==true
 end
 
 
-% --- spectral range (nm) ---
-fprintf(fileID, '%s %f %f \n', 'wavelength', inputs.wavelength_bounds_nm(1),...
-    inputs.wavelength_bounds_nm(2));
+% --- spectral range ---
+% Two mutually exclusive ways to select the spectral range. uvspec aborts with
+% "it does not make sense to define both 'wavelength' and 'wavelength_index'"
+% if both appear, so wavelength_index takes precedence when it is supplied.
+%
+% wavelength_index selects bands of the mol_abs_param parameterization by
+% index rather than by wavelength. It is the only way to drop the topmost
+% REPTRAN thermal band (index 260 of 260 for 'reptran coarse', centred at
+% 93478 nm and extending to 99808.6 nm). That matters because uvspec validates
+% an ice optical property table against the FULL band set of the chosen
+% parameterization, not against the subset requested by 'wavelength' -- so
+% ic_properties yang2013 (tables stop at 99000 nm) is rejected no matter what
+% bounds 'wavelength' is given. Dropping band 260 makes yang2013 usable.
+if isfield(inputs, 'wavelength_index')==true && isempty(inputs.wavelength_index)==false
+
+    fprintf(fileID, '%s %d %d \n', 'wavelength_index', inputs.wavelength_index(1),...
+        inputs.wavelength_index(2));
+
+else
+
+    fprintf(fileID, '%s %f %f \n', 'wavelength', inputs.wavelength_bounds_nm(1),...
+        inputs.wavelength_bounds_nm(2));
+
+end
 
 % --- surface: albedo, so thermal emissivity = 1 - albedo ---
 fprintf(fileID, '%s %f \n', 'albedo', inputs.albedo);
@@ -162,8 +197,27 @@ elseif strcmp(inputs.cloud_phase, 'ice')==true
     fprintf(fileID, '%s %s \n', 'ic_file 1D', inputs.cloud_file_path);
     fprintf(fileID, '%s %s \n', 'ic_properties', inputs.ic_properties);
 
-    if isfield(inputs, 'ic_habit')==true && isempty(inputs.ic_habit)==false
+    % Yang et al. (2013) uses its own habit keyword, which also requires a
+    % surface roughness (smooth / moderate / severe). Every other habit-aware
+    % parameterization (key, yang, hey, baum_v36) uses plain ic_habit.
+    if contains(inputs.ic_properties, 'yang2013')==true
+
+        if isfield(inputs, 'ic_habit_yang2013')==false || isempty(inputs.ic_habit_yang2013)==true
+            error([newline, 'ic_properties yang2013 requires inputs.ic_habit_yang2013.', newline])
+        end
+
+        if isfield(inputs, 'ic_roughness')==false || isempty(inputs.ic_roughness)==true
+            error([newline, 'ic_properties yang2013 requires inputs.ic_roughness',...
+                ' (smooth, moderate, or severe).', newline])
+        end
+
+        fprintf(fileID, '%s %s %s \n', 'ic_habit_yang2013', inputs.ic_habit_yang2013,...
+            inputs.ic_roughness);
+
+    elseif isfield(inputs, 'ic_habit')==true && isempty(inputs.ic_habit)==false
+
         fprintf(fileID, '%s %s \n', 'ic_habit', inputs.ic_habit);
+
     end
 
     fprintf(fileID, '\n');
