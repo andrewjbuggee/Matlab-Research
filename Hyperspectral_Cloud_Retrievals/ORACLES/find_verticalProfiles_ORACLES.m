@@ -41,7 +41,16 @@
 %                  .cloud_depth    - geometric cloud depth [m]
 %                  .slant_path     - slant path through cloud [m]
 %                  .VR_zenith_angle - zenith angle of slant path [degrees]
-%                  .tau            - cloud optical depth profile (0 at cloud top)
+%                  .tau            - cloud optical depth profile, computed from
+%                                    Hansen & Travis (1974) Eq. (2.48) over the
+%                                    measured size distribution at
+%                                    tau_wavelength_nm. Stored in OPTICAL DEPTH
+%                                    order: tau(1) = 0 at cloud top, tau(end) =
+%                                    tau_c at cloud base. NOTE this is not the
+%                                    same ordering as .altitude/.re/.lwc for
+%                                    ascending profiles, which are stored in
+%                                    sampling order -- flip those to pair them
+%                                    with tau.
 
 % By Andrew John Buggee
 
@@ -97,7 +106,16 @@ length_threshold = 15;      % minimum number of data points in a profile
 num_ba            = 20;      % points before/after profile to check for clear air
 num_ba_long       = 30;      % extended clear-air check window
 
-significance_lvl  = 0.1;    % 90% confidence for distribution fitting
+% NOTE: significance_lvl and the nested chooseDistParam helper are no longer
+% used. Both existed only to pick a fitted size-distribution shape parameter for
+% the previous optical depth calculation, which has been replaced by the direct
+% integral over the measured distribution. They are retained in case the fitted
+% distributions are wanted for another purpose; nothing calls them today.
+significance_lvl  = 0.1;    %#ok<NASGU> % 90% confidence for distribution fitting
+
+% Wavelength at which the cloud optical depth is reported. Q_ext is evaluated
+% here and the resulting tau is a monochromatic optical depth at this wavelength.
+tau_wavelength_nm = 550;    % nm
 
 profile_num = 0;
 
@@ -427,102 +445,84 @@ else
     % ---------------------- Compute optical depth ----------------------------
     % -------------------------------------------------------------------------
     % Optical depth is defined as 0 at cloud top, increasing toward cloud bottom.
-    % Uses the ORACLES pre-computed effective radius (re), which incorporates
-    % all three probes (CAS, 2DS, HVPS-3).
     %
-    % PERFORMANCE NOTE: find_bestFitDist_dropDist is called ONCE per profile,
-    % outside the inner altitude loop. The distribution fit over the full
-    % profile is constant, so recomputing it at every altitude step is wasteful.
-    % Only average_mie_over_size_distribution (which depends on the cumulative
-    % re profile) is called inside the inner loop.
+    % This is Hansen & Travis (1974) Equation (2.48) integrated over the depth of
+    % the cloud, evaluated on the MEASURED droplet size distribution at every
+    % height:
+    %
+    %     tau(z) = int_{z}^{z_top} [ int_r pi r^2 Q_ext(r,lambda) n(r,z') dr ] dz'
+    %
+    % The ORACLES probes report n(r,z) directly as Nd, the droplet concentration
+    % per size bin (cm^-3), merged across the CAS, 2DS and HVPS-3 probes. Because
+    % Nd is already a per-bin concentration rather than a density dN/dr, the
+    % inner integral is a plain sum over bins with no bin-width factor:
+    %
+    %     beta(z) = pi * sum_i [ Q_ext(r_i) * r_i^2 * Nd_i(z) ]      [m^-1]
+    %
+    % NOTE ON THE PREVIOUS IMPLEMENTATION. This replaces a formulation that used
+    %
+    %     beta = pi * Q_ext_avg * r_eff^2 * total_Nc
+    %
+    % with Q_ext_avg from average_mie_over_size_distribution. That routine returns
+    % the area-weighted efficiency of H&T (2.58), Q = k/G, which is defined to
+    % pair with the geometric cross-section per unit volume, G = pi*N*<r^2> --
+    % not with pi*N*r_eff^2. Since r_eff = <r^3>/<r^2> by H&T (2.53), Lyapunov's
+    % moment inequality gives <r^2> <= r_eff^2 for every size distribution, so
+    % that substitution biased tau high, by a median of about 35% across this
+    % data set. See compare_tau_calculations_ORACLES.m for the full decomposition
+    % and the numerical verification of each identity used here.
+    %
+    % STORAGE CONVENTION -- read this before using .tau alongside .re or .lwc.
+    % tau is stored in OPTICAL DEPTH order: tau(1) = 0 at cloud top and
+    % tau(end) = tau_c at cloud base, for every profile. The other profile fields
+    % (altitude, re, lwc, Nd, ...) are stored in SAMPLING order, which runs
+    % bottom-to-top for an ascending profile and top-to-bottom for a descending
+    % one. So for ascending profiles tau is NOT element-aligned with the other
+    % fields; consumers flip the others to match tau (see the fliplr calls in
+    % ensemble_vertical_statistics_ORACLES.m). This preserves the convention the
+    % previous implementation established and that downstream code relies on,
+    % including every use of tau(end) as the total cloud optical depth.
+    %
+    % PERFORMANCE NOTE: Q_ext(r) depends only on radius and wavelength, not on
+    % height or on the profile, so it is computed ONCE here for the whole data
+    % set. The previous version ran a Mie calculation at every altitude of every
+    % profile.
+
+    if ~isempty(vert_profs)
+
+        % Every profile shares the same probe size bins
+        bin_centers_um = double(vert_profs(1).drop_radius_bin_center(:));    % um
+        bin_edges_um   = double(vert_profs(1).drop_radius_bin_edges(:));     % um
+
+        Q_ext_bin = binAveraged_Qext_forBins(bin_edges_um, bin_centers_um, ...
+            tau_wavelength_nm, which_computer);
+
+        r_bin_m2 = (bin_centers_um .* 1e-6).^2;         % um -> m, squared
+
+    end
 
     for nn = 1:length(vert_profs)
 
-        vector_length = length(vert_profs(nn).altitude);
-        vert_profs(nn).tau = zeros(1, vector_length - 1);
+        altitude_m = double(vert_profs(nn).altitude(:));      % m
+        Nd_m3      = double(vert_profs(nn).Nd) .* 1e6;        % cm^-3 -> m^-3
 
-        dz_dt_prof   = diff(vert_profs(nn).altitude) ./ diff(vert_profs(nn).time);
-        is_ascending = mean(dz_dt_prof) > 0;
+        % --- H&T (2.48): extinction coefficient at every measured height ---
+        beta = pi .* sum((Q_ext_bin .* r_bin_m2) .* Nd_m3, 1)';      % m^-1
 
-        % ------------------------------------------------------------------
-        % Fit size distribution ONCE per profile (outside the inner loop).
-        % The result is the same for every altitude step in this profile.
-        % ------------------------------------------------------------------
-        [normFit, logNormFit, gammaFit] = find_bestFitDist_dropDist( ...
-            vert_profs(nn).Nd, vert_profs(nn).drop_radius_bin_edges, ...
-            vert_profs(nn).drop_radius_bin_center, significance_lvl);
+        % --- Integrate downward from cloud top ---
+        % Sorting by descending altitude makes the result independent of whether
+        % the profile was sampled on a climb or a descent. The result is left in
+        % this top-to-base order, which is the storage convention described above.
+        [alt_desc, idx_desc] = sort(altitude_m, 'descend');
 
-        % Average shape parameter over the cloud-top region, which dominates
-        % the optical depth integral regardless of ascent/descent direction
-        if is_ascending
-            idx_shape_start = round(2*vector_length/3);
-            idx_shape_end   = vector_length;
-        else
-            idx_shape_start = 1;
-            idx_shape_end   = round(vector_length/3);
-        end
+        depth_from_top = alt_desc(1) - alt_desc;              % m, 0 at cloud top
+        tau_profile    = cumtrapz(depth_from_top, beta(idx_desc));
 
-        % Select distribution model and pre-compute the scalar shape parameter
-        [dist_2model, shape_param] = chooseDistParam( ...
-            normFit, logNormFit, gammaFit, idx_shape_start, idx_shape_end);
-
-
-        if is_ascending
-            % --- Ascending: cloud bottom sampled first, cloud top last ---
-
-            for ii = 1:vector_length - 1
-                
-                % for debugging
-                %disp([newline, 'iteration: ', num2str(ii), newline])
-
-                % Cumulative integration from cloud top downward to level ii
-                re_meters       = vert_profs(nn).re(vector_length-ii:vector_length) ./ 1e6;   % m
-                total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length) .* 1e6; % m^-3
-                alt_from_top    = vert_profs(nn).altitude(end) - ...
-                    vert_profs(nn).altitude(vector_length-ii:vector_length);   % m
-
-                re_meters(re_meters == 0) = 0.009e-6;   % guard against zero re at edges
-
-                % Build constant-valued distribution vector at the correct length
-                distribution_dist = repmat(shape_param, 1, length(re_meters));
-                  
-                [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
-                    re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
-
-                vert_profs(nn).tau(ii) = pi * trapz(fliplr(alt_from_top), ...
-                    fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
-
-            end
-
-        else
-            % --- Descending: cloud top sampled first, cloud bottom last ---
-
-            for ii = 1:vector_length - 1
-
-                re_meters       = vert_profs(nn).re(1:ii+1) ./ 1e6;   % m
-                total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1) .* 1e6; % m^-3
-                alt_from_top    = vert_profs(nn).altitude(1) - vert_profs(nn).altitude(1:ii+1);   % m
-
-                re_meters(re_meters == 0) = 0.009e-6;
-
-                distribution_dist = repmat(shape_param, 1, length(re_meters));
-
-                [~, Qe_avg, ~] = average_mie_over_size_distribution( ...
-                    re_meters .* 1e6, distribution_dist, 550, 'water', dist_2model, which_computer, ii);
-
-                vert_profs(nn).tau(ii) = pi * trapz(alt_from_top, ...
-                    Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
-
-            end
-
-        end
-
-        if sum(isnan(vert_profs(nn).tau)) > 0
+        if any(isnan(tau_profile))
             error([newline, 'NaN values found in optical depth for profile ', num2str(nn), newline])
         end
 
-        % Prepend zero: tau = 0 at cloud top
-        vert_profs(nn).tau = [0, vert_profs(nn).tau];
+        vert_profs(nn).tau = reshape(tau_profile, 1, []);
 
     end
 
@@ -560,9 +560,13 @@ end
 
 
     function [dist_2model, shape_param] = chooseDistParam(normFit, logNormFit, gammaFit, ...
-            idx_start, idx_end)
+            idx_start, idx_end)  %#ok<DEFNU>
         % Choose the best-fit size distribution model and return its scalar shape
         % parameter averaged over the cloud-top region [idx_start:idx_end].
+        %
+        % NO LONGER CALLED. The optical depth calculation that used this was
+        % replaced by the direct H&T (2.48) integral over the measured size
+        % distribution, which needs no fitted distribution. Kept for reference.
 
         h_norm    = sum(normFit.h_test,    "omitnan");
         h_lognorm = sum(logNormFit.h_test, "omitnan");

@@ -74,11 +74,11 @@ inputs.stop_at_max_LWC = false;
 inputs.Nc_threshold = 10;          % cm^-3
 
 % Sort profiles by drizzle/precipitation?
-inputs.sort_for_precip_driz = true;
+inputs.sort_for_precip_driz = false;
 
 % Precipitation is defined by the 2DS+HVPS-3 liquid water path (D > 50 µm)
 % Keep profiles WITH precipitation/drizzle (true) or WITHOUT (false)?
-inputs.keep_precip_drizzle_profiles = false;
+inputs.keep_precip_drizzle_profiles = true;
 
 % Rain water path threshold for precipitation classification
 inputs.precip_driz_threshold = 5;  % g/m^2

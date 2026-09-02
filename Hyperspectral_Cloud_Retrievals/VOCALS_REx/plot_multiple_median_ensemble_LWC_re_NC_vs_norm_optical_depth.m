@@ -7,8 +7,21 @@
 
 % legend_str defines each indexed ensemble and is plotted in a legend
 
+% INPUT LAYOUTS:
+%   ensemble_profiles may be given in any of the three layouts used across this
+%   code base; it is normalized internally to a struct of cell arrays:
+%     (a) struct of cell arrays  - ensemble_profiles.re{nn}   (VOCALS-REx)
+%     (b) cell array of structs  - ensemble_profiles{nn}.re   (ORACLES)
+%     (c) struct array           - ensemble_profiles(nn).re
+%   Total droplet number concentration is taken from 'total_Nc' when present and
+%   from 'Nc' otherwise, so the ORACLES profiles (whose 'Nc' field does not
+%   exist, and whose per-bin distribution is 'Nd') resolve correctly.
+
 function plot_multiple_median_ensemble_LWC_re_NC_vs_norm_optical_depth(ensemble_profiles, index, changing_variable, legend_str)
 
+
+% Accept any of the supported input layouts
+ensemble_profiles = normalizeEnsembleLayout(ensemble_profiles);
 
 % Plot multiple indexed ensembles on top of one another
 
@@ -18,19 +31,17 @@ for ii = 1:size(index, 1)
 
     % Grab the porfiles you wish to plot
 
-
-
-    if sum(index(ii,:))<length(ensemble_profiles.re)
-
-        profiles2plot.altitude = ensemble_profiles.altitude(index(ii,:));
-        profiles2plot.tau = ensemble_profiles.tau(index(ii, :));
-        profiles2plot.re = ensemble_profiles.re(index(ii, :));
-        profiles2plot.lwc = ensemble_profiles.lwc(index(ii, :));
-        profiles2plot.Nc = ensemble_profiles.Nc(index(ii, :));
-        profiles2plot.time = ensemble_profiles.time(index(ii, :));
-
+    if sum(index(ii,:)) == 0
+        warning('Regime %d selects no profiles; skipping it.', ii)
+        continue
     end
 
+    profiles2plot.altitude = ensemble_profiles.altitude(index(ii, :));
+    profiles2plot.tau      = ensemble_profiles.tau(index(ii, :));
+    profiles2plot.re       = ensemble_profiles.re(index(ii, :));
+    profiles2plot.lwc      = ensemble_profiles.lwc(index(ii, :));
+    profiles2plot.Nc       = ensemble_profiles.Nc(index(ii, :));
+    profiles2plot.time     = ensemble_profiles.time(index(ii, :));
 
 
 
@@ -150,7 +161,12 @@ for ii = 1:size(index, 1)
         re_avg_deviation_from_median(bb) = sqrt(mean((vertically_segmented_attributes{bb,1} - re_median(bb)).^2));
 
         % find the smallest droplet size value at each bin
-        re_min(bb) = min(vertically_segmented_attributes{bb,1});
+        % (a bin can be empty when few profiles fall in this regime)
+        if isempty(vertically_segmented_attributes{bb,1})
+            re_min(bb) = NaN;
+        else
+            re_min(bb) = min(vertically_segmented_attributes{bb,1});
+        end
 
         % compute the median value for the current bin
         lwc_median(bb) = median(vertically_segmented_attributes{bb,2});       % microns - mean droplet radius value
@@ -253,14 +269,20 @@ end
 % set the size of the figure
 set(gcf, 'Position', [0 0 1200 625])
 
-% Create textbox
-annotation('textbox',[0.87 0.4352 0.07567 0.08],'String', ...
-    {['$LWC \geq$', num2str(ensemble_profiles.inputs.LWC_threshold), ' $g/m^{2}$', ...
-    newline,'   $N_c \geq$', num2str(ensemble_profiles.inputs.Nc_threshold), ' $cm^{-3}$']},...
-    'LineWidth',2,...
-    'FitBoxToText','on',...
-    'FontSize',17,...
-    'Interpreter','latex');
+% Create textbox listing the cloud-mask thresholds, when they are available
+if isfield(ensemble_profiles, 'inputs') && ...
+        isfield(ensemble_profiles.inputs, 'LWC_threshold') && ...
+        isfield(ensemble_profiles.inputs, 'Nc_threshold')
+
+    annotation('textbox',[0.87 0.4352 0.07567 0.08],'String', ...
+        {['$LWC \geq$', num2str(ensemble_profiles.inputs.LWC_threshold), ' $g/m^{2}$', ...
+        newline,'   $N_c \geq$', num2str(ensemble_profiles.inputs.Nc_threshold), ' $cm^{-3}$']},...
+        'LineWidth',2,...
+        'FitBoxToText','on',...
+        'FontSize',17,...
+        'Interpreter','latex');
+
+end
 
 
 
@@ -271,3 +293,81 @@ annotation('textbox',[0.87 0.4352 0.07567 0.08],'String', ...
 
 end
 
+
+function ep = normalizeEnsembleLayout(ep_in)
+% Normalize the three ensemble layouts used across this code base into a single
+% struct of cell arrays, with every profile stored as a COLUMN vector.
+%
+%   (a) struct of cell arrays  - ep_in.re{nn}      (VOCALS-REx ensembles)
+%   (b) cell array of structs  - ep_in{nn}.re      (ORACLES ensembles)
+%   (c) struct array           - ep_in(nn).re
+%
+% Column orientation matters: the segmenting code below concatenates with a
+% semicolon, which fails on row vectors of differing length.
+
+wanted = {'altitude', 'tau', 're', 'lwc', 'Nc', 'time'};
+
+if iscell(ep_in)
+    % ---- (b) cell array of per-profile structs ----
+    profiles = ep_in;
+
+elseif isstruct(ep_in) && isscalar(ep_in) && isfield(ep_in, 're') && iscell(ep_in.re)
+    % ---- (a) already a struct of cell arrays: just enforce column vectors ----
+    ep = ep_in;                     % keeps any existing .inputs sub-struct
+    for ff = 1:length(wanted)
+        if isfield(ep, wanted{ff})
+            ep.(wanted{ff}) = cellfun(@(v) double(v(:)), ep.(wanted{ff}), ...
+                'UniformOutput', false);
+        end
+    end
+    return
+
+elseif isstruct(ep_in)
+    % ---- (c) struct array of profiles ----
+    profiles = num2cell(ep_in);
+
+else
+    error([newline, 'Unrecognized ensemble_profiles layout: expected a cell array ',...
+        'of profile structs, a struct of cell arrays, or a struct array.', newline])
+end
+
+n_prof = numel(profiles);
+
+for ff = 1:length(wanted)
+    ep.(wanted{ff}) = cell(1, n_prof);
+end
+
+% Threshold annotation. The VOCALS-REx struct-of-cells layout carries these in
+% an 'inputs' sub-struct; the per-profile layouts store them on each profile.
+if isfield(profiles{1}, 'LWC_threshold')
+    ep.inputs.LWC_threshold = profiles{1}.LWC_threshold(1);
+end
+if isfield(profiles{1}, 'Nc_threshold')
+    ep.inputs.Nc_threshold = profiles{1}.Nc_threshold(1);
+end
+
+for nn = 1:n_prof
+
+    p_nn = profiles{nn};
+
+    ep.altitude{nn} = double(p_nn.altitude(:));
+    ep.tau{nn}      = double(p_nn.tau(:));
+    ep.re{nn}       = double(p_nn.re(:));
+    ep.lwc{nn}      = double(p_nn.lwc(:));
+    ep.time{nn}     = double(p_nn.time(:));
+
+    % Total droplet number concentration. ORACLES profiles store this as
+    % 'total_Nc'; their 'Nc' field does not exist and the per-bin distribution
+    % is 'Nd', so prefer 'total_Nc' wherever it is present.
+    if isfield(p_nn, 'total_Nc')
+        ep.Nc{nn} = double(p_nn.total_Nc(:));
+    elseif isfield(p_nn, 'Nc')
+        ep.Nc{nn} = double(p_nn.Nc(:));
+    else
+        error([newline, 'Profile ', num2str(nn), ' has neither a total_Nc nor an ',...
+            'Nc field.', newline])
+    end
+
+end
+
+end

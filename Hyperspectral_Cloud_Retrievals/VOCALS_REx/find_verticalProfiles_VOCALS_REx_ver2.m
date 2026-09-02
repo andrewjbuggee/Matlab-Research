@@ -123,6 +123,10 @@ profile_num = 0;
 % significance_lvl = 0.05; % 5 percent significance (95% confidence)
 significance_lvl = 0.1; % 5 percent significance (90% confidence)
 
+% Wavelength at which the cloud optical depth is reported. Q_ext is evaluated
+% here and the resulting tau is a monochromatic optical depth at this wavelength.
+tau_wavelength_nm = 550;    % nm
+
 
 
 % step through each idx
@@ -760,304 +764,105 @@ end
 % ------------------------------------------------------------------
 % ------------------ Compute optical depth -------------------------
 % ------------------------------------------------------------------
-
-% compute the optical depth for each vertical profile and store it
-
-
-% optical depth is defined to be 0 at cloud top and increasing towards
-% cloud bottom
-
+%
+% Optical depth is defined as 0 at cloud top, increasing toward cloud bottom.
+%
+% This is Hansen & Travis (1974) Equation (2.48) integrated over the depth of
+% the cloud, evaluated on the MEASURED droplet size distribution at every
+% height:
+%
+%     tau(z) = int_{z}^{z_top} [ int_r pi r^2 Q_ext(r,lambda) n(r,z') dr ] dz'
+%
+% VOCALS-REx reports n(r,z) directly as Nc, the droplet concentration per size
+% bin (cm^-3), merged across the CDP and 2DC probes. Because Nc is a per-bin
+% concentration rather than a density dN/dr, the inner integral is a plain sum
+% over bins with no bin-width factor:
+%
+%     beta(z) = pi * sum_i [ Q_ext(r_i) * r_i^2 * Nc_i(z) ]      [m^-1]
+%
+% sum(Nc, 1) reproduces total_Nc exactly, which confirms the per-bin reading.
+%
+% NOTE ON THE PREVIOUS IMPLEMENTATION. This replaces
+%
+%     beta = pi * Q_ext_avg * r_eff^2 * total_Nc
+%
+% with Q_ext_avg from average_mie_over_size_distribution. That routine returns
+% the area-weighted efficiency of H&T (2.58), Q = k/G, which is defined to pair
+% with the geometric cross-section per unit volume, G = pi*N*<r^2> -- not with
+% pi*N*r_eff^2. Since r_eff = <r^3>/<r^2> by H&T (2.53), Lyapunov's moment
+% inequality gives <r^2> <= r_eff^2 for every size distribution, so that
+% substitution biased tau high. See compare_tau_calculations_ORACLES.m for the
+% full decomposition and numerical verification of each identity used here.
+%
+% The direct integral also removes the need to branch on
+% flag_2DC_data_is_conforming. The old code paired a CDP-only effective radius
+% with an all-bin total_Nc when the 2DC data was non-conforming; summing the
+% bins is consistent either way, and in those profiles the bins above 25 um
+% carry at most 0.13% of the area integral.
+%
+% STORAGE CONVENTION -- read this before using .tau alongside .re or .lwc.
+% tau is stored in OPTICAL DEPTH order: tau(1) = 0 at cloud top and
+% tau(end) = tau_c at cloud base, for every profile. The other profile fields
+% (altitude, re, lwc, Nc, ...) are stored in SAMPLING order, which runs
+% bottom-to-top for an ascending profile and top-to-bottom for a descending one.
+% So for ascending profiles tau is NOT element-aligned with the other fields;
+% consumers flip the others to match tau. Every use of tau(end) as the total
+% cloud optical depth depends on this.
+%
 % We do NOT include the zenith angle of the plane as it travels through the
 % cloud because we are concerned with the cloud optical depth and not the
-% optical depth along the slant path. Cloud optical depth is defined soley
+% optical depth along the slant path. Cloud optical depth is defined solely
 % as the optical depth over the vertical dimension of a cloud.
+%
+% PERFORMANCE NOTE: Q_ext(r) depends only on radius and wavelength, so it is
+% computed ONCE for the whole data set. The size distribution fits are computed
+% once per profile rather than once per altitude; they no longer feed the
+% optical depth, but normFit / logNormFit / gammaFit are still stored on each
+% profile because downstream code uses gammaFit.alpha.
 
+if ~isempty(vert_profs)
 
+    % Every profile shares the same probe size bins
+    bin_centers_um = double(vert_profs(1).drop_radius_bin_center(:));    % um
+    bin_edges_um   = double(vert_profs(1).drop_radius_bin_edges(:));     % um
+
+    Q_ext_bin = binAveraged_Qext_forBins(bin_edges_um, bin_centers_um, ...
+        tau_wavelength_nm, which_computer);
+
+    r_bin_m2 = (bin_centers_um .* 1e-6).^2;         % um -> m, squared
+
+end
 
 % step through each profile
 for nn = 1:length(vert_profs)
 
-
-    vector_length = length(vert_profs(nn).altitude);
-    vert_profs(nn).tau = zeros(1,vector_length-1);
-
-    % compute sec(theta) by first computing the hypotenuse
-
-
-
-    % Optical thickness is defined by integrating from cloud top to
-    % cloud bottom. If the plane increases in altitude, we need to
-    % integrating from the end of the profile (cloud top) to the
-    % begining (cloud bottom). If the plane is descending, we do
-    % the opposite.
-
-    dz_dt = diff(vert_profs(nn).altitude)./diff(vert_profs(nn).time);
-
-
-    if mean(dz_dt)>0
-        % *** then the plane is ascending! ***
-
-
-        % step through the altitude array
-        for ii = 1:vector_length-1
-
-
-            % we have to convert Nc and re to have the same units as the alitude,
-            % which is in meters
-
-            if vocalsRex.flag_2DC_data_is_conforming==true
-                re_meters = vert_profs(nn).re(vector_length-ii:vector_length)./1e6;                      % meters
-            else
-                % What choice do we have? I guess we will just use the
-                % effevtive radius from the 2DC data, but this will
-                % underestimate the optical depth
-                % if the re CDP data is taken at 10 samples per second,
-                % only take every 10th value.
-                if length(vocalsRex.re_CDP)>length(vocalsRex.time)
-                    error([newline, 'I dont know how to handle SPS10 data!', newline])
-
-                else
-                    re_meters = vert_profs(nn).re_CDP(vector_length-ii:vector_length)./1e6;                      % meters
-                end
-
-            end
-
-            % Check to see if re is 0 somewhere in the profile, indicating
-            % a multilayer cloud. Set it to be a small value thats greater
-            % than 0
-            if sum(re_meters==0)>=1
-
-                % set re to a very small value
-                re_meters(re_meters==0) = 0.009e-6; % 0.01 microns
-
-            end
-
-            total_Nc_meters = vert_profs(nn).total_Nc(vector_length-ii:vector_length).*1e6;                           % #/m^3
-            altitude = vert_profs(nn).altitude(end) -  vert_profs(nn).altitude(vector_length-ii:vector_length); % meters
-
-
-            % Find the distribution best fit and the distribution width
-            [vert_profs(nn).normFit, vert_profs(nn).logNormFit, vert_profs(nn).gammaFit] =...
-                find_bestFitDist_dropDist(vert_profs(nn).Nc,...
-                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center, significance_lvl);
-
-
-
-            if sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
-
-                dist_2model = 'gamma';
-
-                % take the average of the last third of data points. The
-                % plane is ascending, so we start at cloud bottom. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(round(2*vector_length/3):end), "omitnan");
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-
-
-            elseif sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
-
-                dist_2model = 'lognormal';
-
-                % take the average of the first third of data points. The
-                % plane is descending, so we start at cloud top. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                sigma_libRadtarn = mean(vert_profs(nn).logNormFit.std(round(2*vector_length/3):end), "omitnan");
-                distribution_dist = linspace(sigma_libRadtarn, sigma_libRadtarn, length(re_meters));
-
-
-
-            elseif sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan")
-
-                dist_2model = 'gamma';
-
-                % take the average of the first third of data points. The
-                % plane is descending, so we start at cloud top. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(round(2*vector_length/3):end), "omitnan");
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-
-            else
-
-                dist_2model = 'gamma';
-
-                alpha_libRadtarn = 10;
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-
-            end
-
-
-
-
-            % We assume the droplet size is appreciably larger than the
-            % incident wavelength (something in the visible, like 550 nm)
-            % so we can assume the extinction efficiency is 2. This leads
-            % to the following equation for optical depth:
-            % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
-            % where Q_e is set to 2
-            %vert_profs(nn).tau(ii) = 2*pi* trapz(flipud(altitude), flipud(re_meters.^2 .* total_Nc_meters));
-
-            % Or we can use a pre-computed mie table to use a more
-            % accurate value for the extinction efficiency.
-            %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters.*1e6], 'mono', true);
-
-            % Or we could compute the average extinction efficiency
-            % over a droplet size distrubution
-            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, distribution_dist,...
-                550, 'water', dist_2model, which_computer, ii);
-
-            vert_profs(nn).tau(ii) = pi* trapz(fliplr(altitude), fliplr(Qe_avg .* re_meters.^2 .* total_Nc_meters));
-
-        end
-
-    elseif mean(dz_dt)<0
-        % *** then the plane is descending! ***
-
-        % step through the altitude array
-        for ii = 1:vector_length-1
-
-
-            % we have to convert Nc and re to have the same units as the alitude,
-            % which is in meters
-            if vocalsRex.flag_2DC_data_is_conforming==true
-                re_meters = vert_profs(nn).re(1:ii+1)./1e6;                      % meters
-            else
-                % What choice do we have? I guess we will just use the
-                % effevtive radius from the 2DC data, but this will
-                % underestimate the optical depth
-                re_meters = vert_profs(nn).re_CDP(1:ii+1)./1e6;                      % meters
-            end
-
-            % Check to see if re is 0 somewhere in the profile, indicating
-            % a multilayer cloud. Set it to be a small value thats greater
-            % than 0
-            if sum(re_meters==0)>=1
-
-                % set re to a very small value
-                re_meters(re_meters==0) = 0.009e-6; % 0.01 microns
-
-            end
-
-            total_Nc_meters = vert_profs(nn).total_Nc(1:ii+1).*1e6;                           % #/m^3
-            altitude = vert_profs(nn).altitude(1) -  vert_profs(nn).altitude(1:ii+1);   % meters
-
-            % Find the distribution best fit and the distribution width
-            [vert_profs(nn).normFit, vert_profs(nn).logNormFit, vert_profs(nn).gammaFit] =...
-                find_bestFitDist_dropDist(vert_profs(nn).Nc,...
-                vert_profs(nn).drop_radius_bin_edges, vert_profs(nn).drop_radius_bin_center, significance_lvl);
-
-
-
-            if sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).normFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
-
-                dist_2model = 'gamma';
-
-                % take the average of the first third of data points. The
-                % plane is descending, so we start at cloud top. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(1:round(vector_length/3)), "omitnan");
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-
-
-            elseif sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).logNormFit.h_test, "omitnan") < sum(vert_profs(nn).gammaFit.h_test, "omitnan")
-
-                dist_2model = 'lognormal';
-
-                % take the average of the first third of data points. The
-                % plane is descending, so we start at cloud top. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                sigma_libRadtarn = mean(vert_profs(nn).logNormFit.std(1:round(vector_length/3)), "omitnan");
-                distribution_dist = linspace(sigma_libRadtarn, sigma_libRadtarn, length(re_meters));
-
-
-
-            elseif sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).normFit.h_test, "omitnan") &&...
-                    sum(vert_profs(nn).gammaFit.h_test, "omitnan") < sum(vert_profs(nn).logNormFit.h_test, "omitnan")
-
-                dist_2model = 'gamma';
-
-                % take the average of the first third of data points. The
-                % plane is descending, so we start at cloud top. Most
-                % photons only penetrate as far as the the first optical
-                % depth, the upper region of the cloud. Let's use the
-                % average from this region.
-                alpha_libRadtarn = mean(vert_profs(nn).gammaFit.alpha(1:round(vector_length/3)), "omitnan");
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-            else
-
-                dist_2model = 'gamma';
-
-                alpha_libRadtarn = 10;
-                distribution_dist = linspace(alpha_libRadtarn, alpha_libRadtarn, length(re_meters));
-
-
-            end
-
-
-
-
-
-            % We assume the droplet size is appreciably larger than the
-            % incident wavelength (something in the visible, like 550 nm)
-            % so we can assume the extinction efficiency is 2. This leads
-            % to the following equation for optical depth:
-            % tau = integral( Q_e * pi * r^2(z) * N_c(z) ) dz
-            % where Q_e is set to 2
-            %vert_profs(nn).tau(ii) = 2*pi* trapz(altitude, re_meters.^2 .* total_Nc_meters);
-
-
-            % Or we can use a pre-computed mie table to use a more
-            % accurate value for the extinction efficiency.
-            %Q_e = interp_mie_computed_tables([linspace(550, 550, length(re_meters))', re_meters'.*1e6], 'mono', true);
-
-
-            % Or we could compute the average extinction efficiency
-            % over a droplet size distrubution
-
-
-
-
-            [~, Qe_avg, ~] = average_mie_over_size_distribution(re_meters.*1e6, distribution_dist,...
-                550, 'water', dist_2model, which_computer, ii);
-
-
-            vert_profs(nn).tau(ii) = pi* trapz(altitude, Qe_avg(:,end) .* re_meters.^2 .* total_Nc_meters);
-
-
-
-        end
-
-    end
-
+    % --- Size distribution fits, once per profile ---
+    % These no longer feed the optical depth, but gammaFit.alpha is used
+    % downstream (e.g. when writing libRadtran water cloud files), so keep them.
+    [vert_profs(nn).normFit, vert_profs(nn).logNormFit, vert_profs(nn).gammaFit] = ...
+        find_bestFitDist_dropDist(vert_profs(nn).Nc, ...
+        vert_profs(nn).drop_radius_bin_edges, ...
+        vert_profs(nn).drop_radius_bin_center, significance_lvl);
+
+    altitude_m = double(vert_profs(nn).altitude(:));      % m
+    Nc_m3      = double(vert_profs(nn).Nc) .* 1e6;        % cm^-3 -> m^-3
+
+    % --- H&T (2.48): extinction coefficient at every measured height ---
+    beta = pi .* sum((Q_ext_bin .* r_bin_m2) .* Nc_m3, 1)';      % m^-1
+
+    % --- Integrate downward from cloud top ---
+    % Sorting by descending altitude makes the result independent of whether the
+    % profile was sampled on a climb or a descent. The result is left in this
+    % top-to-base order, which is the storage convention described above.
+    [alt_desc, idx_desc] = sort(altitude_m, 'descend');
+
+    depth_from_top = alt_desc(1) - alt_desc;              % m, 0 at cloud top
+    vert_profs(nn).tau = reshape(cumtrapz(depth_from_top, beta(idx_desc)), 1, []);
 
     % Check to see if there are any NaN values
     if sum(isnan(vert_profs(nn).tau))>0
 
         error([newline, 'There are NaNs in your optical depth calculation', newline])
-
-    else
-
-    % add a zero at the begining!
-    vert_profs(nn).tau = [0,vert_profs(nn).tau];
 
     end
 

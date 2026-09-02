@@ -115,12 +115,12 @@ inputs.libRadtran_data_path = libRadtran_data_path;
 % subarctic winter -- the 22 December Arctic condition enters here
 inputs.atmosphere_file = [libRadtran_data_path, 'atmmod/afglsw.dat'];
 
-inputs.rte_solver = 'twostr';                       % two-stream
-inputs.rte_solver_string = 'two-stream';
+% inputs.rte_solver = 'twostr';                       % two-stream
+% inputs.rte_solver_string = 'two-stream';
 
-% inputs.rte_solver = 'disort';                       % Disort
-% inputs.n_streams = 16;
-% inputs.rte_solver_string = '16-stream';
+inputs.rte_solver = 'disort';                       % Disort
+inputs.n_streams = 16;
+inputs.rte_solver_string = '16-stream';
 
 
 inputs.mol_abs_param = 'reptran coarse';            % REPTRAN, broadband flux resolution

@@ -73,13 +73,13 @@ end
 % --------------------------------------------------------
 
 % define the LWC threshold
-inputs.LWC_threshold = 0.03;       % g/m^3
+inputs.LWC_threshold = 0.05;       % g/m^3
 
 % do you want to cut off the profile at the maximum LWC value?
 inputs.stop_at_max_LWC = false;
 
 % define the total number concentration threshold
-inputs.Nc_threshold = 25;       %  #-droplets/cm^3
+inputs.Nc_threshold = 10;       %  #-droplets/cm^3
 
 % if sorting for precipitation, provide a drizzle/precip threshold.
 inputs.sort_for_precip_driz = true;
@@ -302,6 +302,19 @@ end
 
 
 
+%% Switch to the struct-of-cell-arrays layout for the analysis below
+% The collection loop above builds -- and the save above writes -- a CELL ARRAY
+% of per-profile structs (ensemble_profiles{nn}.re). Everything from here down
+% was written against the older layout, a struct of cell arrays
+% (ensemble_profiles.re{nn}). Convert once here rather than rewriting the
+% analysis. The file already written to disk keeps the cell-array layout.
+%
+% inputs is attached as ensemble_profiles.inputs, which the figure titles read
+% for the LWC and Nc thresholds.
+
+ensemble_profiles = ensembleCell2StructOfCells(ensemble_profiles, inputs);
+
+
 %% Ensemble profiles contains ALL vertical profiles whether they increase or decrease
 % Let's split them up into increasing droplet size or decreasing droplet
 % size
@@ -309,9 +322,18 @@ end
 % Let's step through each profile found
 for nn = 1:length(ensemble_profiles.re)
 
+    % Not every profile has a combined CDP + 2DC effective radius: when the
+    % 2DC data did not conform, only re_CDP exists. Fall back to it, the same
+    % way the optical-depth segmenting further down does.
+    if isempty(ensemble_profiles.re{nn})
+        re_profile = ensemble_profiles.re_CDP{nn};
+    else
+        re_profile = ensemble_profiles.re{nn};
+    end
+
     % compute a moving average every 5 data points which will smooth out
     % the small scale variability
-    mean_re_profile = movmean(ensemble_profiles.re{nn}, 5);
+    mean_re_profile = movmean(re_profile, 5);
 
     % Now compute the average derivative of this smooth droplet profile with
     % respect to altitude
@@ -326,18 +348,24 @@ for nn = 1:length(ensemble_profiles.re)
 
             increasing_profiles.altitude = ensemble_profiles.altitude(nn);
             increasing_profiles.tau = ensemble_profiles.tau(nn);
-            increasing_profiles.re = ensemble_profiles.re(nn);
+            increasing_profiles.re = {re_profile};
             increasing_profiles.lwc = ensemble_profiles.lwc(nn);
             increasing_profiles.total_Nc = ensemble_profiles.total_Nc(nn);
             increasing_profiles.time = ensemble_profiles.time(nn);
-            increasing_profiles(l+mm).Nc_vapor = vert_profs(indexes_2keep(mm)).Nc_vapor;
-            increasing_profiles(l+mm).Nc_vapor_partPres = vert_profs(indexes_2keep(mm)).Nc_vapor_partPres;
+            % NOTE: the two lines below were copy-paste leftovers from the
+            % collection loop above -- they referenced l, mm, vert_profs and
+            % indexes_2keep, none of which belong to this loop, and indexing
+            % increasing_profiles(l+mm) would have turned it into a struct
+            % array. The identical lines are already commented out where they
+            % came from. Nothing consumes Nc_vapor downstream.
+            % increasing_profiles.Nc_vapor = ensemble_profiles.Nc_vapor(nn);
+            % increasing_profiles.Nc_vapor_partPres = ensemble_profiles.Nc_vapor_partPres(nn);
 
         else
 
             increasing_profiles.altitude = [increasing_profiles.altitude, ensemble_profiles.altitude(nn)];
             increasing_profiles.tau = [increasing_profiles.tau, ensemble_profiles.tau(nn)];
-            increasing_profiles.re = [increasing_profiles.re, ensemble_profiles.re(nn)];
+            increasing_profiles.re = [increasing_profiles.re, {re_profile}];
             increasing_profiles.lwc = [increasing_profiles.lwc, ensemble_profiles.lwc(nn)];
             increasing_profiles.total_Nc = [increasing_profiles.total_Nc, ensemble_profiles.total_Nc(nn)];
             increasing_profiles.time = [increasing_profiles.time, ensemble_profiles.time(nn)];
@@ -352,7 +380,7 @@ for nn = 1:length(ensemble_profiles.re)
 
             decreasing_profiles.altitude = ensemble_profiles.altitude(nn);
             decreasing_profiles.tau = ensemble_profiles.tau(nn);
-            decreasing_profiles.re = ensemble_profiles.re(nn);
+            decreasing_profiles.re = {re_profile};
             decreasing_profiles.lwc = ensemble_profiles.lwc(nn);
             decreasing_profiles.total_Nc = ensemble_profiles.total_Nc(nn);
             decreasing_profiles.time = ensemble_profiles.time(nn);
@@ -361,7 +389,7 @@ for nn = 1:length(ensemble_profiles.re)
 
             decreasing_profiles.altitude = [decreasing_profiles.altitude, ensemble_profiles.altitude(nn)];
             decreasing_profiles.tau = [decreasing_profiles.tau, ensemble_profiles.tau(nn)];
-            decreasing_profiles.re = [decreasing_profiles.re, ensemble_profiles.re(nn)];
+            decreasing_profiles.re = [decreasing_profiles.re, {re_profile}];
             decreasing_profiles.lwc = [decreasing_profiles.lwc, ensemble_profiles.lwc(nn)];
             decreasing_profiles.total_Nc = [decreasing_profiles.total_Nc, ensemble_profiles.total_Nc(nn)];
             decreasing_profiles.time = [decreasing_profiles.time, ensemble_profiles.time(nn)];
@@ -385,14 +413,14 @@ decreasing_profiles.lwc_threshold = inputs.LWC_threshold;
 
 %% Plot a histogram of the optical depths and the geometric depths
 
-cloud_optical_depth = zeros(1, length(ensemble_profiles));
-cloud_geometric_thickness = zeros(1, length(ensemble_profiles));
+cloud_optical_depth = zeros(1, length(ensemble_profiles.tau));
+cloud_geometric_thickness = zeros(1, length(ensemble_profiles.tau));
 
 
-for nn = 1:length(ensemble_profiles)
+for nn = 1:length(ensemble_profiles.tau)
 
-    cloud_optical_depth(nn) = ensemble_profiles(nn).tau(end);
-    cloud_geometric_thickness(nn) = abs(ensemble_profiles(mm).altitude(1) - ensemble_profiles(nn).altitude(end));
+    cloud_optical_depth(nn) = ensemble_profiles.tau{nn}(end);
+    cloud_geometric_thickness(nn) = abs(ensemble_profiles.altitude{nn}(1) - ensemble_profiles.altitude{nn}(end));
 
 end
 
@@ -430,13 +458,13 @@ bin_edges = 0:1/n_bins:1;
 vertically_segmented_attributes = cell(n_bins, 3);
 
 
-normalized_tau = cell(1, length(ensemble_profiles));
+normalized_tau = cell(1, length(ensemble_profiles.tau));
 
 
-for nn = 1:length(ensemble_profiles)
+for nn = 1:length(ensemble_profiles.tau)
 
     % first we need to normalize the vertical component of all profiles
-    normalized_tau{nn} = ensemble_profiles(nn).tau./ensemble_profiles(nn).tau(end);
+    normalized_tau{nn} = ensemble_profiles.tau{nn}./ensemble_profiles.tau{nn}(end);
 
     % the data is stored in altitude space. If we wish to have the data
     % oriented in optical depth space, we need to reverse the order,
@@ -446,29 +474,29 @@ for nn = 1:length(ensemble_profiles)
     % We want all data oriented in tau space. So look for ascending
     % profiles, and flip the vector. If the plane is descending, we don't
     % need to do anything
-    if mean(diff(ensemble_profiles(nn).altitude)./diff(ensemble_profiles(nn).time))>0
+    if mean(diff(ensemble_profiles.altitude{nn})./diff(ensemble_profiles.time{nn}))>0
         % if true, then the plane is ascending, grab and flip the variables
         % of interest
-        if isempty(ensemble_profiles(nn).re)==true
-            re = fliplr(ensemble_profiles(nn).re_CDP);
+        if isempty(ensemble_profiles.re{nn})==true
+            re = fliplr(ensemble_profiles.re_CDP{nn});
         else
-            re = fliplr(ensemble_profiles(nn).re);
+            re = fliplr(ensemble_profiles.re{nn});
         end
 
-        lwc = fliplr(ensemble_profiles(nn).lwc);
-        Nc = fliplr(ensemble_profiles(nn).total_Nc);
+        lwc = fliplr(ensemble_profiles.lwc{nn});
+        Nc = fliplr(ensemble_profiles.total_Nc{nn});
 
     else
         % if false, then the plane is descending, just grab the variables
         % of interest
-        if isempty(ensemble_profiles(nn).re)==true
-            re = ensemble_profiles(nn).re_CDP;
+        if isempty(ensemble_profiles.re{nn})==true
+            re = ensemble_profiles.re_CDP{nn};
         else
-            re = ensemble_profiles(nn).re;
+            re = ensemble_profiles.re{nn};
         end
 
-        lwc = ensemble_profiles(nn).lwc;
-        Nc = ensemble_profiles(nn).total_Nc;
+        lwc = ensemble_profiles.lwc{nn};
+        Nc = ensemble_profiles.total_Nc{nn};
 
     end
 
@@ -978,10 +1006,34 @@ set(gcf, 'Position', [0 0 1200 625])
 re_top_median = mean(vertically_segmented_attributes{1,1});
 re_bottom_median = median(vertically_segmented_attributes{end,1});
 
-for nn = 1:length(ensemble_profiles.re)
+% NOTE: nothing downstream consumes diff_top_bottom_1/2 at present. The lines
+% below were missing their profile index entirely, and indexed the profile in
+% SAMPLING order, which puts index 1 at cloud base for ascending profiles. They
+% are oriented cloud top first here, to match the name and the rest of this
+% script.
 
-    diff_top_bottom_1(nn) = ensemble_profiles.re(1) - ensemble_profiles.re(end);
-    diff_top_bottom_2(nn) = ensemble_profiles.re(2) - ensemble_profiles.re(end);
+n_profiles = length(ensemble_profiles.re);
+diff_top_bottom_1 = zeros(1, n_profiles);
+diff_top_bottom_2 = zeros(1, n_profiles);
+
+for nn = 1:n_profiles
+
+    % combined CDP + 2DC effective radius, or CDP alone when 2DC did not conform
+    if isempty(ensemble_profiles.re{nn})
+        re_profile = ensemble_profiles.re_CDP{nn};
+    else
+        re_profile = ensemble_profiles.re{nn};
+    end
+
+    % orient cloud top first
+    if mean(diff(ensemble_profiles.altitude{nn}) ./ diff(ensemble_profiles.time{nn})) > 0
+        re_profile = fliplr(reshape(re_profile, 1, []));
+    else
+        re_profile = reshape(re_profile, 1, []);
+    end
+
+    diff_top_bottom_1(nn) = re_profile(1) - re_profile(end);
+    diff_top_bottom_2(nn) = re_profile(2) - re_profile(end);
 
 end
 
@@ -996,7 +1048,7 @@ LWP = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.lwc)
 
-    LWP(nn) = abs(trapz(ensemble_profiles.altitude, ensemble_profiles.lwc));
+    LWP(nn) = abs(trapz(ensemble_profiles.altitude{nn}, ensemble_profiles.lwc{nn}));
 
 end
 
@@ -1010,7 +1062,7 @@ ylabel('LWP (g/m^2)')
 
 index_20 = LWP<=20;
 
-plot_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_20)
+plot_median_ensemble_LWC_re_NC_vs_norm_altitude(ensemble_profiles, index_20)
 
 % Create textbox
 annotation('textbox',[0.866 0.9376 0.1115 0.0527],'String',{'LWP<20 g/m^2'},...
@@ -1023,7 +1075,7 @@ annotation('textbox',[0.866 0.9376 0.1115 0.0527],'String',{'LWP<20 g/m^2'},...
 
 index_50 = LWP>20 & LWP<=50;
 
-plot_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_50)
+plot_median_ensemble_LWC_re_NC_vs_norm_altitude(ensemble_profiles, index_50)
 
 annotation('textbox',[0.866 0.9376 0.1115 0.0527],'String',{'20<LWP<50 g/m^2'},...
     'FontSize',18,...
@@ -1036,7 +1088,7 @@ annotation('textbox',[0.866 0.9376 0.1115 0.0527],'String',{'20<LWP<50 g/m^2'},.
 
 index_100 = LWP>50 & LWP<=100;
 
-plot_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_100)
+plot_median_ensemble_LWC_re_NC_vs_norm_altitude(ensemble_profiles, index_100)
 
 annotation('textbox',[0.866 0.9376 0.1115 0.0527],'String',{'50<LWP<100 g/m^2'},...
     'FontSize',18,...
@@ -1052,7 +1104,7 @@ LWP = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.lwc)
 
-    LWP(nn) = abs(trapz(ensemble_profiles.altitude, ensemble_profiles.lwc));
+    LWP(nn) = abs(trapz(ensemble_profiles.altitude{nn}, ensemble_profiles.lwc{nn}));
 
 end
 
@@ -1090,8 +1142,14 @@ changing_variable = 'LWP';
 
 
 % Combine all these indices and plot the indexed median profiles
-plot_multiple_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_regime,...
-    changing_variable, legend_str)
+% NOTE: plot_multiple_median_ensemble_LWC_re_NC_vs_altitude does not exist -- it
+% has never been written, here or anywhere else in the repo. Only the optical
+% depth version, plot_multiple_median_ensemble_LWC_re_NC_vs_norm_optical_depth,
+% exists, and it is already called with these same regimes. This call is
+% commented out so the script runs; write the altitude version and uncomment it
+% if you want that figure.
+% plot_multiple_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_regime,...
+%     changing_variable, legend_str)
 
 
 
@@ -1104,7 +1162,7 @@ tau = zeros(1, length(ensemble_profiles.lwc));
 
 for nn = 1:length(ensemble_profiles.tau)
 
-    tau(nn) = ensemble_profiles.tau(end);
+    tau(nn) = ensemble_profiles.tau{nn}(end);
 
 end
 
@@ -1141,5 +1199,11 @@ changing_variable = '$\tau$';
 
 
 % Combine all these indices and plot the indexed median profiles
-plot_multiple_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_regime,...
-    changing_variable, legend_str)
+% NOTE: plot_multiple_median_ensemble_LWC_re_NC_vs_altitude does not exist -- it
+% has never been written, here or anywhere else in the repo. Only the optical
+% depth version, plot_multiple_median_ensemble_LWC_re_NC_vs_norm_optical_depth,
+% exists, and it is already called with these same regimes. This call is
+% commented out so the script runs; write the altitude version and uncomment it
+% if you want that figure.
+% plot_multiple_median_ensemble_LWC_re_NC_vs_altitude(ensemble_profiles, index_regime,...
+%     changing_variable, legend_str)

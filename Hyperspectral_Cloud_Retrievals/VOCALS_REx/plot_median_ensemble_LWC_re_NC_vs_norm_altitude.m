@@ -5,6 +5,31 @@
 
 function plot_median_ensemble_LWC_re_NC_vs_norm_altitude(ensemble_profiles, index)
 
+% Total droplet number concentration is read from this function as .Nc. In the
+% per-profile layouts that field holds the per-BIN distribution and the total is
+% .total_Nc, so resolve it here. Likewise, profiles whose 2DC data did not
+% conform carry no combined .re, only .re_CDP.
+if isfield(ensemble_profiles, 'total_Nc')
+    ensemble_profiles.Nc = ensemble_profiles.total_Nc;
+end
+
+if isfield(ensemble_profiles, 're_CDP')
+    for pp = 1:length(ensemble_profiles.re)
+        if isempty(ensemble_profiles.re{pp})
+            ensemble_profiles.re{pp} = ensemble_profiles.re_CDP{pp};
+        end
+    end
+end
+
+% The segmenting below concatenates with a semicolon, which fails on row vectors
+% of differing length, so store every profile as a column vector.
+for fn = {'altitude', 'tau', 're', 'lwc', 'Nc', 'time'}
+    if isfield(ensemble_profiles, fn{1})
+        ensemble_profiles.(fn{1}) = cellfun(@(v) double(v(:)), ...
+            ensemble_profiles.(fn{1}), 'UniformOutput', false);
+    end
+end
+
 % delete the profiles that are not desired for this plot
 
 if length(index)<length(ensemble_profiles.re)
@@ -132,18 +157,26 @@ for bb = 1:size(vertically_segmented_attributes, 1)
     % ------- EFFECTIVE DROPLET RADIUS FITTING ------
     % -----------------------------------------------
 
+    % The lognormal and gamma distributions are undefined for non-positive
+    % values, and r_e, LWC and N_c all go to zero in thin gaps between cloud
+    % layers. Fit those two distributions to the positive values only; the
+    % normal fit uses everything, as before.
+    re_positive  = vertically_segmented_attributes{bb,1}(vertically_segmented_attributes{bb,1} > 0);
+    lwc_positive = vertically_segmented_attributes{bb,2}(vertically_segmented_attributes{bb,2} > 0);
+    Nc_positive  = vertically_segmented_attributes{bb,3}(vertically_segmented_attributes{bb,3} > 0);
+
 
     % fit the effective radius data to a normal distribution
     re_fit_normal(bb) = fitdist(vertically_segmented_attributes{bb,1}, 'normal');
     [re_reject_normal(bb), re_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_normal(bb));
 
     % fit the effective radius data to a log-normal distribution
-    re_fit_lognormal(bb) = fitdist(vertically_segmented_attributes{bb,1}, 'lognormal');
-    [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF',re_fit_lognormal(bb));
+    re_fit_lognormal(bb) = fitdist(re_positive, 'lognormal');
+    [re_reject_lognormal(bb), re_p_lognormal(bb)] = chi2gof(re_positive, 'CDF',re_fit_lognormal(bb));
 
     % fit the effective radius data to a gamma distribution
-    re_fit_gamma(bb) = fitdist(vertically_segmented_attributes{bb,1}, 'gamma');
-    [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,1}, 'CDF', re_fit_gamma(bb));
+    re_fit_gamma(bb) = fitdist(re_positive, 'gamma');
+    [re_reject_gamma(bb), re_p_gamma(bb)] = chi2gof(re_positive, 'CDF', re_fit_gamma(bb));
 
     % make plot of normal log-normal and gamma fits
 %     figure; subplot(1,3,1); plot(re_fit_normal(bb)); title('Normal Fit'); xlabel('r_e (\mum)')
@@ -164,12 +197,12 @@ for bb = 1:size(vertically_segmented_attributes, 1)
     [lwc_reject_normal(bb), lwc_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,2}, 'CDF',lwc_fit_normal(bb));
 
     % fit the liquid water content data to a log-normal distribution
-    lwc_fit_lognormal(bb) = fitdist(vertically_segmented_attributes{bb,2}, 'lognormal');
-    [lwc_reject_lognormal(bb), lwc_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,2}, 'CDF',lwc_fit_lognormal(bb));
+    lwc_fit_lognormal(bb) = fitdist(lwc_positive, 'lognormal');
+    [lwc_reject_lognormal(bb), lwc_p_lognormal(bb)] = chi2gof(lwc_positive, 'CDF',lwc_fit_lognormal(bb));
 
     % fit the liquid water content data to a gamma distribution
-    lwc_fit_gamma(bb) = fitdist(vertically_segmented_attributes{bb,2}, 'gamma');
-    [lwc_reject_gamma(bb), lwc_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,2}, 'CDF', lwc_fit_gamma(bb));
+    lwc_fit_gamma(bb) = fitdist(lwc_positive, 'gamma');
+    [lwc_reject_gamma(bb), lwc_p_gamma(bb)] = chi2gof(lwc_positive, 'CDF', lwc_fit_gamma(bb));
 
     % make plot of normal log-normal and gamma fits
 %     figure; subplot(1,3,1); plot(lwc_fit_normal(bb)); title('Normal Fit'); xlabel('LWC (g/m^{2})')
@@ -190,12 +223,12 @@ for bb = 1:size(vertically_segmented_attributes, 1)
     [Nc_reject_normal(bb), Nc_p_normal(bb)] = chi2gof(vertically_segmented_attributes{bb,3}, 'CDF',Nc_fit_normal(bb));
 
     % fit the number concentration content data to a log-normal distribution
-    Nc_fit_lognormal(bb) = fitdist(vertically_segmented_attributes{bb,3}, 'lognormal');
-    [Nc_reject_lognormal(bb), Nc_p_lognormal(bb)] = chi2gof(vertically_segmented_attributes{bb,3}, 'CDF',Nc_fit_lognormal(bb));
+    Nc_fit_lognormal(bb) = fitdist(Nc_positive, 'lognormal');
+    [Nc_reject_lognormal(bb), Nc_p_lognormal(bb)] = chi2gof(Nc_positive, 'CDF',Nc_fit_lognormal(bb));
 
     % fit the number concentration content data to a gamma distribution
-    Nc_fit_gamma(bb) = fitdist(vertically_segmented_attributes{bb,3}, 'gamma');
-    [Nc_reject_gamma(bb), Nc_p_gamma(bb)] = chi2gof(vertically_segmented_attributes{bb,3}, 'CDF', Nc_fit_gamma(bb));
+    Nc_fit_gamma(bb) = fitdist(Nc_positive, 'gamma');
+    [Nc_reject_gamma(bb), Nc_p_gamma(bb)] = chi2gof(Nc_positive, 'CDF', Nc_fit_gamma(bb));
 
     % make plot of normal log-normal and gamma fits
 %     figure; subplot(1,3,1); plot(Nc_fit_normal(bb)); title('Normal Fit'); xlabel('N_c (cm^{-3})')
