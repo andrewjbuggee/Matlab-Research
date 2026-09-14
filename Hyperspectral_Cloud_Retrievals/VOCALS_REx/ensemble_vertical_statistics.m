@@ -413,14 +413,14 @@ decreasing_profiles.lwc_threshold = inputs.LWC_threshold;
 
 %% Plot a histogram of the optical depths and the geometric depths
 
-cloud_optical_depth = zeros(1, length(ensemble_profiles.tau));
-cloud_geometric_thickness = zeros(1, length(ensemble_profiles.tau));
+cloud_optical_depth = zeros(1, length(ensemble_profiles));
+cloud_geometric_thickness = zeros(1, length(ensemble_profiles));
 
 
-for nn = 1:length(ensemble_profiles.tau)
+for nn = 1:length(ensemble_profiles)
 
-    cloud_optical_depth(nn) = ensemble_profiles.tau{nn}(end);
-    cloud_geometric_thickness(nn) = abs(ensemble_profiles.altitude{nn}(1) - ensemble_profiles.altitude{nn}(end));
+    cloud_optical_depth(nn) = ensemble_profiles{nn}.tau(end);
+    cloud_geometric_thickness(nn) = abs(ensemble_profiles{nn}.altitude(1) - ensemble_profiles{nn}.altitude(end));
 
 end
 
@@ -441,6 +441,20 @@ ylabel('Counts')
 set(gcf, 'Position', [0 0 1000 550])
 
 
+%% Plot cloud adiabaticity, Wood (2005)
+% Each profile carries an .adiabaticity structure from
+% compute_adiabaticity_Wood2005 (attached in
+% find_verticalProfiles_VOCALS_REx_ver2). Two estimates are shown:
+%   profile method  f_ad(z) = LWC(z) / [Gamma_ad (z - z_cb)]   (Wood Fig. 4c)
+%   path method     f_ad = LWP_obs / [(1/2) Gamma_ad h^2]      (Wood Table 3)
+% with Gamma_ad evaluated at the mean in-cloud temperature and pressure
+% (ATX, PSXC). The plotting function accepts either ensemble layout.
+% The returned summary vectors can be used to segment the ensemble by
+% adiabaticity, the same way LWP and optical depth are used below.
+
+adiab_summary = plot_ensemble_adiabaticity(ensemble_profiles, 'VOCALS-REx');
+
+
 %%  Segment re, LWC, Nc into N bins along optical depth
 
 % In order to compute a median vertical profile, we have to first normalize
@@ -458,13 +472,13 @@ bin_edges = 0:1/n_bins:1;
 vertically_segmented_attributes = cell(n_bins, 3);
 
 
-normalized_tau = cell(1, length(ensemble_profiles.tau));
+normalized_tau = cell(1, length(ensemble_profiles));
 
 
-for nn = 1:length(ensemble_profiles.tau)
+for nn = 1:length(ensemble_profiles)
 
     % first we need to normalize the vertical component of all profiles
-    normalized_tau{nn} = ensemble_profiles.tau{nn}./ensemble_profiles.tau{nn}(end);
+    normalized_tau{nn} = ensemble_profiles{nn}.tau./ensemble_profiles{nn}.tau(end);
 
     % the data is stored in altitude space. If we wish to have the data
     % oriented in optical depth space, we need to reverse the order,
@@ -474,29 +488,30 @@ for nn = 1:length(ensemble_profiles.tau)
     % We want all data oriented in tau space. So look for ascending
     % profiles, and flip the vector. If the plane is descending, we don't
     % need to do anything
-    if mean(diff(ensemble_profiles.altitude{nn})./diff(ensemble_profiles.time{nn}))>0
+    if mean(diff(ensemble_profiles{nn}.altitude)./diff(ensemble_profiles{nn}.time))>0
         % if true, then the plane is ascending, grab and flip the variables
         % of interest
-        if isempty(ensemble_profiles.re{nn})==true
-            re = fliplr(ensemble_profiles.re_CDP{nn});
+        if isfield(ensemble_profiles{nn}, 're')==false
+            re = fliplr(ensemble_profiles{nn}.re_CDP);
+
         else
-            re = fliplr(ensemble_profiles.re{nn});
+            re = fliplr(ensemble_profiles{nn}.re);
         end
 
-        lwc = fliplr(ensemble_profiles.lwc{nn});
-        Nc = fliplr(ensemble_profiles.total_Nc{nn});
+        lwc = fliplr(ensemble_profiles{nn}.lwc);
+        Nc = fliplr(ensemble_profiles{nn}.total_Nc);
 
     else
         % if false, then the plane is descending, just grab the variables
         % of interest
-        if isempty(ensemble_profiles.re{nn})==true
-            re = ensemble_profiles.re_CDP{nn};
+        if isfield(ensemble_profiles{nn}, 're')==false
+            re = ensemble_profiles{nn}.re_CDP;
         else
-            re = ensemble_profiles.re{nn};
+            re = ensemble_profiles{nn}.re;
         end
 
-        lwc = ensemble_profiles.lwc{nn};
-        Nc = ensemble_profiles.total_Nc{nn};
+        lwc = ensemble_profiles{nn}.lwc;
+        Nc = ensemble_profiles{nn}.total_Nc;
 
     end
 
@@ -578,9 +593,13 @@ set(gcf, 'Position', [0 0 650 600])
 
 re_median = zeros(n_bins, 1);
 re_std = zeros(n_bins, 1);
+re_lowP = zeros(n_bins, 1);
+re_highP = zeros(n_bins, 1);
 bin_center = zeros(n_bins, 1);
 
 
+lowP = 10;
+highP = 90;
 
 for bb = 1:n_bins
 
@@ -589,6 +608,16 @@ for bb = 1:n_bins
 
     % compute the standard deviation of the current bin
     re_std(bb) = std(vertically_segmented_attributes{bb,1});         % microns - standard deviation
+
+    % compute the 10th percentile effective radius from the distribution at
+    % this level
+    re_lowP(bb) = prctile(vertically_segmented_attributes{bb, 1}, lowP);         % microns - standard deviation
+
+    % compute the 90th percentile effective radius from the distribution at
+    % this level
+    re_highP(bb) = prctile(vertically_segmented_attributes{bb, 1}, highP);         % microns - standard deviation
+
+
 
     % compute the bin center which is the tau location of the mean data
     bin_center(bb) = (bin_edges(bb+1) - bin_edges(bb))/2 + bin_edges(bb);
@@ -688,6 +717,8 @@ set(gcf, 'Position', [0 0 650 600])
 
 lwc_mean = zeros(n_bins, 1);
 lwc_std = zeros(n_bins, 1);
+lwc_lowP = zeros(n_bins, 1);
+lwc_highP = zeros(n_bins, 1);
 bin_center = zeros(n_bins, 1);
 
 
@@ -699,6 +730,14 @@ for bb = 1:n_bins
 
     % compute the standard deviation of the current bin
     lwc_std(bb) = std(vertically_segmented_attributes{bb,2});         % microns - standard deviation
+
+    % compute the 10th percentile from the distribution at
+    % this level
+    lwc_lowP(bb) = prctile(vertically_segmented_attributes{bb, 2}, lowP);         % microns - standard deviation
+
+    % compute the 90th percentile from the distribution at
+    % this level
+    lwc_highP(bb) = prctile(vertically_segmented_attributes{bb, 2}, highP);         % microns - standard deviation
 
     % compute the bin center which is the tau location of the mean data
     bin_center(bb) = (bin_edges(bb+1) - bin_edges(bb))/2 + bin_edges(bb);
@@ -866,6 +905,8 @@ set(gcf, 'Position', [0 0 650 600])
 Nc_median = zeros(n_bins, 1);
 Nc_mean = zeros(n_bins, 1);
 Nc_std = zeros(n_bins, 1);
+Nc_lowP = zeros(n_bins, 1);
+Nc_highP = zeros(n_bins, 1);
 bin_center = zeros(n_bins, 1);
 
 
@@ -880,6 +921,14 @@ for bb = 1:n_bins
 
     % compute the standard deviation of the current bin
     Nc_std(bb) = std(vertically_segmented_attributes{bb,3});         % microns - standard deviation
+
+    % compute the 10th percentile from the distribution at
+    % this level
+    Nc_lowP(bb) = prctile(vertically_segmented_attributes{bb, 3}, lowP);         % microns - standard deviation
+
+    % compute the 90th percentile from the distribution at
+    % this level
+    Nc_highP(bb) = prctile(vertically_segmented_attributes{bb, 3}, highP);         % microns - standard deviation
 
     % compute the bin center which is the tau location of the mean data
     bin_center(bb) = (bin_edges(bb+1) - bin_edges(bb))/2 + bin_edges(bb);
@@ -932,7 +981,8 @@ subplot(1,3,1)
 
 % plot the standard deviation of the median profile as an transparent area
 % centered around the mean radius profile
-x = [re_median-re_std; flipud(re_median + re_std)];
+% x = [re_median-re_std; flipud(re_median + re_std)];
+x = [re_lowP; flipud(re_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 
@@ -953,7 +1003,8 @@ subplot(1,3,2)
 
 % plot the standard deviation of the median profile as an transparent area
 % centered around the mean radius profile
-x = [lwc_median-lwc_std; flipud(lwc_median + lwc_std)];
+% x = [lwc_median-lwc_std; flipud(lwc_median + lwc_std)];
+x = [lwc_lowP; flipud(lwc_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 
@@ -969,8 +1020,8 @@ xlabel('$<LWC(z)>$ $(g/m^{3})$', 'Interpreter','latex')
 ylabel('Normalized Optical Depth')
 
 % set the figure title
-title(['Median Profiles:  $LWC \geq$', num2str(ensemble_profiles.inputs.LWC_threshold), ' $g/m^{3}$',...
-    '   $N_c \geq$',  num2str(ensemble_profiles.inputs.Nc_threshold), ' $cm^{-3}$'],...
+title(['Median Profiles:  $LWC \geq$', num2str(ensemble_profiles{1}.LWC_threshold), ' $g/m^{3}$',...
+    '   $N_c \geq$',  num2str(ensemble_profiles{1}.Nc_threshold), ' $cm^{-3}$'],...
     'Interpreter','latex')
 
 
@@ -980,7 +1031,8 @@ subplot(1,3,3)
 
 % plot the standard deviation of the median profile as an transparent area
 % centered around the mean radius profile
-x = [Nc_median-Nc_std; flipud(Nc_median + Nc_std)];
+% x = [Nc_median-Nc_std; flipud(Nc_median + Nc_std)];
+x = [Nc_lowP; flipud(Nc_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x,y,mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 

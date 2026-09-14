@@ -24,9 +24,9 @@
 %   already a per-bin concentration rather than a density dN/dr, the inner
 %   integral is a plain sum over bins with no bin-width factor:
 %
-%       beta(z) = pi * sum_i [ Q_ext(r_i) * r_i^2 * Nd_i(z) ]
+%       beta(z) = pi * sum_i [ Q_ext(r_i, lambda) * r_i^2 * Nd_i(z) ]
 %
-%   Q_ext(r) comes from one of two sources, set by QEXT_SOURCE:
+%   Q_ext(r, lambda) comes from one of two sources, set by QEXT_SOURCE:
 %     'miev0'  - a single monodisperse MIEV0 run on a fine radius grid at the
 %                wavelength of interest (a few seconds, serves every profile)
 %     'lookup' - the saved table

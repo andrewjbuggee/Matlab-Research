@@ -214,6 +214,22 @@ set(gcf, 'Position', [0 0 1000 550])
 
 
 %% -------------------------------------------------------------------------
+%  ----------- Plot cloud adiabaticity, Wood (2005) -----------------------
+%  -------------------------------------------------------------------------
+%
+% Each profile carries an .adiabaticity structure from
+% compute_adiabaticity_Wood2005 (attached in find_verticalProfiles_ORACLES).
+% Two estimates are shown:
+%   profile method  f_ad(z) = LWC(z) / [Gamma_ad (z - z_cb)]   (Wood Fig. 4c)
+%   path method     f_ad = LWP_obs / [(1/2) Gamma_ad h^2]      (Wood Table 3)
+% with Gamma_ad evaluated at the mean in-cloud temperature and pressure.
+% The returned summary vectors can be used to segment the ensemble by
+% adiabaticity, the same way LWP and optical depth are used below.
+
+adiab_summary = plot_ensemble_adiabaticity(ensemble_profiles, 'ORACLES');
+
+
+%% -------------------------------------------------------------------------
 %  ---- Bin all profiles into N vertical segments (normalized optical depth)
 %  -------------------------------------------------------------------------
 
@@ -278,12 +294,19 @@ end
 re_mean   = zeros(n_bins, 1);
 re_median = zeros(n_bins, 1);
 re_std    = zeros(n_bins, 1);
+re_lowP    = zeros(n_bins, 1);
+re_highP    = zeros(n_bins, 1);
 bin_center = zeros(n_bins, 1);
+
+lowP = 10;
+highP = 90;
 
 for bb = 1:n_bins
     re_mean(bb)                 = mean(vertically_segmented_attributes{bb, 1});
     re_median(bb)               = median(vertically_segmented_attributes{bb, 1});
     re_std(bb)                  = std(vertically_segmented_attributes{bb, 1});
+    re_lowP(bb)                   = prctile(vertically_segmented_attributes{bb, 1}, lowP);
+    re_highP(bb)                   = prctile(vertically_segmented_attributes{bb, 1}, highP);
     % re_avg_dev_below_median(bb) = 
     bin_center(bb) = (bin_edges(bb+1) - bin_edges(bb))/2 + bin_edges(bb);
 end
@@ -296,11 +319,15 @@ end
 lwc_mean   = zeros(n_bins, 1);
 lwc_median = zeros(n_bins, 1);
 lwc_std    = zeros(n_bins, 1);
+lwc_lowP    = zeros(n_bins, 1);
+lwc_highP    = zeros(n_bins, 1);
 
 for bb = 1:n_bins
-    lwc_mean(bb)   = mean(vertically_segmented_attributes{bb, 2});
-    lwc_median(bb) = median(vertically_segmented_attributes{bb, 2});
-    lwc_std(bb)    = std(vertically_segmented_attributes{bb, 2});
+    lwc_mean(bb)     = mean(vertically_segmented_attributes{bb, 2});
+    lwc_median(bb)   = median(vertically_segmented_attributes{bb, 2});
+    lwc_std(bb)      = std(vertically_segmented_attributes{bb, 2});
+    lwc_lowP(bb)     = prctile(vertically_segmented_attributes{bb, 2}, lowP);
+    lwc_highP(bb)    = prctile(vertically_segmented_attributes{bb, 2}, highP);
 end
 
 
@@ -311,11 +338,15 @@ end
 Nc_mean   = zeros(n_bins, 1);
 Nc_median = zeros(n_bins, 1);
 Nc_std    = zeros(n_bins, 1);
+Nc_lowP    = zeros(n_bins, 1);
+Nc_highP    = zeros(n_bins, 1);
 
 for bb = 1:n_bins
     Nc_mean(bb)   = mean(vertically_segmented_attributes{bb, 3});
     Nc_median(bb) = median(vertically_segmented_attributes{bb, 3});
     Nc_std(bb)    = std(vertically_segmented_attributes{bb, 3});
+    Nc_lowP(bb)     = prctile(vertically_segmented_attributes{bb, 3}, lowP);
+    Nc_highP(bb)     = prctile(vertically_segmented_attributes{bb, 3}, highP);
 end
 
 
@@ -327,7 +358,8 @@ figure;
 
 % Effective radius
 subplot(1,3,1)
-x = [re_median - re_std; flipud(re_median + re_std)];
+% x = [re_median - re_std; flipud(re_median + re_std)];
+x = [re_lowP; flipud(re_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on
@@ -339,7 +371,8 @@ ylabel('Normalized Optical Depth')
 
 % LWC
 subplot(1,3,2)
-x = [lwc_median - lwc_std; flipud(lwc_median + lwc_std)];
+% x = [lwc_median - lwc_std; flipud(lwc_median + lwc_std)];
+x = [lwc_lowP; flipud(lwc_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on
@@ -353,7 +386,8 @@ title(['Median profiles  |  LWC $\geq$ ', num2str(inputs.LWC_threshold), ' $g/m^
 
 % Number concentration
 subplot(1,3,3)
-x = [Nc_median - Nc_std; flipud(Nc_median + Nc_std)];
+% x = [Nc_median - Nc_std; flipud(Nc_median + Nc_std)];
+x = [Nc_lowP; flipud(Nc_highP)];
 y = [bin_center; flipud(bin_center)];
 fill(x, y, mySavedColors(2,'fixed'), 'EdgeAlpha', 0, 'FaceAlpha', 0.2)
 hold on

@@ -381,8 +381,39 @@ altitude = reshape(altitude, 1, length(altitude));
 % -------------------------------------------------------------------------
 % ------------Grab the ambient air temperature and pressure ---------------
 % -------------------------------------------------------------------------
-ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                                          % C - ambient air tempertaure
-ambient_static_pressure = reshape(ncread(filename, 'PSXC'), 1, []);                                  % hPa - ambient air tempertaure
+% WHICH VARIABLES, AND WHY.
+%
+% The C-130 files carry several ambient temperatures (ATRL, ATRR: unheated
+% Rosemount probes on the radome, left/right; ATWH: heated/deiced wing
+% probe; OAT: Ophir III radiometric, flagged "Non-Standard") and several
+% static pressures (PSFC, PSFDC: corrected fuselage analog/digital). NCAR
+% RAF designates one of each as the project "reference" variable, suffix X:
+%
+%   ATX  "Ambient Temperature, Reference"        Dependencies = "1 ATRR"
+%   PSXC "Corrected Static Pressure, Reference"  Dependencies = "1 PSFC"
+%
+% and uses those references for every thermodynamic variable it derives
+% itself: in these files THETA has Dependencies = "2 ATX PSXC", and the RAF
+% Technical Note "Processing Algorithms" (sec. 4, The State of the
+% Atmosphere; https://ncar.github.io/aircraft_ProcessingAlgorithms/) states
+% that ATX and PSXC are the preferred measurements for derived calculations
+% (potential temperature from ATX and PSXC, mixing ratio from EWX and PSXC,
+% Mach number from QCXC and PSXC). Using ATX and PSXC therefore keeps our
+% thermodynamics consistent with the RAF-derived variables in the same
+% file. Ambient temperature is RAF's static air temperature recovered from
+% the probe's total temperature with the recovery factor and Mach number
+% (0.95 for the radome probes here), so no further correction is needed.
+%
+% In-cloud caveat: unheated radome probes can be wetted in cloud, which
+% biases them cold. Checked on all 14 VOCALS-REx flights: ATX - ATWH is
+% -0.5 to +0.2 K in cloud (PLWCD > 0.05 g/m^3) and the in-cloud offset is
+% within 0.3 K of the out-of-cloud offset, so no wetting signature is
+% resolvable here. A 0.5 K error changes the adiabatic LWC lapse rate
+% Gamma_ad by ~1.5%, far below the CDP/2DC LWC uncertainty, so ATX is kept.
+%
+% Data set: NCAR/EOL VOCALS-REx C-130 LRT (1 sps) data, doi:10.5065/D60863M8
+ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                                          % C - ambient (static) air temperature, RAF reference
+ambient_static_pressure = reshape(ncread(filename, 'PSXC'), 1, []);                                  % hPa - corrected ambient static pressure, RAF reference
 
 % -------------------------------------------------------------------------
 % --------------- Grab different water vapor measurements ---------------

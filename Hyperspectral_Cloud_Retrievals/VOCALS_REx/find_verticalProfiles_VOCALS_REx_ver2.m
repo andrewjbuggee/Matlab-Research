@@ -699,6 +699,36 @@ end
 
 %%
 % ----------------------------------------------------------------------
+% ------------------ Compute cloud adiabaticity ------------------------
+% ----------------------------------------------------------------------
+%
+% Two estimates per profile, following Wood (2005, JAS 62, 3011, sec. 3b):
+%
+%   (1) profile method   q_ad(z) = Gamma_ad (z - z_cb),  f_ad(z) = LWC(z)/q_ad(z)
+%   (2) path method      f_ad = LWP_obs / LWP_ad,  LWP_ad = (1/2) Gamma_ad h^2
+%
+% Gamma_ad is evaluated once per profile at the mean in-cloud temperature
+% and pressure (ATX and PSXC, see readVocalsRex.m for why those two), as
+% Wood does. The thermodynamics and constants are identical to the Python
+% synthetic-data pipeline (lasp-CU-paper-3/plot_per_cloud_rmse_kfold.py).
+% See compute_adiabaticity_Wood2005.m for the derivation and every field.
+%
+% Stored as vert_profs(nn).adiabaticity, a structure whose per-sample
+% fields (z_star, q_ad_g_m3, f_ad_z) are in SAMPLING order, aligned with
+% .altitude and .lwc (not with .tau, which is stored top-to-base).
+
+for nn = 1:length(vert_profs)
+
+    vert_profs(nn).adiabaticity = compute_adiabaticity_Wood2005(...
+        vert_profs(nn).altitude, vert_profs(nn).lwc, ...
+        vert_profs(nn).temp, vert_profs(nn).pres);
+
+end
+
+
+
+%%
+% ----------------------------------------------------------------------
 % ----------- COMPUTE THE HORIZONTAL DISTANCE TRAVELLED ----------------
 % ----------------------------------------------------------------------
 
