@@ -157,10 +157,16 @@
 % # Panel C legend names the site of each dD record ("07/2023"), and sits in the
 %   bottom-left corner. OH is shifted up by 10 (Kavin: no shift), so that it does not
 %   overlap the Pier dD; the y range is -24 to 23 (Kavin: -20 to 20).
-% # Spread of the data in each bin, drawn behind every bin-mean marker (settings
-%   style.spread and style.spreadDisplay). Default: the middle half of the samples in the
-%   bin (25th to 75th percentile, the interquartile range), shown as a thin, light bar
-%   without end caps. Light bands and the standard deviation are other options.
+% # Each bin is shown by its median (style.binStatistic = "median"; v3-2: the mean), and
+%   the fit lines and r_bin are computed from the bin medians, so the lines follow the
+%   markers. The median always lies inside the interquartile range and is not pulled up
+%   by a few very high values.
+% # Spread of the data in each bin, drawn behind every bin marker (settings style.spread
+%   and style.spreadDisplay). Default: the middle half of the samples in the bin (25th to
+%   75th percentile, the interquartile range), shown as a light shaded band. A label in
+%   panel A, "IQR (25th - 75th pct.)", with a short pointer line (pointing up and
+%   slightly left) from the top of the uppermost band (SO4) at UCVF = 0.7 explains it. Thin light bars, the standard
+%   deviation and the standard error are other options.
 %   The spread is multiplied by the same factor as the data. Bins with a single sample
 %   show no spread. AOS and FThickly show none, because only their already-averaged
 %   values are available.
@@ -259,10 +265,17 @@ style.legendFontSize_pt = 8;
 %            well apart (as in panel C); in panels A and B the bands overlap and the
 %            figure gets muddy.
 style.spread        = "iqr";
-style.spreadDisplay = "bars";
+style.spreadDisplay = "band";  % AJB edits (v3-3): IQR shaded bands, chosen by Andrew
 style.bandAlpha     = 0.2;     % band opacity: 0 = invisible, 1 = solid
 style.barLineWidth_pt = 0.5;   % width of the bars (if spreadDisplay = "bars")
 style.barLightening = 0.5;     % bar colour mixed with white: 0 = species colour, 1 = white
+% AJB edits (v3-3): value that represents each bin, for the markers and for the fit lines
+% and r_bin of section 2c: "median" (middle sample of the bin; it always lies inside the
+% interquartile range and is not pulled up by a few very high values) or "mean".
+style.binStatistic = "median";
+% AJB edits (v3-3): label for the spread in panel A, with a short pointer line from the top
+% edge of the uppermost band (SO4) at this UCVF, pointing up and slightly to the left.
+spreadLabelUCVF = 0.7;
 
 % AJB edits (v3-1): factor that the ultrafine salt (panel B) is multiplied by before it is
 % drawn, so that its slope can be seen. 1 = real values (as in v3). With 5 its line sits
@@ -641,8 +654,9 @@ meanNO3 = mean(discNO3,1,'omitmissing');
 stdNO3 = std(discNO3,[],1,'omitmissing');
 %% 2c. Fits to the bin means
 % AJB edits (v3-2): this whole section is new. For every variable except AOS and
-% FThickly, the samples are first averaged in the UCVF bins (style.binEdges, the same
-% bins as the markers). The straight-line fit (fitlm) and r (corrcoef) are then computed
+% FThickly, the samples are first summarised in the UCVF bins (style.binEdges, the same
+% bins as the markers). AJB edits (v3-3): each bin is summarised by its median or its
+% mean (style.binStatistic; median by default), the same value as the marker. The straight-line fit (fitlm) and r (corrcoef) are then computed
 % from the bin means, one point per bin that holds samples, placed at the bin centre.
 % The results replace the fits of section 2 for these variables (xFitN, yFitN and
 % stringN are overwritten), so the figure code below does not change. AOS (fit 7) and
@@ -652,23 +666,26 @@ if fitToBinMeans
     % AJB edits (v3-3): Pier dD added (10th row); "July dD" renamed "Soledad dD"
     variable = ["SO4"; "MO-OOA" + moLabel; "SR-OOA" + srLabel; "f44"; "HOA"; "rBC"; "ultrafine salt"; "OH"; "Soledad dD (07/2023)"; "Pier dD (07/2023)"];
     rSamples = NaN(10, 1);    % r from every sample (as in v3-1)
-    rBinMeans = NaN(10, 1);   % r from the bin means (used in the figure)
+    rBinMeans = NaN(10, 1);   % r from the bin values (medians or means; used in the figure)
     nBins = NaN(10, 1);       % number of bins that hold samples
-    [xFit5,  yFit5,  string5,  rBinMeans(1), rSamples(1), nBins(1)] = fitBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4, style.binEdges);
-    [xFit3,  yFit3,  string3,  rBinMeans(2), rSamples(2), nBins(2)] = fitBinMeans(KAVIN_TABLE.UCVF(moRows), KAVIN_TABLE.("MO-OOA")(moRows), style.binEdges);
-    [xFit6,  yFit6,  string6,  rBinMeans(3), rSamples(3), nBins(3)] = fitBinMeans(KAVIN_TABLE.UCVF(srRows), KAVIN_TABLE.("SR-OOA")(srRows), style.binEdges);
-    [xFit8,  yFit8,  string8,  rBinMeans(4), rSamples(4), nBins(4)] = fitBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.f44, style.binEdges);
-    [xFit1,  yFit1,  string1,  rBinMeans(5), rSamples(5), nBins(5)] = fitBinMeans(LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.HOAMass_ugM_3_, style.binEdges);
-    [xFit2,  yFit2,  string2,  rBinMeans(6), rSamples(6), nBins(6)] = fitBinMeans(LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.rBCMass_ugM_3_, style.binEdges);
-    [xFit14, yFit14, string14, rBinMeans(7), rSamples(7), nBins(7)] = fitBinMeans(ultrafinetbl.avgUCVF, ultrafinetbl.avgUfineSalt, style.binEdges);
-    [xFit10, yFit10, string10, rBinMeans(8), rSamples(8), nBins(8)] = fitBinMeans(OHvsUCVF.UCVF24, OHvsUCVF.OH_burst_25000_vv_dilution_ratio_uM, style.binEdges);
-    [xFit13, yFit13, string13, rBinMeans(9), rSamples(9), nBins(9)] = fitBinMeans(julyUCVF, julydD, style.binEdges);
-    [xFit15, yFit15, string15, rBinMeans(10), rSamples(10), nBins(10)] = fitBinMeans(pierUCVF, pierdD, style.binEdges);   % AJB edits (v3-3)
-    % r from every sample and from the bin means, side by side (rounded to 2 decimals)
+    [xFit5,  yFit5,  string5,  rBinMeans(1), rSamples(1), nBins(1)] = fitBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4, style.binEdges, style.binStatistic);
+    [xFit3,  yFit3,  string3,  rBinMeans(2), rSamples(2), nBins(2)] = fitBinMeans(KAVIN_TABLE.UCVF(moRows), KAVIN_TABLE.("MO-OOA")(moRows), style.binEdges, style.binStatistic);
+    [xFit6,  yFit6,  string6,  rBinMeans(3), rSamples(3), nBins(3)] = fitBinMeans(KAVIN_TABLE.UCVF(srRows), KAVIN_TABLE.("SR-OOA")(srRows), style.binEdges, style.binStatistic);
+    [xFit8,  yFit8,  string8,  rBinMeans(4), rSamples(4), nBins(4)] = fitBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.f44, style.binEdges, style.binStatistic);
+    [xFit1,  yFit1,  string1,  rBinMeans(5), rSamples(5), nBins(5)] = fitBinMeans(LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.HOAMass_ugM_3_, style.binEdges, style.binStatistic);
+    [xFit2,  yFit2,  string2,  rBinMeans(6), rSamples(6), nBins(6)] = fitBinMeans(LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.rBCMass_ugM_3_, style.binEdges, style.binStatistic);
+    [xFit14, yFit14, string14, rBinMeans(7), rSamples(7), nBins(7)] = fitBinMeans(ultrafinetbl.avgUCVF, ultrafinetbl.avgUfineSalt, style.binEdges, style.binStatistic);
+    [xFit10, yFit10, string10, rBinMeans(8), rSamples(8), nBins(8)] = fitBinMeans(OHvsUCVF.UCVF24, OHvsUCVF.OH_burst_25000_vv_dilution_ratio_uM, style.binEdges, style.binStatistic);
+    [xFit13, yFit13, string13, rBinMeans(9), rSamples(9), nBins(9)] = fitBinMeans(julyUCVF, julydD, style.binEdges, style.binStatistic);
+    [xFit15, yFit15, string15, rBinMeans(10), rSamples(10), nBins(10)] = fitBinMeans(pierUCVF, pierdD, style.binEdges, style.binStatistic);   % AJB edits (v3-3)
+    % r from every sample and from the bin values, side by side (rounded to 2 decimals)
+    % AJB edits (v3-3): column r_bins (v3-2: r_binMeans), as the bins can be medians
     rComparison = table(variable, round(rSamples, 2), round(rBinMeans, 2), nBins, ...
-        'VariableNames', {'variable', 'r_samples', 'r_binMeans', 'binsWithData'})
+        'VariableNames', {'variable', 'r_samples', 'r_bins', 'binsWithData'})
 end
 %% 3. Figure
+
+pnl_fnt = 15;
 
 % AJB edits: Kavin's "clf" replaced by a new figure of size figSize_pt (points, so the
 % size is the same on any screen) with a white background, hidden or shown according to
@@ -714,7 +731,11 @@ hold on
 % end of this file), not averaged again in the UCVF bins: their owners already averaged
 % them. All other species are binned as before.
 plotFitAndOwnPoints(elavarasi.UCVF, elavarasi.AOS, xFit7, yFit7, 1, 0, colorsA(1,:), style)       % AOS
-plotFitAndBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4, xFit5, yFit5, 2, 3, colorsA(2,:), style)     % SO4
+% AJB edits (v3-3): Kavin's SO4 factors (x2, +3) given names, so that the spread label
+% below can find the top edge of the SO4 band
+so4Multiplier = 2;
+so4Offset = 3;
+plotFitAndBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4, xFit5, yFit5, so4Multiplier, so4Offset, colorsA(2,:), style)     % SO4
 
 % AJB edits (v3-2): MO-OOA offset depends on the months used.
 %   April-June only (moAprJunOnly = true, the default): Kavin's offset, 2.5.
@@ -736,6 +757,27 @@ plotFitAndBinMeans(KAVIN_TABLE.UCVF(moRows), KAVIN_TABLE.("MO-OOA")(moRows), xFi
 plotFitAndBinMeans(KAVIN_TABLE.UCVF(srRows), KAVIN_TABLE.("SR-OOA")(srRows), xFit6, yFit6, 7, 1.8, colorsA(4,:), style)       % SR-OOA
 plotFitAndBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.f44, xFit8, yFit8, 25, -3, colorsA(5,:), style)                          % f44
 plotFitAndOwnPoints(elavarasi.UCVF, elavarasi.AOSFthickly_90nm, xFit11, yFit11, 15, -4, colorsA(6,:), style)             % FThickly (own points)
+% AJB edits (v3-3): label that explains the spread, with a short pointer line from the top
+% edge of the uppermost band in panel A (SO4) at UCVF = spreadLabelUCVF, pointing up and
+% slightly to the left (north-north-west). The top edge is the 75th percentile of SO4
+% in the bins on either side of that UCVF (linear interpolation, as the band is drawn),
+% scaled like the SO4 data. The label text follows style.spread.
+if style.spread ~= "none"
+    [binCentreSO4, ~, ~, ~, ~, q75SO4] = binMeansOf(KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4, style.binEdges);
+    hasQ75 = ~isnan(q75SO4);
+    pointerStart = [spreadLabelUCVF, interp1(binCentreSO4(hasQ75), q75SO4(hasQ75), spreadLabelUCVF)*so4Multiplier + so4Offset];
+    pointerEnd = pointerStart + [-0.03, 1.2];     % up and slightly left, in data units
+    plot([pointerStart(1) pointerEnd(1)], [pointerStart(2) pointerEnd(2)], '-', 'Color', [0.2 0.2 0.2], ...
+        'LineWidth', 0.5, 'HandleVisibility', 'off')
+    switch style.spread
+        case "iqr", labelText = "IQR (25th - 75th pct.)";
+        case "std", labelText = "\pm1 standard deviation";
+        case "sem", labelText = "\pm1 standard error";
+    end
+    % label centred just above the end of the pointer line
+    text(pointerEnd(1), pointerEnd(2), labelText, 'HorizontalAlignment', 'center', ...
+        'VerticalAlignment', 'bottom', 'FontSize', 12, 'Color', [0.2 0.2 0.2])
+end
 % AJB note: no3index is not used
 no3index = KAVIN_TABLE.NO3.*95 -29 < 6
 hold off
@@ -755,7 +797,12 @@ lgnd.FontSize = style.legendFontSize_pt;
 lgnd.Location = 'northwest';
 % AJB edits (v3-2): panel letter placed in axes units, so that it stays in the top-left
 % corner after the y range change (Kavin: text(0.03, 0.97*7,'A'))
-text(0.03, 0.95, 'A', 'Units', 'normalized')   % same place as the letters B and C
+text(0.015, 0.95, "(a)", 'FontSize', pnl_fnt, 'FontWeight','bold',...
+    'Units', 'normalized')   % same place as the letters B and C
+% AJB edits (v3-3): two data sets don't have IQR bands because the data was
+% provided to us binned already
+text(0.425, 0.05, "* No IQR bands for AOS and FThickly data. PIs provided binned data, rather than raw.", 'FontSize', 7,...
+    'Units', 'normalized', 'Color', [0.5020, 0.5020, 0.5020])   % same place as the letters B and C
 xticklabels([""])
 xticks([0:0.1:1])
 
@@ -779,7 +826,8 @@ legend("HOA, "+ string1,"rBC, "+ string2,"NaCl2, "+ string14, FontSize=style.leg
 % AJB edits: legend in the top-right corner, where it is in Kavin's figure
 axB = gca;
 axB.Legend.Location = 'northeast';
-text(0.03, 0.95*0.6,'B')
+text(0.015, 0.95, "(b)", 'FontSize', pnl_fnt, 'FontWeight','bold',...
+    'Units', 'normalized')   % same place as the letters B and C
 xticklabels("")
 ylim([0 0.6])
 xticks([0:0.1:1])
@@ -799,12 +847,13 @@ ylabel("Arbitrary Units")
 yticklabels("")
 % AJB edits (v3-3): the legend names the site of each dD record (Kavin: "7/2023 dD").
 % "\delta" is shown as the Greek letter delta. Larger legend text (v3-2; Kavin: FontSize=5).
-legend("OH, "+ string10, "\deltaD Mt. Soledad (07/2023), "+string13, "\deltaD Pier (07/2023), "+string15, ...
+legend("OH, "+ string10, "\deltaD, Mt. Soledad (07/2023), "+string13, "\deltaD, Pier (07/2023), "+string15, ...
     FontSize=style.legendFontSize_pt)
 % AJB edits (v3-3): panel letter in axes units (Kavin: text(0.03, 0.95*40-20,'C')), and a
 % y range with room for OH's new shift, the spread bands and the legend in the bottom-left
 % corner (Kavin: ylim([-20 20]))
-text(0.03, 0.95, 'C', 'Units', 'normalized')
+text(0.015, 0.95, "(c)", 'FontSize', pnl_fnt, 'FontWeight','bold',...
+    'Units', 'normalized')   % same place as the letters B and C
 ylim([-24 23])
 xticks([0:0.1:1])
 xticklabels([0:0.1:1])
@@ -854,7 +903,13 @@ plot(xFit, yFit.*multiplier + offset, '-o', 'Color', color, ...
     'MarkerSize', style.markerSize_pt, 'MarkerIndices', [])
 
 % 2. Bin means (AJB edits (v3-2): computed by binMeansOf, shared with fitBinMeans)
-[binCentre, binMean, binStd, binCount, binQ25, binQ75] = binMeansOf(ucvf, values, style.binEdges);
+[binCentre, binMean, binStd, binCount, binQ25, binQ75, binMedian] = binMeansOf(ucvf, values, style.binEdges);
+% AJB edits (v3-3): the value drawn for each bin: median or mean (style.binStatistic)
+if style.binStatistic == "median"
+    binValue = binMedian;
+else
+    binValue = binMean;
+end
 
 % AJB edits (v3-3): 3. Spread of the samples in each bin (style.spread), as a band or as
 % bars (style.spreadDisplay). lower and upper are the limits in data units; they are
@@ -882,8 +937,8 @@ else
     drawSpreadBars(binCentre, lowerPlot, upperPlot, color, style)
 end
 
-% Bin-mean markers, kept out of the legend
-plot(binCentre, binMean.*multiplier + offset, 'o', 'Color', color, ...
+% Bin markers (median or mean, see above), kept out of the legend
+plot(binCentre, binValue.*multiplier + offset, 'o', 'Color', color, ...
     'MarkerFaceColor', color, 'MarkerSize', style.markerSize_pt, ...
     'HandleVisibility', 'off')
 end
@@ -936,7 +991,7 @@ plot(ucvf, values.*multiplier + offset, 'o', 'Color', color, ...
 end
 
 
-function [binCentre, binMean, binStd, binCount, binQ25, binQ75] = binMeansOf(ucvf, values, edges)
+function [binCentre, binMean, binStd, binCount, binQ25, binQ75, binMedian] = binMeansOf(ucvf, values, edges)
 % AJB edits (v3-2): new (moved out of plotFitAndBinMeans so that the markers and the
 % fits of section 2c use exactly the same bin means).
 % Mean of VALUES in each UCVF bin; EDGES are the bin edges (15 edges = 14 bins).
@@ -945,7 +1000,8 @@ function [binCentre, binMean, binStd, binCount, binQ25, binQ75] = binMeansOf(ucv
 % AJB edits (v3-3): also returns binStd, the standard deviation of the samples in each
 % bin (NaN for bins with fewer than 2 samples, where it is not defined), and binCount,
 % the number of samples in each bin; binQ25 and binQ75, the 25th and 75th percentiles of
-% the samples in each bin (NaN for bins with fewer than 2 samples).
+% the samples in each bin (NaN for bins with fewer than 2 samples); binMedian, the median
+% of the samples in each bin (NaN for an empty bin).
 ok = ~isnan(ucvf) & ~isnan(values);
 ucvfOk = ucvf(ok);
 valuesOk = values(ok);
@@ -956,11 +1012,13 @@ binStd = NaN(nBinsTotal, 1);                  % AJB edits (v3-3)
 binCount = zeros(nBinsTotal, 1);              % AJB edits (v3-3)
 binQ25 = NaN(nBinsTotal, 1);                  % AJB edits (v3-3)
 binQ75 = NaN(nBinsTotal, 1);                  % AJB edits (v3-3)
+binMedian = NaN(nBinsTotal, 1);               % AJB edits (v3-3)
 for b = 1:nBinsTotal
     inBin = (binNumber == b);
     binCount(b) = sum(inBin);
     if binCount(b) >= 1
         binMean(b) = mean(valuesOk(inBin));
+        binMedian(b) = median(valuesOk(inBin));   % AJB edits (v3-3)
     end
     if binCount(b) >= 2                       % AJB edits (v3-3): std needs 2 or more samples
         binStd(b) = std(valuesOk(inBin));     % sample standard deviation (divides by n - 1)
@@ -973,7 +1031,7 @@ binCentre = (edges(1:end-1) + edges(2:end))' / 2;
 end
 
 
-function [xFit, yFit, rText, rBins, rSamples, nBins] = fitBinMeans(ucvf, values, edges)
+function [xFit, yFit, rText, rBins, rSamples, nBins] = fitBinMeans(ucvf, values, edges, statistic)
 % AJB edits (v3-2): new. Averages VALUES in the UCVF bins (EDGES), then fits a straight
 % line to the bin means, in the same style as Kavin's fits in section 2:
 %   xFit, yFit : the fit line on 100 points between the first and last bin centre
@@ -981,13 +1039,20 @@ function [xFit, yFit, rText, rBins, rSamples, nBins] = fitBinMeans(ucvf, values,
 %   rBins      : r between bin centres and bin means
 %   rSamples   : r from every sample (for comparison)
 %   nBins      : number of bins that hold samples (points in the fit)
-[binCentre, binMean] = binMeansOf(ucvf, values, edges);
-hasData = ~isnan(binMean);                     % bins that hold at least one sample
+% AJB edits (v3-3): STATISTIC ("median" or "mean") picks the value that represents each
+% bin; the default in the User settings is the median, the same value as the markers.
+[binCentre, binMean, ~, ~, ~, ~, binMedian] = binMeansOf(ucvf, values, edges);
+if statistic == "median"
+    binValue = binMedian;
+else
+    binValue = binMean;
+end
+hasData = ~isnan(binValue);                    % bins that hold at least one sample
 nBins = sum(hasData);
-model = fitlm(binCentre(hasData), binMean(hasData));
+model = fitlm(binCentre(hasData), binValue(hasData));
 xFit = linspace(min(binCentre(hasData)), max(binCentre(hasData)), 100);
 yFit = feval(model, xFit);
-r = corrcoef(binCentre(hasData), binMean(hasData));
+r = corrcoef(binCentre(hasData), binValue(hasData));
 rBins = r(2,1);
 rText = "r_{bin} = " + string(round(rBins, 2));
 r = corrcoef(ucvf, values, 'rows', 'pairwise');

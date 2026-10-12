@@ -355,6 +355,9 @@ Dlim_um   = [3 50];
 Dticks_um = [3 10 20 30 40 50];
 
 %% 6. Draw the figure
+
+pnl_fnt = 16;
+
 fig = figure('Color', 'w', 'Units', 'points', 'Position', [20 20 L.W L.H], 'Visible', figureVisible);
 % Figure-level defaults = MATLAB factory values, so user startup.m settings
 % (e.g. dark themes, large fonts) do not change this figure.
@@ -382,14 +385,20 @@ for s = 1:4
     set(ax, 'XScale', 'log', 'XLim', Dlim_um, 'XTick', Dticks_um, 'XTickLabel', [], ...
         'YLim', [0 1400], 'Box', 'on', 'Layer', 'top')      % L4: closed box
     if isFirstCol
-        ylabel(ax, 'dN/dlog(D_p) [cm^{-3}]')
+        ylabel(ax, 'dN/dlog(D_{p}) [cm^{-3}]')
     else
         ax.YTickLabel = [];
     end
+
+    if s==4
+        % Add panel labels
+        text(ax, 3.25, 1253.33, "(a)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+    end
+
     title(ax, seasonName{s})
     % hours from verification-table rows 66 / 70 (section 4b), rounded to whole hours
-    text(ax, 10, 1180, "Cloud: " + round(S(s).cloudHours_table) + " Hours", 'Color', blue, 'FontSize', 7)
-    text(ax, 10,  630, "Haze: "  + round(S(s).hazeHours_table)  + " Hours", 'Color', red,  'FontSize', 7)
+    text(ax, 10, 1180, "Cloud: " + round(S(s).cloudHours_table) + " Hours", 'Color', blue, 'FontSize', 10)
+    text(ax, 10,  630, "Haze: "  + round(S(s).hazeHours_table)  + " Hours", 'Color', red,  'FontSize', 10)
 
     % Pies (B2: v1 had the haze pie on top, under the "Cloud" label)
     if applyV1BugFixes
@@ -400,6 +409,7 @@ for s = 1:4
     drawPie(fig, toNorm([x0(s)+pie.dx, y.dsd+dyCld, pie.wh]), S(s).amsCld_ugm3, pieColors, pieEdgeColor);
     drawPie(fig, toNorm([x0(s)+pie.dx, y.dsd+dyHaz, pie.wh]), S(s).amsHaz_ugm3, pieColors, pieEdgeColor);
 
+
     % ---------- Row 2: wet critical diameter, labelled with % activated ----------
     posDcrit = toNorm([x0(s) y.dcrit L.colW L.boxH]);
     ax = axes(fig, 'Units', 'normalized', 'Position', posDcrit);
@@ -409,8 +419,14 @@ for s = 1:4
     set(ax, 'PositionConstraint', 'innerposition', 'Position', posDcrit, ...
         'XScale', 'log', 'XLim', Dlim_um, 'XTick', Dticks_um, 'XTickLabel', [], ...
         'YLim', [0 100], 'Box', 'on')
-    text(ax, 32.851, 71.1111134952969, 'D_{\it crit}')
+    text(ax, 32.851, 71.1111134952969, 'D_{\it{crit}}')
     if isFirstCol, ylabel(ax, '% Activated'), end
+    if s==4
+        % Add panel labels
+        text(ax, 3.25, 71.1111134952969, "(b)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+    end
+
+
 
     % ---------- Row 3: effective diameter ----------
     posDeff = toNorm([x0(s) y.deff L.colW L.boxH]);
@@ -422,8 +438,14 @@ for s = 1:4
         'XScale', 'log', 'XLim', Dlim_um, 'XTick', Dticks_um, 'XTickLabelRotation', 0, ...
         'YTick', [], 'Box', 'on')
     % trailing space: the Live Editor clips the hook of a final italic 'f' ("eff" -> "efl")
-    text(ax, 3, 2.20, 'D_{\it eff }')
+    text(ax, 32.851, 2.033, 'D_{\it{eff}}')
     xlabel(ax, 'Droplet Diameter [\mum]')
+    if s==4
+        % Add panel labels
+        text(ax, 3.25, 2.033, "(c)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+    end
+
+
 
     % ---------- Row 4: cloud-base height histogram ----------
     ax = axes(fig, 'Units', 'normalized', 'Position', toNorm([x0(s) y.cbh L.colW L.cbhH]));
@@ -445,7 +467,7 @@ for s = 1:4
     if s == 4
         legend(bh, {'Other Low Clouds', 'Cloud', 'Haze'}, 'Location', 'northeast', ...
             'Color', 'w', 'TextColor', 'k')
-        text(ax, 65, 265, 'Soledad Height', 'FontSize', 7)
+        text(ax, 65, 265, 'Soledad Height', 'FontSize', 10)
         % L1: arrow points down from the 250 m line into the region it describes
         arrowX_h = 55;  arrowY_m = [243 135];
         [ax1, ay1] = data2norm(ax, arrowX_h, arrowY_m(1));
@@ -453,7 +475,10 @@ for s = 1:4
         an = annotation(fig, 'arrow', [ax1 ax2], [ay1 ay2]);
         an.LineWidth = 1;  an.HeadWidth = 7;  an.HeadLength = 7;
         text(ax, arrowX_h + 5, mean(arrowY_m), {'CBH < 250 m is', 'below Soledad peak'}, ...
-            'FontSize', 7, 'VerticalAlignment', 'middle')
+            'FontSize', 9, 'VerticalAlignment', 'middle')
+
+        % Add panel labels
+        text(ax, 32.79, 73, "(d)", 'FontSize', pnl_fnt, 'FontWeight','bold')
     end
 end
 
