@@ -46,6 +46,17 @@ Requires MATLAB R2024b or later, base MATLAB only (no toolboxes).
 Rows 18 (PBLH-MPL) and 19 (BL-Depth Miller) are not computed: no data
 source for them was found.
 
+## Figure: AMS residuals with a missing enhancement factor
+
+`plot_missing_EF.m` (separate from the table) shows the periods where Abbey Williams'
+15-min file flags the GCVI as on while the 1-s GCVI record (`msd_cvi_ef_calc.csv`) is
+empty. There her EF code uses EF = 1, so the AMS values were never divided by the
+enhancement factor. Edit the three file paths and the `cases` list in Section 1, then
+press Run (~25 s). It writes one 4-panel PNG and PDF per time window to `output/figures/`,
+and prints a campaign-wide list of the affected intervals (77; 43 with AMS data).
+It needs `AMS_CE_corrected_msptof.nc` from the UC San Diego Library in addition to
+Kavin's `EPCAPE_15mindata.nc`.
+
 Every function starts with a comment block saying which data it reads,
 which samples it keeps, and how it averages. The same text, shortened,
 is in the Notes column of the output.

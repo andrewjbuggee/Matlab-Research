@@ -45,9 +45,9 @@
 %   outDir) as described there. All six input files must be in dataDir. Kavin's
 %   original code read two of them from ".../EPCAPE/UCVF plot/" and the other four from
 %   MATLAB's current folder, so copy those four into that folder if needed.
-% # Press Run. The figure is saved in outDir as EPCAPEUCVFplots_kp_AJB_v3_1.png and EPCAPEUCVFplots_kp_AJB_v3_1.pdf.
+% # Press Run. The figure is saved in outDir as EPCAPEUCVFplots_kp_AJB_v3_2.png and EPCAPEUCVFplots_kp_AJB_v3_2.pdf.
 % # In this .mlx file the figure is hidden while it is made (figureVisible = 'off'); open
-%   the saved PNG to see it. EPCAPEUCVFplots_kp_AJB_v3_1_script.m is the same code as a plain script and shows
+%   the saved PNG to see it. EPCAPEUCVFplots_kp_AJB_v3_2_script.m is the same code as a plain script and shows
 %   the figure in a window.
 % Needs the Statistics and Machine Learning Toolbox (fitlm), as Kavin's original code
 % did. Tested in MATLAB R2024b; written to run in R2025a and later as well.
