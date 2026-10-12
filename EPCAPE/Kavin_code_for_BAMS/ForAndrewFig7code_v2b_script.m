@@ -392,7 +392,7 @@ for s = 1:4
 
     if s==4
         % Add panel labels
-        text(ax, 3.25, 1253.33, "(a)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+        text(ax, 3.25, 1253.33, "A", 'FontSize', pnl_fnt, 'FontWeight','normal')
     end
 
     title(ax, seasonName{s})
@@ -423,7 +423,7 @@ for s = 1:4
     if isFirstCol, ylabel(ax, '% Activated'), end
     if s==4
         % Add panel labels
-        text(ax, 3.25, 71.1111134952969, "(b)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+        text(ax, 3.25, 71.1111134952969, "B", 'FontSize', pnl_fnt, 'FontWeight','normal')
     end
 
 
@@ -442,7 +442,7 @@ for s = 1:4
     xlabel(ax, 'Droplet Diameter [\mum]')
     if s==4
         % Add panel labels
-        text(ax, 3.25, 2.033, "(c)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+        text(ax, 3.25, 2.033, "C", 'FontSize', pnl_fnt, 'FontWeight','normal')
     end
 
 
@@ -478,7 +478,7 @@ for s = 1:4
             'FontSize', 9, 'VerticalAlignment', 'middle')
 
         % Add panel labels
-        text(ax, 32.79, 73, "(d)", 'FontSize', pnl_fnt, 'FontWeight','bold')
+        text(ax, 16, 52, "D", 'FontSize', pnl_fnt, 'FontWeight','normal')
     end
 end
 

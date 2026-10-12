@@ -194,14 +194,20 @@
 % # FThickly is binned from the individual April samples (3236 samples) into the same 14
 %   UCVF bins as the other species: bin medians as markers, IQR band, fit line and r_bin
 %   from the bin medians (v3-3: Kavin's 21 pre-averaged points and a fit to them).
-%   FThickly is drawn x6 - 2.5 (Kavin: x15 - 4), so that its IQR band sits in its own
-%   strip below f44 instead of covering most of panel A; panel A now runs from -1.8 to
-%   8.4 (v3-3: 0 to 8.4).
+%   FThickly is drawn x8 - 2.4 (Kavin: x15 - 4), so that its IQR band sits at the bottom
+%   of panel A instead of covering most of it; panel A now runs from -1.3 to 8.4 (v3-3:
+%   0 to 8.4).
 % # AOS (rBC mass per particle): only bin means and standard deviations exist, so no
 %   median or IQR can be computed. It keeps Kavin's April bin means and their fit, and
 %   gets a band of plus/minus one standard deviation (Kavin's column "Mass uncertainty",
 %   which equals the "STD" column of the new file where the two hold the same data). The
-%   legend says "mean \pm 1 std" for this series, because all other bands are IQRs.
+%   AJB edits (v3-4): the series is named "rBC mass per particle (AOS)" in the legend
+%   (Kavin: "AOS"), and a note at the bottom right of panel A says that its band is the
+%   mean plus/minus one standard deviation, because all other bands are IQRs.
+% # Andrew's edits to the v3-3 script are included: panel labels at the top left in
+%   pnl_fnt = 15 pt (here the plain capital letters A, B, C, not bold, as Lynn asked;
+%   v3-3: "(a)", "(b)", "(c)" in bold), the IQR label in 12 pt, the note on the bands in panel A (reworded
+%   for v3-4), and "\deltaD, Mt. Soledad" / "\deltaD, Pier" in the panel C legend.
 %
 %% Open questions for Kavin and Lynn
 % The v2 changes and the open questions are listed in plain language in
@@ -424,9 +430,11 @@ fthickTable = readtable(aosFile, 'Sheet', 'Fthickly < 90nm', 'Range', 'A:C', ...
 if aosAprilOnly
     keepFthick = month(fthickTable{:,1}) == 4 & year(fthickTable{:,1}) == 2023;   % April 2023
     aosLabel = " (Apr 2023)";
+    aosText  = "Apr 2023";      % AJB edits (v3-4): the same period, for the AOS legend entry
 else
     keepFthick = true(height(fthickTable), 1);                                     % April-July 2023
     aosLabel = " (Apr-Jul 2023)";
+    aosText  = "Apr-Jul 2023";
 end
 fthickUCVF = fthickTable{keepFthick, 2};   % UCVF of each FThickly sample
 fthick     = fthickTable{keepFthick, 3};   % FThickly of each sample
@@ -766,6 +774,9 @@ if fitToBinMeans
 end
 %% 3. Figure
 
+% AJB edits (v3-3, by Andrew): font size of the panel labels (A, B, C)
+pnl_fnt = 15;
+
 % AJB edits: Kavin's "clf" replaced by a new figure of size figSize_pt (points, so the
 % size is the same on any screen) with a white background, hidden or shown according to
 % figureVisible (User settings).
@@ -849,11 +860,12 @@ plotFitAndBinMeans(KAVIN_TABLE.UCVF, KAVIN_TABLE.f44, xFit8, yFit8, 25, -3, colo
 % (v3-2 and v3-3: Kavin's pre-averaged points with plotFitAndOwnPoints).
 % FThickly factors: Kavin used x15 - 4 for his pre-averaged April points. With the
 % individual samples, the IQR of FThickly is 0.1 to 0.3 wide, so x15 made its band 1.5 to
-% 4.5 units tall: it covered most of panel A and ran below the bottom. x6 - 2.5 keeps the
-% FThickly band (about -1.5 to 0.8) in its own strip below the f44 band. Like Kavin's
-% factors, this only changes where FThickly is drawn, not its slope sign or r.
-fthickMultiplier = 6;
-fthickOffset = -2.5;
+% 4.5 units tall: it covered most of panel A and ran below the bottom. x8 - 2.4 (Andrew's
+% choice from three options) keeps the FThickly band (about -1.1 to 2.0) at the bottom of
+% the panel, mostly below the f44 band. Like Kavin's factors, this only changes where
+% FThickly is drawn, not its slope sign or r.
+fthickMultiplier = 8;
+fthickOffset = -2.4;
 plotFitAndBinMeans(fthickUCVF, fthick, xFit11, yFit11, fthickMultiplier, fthickOffset, colorsA(6,:), style)   % FThickly
 % AJB edits (v3-3): label that explains the spread, with a short pointer line from the top
 % edge of the uppermost IQR band in panel A (SO4; the AOS band above it is mean +/- std,
@@ -875,22 +887,23 @@ if style.spread ~= "none"
     end
     % label centred just above the end of the pointer line
     text(pointerEnd(1), pointerEnd(2), labelText, 'HorizontalAlignment', 'center', ...
-        'VerticalAlignment', 'bottom', 'FontSize', style.legendFontSize_pt, 'Color', [0.2 0.2 0.2])
+        'VerticalAlignment', 'bottom', 'FontSize', 12, 'Color', [0.2 0.2 0.2])   % AJB edits (v3-3, by Andrew): 12 pt
 end
 % AJB note: no3index is not used
 no3index = KAVIN_TABLE.NO3.*95 -29 < 6
 hold off
 % AJB edits (v3-2): top of the panel raised to 8.4 (Kavin: 7; v3 and v3-1: 7.2), so
 % that the legend in the top-left corner sits above the AOS line and points
-% AJB edits (v3-4): bottom lowered to -1.8 (v3-3: 0) to make room for the FThickly strip
-ylim([-1.8 8.4])
+% AJB edits (v3-4): bottom lowered to -1.3 (v3-3: 0) to make room for the FThickly band
+ylim([-1.3 8.4])
 ylabel("Arbitrary Units")
 yticklabels("")
 % AJB edits (v3-2): month labels moLabel and srLabel (v2 to v3-1: ooaLabel for both).
 % With fitToBinMeans, the r of every entry except AOS and FThickly is r_bin (section 2c).
-% AJB edits (v3-4): AOS and FThickly entries give the period (aosLabel), and the AOS
-% entry says that its band is the mean plus/minus one standard deviation.
-lgnd = legend("AOS"+aosLabel+", mean \pm 1 std, "+ string7,"SO4, "+string5,"MO-OOA"+moLabel+", "+string3,"SR-OOA"+srLabel+", " + string6,"f44, "+string8,"FThickly"+aosLabel+", "+string11)
+% AJB edits (v3-4): the AOS series is named "rBC mass per particle (AOS)" (Kavin: "AOS"),
+% and the AOS and FThickly entries give the period (aosText, aosLabel). What the AOS band
+% shows (mean +/- 1 std) is in the note at the bottom of the panel.
+lgnd = legend("rBC mass per particle (AOS), "+aosText+", "+ string7,"SO4, "+string5,"MO-OOA"+moLabel+", "+string3,"SR-OOA"+srLabel+", " + string6,"f44, "+string8,"FThickly"+aosLabel+", "+string11)
 % AJB edits (v3-2): larger legend text (Kavin: lgnd.FontSize = 5)
 lgnd.FontSize = style.legendFontSize_pt;
 % AJB edits (v3-2): legend in the top-left corner, where there is no data (v1 to v3-1:
@@ -899,7 +912,16 @@ lgnd.FontSize = style.legendFontSize_pt;
 lgnd.Location = 'northwest';
 % AJB edits (v3-2): panel letter placed in axes units, so that it stays in the top-left
 % corner after the y range change (Kavin: text(0.03, 0.97*7,'A'))
-text(0.03, 0.95, 'A', 'Units', 'normalized')   % same place as the letters B and C
+% AJB edits (v3-3, by Andrew): panel label at the top left, pnl_fnt points (v3-2: 'A').
+% AJB edits (v3-4): Lynn's request: a plain capital letter, not bold (v3-3: "(a)" in bold)
+text(0.015, 0.95, "A", 'FontSize', pnl_fnt,...
+    'Units', 'normalized')   % same place as the labels (b) and (c)
+% AJB edits (v3-3, by Andrew): note on the bands. AJB edits (v3-4): reworded, because
+% FThickly now has an IQR band (v3-3 text: "* No IQR bands for AOS and FThickly data.
+% PIs provided binned data, rather than raw.")
+% Right-aligned at the right edge of the panel, so that the text cannot run past it.
+text(0.99, 0.05, "* AOS band: mean \pm 1 std (PIs provided binned data, rather than raw). All other bands: IQR.", 'FontSize', 7,...
+    'Units', 'normalized', 'HorizontalAlignment', 'right', 'Color', [0.5020, 0.5020, 0.5020])
 xticklabels([""])
 xticks([0:0.1:1])
 
@@ -923,7 +945,10 @@ legend("HOA, "+ string1,"rBC, "+ string2,"NaCl2, "+ string14, FontSize=style.leg
 % AJB edits: legend in the top-right corner, where it is in Kavin's figure
 axB = gca;
 axB.Legend.Location = 'northeast';
-text(0.03, 0.95*0.6,'B')
+% AJB edits (v3-3, by Andrew): panel label at the top left, pnl_fnt points (Kavin: 'B').
+% AJB edits (v3-4): Lynn's request: a plain capital letter, not bold (v3-3: "(b)" in bold)
+text(0.015, 0.95, "B", 'FontSize', pnl_fnt,...
+    'Units', 'normalized')   % same place as the labels (a) and (c)
 xticklabels("")
 ylim([0 0.6])
 xticks([0:0.1:1])
@@ -943,12 +968,15 @@ ylabel("Arbitrary Units")
 yticklabels("")
 % AJB edits (v3-3): the legend names the site of each dD record (Kavin: "7/2023 dD").
 % "\delta" is shown as the Greek letter delta. Larger legend text (v3-2; Kavin: FontSize=5).
-legend("OH, "+ string10, "\deltaD Mt. Soledad (07/2023), "+string13, "\deltaD Pier (07/2023), "+string15, ...
+legend("OH, "+ string10, "\deltaD, Mt. Soledad (07/2023), "+string13, "\deltaD, Pier (07/2023), "+string15, ...   % AJB edits (v3-3, by Andrew): comma after \deltaD
     FontSize=style.legendFontSize_pt)
 % AJB edits (v3-3): panel letter in axes units (Kavin: text(0.03, 0.95*40-20,'C')), and a
 % y range with room for OH's new shift, the spread bands and the legend in the bottom-left
 % corner (Kavin: ylim([-20 20]))
-text(0.03, 0.95, 'C', 'Units', 'normalized')
+% AJB edits (v3-3, by Andrew): panel label at the top left, pnl_fnt points (Kavin: 'C').
+% AJB edits (v3-4): Lynn's request: a plain capital letter, not bold (v3-3: "(c)" in bold)
+text(0.015, 0.95, "C", 'FontSize', pnl_fnt,...
+    'Units', 'normalized')   % same place as the labels (a) and (b)
 ylim([-24 23])
 xticks([0:0.1:1])
 xticklabels([0:0.1:1])
