@@ -903,9 +903,13 @@ yticklabels("")
 % AJB edits (v3-4): the AOS series is named "rBC mass per particle (AOS)" (Kavin: "AOS"),
 % and the AOS and FThickly entries give the period (aosText, aosLabel). What the AOS band
 % shows (mean +/- 1 std) is in the note at the bottom of the panel.
-lgnd = legend("rBC mass per particle (AOS), "+aosText+", "+ string7,"SO4, "+string5,"MO-OOA"+moLabel+", "+string3,"SR-OOA"+srLabel+", " + string6,"f44, "+string8,"FThickly"+aosLabel+", "+string11)
+% lgnd = legend("rBC mass per particle (AOS), "+aosText+", "+ string7,"SO4, "+string5,"MO-OOA"+moLabel+", "+string3,"SR-OOA"+srLabel+", " + string6,"f44, "+string8,"FThickly"+aosLabel+", "+string11)
+lgnd = legend("AOS, "+aosText+", "+ string7,"SO4, "+string5,"MO-OOA"+moLabel+", "+string3,"SR-OOA"+srLabel+", " + string6,"f44, "+string8,"FThickly"+aosLabel+", "+string11)
+
 % AJB edits (v3-2): larger legend text (Kavin: lgnd.FontSize = 5)
-lgnd.FontSize = style.legendFontSize_pt;
+% lgnd.FontSize = style.legendFontSize_pt;
+% AJB edits (v3-4): smaller legend text (Kavin: lgnd.FontSize = 5)
+lgnd.FontSize = 7;
 % AJB edits (v3-2): legend in the top-left corner, where there is no data (v1 to v3-1:
 % bottom right, where it is in Kavin's figure). It is moved a little to the right of
 % the panel letter "A" at the end of section 3.
