@@ -73,8 +73,16 @@
 %   same figure window; each is wiped by the next 'clf'.
 %
 % EDITS BY ANDREW (2026-10-13, in this file): x label 'Local Hour [PST]'; font
-%   sizes ax_fnt/cb_fnt; left y label 'Cloud Base Height [m]' in orange; the
-%   orange 'CBH' key commented out.
+%   sizes ax_fnt/cb_fnt; colour constants swColor/lwColor/cbhColor moved to the
+%   constants block; 'LW_{\downarrow} Flux' label in lwColor and 'SW
+%   Transmittance' in swColor (SW/LW keys switched off); Spring CBH box width
+%   0.6. (A left label 'Cloud Base Height [m]' in orange was later reverted to
+%   'Height [m]' with the orange 'CBH' key back on.)
+%
+% LATER v2 EDITS (AJB, 2026-10-13): font inputs tick_fnt / season_fnt; one
+%   reusable off-screen figure shown at the end; Kavin's test plots skipped
+%   (makeTestPlots); 'sum'/'var' variables renamed; echo_fraction cleared when
+%   no longer needed.
 %
 % Andrew J. Buggee, Scripps Institution of Oceanography, 2026-10-13
 
@@ -94,6 +102,14 @@ figureVisible = 'on';
 
 % AJB edits: set false to skip writing the PNG/PDF files.
 exportFigs = true;
+
+% AJB edits (v2): Kavin's five exploratory test plots (monthly LW curves, SW
+% boxcharts, etc.) are drawn and then wiped by the next 'clf'; none is in the
+% paper. They are skipped by default to cut the drawing work (they added
+% ~1,000s of graphics objects to the window before Fig. 5 was even started).
+% The numbers they print and the variables Fig. 5 needs are still computed.
+% Set true to see them again.
+makeTestPlots = false;
 
 % AJB edits (v2): time zone for the hourly netCDF files (ARSCL, ceilometer,
 % MWR), whose time stamps are hour-start UTC. '-08:00' = PST, a fixed UTC-8
@@ -163,8 +179,29 @@ sontime = table2array(SON_LW_Stepplot(:,"Hour"));
 % ('off' in the .mlx to avoid the R2024b Live Editor exportgraphics hang).
 % resetToFactoryDefaults (local function at the end of this file) undoes the
 % root graphics defaults from Andrew's startup.m for this figure only.
-fig_work = figure('Visible',figureVisible);
+% AJB edits (v2): (1) REUSE ONE FIGURE. Every run used to open a new window, so
+% repeated runs piled up figures with ~2,000 boxplot objects each. The figure
+% is now found by its Tag and cleared, so there is only ever one.
+% (2) DRAW OFF-SCREEN. The figure stays invisible while it is drawn and
+% exported, and is shown once at the very end (figureVisible). Drawing and
+% exporting a large visible figure is what has hung R2024b before (Live
+% Editor, and exportgraphics on visible figures). An invisible figure exports
+% the same image.
+fig_work = findobj(groot, 'Type','figure', 'Tag','EPCAPE_BAMS_Fig5');
+if isempty(fig_work)
+    fig_work = figure('Visible','off', 'Tag','EPCAPE_BAMS_Fig5');
+else
+    fig_work = fig_work(1);
+    clf(fig_work, 'reset');                 % empty it and reset its properties
+    fig_work.Visible = 'off';
+    fig_work.Tag = 'EPCAPE_BAMS_Fig5';      % 'reset' clears the Tag, so set it again
+end
+% Make it the current figure WITHOUT showing it (figure(fig_work) would make it
+% visible), so Kavin's clf/nexttile/gcf calls all draw into it.
+set(groot, 'CurrentFigure', fig_work);
 resetToFactoryDefaults(fig_work);
+% AJB edits (v2): test plot skipped unless makeTestPlots = true (see settings).
+if makeTestPlots   % ---- start of Kavin's test plot: monthly LW diurnal curves
 t = tiledlayout(2,2,'TileSpacing','compact');
 nexttile
 hold on
@@ -197,6 +234,7 @@ plot(sontime,octLW)
 plot(sontime,novLW)
 hold off
 legend("SEP","OCT","NOV")
+end   % ---- end of test plot: monthly LW diurnal curves
 %%
 % AJB edits (v2): SW transmittance block rewritten. Kavin's original lines are kept,
 % commented out, just below this new code.
@@ -236,6 +274,7 @@ for k = 1:numel(swTables)
     assert(isequal(swTables{k}{1,swHourVars}, 0:23), ...
         'SW CSV %d: row 1 is not the hour row 0..23; check the file layout.', k)
 end
+clear swTables   % AJB edits (v2): copies of the 12 SW tables, only needed for the check above
 
 % Replace the -0.05 night fill with NaN (exact match is safe: readtable parses
 % the text '-0.05' to the same double as the literal -0.05).
@@ -293,6 +332,8 @@ augSW(augSW == -0.05) = NaN;
 % augSW = AUG_SW_Boxplot{2:31,["Var2","Var3","Var4","Var5","Var6","Var7","Var8","Var9","Var10","Var11","Var12","Var13","Var14","Var15","Var16","Var17","Var18","Var19","Var20","Var21","Var22","Var23","Var24"]};
 % augSW(:,24) = nan(30,1);
 
+% AJB edits (v2): test plot skipped unless makeTestPlots = true (see settings).
+if makeTestPlots   % ---- start of Kavin's test plot: monthly SW boxcharts
 clf
 t2 = tiledlayout(2,2,"TileSpacing","compact")
 nexttile
@@ -326,6 +367,7 @@ boxchart(julSW)
 boxchart(augSW)
 ylim([0 1])
 hold off
+end   % ---- end of test plot: monthly SW boxcharts
 %%
 clf
 % AJB note: seasons here are Winter = Jan-Mar, Spring = Apr-Jun, Summer =
@@ -376,6 +418,8 @@ falSWavgstd = std(falSWavg,[],'all','omitmissing')
 % (f is kept as a name for it in case anything refers to f).
 % f = figure('Visible',figureVisible);     % Kavin's line (v1 had resetToFactoryDefaults(f) too)
 f = fig_work;
+% AJB edits (v2): test plot skipped unless makeTestPlots = true (see settings).
+if makeTestPlots   % ---- start of Kavin's test plot: seasonal SW/LW, nested layouts
 t4 = tiledlayout(2,2,'TileSpacing',"tight");
 
 t11 = tiledlayout(t4,1,1);
@@ -493,7 +537,10 @@ ax42.YLim = [300 410];
 ax42.Color = 'none';
 ax42.Box = 'off';
 ylabel(ax42,'LW Flux [W/m^2]',Color='r')
+end   % ---- end of test plot: seasonal SW/LW, nested layouts
 %%
+% AJB edits (v2): test plot skipped unless makeTestPlots = true (see settings).
+if makeTestPlots   % ---- start of Kavin's test plot: seasonal SW/LW, yyaxis
 clf
 ta = tiledlayout(2,2,'TileSpacing','compact')
 nexttile
@@ -548,11 +595,14 @@ ylim([300 400])
 ylabel('LW Downwelling Flux (W/m^-2)')
 xlabel('Local Time (Hour)')
 text(20,390,'Fall')
+end   % ---- end of test plot: seasonal SW/LW, yyaxis
 %%
 
 %%
 
 %%
+% AJB edits (v2): test plot skipped unless makeTestPlots = true (see settings).
+if makeTestPlots   % ---- start of Kavin's test plot: monthly SW and LW, 4x2
 timecheck = SEP_SW_Boxplot{1,["Var1","Var2","Var3","Var4","Var5","Var6","Var7","Var8","Var9","Var10","Var11","Var12","Var13","Var14","Var15","Var16","Var17","Var18","Var19","Var20","Var21","Var22","Var23","Var24"]},
 
 clf
@@ -685,6 +735,7 @@ ylabel('Flux [W/m^2]')
 
 
 xlabel(t5,'Local Time (Hour)','FontSize',13)
+end   % ---- end of test plot: monthly SW and LW, 4x2
 %%
 clf
 ncdisp(fullfile(dataDir,"arscl_echomask_hourly.nc"));  % AJB edits: read from dataDir (was a bare file name)
@@ -748,31 +799,31 @@ tbl.("month") = month(timesche);  % AJB edits: added ';' to suppress a very long
 % table) were here. Deleted (Andrew, 2026-10-13); they are still in v1 and in
 % Kavin's original. tbl (above) stays: it feeds the CBH statistics below.
 %%
-% AJB note: 'var' (and 'sum' just below, 'min'/'max' in the rainfall block,
-% 'std2' at the end) shadow built-in MATLAB functions. Nothing later calls
-% those functions, so results are unaffected, but avoid reusing the names.
-var = tbl.CEIL_CBH;  % AJB edits: added ';' to suppress a very long printout (no change to values)
+% AJB edits (v2): Kavin's variables 'var' and 'sum' renamed to 'ceilCBH_m' (ceilometer CBH,
+% m) and 'summ'. As variables they hid MATLAB's var() and sum() functions in your
+% workspace after a run, so e.g. sum([1 2]) at the prompt would fail.
+ceilCBH_m = tbl.CEIL_CBH;  % AJB edits: added ';' to suppress a very long printout (no change to values)
 
 win = tbl.month >= 1 & tbl.month <= 3;
 spr = tbl.month >= 4 & tbl.month <= 6;
-sum = tbl.month >= 7 & tbl.month <= 9;
+summ = tbl.month >= 7 & tbl.month <= 9;
 fal = tbl.month >= 10 & tbl.month <= 12;
 
 
-mean(var,'omitmissing')
-std(var,'omitmissing')
+mean(ceilCBH_m,'omitmissing')
+std(ceilCBH_m,'omitmissing')
 
-mean(var(spr),'omitmissing')
-std(var(spr),'omitmissing')
+mean(ceilCBH_m(spr),'omitmissing')
+std(ceilCBH_m(spr),'omitmissing')
 
-mean(var(sum),'omitmissing')
-std(var(sum),'omitmissing')
+mean(ceilCBH_m(summ),'omitmissing')
+std(ceilCBH_m(summ),'omitmissing')
 
-mean(var(fal),'omitmissing')
-std(var(fal),'omitmissing')
+mean(ceilCBH_m(fal),'omitmissing')
+std(ceilCBH_m(fal),'omitmissing')
 
-mean(var(win),'omitmissing')
-std(var(win),'omitmissing')
+mean(ceilCBH_m(win),'omitmissing')
+std(ceilCBH_m(win),'omitmissing')
 
 %%
 
@@ -787,6 +838,13 @@ cbhColor = [0.8500, 0.3250, 0.0980];   % CBH boxes (orange)
 
 ax_fnt = 20;
 cb_fnt = 16;
+% AJB edits (v2): two new font inputs (points), requested by Andrew.
+% tick_fnt: tick labels on every panel and the colour bar. The factory default
+%   was 10 pt (9 pt on the colour bar); +2 pt -> 12.
+% season_fnt: the season titles above the top row. They were 11 pt (10 pt axes
+%   font x 1.1 title multiplier), bold; +3 pt -> 14.
+tick_fnt = 12;
+season_fnt = 14;
 
 % AJB note: THIS BLOCK PRODUCES BAMS FIGURE 5 (seasonal diurnal cycle of
 % echo fraction + ceilometer CBH, MWR LWP, SW transmittance + LW flux).
@@ -822,9 +880,12 @@ yyaxis left
 pcolor(0.5:24.5,height,sprechomap,'EdgeColor','none')
 colormap('sky')
 ylim([0 3000])
-title('Spring')
-% ylabel('Height [m]')
-ylabel('Cloud Base Height [m]', 'FontSize', ax_fnt, 'Color', cbhColor)
+title('Spring', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
+% AJB edits (v2): back to 'Height [m]' (black). The left axis is the height of
+% BOTH the hydrometeor-fraction colours and the CBH boxes; the orange 'CBH' key
+% in the Winter panel identifies the boxes.
+% ylabel('Cloud Base Height [m]', 'FontSize', ax_fnt, 'Color', cbhColor)   % Andrew's earlier label
+ylabel('Height [m]', 'FontSize', ax_fnt)
 
 
 nexttile(echospr,9,[1 1])
@@ -889,7 +950,7 @@ yyaxis left
 pcolor(0.5:24.5,height,sumechomap,'EdgeColor','none')
 ylim([0 3000])
 colormap('sky')
-title('Summer')
+title('Summer', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,10,[1 1])
@@ -949,7 +1010,7 @@ yyaxis left
 pcolor(0.5:24.5,height,falechomap,'EdgeColor','none')
 ylim([0 3000])
 colormap('sky')
-title('Fall')
+title('Fall', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,11,[1 1])
@@ -995,6 +1056,11 @@ for i = 0:24
     winechomap(:,i+1) = mean(echo_fraction(:,hour(d) == i & month(d) >= 1 & month(d) <= 3),2,'omitmissing');
 
 end
+% AJB edits (v2): echo_fraction (596 heights x 8809 hours, 42 MB, about 3/4 of
+% the workspace) is no longer needed once the four seasonal maps exist.
+% Memory was NOT the cause of the hangs (the whole workspace is ~45 MB),
+% but there is no reason to keep it.
+clear echo_fraction
 
 
 nexttile(echospr,4,[2 1])
@@ -1017,7 +1083,7 @@ colormap('sky')
 c = colorbar;
 clim([0 0.5])
 ylim([0 3000])
-title('Winter')
+title('Winter', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 % AJB edits (v2): Lynn: 'Change echo to Hydrometeor'. ARSCL echo_fraction = fraction of
@@ -1034,8 +1100,9 @@ ylim([0 500])
 nexttile(echospr,16,[1,1])
 yyaxis right
 boxplot(winSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410])
-% AJB edits (v2): Lynn: 'Typo in Transmittance' (was 'SW Trasmittance'). Text is black, as
-% on the slide version; the blue 'SW' key added below identifies the boxes.
+% AJB edits (v2): Lynn: 'Typo in Transmittance' (was 'SW Trasmittance'). Andrew colours
+% the label swColor instead of using an 'SW' key; the colour is applied after
+% the black-axes loop below (an axis colour change overrides label colours).
 ylabel('SW Transmittance', 'FontSize', ax_fnt, 'Color', swColor)
 ax = gca;
 ax.YColor = 'k';
@@ -1067,10 +1134,29 @@ for k = 1:numel(fig5Axes)
         fig5Axes(k).YAxis(iy).Color = 'k';
     end
 end
-% Setting an axis colour also recolours its label, which turned Andrew's orange
-% 'Cloud Base Height [m]' label black. Re-apply the orange to that one label
-% (Spring panel, left y axis).
-fig5Axes(1).YAxis(1).Label.Color = cbhColor;
+% AJB edits (v2): coloured y-axis LABELS. Setting an axis colour (the loop above,
+% and Kavin's 'ax.YColor = ...' lines) also recolours that axis's label, which
+% is why Andrew's lwColor/swColor labels came out black. The label colours are
+% therefore applied here, AFTER every axis-colour change:
+%   fig5Axes(9)  = Spring, bottom row; its LEFT axis (YAxis(1)) is LW flux
+%   fig5Axes(12) = Winter, bottom row; its RIGHT axis (YAxis(2)) is SW transmittance
+fig5Axes(9).YAxis(1).Label.Color  = lwColor;
+fig5Axes(12).YAxis(2).Label.Color = swColor;
+
+% AJB edits (v2): tick-label size. The font size is set on each axis RULER
+% (XAxis / YAxis), which leaves the season titles at season_fnt. A ruler's
+% FontSize also rescales its axis label (to 1.1 x tick_fnt), so each label's
+% size from its xlabel/ylabel call (ax_fnt, ax_fnt-4) is saved and put back.
+for k = 1:numel(fig5Axes)
+    rulers = [fig5Axes(k).XAxis; fig5Axes(k).YAxis(:)];   % x axis + 1 or 2 y axes
+    for ir = 1:numel(rulers)
+        labelSize_pt = rulers(ir).Label.FontSize;         % size set by xlabel/ylabel
+        rulers(ir).FontSize = tick_fnt;                   % tick labels
+        rulers(ir).Label.FontSize = labelSize_pt;         % restore the axis label
+    end
+end
+c.FontSize = tick_fnt;               % colour-bar tick labels
+c.Label.FontSize = cb_fnt;           % keep the colour-bar label at cb_fnt
 
 % Lynn: 'Add panel labels -- A, B, etc.' One letter per ROW, in the first
 % (Spring) column only (Andrew, 2026-10-13): A = hydrometeor fraction + CBH,
@@ -1094,8 +1180,9 @@ end
 %     'VerticalAlignment','top', 'FontSize',14, 'Color',swColor);
 % text(fig5Axes(12), 0.97, 0.72, 'LW', 'Units','normalized', 'HorizontalAlignment','right', ...
 %     'VerticalAlignment','top', 'FontSize',14, 'Color',lwColor);
-% text(fig5Axes(4), 0.97, 0.97, 'CBH', 'Units','normalized', 'HorizontalAlignment','right', ...
-%     'VerticalAlignment','top', 'FontSize',14, 'Color',cbhColor);
+% AJB edits (v2): orange 'CBH' key switched back on (Andrew).
+text(fig5Axes(4), 0.97, 0.97, 'CBH', 'Units','normalized', 'HorizontalAlignment','right', ...
+    'VerticalAlignment','top', 'FontSize',14, 'Color',cbhColor);
 
 % AJB edits: export Fig. 5 (Kavin copied figures out of the Live Editor by
 % hand). PNG at 300 dpi for slides; PDF as vector for the manuscript.
@@ -1104,6 +1191,10 @@ if exportFigs
     exportgraphics(gcf, fullfile(outDir,'EPCAPEDanLWSWtransmittance_BAMSFig5_AJB_v2.png'),'Resolution',300);
     exportgraphics(gcf, fullfile(outDir,'EPCAPEDanLWSWtransmittance_BAMSFig5_AJB_v2.pdf'),'ContentType','vector');
 end
+
+% AJB edits (v2): show the finished figure now that drawing and exporting are done
+% (stays hidden in the .mlx, where figureVisible = 'off').
+fig_work.Visible = figureVisible;
 %%
 
 %%
