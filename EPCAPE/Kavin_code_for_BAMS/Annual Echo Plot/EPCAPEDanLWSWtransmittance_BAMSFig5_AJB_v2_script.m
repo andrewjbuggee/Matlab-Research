@@ -844,7 +844,10 @@ cb_fnt = 16;
 % season_fnt: the season titles above the top row. They were 11 pt (10 pt axes
 %   font x 1.1 title multiplier), bold; +3 pt -> 14.
 tick_fnt = 12;
-season_fnt = 14;
+season_fnt = 16;
+
+% define the boxplot line width
+bx_ln_wd = 1.5;
 
 % AJB note: THIS BLOCK PRODUCES BAMS FIGURE 5 (seasonal diurnal cycle of
 % echo fraction + ceilometer CBH, MWR LWP, SW transmittance + LW flux).
@@ -870,7 +873,8 @@ echospr = tiledlayout(4,4,'TileSpacing','tight');
 
 nexttile(echospr,1,[2 1])
 yyaxis right
-boxplot(sprcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.6)
+b1 = boxplot(sprcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+set(b1, 'LineWidth', bx_ln_wd);
 xlim([0.5 24.5])
 ylim([0 3000])
 xticklabels([])
@@ -889,7 +893,8 @@ ylabel('Height [m]', 'FontSize', ax_fnt)
 
 
 nexttile(echospr,9,[1 1])
-boxplot(sprlwpbox(:,1:24),'Symbol','')
+b2 = boxplot(sprlwpbox(:,1:24),'Symbol','');
+set(b2, 'LineWidth', bx_ln_wd);
 xticklabels([])
 % AJB edits (v2): unit written as g m^{-2} to match the W m^{-2} style (was g/m^2).
 ylabel('Liquid Water Path [g m^{-2}]', 'FontSize', ax_fnt-4)
@@ -897,7 +902,8 @@ ylim([0 500])
 
 nexttile(echospr,13,[1,1])
 yyaxis right
-boxplot(sprSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410])
+b3 = boxplot(sprSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+set(b3, 'LineWidth', bx_ln_wd);
 yticklabels([])
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
 xtickangle(0)
@@ -940,7 +946,8 @@ end
 
 nexttile(echospr,2,[2 1])
 yyaxis right
-boxplot(sumcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3)
+b4 = boxplot(sumcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+set(b4, 'LineWidth', bx_ln_wd);
 ylim([0 3000])
 xlim([0.5 24.5])
 xticklabels([])
@@ -954,14 +961,16 @@ title('Summer', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,10,[1 1])
-boxplot(sumlwpbox(:,1:24),'Symbol','')
+b5 = boxplot(sumlwpbox(:,1:24),'Symbol','');
+set(b5, 'LineWidth', bx_ln_wd);
 xticklabels([])
 ylim([0 500])
 yticklabels([])
 
 nexttile(echospr,14,[1,1])
 yyaxis right
-boxplot(sumSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410])
+b6 = boxplot(sumSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+set(b6, 'LineWidth', bx_ln_wd);
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
 xtickangle(0)
 yticklabels([])
@@ -1000,7 +1009,8 @@ end
 
 nexttile(echospr,3,[2 1])
 yyaxis right
-boxplot(falcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3)
+b7 = boxplot(falcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+set(b7, 'LineWidth', bx_ln_wd);
 ylim([0 3000])
 xlim([0.5 24.5])
 xticklabels([])
@@ -1014,7 +1024,8 @@ title('Fall', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,11,[1 1])
-boxplot(fallwpbox(:,1:24),'Symbol','','Colors',[0, 0.4470, 0.7410])
+b8 = boxplot(fallwpbox(:,1:24),'Symbol','','Colors',[0, 0.4470, 0.7410]);
+set(b8, 'LineWidth', bx_ln_wd);
 xticklabels([])
 ylim([0 500])
 yticklabels([])
@@ -1022,7 +1033,8 @@ yticklabels([])
 
 nexttile(echospr,15,[1,1])
 yyaxis right
-boxplot(falSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410])
+b9 = boxplot(falSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+set(b9, 'LineWidth', bx_ln_wd);
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
 xtickangle(0)
 yticklabels([])
@@ -1182,7 +1194,7 @@ end
 %     'VerticalAlignment','top', 'FontSize',14, 'Color',lwColor);
 % AJB edits (v2): orange 'CBH' key switched back on (Andrew).
 text(fig5Axes(4), 0.97, 0.97, 'CBH', 'Units','normalized', 'HorizontalAlignment','right', ...
-    'VerticalAlignment','top', 'FontSize',14, 'Color',cbhColor);
+    'VerticalAlignment','top', 'FontSize',16, 'Color',cbhColor);
 
 % AJB edits: export Fig. 5 (Kavin copied figures out of the Live Editor by
 % hand). PNG at 300 dpi for slides; PDF as vector for the manuscript.
