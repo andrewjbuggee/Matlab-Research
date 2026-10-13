@@ -84,6 +84,14 @@
 %   (makeTestPlots); 'sum'/'var' variables renamed; echo_fraction cleared when
 %   no longer needed.
 %
+% ROUND 4 (2026-10-13). Andrew: boxplot line width bx_ln_wd (all 12 boxplots),
+%   season_fnt 16, CBH key 16 pt, Spring CBH width back to 0.3. AJB: panel-letter
+%   font pnl_fnt = 16; LW line width lw_ln_wd = 1.5; panel B (LWP) boxes in
+%   swColor like panel C; every Fig. 5 plot call now takes its colour from
+%   swColor / lwColor / cbhColor. CBH colour options (contrast against the
+%   hydrometeor colour map) are compared in EPCAPE_BAMS_Fig5_CBH_color_options.png.
+%   Andrew chose black: cbhColor = [0 0 0] (boxes and 'CBH' key).
+%
 % Andrew J. Buggee, Scripps Institution of Oceanography, 2026-10-13
 
 % AJB edits: settings block (v1). Kavin's original read every file from
@@ -834,7 +842,15 @@ std(ceilCBH_m(win),'omitmissing')
 % Colours are the same RGB triplets Kavin used for the data.
 swColor  = [0, 0.4470, 0.7410];        % SW boxes (MATLAB default blue)
 lwColor  = [0.6350, 0.0780, 0.1840];   % LW line (dark red)
-cbhColor = [0.8500, 0.3250, 0.0980];   % CBH boxes (orange)
+% AJB edits (v2): CBH boxes and the 'CBH' key are BLACK (Andrew, 2026-10-13).
+% Kavin's orange, [0.8500, 0.3250, 0.0980], had about the same brightness as the
+% dark end of the 'sky' colour map (WCAG contrast 1.3:1), so the boxes 'vibrated'
+% against the Spring/Summer hydrometeor maxima. Black has 18.3:1 against the
+% lightest blue and 4.1:1 against the darkest, the only tested colour above 3:1 on
+% both (see EPCAPE_BAMS_Fig5_CBH_color_options.png).
+cbhColor = [0 0 0];                    % CBH boxes and 'CBH' key (black)
+% AJB edits (v2): these three colours now drive every plot call (boxes, lines,
+% labels, keys), so changing a colour here changes it everywhere in Fig. 5.
 
 ax_fnt = 20;
 cb_fnt = 16;
@@ -847,7 +863,15 @@ tick_fnt = 12;
 season_fnt = 16;
 
 % define the boxplot line width
-bx_ln_wd = 1.5;
+bx_ln_wd = 1;
+
+% AJB edits (v2): line width (points) of the mean LW flux line in panel C
+% (Andrew). Was MATLAB's default 0.5 pt.
+lw_ln_wd = 1.5;
+
+% AJB edits (v2): font size (points) of the panel letters A, B, C. Set to match
+% the season titles (season_fnt) and the CBH key; was a fixed 14 pt.
+pnl_fnt = 16;
 
 % AJB note: THIS BLOCK PRODUCES BAMS FIGURE 5 (seasonal diurnal cycle of
 % echo fraction + ceilometer CBH, MWR LWP, SW transmittance + LW flux).
@@ -873,7 +897,7 @@ echospr = tiledlayout(4,4,'TileSpacing','tight');
 
 nexttile(echospr,1,[2 1])
 yyaxis right
-b1 = boxplot(sprcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+b1 = boxplot(sprcbheight,'Symbol','','Colors',cbhColor,'Widths',0.3);   % AJB edits (v2): colour from cbhColor (was the RGB triplet typed in)
 set(b1, 'LineWidth', bx_ln_wd);
 xlim([0.5 24.5])
 ylim([0 3000])
@@ -893,7 +917,10 @@ ylabel('Height [m]', 'FontSize', ax_fnt)
 
 
 nexttile(echospr,9,[1 1])
-b2 = boxplot(sprlwpbox(:,1:24),'Symbol','');
+% AJB edits (v2): Spring/Summer/Winter LWP boxes used MATLAB's default boxplot colours
+% (blue box, red median, black whiskers) and Fall used the SW blue. All four now
+% use swColor for every part, like the SW boxes in panel C.
+b2 = boxplot(sprlwpbox(:,1:24),'Symbol','','Colors',swColor);   % AJB edits (v2): panel B boxes in swColor, same as panel C (Andrew)
 set(b2, 'LineWidth', bx_ln_wd);
 xticklabels([])
 % AJB edits (v2): unit written as g m^{-2} to match the W m^{-2} style (was g/m^2).
@@ -902,7 +929,7 @@ ylim([0 500])
 
 nexttile(echospr,13,[1,1])
 yyaxis right
-b3 = boxplot(sprSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+b3 = boxplot(sprSWavg,'Symbol','','Colors',swColor);   % AJB edits (v2): colour from swColor
 set(b3, 'LineWidth', bx_ln_wd);
 yticklabels([])
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
@@ -910,7 +937,7 @@ xtickangle(0)
 ylim([0 1])
 
 yyaxis left
-plot(mamtime+1,sprLWavg,Color=[0.6350, 0.0780, 0.1840])
+plot(mamtime+1,sprLWavg,Color=lwColor,LineWidth=lw_ln_wd)   % AJB edits (v2): colour from lwColor; width from lw_ln_wd
 % AJB edits (v2): Lynn: 'Add units to LW Flux and Height if they fit'. LW Flux gets
 % [W m^{-2}] (downwelling LW irradiance at the surface); 'Height [m]' already had
 % units. Black text as on the slide; the red 'LW' key identifies the line.
@@ -946,7 +973,7 @@ end
 
 nexttile(echospr,2,[2 1])
 yyaxis right
-b4 = boxplot(sumcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+b4 = boxplot(sumcbheight,'Symbol','','Colors',cbhColor,'Widths',0.3);   % AJB edits (v2): colour from cbhColor (was the RGB triplet typed in)
 set(b4, 'LineWidth', bx_ln_wd);
 ylim([0 3000])
 xlim([0.5 24.5])
@@ -961,7 +988,7 @@ title('Summer', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,10,[1 1])
-b5 = boxplot(sumlwpbox(:,1:24),'Symbol','');
+b5 = boxplot(sumlwpbox(:,1:24),'Symbol','','Colors',swColor);   % AJB edits (v2): panel B boxes in swColor, same as panel C (Andrew)
 set(b5, 'LineWidth', bx_ln_wd);
 xticklabels([])
 ylim([0 500])
@@ -969,7 +996,7 @@ yticklabels([])
 
 nexttile(echospr,14,[1,1])
 yyaxis right
-b6 = boxplot(sumSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+b6 = boxplot(sumSWavg,'Symbol','','Colors',swColor);   % AJB edits (v2): colour from swColor
 set(b6, 'LineWidth', bx_ln_wd);
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
 xtickangle(0)
@@ -977,7 +1004,7 @@ yticklabels([])
 ylim([0 1])
 
 yyaxis left
-plot(mamtime+1,sumLWavg,Color=[0.6350, 0.0780, 0.1840])
+plot(mamtime+1,sumLWavg,Color=lwColor,LineWidth=lw_ln_wd)   % AJB edits (v2): colour from lwColor; width from lw_ln_wd
 yticklabels([])
 ylim([300 410])
 
@@ -1009,7 +1036,7 @@ end
 
 nexttile(echospr,3,[2 1])
 yyaxis right
-b7 = boxplot(falcbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3);
+b7 = boxplot(falcbheight,'Symbol','','Colors',cbhColor,'Widths',0.3);   % AJB edits (v2): colour from cbhColor (was the RGB triplet typed in)
 set(b7, 'LineWidth', bx_ln_wd);
 ylim([0 3000])
 xlim([0.5 24.5])
@@ -1024,7 +1051,7 @@ title('Fall', 'FontSize', season_fnt)   % AJB edits (v2): season_fnt
 yticklabels([])
 
 nexttile(echospr,11,[1 1])
-b8 = boxplot(fallwpbox(:,1:24),'Symbol','','Colors',[0, 0.4470, 0.7410]);
+b8 = boxplot(fallwpbox(:,1:24),'Symbol','','Colors',swColor);   % AJB edits (v2): panel B boxes in swColor, same as panel C (Andrew)
 set(b8, 'LineWidth', bx_ln_wd);
 xticklabels([])
 ylim([0 500])
@@ -1033,7 +1060,7 @@ yticklabels([])
 
 nexttile(echospr,15,[1,1])
 yyaxis right
-b9 = boxplot(falSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410]);
+b9 = boxplot(falSWavg,'Symbol','','Colors',swColor);   % AJB edits (v2): colour from swColor
 set(b9, 'LineWidth', bx_ln_wd);
 xticklabels(["0" "" "" "" "" "5" "" "" "" "" "10" "" "" "" "" "15" "" "" "" "" "20" "" "" ""])  % AJB edits (v2): '23' label dropped, as on the slide version
 xtickangle(0)
@@ -1042,7 +1069,7 @@ ylim([0 1])
 
 
 yyaxis left
-plot(mamtime+1,falLWavg, Color=[0.6350, 0.0780, 0.1840])
+plot(mamtime+1,falLWavg, Color=lwColor,LineWidth=lw_ln_wd)   % AJB edits (v2): colour from lwColor; width from lw_ln_wd
 ylim([300 410])
 yticklabels([])
 
@@ -1077,7 +1104,8 @@ clear echo_fraction
 
 nexttile(echospr,4,[2 1])
 yyaxis right
-boxplot(wincbheight,'Symbol','','Colors',[0.8500, 0.3250, 0.0980],'Widths',0.3)
+b10 = boxplot(wincbheight,'Symbol','','Colors',cbhColor,'Widths',0.3);   % AJB edits (v2): colour from cbhColor (was the RGB triplet typed in)
+set(b10, 'LineWidth', bx_ln_wd);
 % AJB edits (v2): Lynn: 'remove label for Cloud Base Height on right' (and 'why is right
 % axis label needed?'). It isn't: the right axis has no tick labels and the same
 % 0-3000 m range as the left 'Height [m]' axis, so the CBH boxes are read off the
@@ -1104,14 +1132,16 @@ yticklabels([])
 ylabel(c, "Hydrometeor Fraction", "FontSize", cb_fnt)
 
 nexttile(echospr,12,[1 1])
-boxplot(winlwpbox(:,1:24),'Symbol','')
+b11 = boxplot(winlwpbox(:,1:24),'Symbol','','Colors',swColor);   % AJB edits (v2): panel B boxes in swColor, same as panel C (Andrew)
+set(b11, 'LineWidth', bx_ln_wd);
 xticklabels([])
 yticklabels([])
 ylim([0 500])
 
 nexttile(echospr,16,[1,1])
 yyaxis right
-boxplot(winSWavg,'Symbol','','Colors',[0, 0.4470, 0.7410])
+b12 = boxplot(winSWavg,'Symbol','','Colors',swColor);   % AJB edits (v2): colour from swColor
+set(b12, 'LineWidth', bx_ln_wd);
 % AJB edits (v2): Lynn: 'Typo in Transmittance' (was 'SW Trasmittance'). Andrew colours
 % the label swColor instead of using an 'SW' key; the colour is applied after
 % the black-axes loop below (an axis colour change overrides label colours).
@@ -1123,7 +1153,7 @@ xtickangle(0)
 ylim([0 1])
 
 yyaxis left
-plot(mamtime+1,winLWavg,Color=[0.6350, 0.0780, 0.1840])
+plot(mamtime+1,winLWavg,Color=lwColor,LineWidth=lw_ln_wd)   % AJB edits (v2): colour from lwColor; width from lw_ln_wd
 yticklabels([])
 ylim([300 410])
 
@@ -1175,7 +1205,7 @@ c.Label.FontSize = cb_fnt;           % keep the colour-bar label at cb_fnt
 % B = LWP, C = SW/LW. The columns are already labelled by season, so e.g.
 % "panel B, Winter" is unambiguous. (The first version labelled all 12 panels
 % A-L.) fig5Axes is sorted by tile, so elements 1, 5 and 9 are tiles 1, 9 and
-% 13: the Spring panel of each row. Plain 14 pt, not bold, top-left corner (as
+% 13: the Spring panel of each row. Plain pnl_fnt pt, not bold, top-left corner (as
 % Lynn asked for in BAMS Fig. 8). A white box behind each letter keeps it
 % readable where whiskers reach the top of the panel (row B, hours 0-1).
 panelLetters = 'ABC';
@@ -1183,7 +1213,7 @@ firstColumnAxes = fig5Axes([1 5 9]);
 for k = 1:numel(firstColumnAxes)
     text(firstColumnAxes(k), 0.02, 0.97, panelLetters(k), 'Units','normalized', ...
         'HorizontalAlignment','left', 'VerticalAlignment','top', ...
-        'FontSize',14, 'Color','k', 'BackgroundColor','w', 'Margin',1);
+        'FontSize',pnl_fnt, 'Color','k', 'BackgroundColor','w', 'Margin',1);   % AJB edits (v2): pnl_fnt (was 14)
 end
 
 
