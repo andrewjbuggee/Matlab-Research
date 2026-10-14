@@ -225,7 +225,8 @@
 %   from the tab "Coating thickness" of Elavarasi's file, which holds the individual
 %   samples. It is binned like FThickly (April 2023, aosAprilOnly; 2327 samples in 13 of
 %   the 14 bins): bin medians, IQR band, fit and r from the bin medians. r = 0.94 (from
-%   the samples: 0.38). Over April-July instead, the coating thickness falls with UCVF
+%   the samples: 0.38). Legend name: "Coating thickness" (Andrew's edit; first v3-5:
+%   "rBC Coating"). Over April-July instead, the coating thickness falls with UCVF
 %   (r = -0.95), as the rBC mass per particle did.
 % # "SO4" is called "Sulfate" in the legend (Lynn).
 % # Glycolic and glyoxylic acid (ppt) added to panel A, from Elavarasi's file "Glycolic
@@ -233,8 +234,7 @@
 %   2023). It holds only the mean and standard deviation in 0.05-wide UCVF bins (17 bins
 %   with data, UCVF 0.2-1), so the acids are drawn like AOS in v3-4: their own bin means,
 %   a fit and r over those 17 points, and a band of plus/minus one standard deviation.
-%   r = 0.95 (glycolic) and 0.92 (glyoxylic). The legend gives the period as
-%   "Apr-Jul 2023".
+%   r = 0.95 (glycolic) and 0.92 (glyoxylic).
 % # r without the subscript "bin" (the caption explains that r is computed from the
 %   bins), always with 2 decimals (e.g. -0.70, not -0.7), and in bold where p < 0.05
 %   (Lynn). p is the two-sided p-value from corrcoef for the points of that fit (bins for
@@ -249,6 +249,44 @@
 %   steeper; the y range is set to fit the data.
 % # The two acids get two more colours (see User settings), and the panel A legend lists
 %   the species from top to bottom in the order in which they are drawn.
+% # Andrew's edits to the first v3-5 script (kept here): no dates in any legend (the
+%   periods are listed below, under "Periods of the data", and in the table printed at
+%   the end), "Coating thickness" instead of "rBC Coating", panel A legend text 8 pt
+%   (first v3-5: 7 pt), and no printout of Kavin's April table (semicolon).
+% # New section 5 at the end of the script: prints a table with r and p of every legend
+%   entry, the number of points r is computed from, and the first and last date of the
+%   data.
+%
+%% Periods of the data (dates used for each species)
+% AJB edits (v3-5): new. The legends do not give dates (Andrew removed them in v3-5), so
+% the dates are listed here. "First to last date" is the first and last sample that has
+% both a UCVF value and a value of the species; there can be gaps in between. Times in
+% the files are UTC where the file says so (LANL, dD, Elba's Pier file).
+% Section 5 prints the same dates, computed from the data each time the script runs, so
+% they follow the settings (moAprJunOnly, srAprJunOnly, aosAprilOnly).
+%
+% Panel A
+%   Glycolic acid, glyoxylic acid  30 Apr - 6 Jul 2023. From the file name and
+%                                  Elavarasi's email; the file has bin values only, no
+%                                  times, so this cannot be checked from the data.
+%   Coating thickness              April 2023 (aosAprilOnly = true). Samples with data
+%                                  run from 1 to 21 April 2023.
+%   Sulfate (SO4)                  16 Feb 2023 - 14 Feb 2024 (all months of KAVIN_TABLE).
+%   MO-OOA                         1 Apr - 30 Jun 2023 (moAprJunOnly = true, as in
+%                                  Kavin's code).
+%   SR-OOA                         16 Feb 2023 - 14 Feb 2024 (srAprJunOnly = false).
+%   f44                            16 Feb 2023 - 14 Feb 2024.
+%   FThickly                       1 - 30 Apr 2023 (aosAprilOnly = true).
+% Panel B
+%   HOA                            21 Oct - 3 Dec 2023 (LANL file).
+%   rBC (mass concentration)       19 Oct - 3 Dec 2023 (LANL file).
+%   NaCl2 (ultrafine salt)         27 Apr - 14 Jun 2023 (daily means).
+% Panel C
+%   OH                             Unknown: the UCLA file lists sample numbers (e.g.
+%                                  "822-823"), not dates.
+%   dD, Mt. Soledad                14 - 31 Jul 2023 (the record starts on 14 July; only
+%                                  July is used).
+%   dD, Pier                       14 - 31 Jul 2023 (same period as Mt. Soledad).
 %
 %% Open questions for Kavin and Lynn
 % The v2 changes and the open questions are listed in plain language in
@@ -434,6 +472,9 @@ dmoso = month(KAVIN_TABLE.Time) + (year(KAVIN_TABLE.Time) -2023)*12
 % AJB edits (v3-2): rows used for MO-OOA (moRows) and for SR-OOA (srRows) for points,
 % fits and r, and the matching legend suffixes (moLabel, srLabel). Kavin selected
 % April-June 2023 (dmoso 4-6) inside both fits. (v2 to v3-1: one set, ooaRows/ooaLabel.)
+% AJB note (v3-5): the legends no longer show these suffixes (Andrew removed all dates
+% in v3-5; SR-OOA still adds srLabel, which is empty with the default setting). The
+% periods are listed in "Periods of the data" (header) and printed in section 5.
 aprJun  = dmoso <= 6 & dmoso >= 4;          % April-June 2023
 allRows = true(height(KAVIN_TABLE), 1);     % every month
 if moAprJunOnly
@@ -491,6 +532,7 @@ if aosAprilOnly
     keepFthick = month(fthickTable{:,1}) == 4 & year(fthickTable{:,1}) == 2023;   % April 2023
     aosLabel = " (Apr 2023)";
     aosText  = "Apr 2023";      % AJB edits (v3-4): the same period, for the AOS legend entry
+    % AJB note (v3-5): aosLabel and aosText are no longer shown in the legend (no dates)
 else
     keepFthick = true(height(fthickTable), 1);                                     % April-July 2023
     aosLabel = " (Apr-Jul 2023)";
@@ -532,6 +574,8 @@ glyoxylicUCVF    = acidTable{hasGlyoxylic, 1};
 glyoxylic_ppt    = acidTable{hasGlyoxylic, 4};
 glyoxylicStd_ppt = acidTable{hasGlyoxylic, 5};
 acidLabel = " (Apr-Jul 2023)";                   % 30 April - 6 July 2023
+% AJB note (v3-5): acidLabel is not shown in the legend (Andrew removed the dates); it
+% is kept as the record of the acids' period, which the file itself does not contain.
 %% 2. Linear fits and correlation coefficients
 % AJB note: each block fits y = b + m*UCVF (fitlm), evaluates the fit on 100 points
 % between the smallest and largest UCVF (xFitN, yFitN), and builds the legend text
@@ -1008,6 +1052,9 @@ yticklabels("")
 %     "rBC Coating"+aosLabel+", "+string7, "Sulfate, "+string5, "MO-OOA"+moLabel+", "+string3, ...
 %     "SR-OOA"+srLabel+", "+string6, "f44, "+string8, "FThickly"+aosLabel+", "+string11)
 % v3-5: without dates
+% AJB edits (v3-5, by Andrew): no dates in the legend, and "Coating thickness" (first
+% v3-5: "rBC Coating"). The dates of every species are listed in "Periods of the data"
+% (header) and in the table of section 5.
 lgnd = legend("Glycolic acid, "+string16, "Glyoxylic acid, "+string17, ...
     "Coating thickness, " +string7, "Sulfate, "+string5, "MO-OOA, "+string3, ...
     "SR-OOA"+srLabel+", "+string6, "f44, "+string8, "FThickly, " +string11);
@@ -1094,6 +1141,8 @@ yticklabels("")
 % legend("OH, "+ string10, "\deltaD, Mt. Soledad (07/2023), "+string13, "\deltaD, Pier (07/2023), "+string15, ...   % AJB edits (v3-3, by Andrew): comma after \deltaD
 %     FontSize=style.legendFontSize_pt)
 % AJB edits (v3-5): no dates
+% AJB edits (v3-5, by Andrew): both dD records are from 14-31 July 2023 ("07/2023" in
+% v3-3 and v3-4); see "Periods of the data" (header) and section 5.
 legend("OH, "+ string10, "\deltaD, Mt. Soledad, "+string13, "\deltaD, Pier, "+string15, ...   % AJB edits (v3-3, by Andrew): comma after \deltaD
     FontSize=style.legendFontSize_pt)
 
@@ -1133,6 +1182,59 @@ if saveFigure
     exportgraphics(fig, fullfile(outDir, [figName '.png']), 'Resolution', 300)
     exportgraphics(fig, fullfile(outDir, [figName '.pdf']), 'ContentType', 'vector')
     fprintf('Saved %s.png and %s.pdf in %s\n', figName, figName, outDir)
+end
+
+%% 5. Table of r and p for every legend entry
+% AJB edits (v3-5): this whole section is new. It prints one row per legend entry, in
+% the order of the legends (panel A from top to bottom, then B, then C):
+%   r        Pearson's r printed in the legend
+%   p        its two-sided p-value (corrcoef); the legend prints r in bold if p < 0.05
+%   points   number of points r is computed from: the UCVF bins that hold data, or, for
+%            the two acids, their own bins
+%   rFrom    what r is computed from
+%   firstDate, lastDate   first and last sample with both UCVF and a value
+%                         (see "Periods of the data" in the header)
+% The values are those of section 2c (bin medians) and section 2 (acids), so the table
+% needs fitToBinMeans = true, the setting used for the paper figure.
+if fitToBinMeans
+    % Rows of the section 2c arrays (rBinMeans, pBins, nBins), in legend order. The acids
+    % (rows 1 and 2 of the table) are not in those arrays and are added separately.
+    % Section 2c order: 1 Sulfate, 2 MO-OOA, 3 SR-OOA, 4 f44, 5 HOA, 6 rBC, 7 ultrafine
+    % salt, 8 OH, 9 Soledad dD, 10 Pier dD, 11 FThickly, 12 coating thickness.
+    legendOrder = [12 1 2 3 4 11 5 6 7 8 9 10];
+    entry = ["Glycolic acid"; "Glyoxylic acid"; "Coating thickness"; "Sulfate"; "MO-OOA"; ...
+             "SR-OOA"; "f44"; "FThickly"; "HOA"; "rBC"; "NaCl2 (ultrafine salt)"; "OH"; ...
+             "dD, Mt. Soledad"; "dD, Pier"];
+    panel = ["A"; "A"; "A"; "A"; "A"; "A"; "A"; "A"; "B"; "B"; "B"; "C"; "C"; "C"];
+    r = [rGlycolic; rGlyoxylic; rBinMeans(legendOrder)];
+    p = [pGlycolic; pGlyoxylic; pBins(legendOrder)];
+    points = [numel(glycolicUCVF); numel(glyoxylicUCVF); nBins(legendOrder)];
+    binText = "bin " + style.binStatistic + "s";     % "bin medians" (or "bin means")
+    rFrom = [repmat("PI's bin means", 2, 1); repmat(binText, 12, 1)];
+    % First and last date of each species (dataPeriod, end of this file). The acid file
+    % and the OH file have no times: the acids' period is from the file name, OH's is
+    % unknown.
+    lanlTime = LANLdata_HOA_rBC.DateTime_UTC;
+    period = ["30 Apr 2023", "6 Jul 2023"; ...    % glycolic acid: from the file name
+        "30 Apr 2023", "6 Jul 2023"; ...              % glyoxylic acid: from the file name
+        dataPeriod(coatTable{keepCoat, 1}, coatUCVF, coat_nm); ...
+        dataPeriod(KAVIN_TABLE.Time, KAVIN_TABLE.UCVF, KAVIN_TABLE.SO4); ...
+        dataPeriod(KAVIN_TABLE.Time(moRows), KAVIN_TABLE.UCVF(moRows), KAVIN_TABLE.("MO-OOA")(moRows)); ...
+        dataPeriod(KAVIN_TABLE.Time(srRows), KAVIN_TABLE.UCVF(srRows), KAVIN_TABLE.("SR-OOA")(srRows)); ...
+        dataPeriod(KAVIN_TABLE.Time, KAVIN_TABLE.UCVF, KAVIN_TABLE.f44); ...
+        dataPeriod(fthickTable{keepFthick, 1}, fthickUCVF, fthick); ...
+        dataPeriod(lanlTime, LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.HOAMass_ugM_3_); ...
+        dataPeriod(lanlTime, LANLdata_HOA_rBC.UCVF, LANLdata_HOA_rBC.rBCMass_ugM_3_); ...
+        dataPeriod(ultrafinetbl.DateAndTime, ultrafinetbl.avgUCVF, ultrafinetbl.avgUfineSalt); ...
+        "unknown", "unknown"; ...                     % OH: the file has sample numbers, no dates
+        dataPeriod(ddD(month(ddD) == 7), julyUCVF, julydD); ...
+        dataPeriod(pierTime(inJuly), pierUCVF, pierdD)];
+    rTable = table(panel, entry, round(r, 2), p, points, rFrom, p < 0.05, period(:, 1), period(:, 2), ...
+        'VariableNames', {'panel', 'legendEntry', 'r', 'p', 'points', 'rFrom', 'boldInLegend', 'firstDate', 'lastDate'});
+    fprintf('\nr and p of every legend entry (bold in the legend if p < 0.05):\n')
+    disp(rTable)
+else
+    fprintf('\nSection 5: the table of r and p needs fitToBinMeans = true.\n')
 end
 
 %% Local functions
@@ -1344,5 +1446,21 @@ function rText = rLegendText(r, p)
 rText = "r = " + sprintf('%.2f', r);
 if p < 0.05
     rText = "{\bf" + rText + "}";
+end
+end
+
+
+function period = dataPeriod(t, ucvf, values)
+% AJB edits (v3-5): new. First and last date of the samples that have both a UCVF value
+% and a VALUE, as text, e.g. ["16 Feb 2023", "14 Feb 2024"]. T are the sample times
+% (datetime, or text that datetime can read). Returns ["", ""] if no sample has both.
+if ~isdatetime(t)
+    t = datetime(t);
+end
+ok = ~isnat(t) & ~isnan(ucvf) & ~isnan(values);
+if any(ok)
+    period = [string(min(t(ok)), 'd MMM yyyy'), string(max(t(ok)), 'd MMM yyyy')];
+else
+    period = ["", ""];
 end
 end
