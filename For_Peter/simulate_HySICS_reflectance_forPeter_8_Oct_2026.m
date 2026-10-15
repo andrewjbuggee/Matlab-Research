@@ -374,7 +374,7 @@ Refl_TOA = reshape(Refl_TOA_vec, num_wl, num_tauC, num_rEff);     % unitless
 
 
 
-%% Save the output
+%% Save the output as a mat file
 
 % Save next to this script in the For_Peter folder
 
@@ -399,6 +399,50 @@ save(filename_rev, "Rad_TOA", "Refl_TOA", "wl_center_nm", "inputs", "spec_respon
     "changing_variables");
 
 disp([newline, 'Saved output to: ', filename_rev, newline])
+
+
+
+%% Save the output as a csv file
+
+% One csv file per optical thickness, laid out like CPF_nadir_scan_2026_162.csv:
+% one row per HySICS channel and three columns (wavelength, reflectance,
+% radiance), with the column names as the first row.
+
+% Column names, written as the header row. These match the CPF file.
+header = {'Wavelength (nm)', 'Reflectance (1/sr)', 'Radiance (W/m^2/sr/nm)'};
+
+% Save the csv files in the saved_calcs folder next to this script.
+% mfilename is empty when code is run with "Run Section", so fall back to
+% the current folder.
+script_folder = fileparts(mfilename('fullpath'));
+if isempty(script_folder)
+    script_folder = pwd;
+end
+csv_folder = fullfile(script_folder, 'saved_calcs');
+
+if ~exist(csv_folder, 'dir')
+    mkdir(csv_folder)
+end
+
+for tt = 1:length(inputs.RT.tau_c)
+
+    % Rad_TOA is in mW/(m^2 nm sr). Multiply by 1e-3 to convert to
+    % W/(m^2 nm sr), the units in the header.
+    rad_W = 1e-3 .* Rad_TOA(:, tt, 1);          % W/(m^2 nm sr)
+
+    % Build a table with one column per quantity. writetable uses the
+    % table's variable names as the header row, so they must be the column
+    % names above. (A table built from a header variable and a data matrix
+    % writes the names 'header' and 'data_mat_1, data_mat_2, ...' instead.)
+    T = table(wl_center_nm, Refl_TOA(:, tt, 1), rad_W, 'VariableNames', header);
+
+    % Save the table to a csv file
+    writetable(T, fullfile(csv_folder, ['RT_calcs_over_CPF_spectralRange_tauC_',...
+        num2str(inputs.RT.tau_c(tt)), '.csv']));
+
+end
+
+clear rad_W T
 
 
 
