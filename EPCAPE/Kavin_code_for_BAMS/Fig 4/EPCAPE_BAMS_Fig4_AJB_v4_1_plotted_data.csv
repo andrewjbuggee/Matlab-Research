@@ -1,0 +1,261 @@
+Panel,Variable,SourceFile,FileVariable,Units,Shown,Month,N,Value,Q1,Median,Q3,WhiskerLow,WhiskerHigh
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Feb 23,65,NaN,1090.17405,1234.0789,1388.985375,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Mar 23,175,NaN,994.6540225,1163.5383,1382.465825,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Apr 23,261,NaN,776.941575,865.282,1025.143425,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",May 23,723,NaN,885.67655,1050.2635,1316.857025,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Jun 23,657,NaN,918.9061875,1042.0559,1213.107725,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Jul 23,152,NaN,655.63097,813.141875,941.5984,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Aug 23,199,NaN,693.7796,784.37823,942.55009,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Sep 23,321,NaN,960.726515,1027.8314,1167.520025,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Oct 23,44,NaN,850.91465,963.020145,1500.69655,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Nov 23,111,NaN,766.24115,942.4882,1343.12545,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,931.85205,1120.34145,1337.73105,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,726.2888,934.07825,1070.6525,NaN,NaN
+A,"GOES18 CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,GOES18_CTH,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,1012.95255,1317.5621,1430.918925,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Feb 23,65,NaN,1332.15630114566,1514.19795221843,1640.5,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Mar 23,175,NaN,880.698264247724,1236.57142857143,1526.59788359788,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Apr 23,261,NaN,500.590677966102,706.486486486486,872.230291970803,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",May 23,723,NaN,644.083333333333,898.157894736842,1184.99554855499,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Jun 23,657,NaN,683.360606060606,861.866666666667,1124.45,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Jul 23,152,NaN,409.166666666667,490,637.114620632667,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Aug 23,199,NaN,433.760932944606,548.588235294118,685.984403669725,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Sep 23,321,NaN,844.924242424242,996.133333333333,1159.39390243902,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Oct 23,44,NaN,510.270472666402,673.421052631579,1237.54166666667,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Nov 23,111,NaN,837.608695652174,995.2,1407.33490566038,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,760.913937547601,1009.98748435544,1558.2991202346,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,782.368421052632,1015.42821108264,1401.46666666667,NaN,NaN
+A,"KAZR CTH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,KAZR_CTH,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,1262.07258064516,1459.79591836735,1626.26572546827,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Feb 23,65,NaN,1073.91664385796,1411.33332252502,1485.99994182587,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Mar 23,175,NaN,884.999990463257,1210.99996566772,1437.99996376038,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Apr 23,261,NaN,639.999985694885,713.99998664856,884.999990463257,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",May 23,723,NaN,713.99998664856,825.000007947286,1092.00000762939,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Jun 23,657,NaN,795.000016689301,884.999990463257,996.333320935567,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Jul 23,152,NaN,573.000013828278,689.333319664001,795.000016689301,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Aug 23,199,NaN,595.333337783813,639.999985694885,713.99998664856,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Sep 23,321,NaN,795.000016689301,884.999990463257,992.083316047986,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Oct 23,44,NaN,713.99998664856,795.000016689301,1392.16663440069,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Nov 23,111,NaN,795.000016689301,982.999980449677,1213.99998664856,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,884.999990463257,1095.3333179156,1394.66665188471,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,795.000016689301,950.33331712087,1189.66666857402,NaN,NaN
+A,"PBLH THERMO",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_THERMO,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,1114.91665244102,1460.66661675771,1727.9166256388,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Feb 23,65,NaN,899.37704,1251.6329,1468.982475,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Mar 23,175,NaN,751.9792,971.8269,1179.183225,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Apr 23,261,NaN,412.21457,532.13153,721.99994,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",May 23,723,NaN,412.21457,672.0346,911.8684,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Jun 23,657,NaN,429.702435,652.0484,818.183315,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Jul 23,152,NaN,337.266515,412.21457,532.1315,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Aug 23,199,NaN,392.22842,412.21457,412.21457,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Sep 23,321,NaN,635.809665,731.993,911.8684175,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Oct 23,44,NaN,392.228425,662.0415,976.8234,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Nov 23,111,NaN,629.5639625,821.93066,969.32858,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,741.9861,841.9168,1036.78185,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,592.0899,761.9722,1011.79913,NaN,NaN
+A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,931.8545,1031.7853,1309.093175,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 23,28,NaN,375,532.5,757.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Mar 23,70,NaN,412.5,712.5,907.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Apr 23,121,NaN,483.75,652.5,941.25,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",May 23,122,NaN,697.5,847.5,1027.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jun 23,119,NaN,682.5,832.5,1012.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jul 23,126,NaN,442.5,600,772.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Aug 23,123,NaN,457.5,577.5,768.75,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Sep 23,119,NaN,566.25,802.5,1042.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Oct 23,62,NaN,352.5,457.5,697.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Nov 23,58,NaN,367.5,555,937.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Dec 23,62,NaN,397.5,622.5,847.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jan 24,61,NaN,412.5,607.5,802.5,NaN,NaN
+A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 24,27,NaN,442.5,607.5,933.75,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Feb 23,1344,NaN,717.190314707703,940.083492831319,1326.54030492182,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Mar 23,2976,NaN,427.072882732699,634.218622814283,760.785321285894,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Apr 23,2880,NaN,253.701550187754,410.40352798554,666.263342006631,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",May 23,2976,NaN,328.400039497487,491.230944332975,626.728537491507,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Jun 23,2880,NaN,379.504730151061,455.356689211952,521.016469519925,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Jul 23,2976,NaN,204.199114538231,260.335654037814,338.456211744556,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Aug 23,2966,NaN,218.166099916664,288.236461706334,371.827963277026,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Sep 23,2880,NaN,408.834602460895,528.693890526892,596.529204634635,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Oct 23,2846,NaN,266.839952663617,450.053161637261,598.019905190478,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Nov 23,2871,NaN,508.630522118549,1242.09951119502,1924.32921257612,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Dec 23,2976,NaN,498.152377084947,656.189735873545,1540.36241039796,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Jan 24,2976,NaN,436.057723105885,704.427517121872,1221.53938917696,NaN,NaN
+A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Feb 24,1278,NaN,571.035203390544,764.921012333243,915.091537791208,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Feb 23,65,NaN,1040.62285,1218.5714,1428.045375,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Mar 23,175,NaN,707.86855,966.3717,1176.155275,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Apr 23,261,NaN,335.758925,469.9115,626.0840625,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",May 23,723,NaN,401.6914875,563.75,832.836425,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Jun 23,657,NaN,471.2579,580.97345,732.8977375,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Jul 23,152,NaN,289.151795,420.086915,461.406585,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Aug 23,199,NaN,332.2566425,365.17856,421.159345,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Sep 23,321,NaN,546.163875,687.3214,832.95655,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Oct 23,44,NaN,408.344255,544.09135,1202.78325,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Nov 23,111,NaN,556.424325,751.23895,1050.8254625,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,651.846275,771.96465,1147.44985,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,561.1927,733.254125,948.125,NaN,NaN
+A,"CEIL CBH",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,CEIL_CBH,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,975.748225,1092.909,1348.2197,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Feb 23,336,0.12711546229135,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Mar 23,744,0.147484012497297,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Apr 23,720,0.06423118908588,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",May 23,744,0.113171445666363,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Jun 23,720,0.0856980507016149,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Jul 23,744,0.0336248885269746,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Aug 23,744,0.0701377727783875,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Sep 23,720,0.0826815627362682,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Oct 23,744,0.0130829586516653,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Nov 23,720,0.0315096003875376,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Dec 23,744,0.0233941394869772,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Jan 24,744,0.0548561749382097,NaN,NaN,NaN,NaN,NaN
+B,"Echo fraction",arscl_echomask_hourly.nc,echo_fraction,1,"colour: monthly mean profile (table: mean over 160-3000 m)",Feb 24,336,0.200471687421265,NaN,NaN,NaN,NaN,NaN
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Feb 23,168,NaN,991.465179443359,1282.63604736328,1546.51116943359,397.200012207031,2292.15698242188
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Mar 23,445,NaN,393.811103820801,859.581420898438,1318.74530029297,40,2673.560546875
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Apr 23,494,NaN,220.800003051758,343.511108398438,511.866668701172,55,938.711120605469
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",May 23,690,NaN,345.022216796875,533.977783203125,818.266662597656,50,1522.33129882812
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Jun 23,633,NaN,427.091888427734,539.814819335938,701.09748840332,55,1111.28894042969
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Jul 23,592,NaN,193.955551147461,244.365081787109,321.800750732422,59.2444458007812,508.571441650391
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Aug 23,548,NaN,202.888885498047,280.466659545898,374.95556640625,48.4888877868652,600.545471191406
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Sep 23,533,NaN,457.711944580078,570.755554199219,824.143783569336,57.5555572509766,1370.66662597656
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Oct 23,181,NaN,146.198162078857,318.355560302734,582.272430419922,41.6444435119629,1217.67126464844
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Nov 23,187,NaN,483.495300292969,794.177795410156,1336.24145507812,40,2526.74145507812
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Dec 23,293,NaN,450.559707641602,722.959655761719,1357.916015625,55,2710
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Jan 24,297,NaN,447.955543518066,686.090881347656,977.555191040039,50,1722.57141113281
+B,"CBH",epcceil_hourly_cbh.nc,bl_cbh,m,"box + whiskers",Feb 24,219,NaN,936.525436401367,1245.69311523438,1654.23883056641,70,2708.04516601562
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Feb 23,88,NaN,27.0576289066923,42.5302866025864,69.948342181245,10.4194093564662,128.640971069336
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Mar 23,300,NaN,23.9805459738689,51.1284067841219,92.9750955718858,10.0055809020996,195.952624332102
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Apr 23,409,NaN,33.4621967307207,84.1967809973974,150.514228678709,10.0835189258351,247.554522447183
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",May 23,622,NaN,35.2365892511159,81.0725585660481,165.537092694059,10.1427949666977,246.277013060867
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Jun 23,517,NaN,26.2298443541225,61.7824738272188,118.810857676997,10.2161159515381,249.968383789062
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Jul 23,473,NaN,16.8745255825896,31.0020710261885,66.3041647517663,10.0979251861572,137.480907610911
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Aug 23,489,NaN,21.5652222324114,42.9206720260664,76.5149899953926,10.0444736480713,158.929884908193
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Sep 23,453,NaN,19.5465919949917,39.4203775082251,90.8518922201443,10.1403500693185,196.299716228276
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Oct 23,166,NaN,17.8909375879348,30.988989714564,53.1962273703224,10.2371692657471,99.8543651780435
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Nov 23,156,NaN,18.1005136360988,31.6553988241792,60.8017752767719,10.3577542304993,124.352837112445
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Dec 23,253,NaN,16.6044775426754,23.769578187802,41.7913185662048,10.0303268432617,77.5573587123876
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Jan 24,243,NaN,19.8273963709466,30.6928920565518,58.2524957294449,10.2240394734322,112.592285421406
+C,"LWP",lwp_mwrret2_M1_20230215_20240214.nc + cbh_ceil_M1_... + rain_ld_M1_...,phys_lwp,g m^-2,"box + whiskers (hourly means; GOES-like, cloudy sky, all time)",Feb 24,132,NaN,20.0826012187333,31.8535436904385,61.952686683038,10.6000475883484,114.785959525412
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Feb 23,1280,NaN,0.1815439305,0.2369662028,0.3004030991,0.009930220174,0.3993721837
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Mar 23,2976,NaN,0.2283329351,0.30096149235,0.40124319505,0.04784331934,0.6031458149
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Apr 23,2880,NaN,0.3265495934,0.525890616,0.85388274,0.02394403262,0.976439667
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",May 23,2976,NaN,0.425991438,0.7166895057,0.9191595088,0.1864805693,0.9894246291
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Jun 23,2880,NaN,0.56357594225,0.7268897883,0.8410864997,0.313999314,0.9611387151
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Jul 23,2976,NaN,0.588995496,0.6971363479,0.8059809184,0.2651976351,0.9554587151
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Aug 23,2976,NaN,0.4753632609,0.5882817074,0.6885741974,0.156436488,0.9355601467
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Sep 23,2880,NaN,0.43963199505,0.5701740638,0.70030280795,0.0598391308,0.9749875767
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Oct 23,2976,NaN,0.3346772328,0.4409461945,0.59127946245,0.07249001297,0.9094938417
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Nov 23,2880,NaN,0.1738534954,0.2582327886,0.3896876914,0.04870780322,0.7094971117
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Dec 23,2976,NaN,0.17377255195,0.27474416845,0.3647253512,0.0772443353,0.6216272799
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Jan 24,2976,NaN,0.19353992205,0.2912920343,0.3870290967,0.02504048001,0.6761937786
+D,"UCVF",EPCAPE_15mindata.nc,UCVF,1,"box + whiskers (left axis)",Feb 24,1313,NaN,0.2319494633,0.2698725315,0.311791442,0.1148473401,0.4050192932
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Feb 23,1216,56.7042302217303,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Mar 23,2930,70.1842542566515,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Apr 23,2863,72.5992729596399,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",May 23,2928,75.5650311956922,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Jun 23,2755,76.0010163113987,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Jul 23,2850,78.2912047119375,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Aug 23,2961,79.3092860804077,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Sep 23,2760,76.386805342088,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Oct 23,2908,69.3658019640285,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Nov 23,2879,48.7371056188084,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Dec 23,2968,62.7286290580302,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Jan 24,2744,66.1614736896616,NaN,NaN,NaN,NaN,NaN
+D,"RH",EPCAPE_15mindata.nc,MET_rh,%,"line: monthly mean (right axis)",Feb 24,1233,69.9689865809301,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Feb 23,1189,53.8296794836203,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Mar 23,2912,57.8296726738567,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Apr 23,2718,62.5871219505276,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",May 23,2739,69.6832225750868,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Jun 23,2648,77.0096059384187,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Jul 23,2389,92.0590388086501,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Aug 23,2641,96.8144830162326,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Sep 23,2292,94.9077572057562,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Oct 23,2539,89.748796432494,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Nov 23,2601,86.0807023349252,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Dec 23,2708,74.9384756462832,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Jan 24,2655,64.0545723121559,NaN,NaN,NaN,NaN,NaN
+D,"% of 20 C",EPCAPE_15mindata.nc,MET_temp,%,"dashed line: 100 x monthly mean T [C] / 20 C (right axis)",Feb 24,1226,58.3187223791308,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Feb 23,1189,10.7659358967241,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Mar 23,2912,11.5659345347713,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Apr 23,2718,12.5174243901055,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",May 23,2739,13.9366445150174,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Jun 23,2648,15.4019211876837,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Jul 23,2389,18.41180776173,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Aug 23,2641,19.3628966032465,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Sep 23,2292,18.9815514411512,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Oct 23,2539,17.9497592864988,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Nov 23,2601,17.216140466985,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Dec 23,2708,14.9876951292566,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Jan 24,2655,12.8109144624312,NaN,NaN,NaN,NaN,NaN
+D,"T (for reference, not plotted)",EPCAPE_15mindata.nc,MET_temp,deg C,"not drawn: monthly mean behind '% of 20 C'",Feb 24,1226,11.6637444758262,NaN,NaN,NaN,NaN,NaN
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Feb 23,168,NaN,0.4486601565,0.6978736665,0.868526184,0.080086147,0.960684068
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Mar 23,378,NaN,0.374812236,0.638257627,0.896067915,0.075799543,1.038424537
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Apr 23,416,NaN,0.2606376755,0.4888832415,0.8715409975,0.065965969,0.971025326
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",May 23,449,NaN,0.2000964325,0.383535931,0.74967658225,0.056193725,0.983334152
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Jun 23,448,NaN,0.2472733985,0.4854752385,0.8571383,0.070713168,0.98139421
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Jul 23,445,NaN,0.33975335775,0.603544076,0.83512315325,0.097015578,0.980762877
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Aug 23,430,NaN,0.327999325,0.5434642065,0.829396016,0.066548594,0.969117737
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Sep 23,398,NaN,0.276654677,0.545059858,0.845320535,0.046358764,0.960131554
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Oct 23,377,NaN,0.48243301075,0.684142675,0.87911335475,0.141861179,0.963565075
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Nov 23,329,NaN,0.55011684975,0.78938379,0.8844145605,0.050463141,0.955500362
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Dec 23,335,NaN,0.53612172975,0.725882422,0.8452969785,0.136081215,0.986272876
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Jan 24,333,NaN,0.49108188125,0.713362244,0.8641496695,0.09451102,0.921430554
+E,"SW",<MON>_SW_Boxplot.csv (Dan); FEB split by row,hourly SW transmittance,1,"box + whiskers (right axis)",Feb 24,166,NaN,0.391608878,0.675283268,0.876291112,0.036059532,0.996935862
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Feb 23,326,296.722291681502,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Mar 23,744,312.359375190735,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Apr 23,720,352.991944037543,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",May 23,744,377.253125551012,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Jun 23,720,370.145798630185,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Jul 23,744,381.86805528005,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Aug 23,738,389.544860871633,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Sep 23,720,381.677326255374,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Oct 23,744,345.24625008901,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Nov 23,720,308.168993324704,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Dec 23,744,315.750902769301,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Jan 24,744,308.547569211324,NaN,NaN,NaN,NaN,NaN
+E,"LW",radflux_M1_20230215_20240214.nc,downwelling_longwave (qc == 0),W m^-2,"line: mean over 24 h of hourly medians (N = hourly means)",Feb 24,312,317.574722226461,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Feb 23,NaN,NaN,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Mar 23,NaN,312.330815975,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Apr 23,NaN,352.991434020833,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",May 23,NaN,377.254204866667,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Jun 23,NaN,370.14586805,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Jul 23,NaN,381.868760416667,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Aug 23,NaN,389.8427256875,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Sep 23,NaN,381.678435745833,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Oct 23,NaN,345.246947920833,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Nov 23,NaN,308.121310770833,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Dec 23,NaN,315.752343754167,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Jan 24,NaN,308.548350691667,NaN,NaN,NaN,NaN,NaN
+E,"LW, Dan (for reference, not plotted)",<MON>_LW_Stepplot.csv (Dan),Median column,W m^-2,"not drawn: Dan's value of the same statistic (Feb pools 2023+2024)",Feb 24,NaN,NaN,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Feb 23,14,45.35,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Mar 23,31,103.24,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Apr 23,30,2.3,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",May 23,31,1.22,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Jun 23,30,3.17,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Jul 23,31,1.18,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Aug 23,31,39.99,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Sep 23,30,2.04,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Oct 23,15,2.45,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Nov 23,29,10.24,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Dec 23,31,26.68,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Jan 24,31,62.05,NaN,NaN,NaN,NaN,NaN
+F,"LD/M1",monthly_rain_accumulation_ver_3.csv,LD_M1_mm,mm,"bar: monthly total (N = days recorded)",Feb 24,14,69.12,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Feb 23,14,55.62,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Mar 23,29,135.51,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Apr 23,30,5.18,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",May 23,31,3.87,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Jun 23,30,4.89,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Jul 23,31,0.15,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Aug 23,31,44.68,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Sep 23,30,3.92,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Oct 23,20,2.44,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Nov 23,29,16.19,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Dec 23,31,31.77,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Jan 24,28,51.45,NaN,NaN,NaN,NaN,NaN
+F,"LD/S1",monthly_rain_accumulation_ver_3.csv,LD_S1_mm,mm,"bar: monthly total (N = days recorded)",Feb 24,14,93.46,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Feb 23,14,24.01,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Mar 23,28,65.37,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Apr 23,29,2.65,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",May 23,31,1.53,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Jun 23,29,4.67,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Jul 23,30,1.43,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Aug 23,0,NaN,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Sep 23,29,1.24,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Oct 23,0,NaN,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Nov 23,0,NaN,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Dec 23,28,14.2,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Jan 24,31,12.17,NaN,NaN,NaN,NaN,NaN
+F,"VDIS/M1",monthly_rain_accumulation_ver_3.csv,VDIS_M1_mm,mm,"bar: monthly total (N = days recorded)",Feb 24,12,38.73,NaN,NaN,NaN,NaN,NaN
