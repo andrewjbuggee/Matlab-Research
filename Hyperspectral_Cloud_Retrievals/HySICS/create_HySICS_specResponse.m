@@ -212,11 +212,12 @@ source_wavelength_grid = -20:sourceFile_wavelength_resolution:20;     % nm
 
 % For a normal distribution, FWHM = 2*sqrt(2*log(2))*std
 fwhm = zeros(length(wl_center), 1);
+gof = cell(length(wl_center), 1);
 
 % parfor nn = 1:length(wl_center)
 for nn = 1:length(wl_center)
 
-    f = fit(wavelength{nn}', data.(string(['Band ', num2str(nn)])), 'gauss1');
+    [f, gof{nn}] = fit(wavelength{nn}', data.(string(['Band ', num2str(nn)])), 'gauss1');
 
     std = f.c1/sqrt(2);
 
@@ -226,7 +227,13 @@ for nn = 1:length(wl_center)
 end
 
 % Now let's extrapolate the full spectral range of HySICS
-fwhm_extrapolated = interp1(wl_center, fwhm, full_center_wl, "pchip", "extrap");
+% fwhm_extrapolated = interp1(wl_center, fwhm, full_center_wl, "pchip", "extrap");
+
+% *** FWHM OVERRIDE ***
+% From correspondance with Peter on 13 Oct. 2026. The values above must be
+% from the balloon version of Hysics. 6 is the value for the FWHM for CPF
+% HySICS
+fwhm_extrapolated = linspace(6, 6, length(full_center_wl));
 
 % compute the spectral response on a fine grid
 specResponse_wavelength_grid = -21:(sourceFile_wavelength_resolution/20):21;  % nm
