@@ -389,8 +389,10 @@ mSonde = monthIndex(naiveToZone(sonde.time, tz, naiveTimesAreUTC), tStart, tEnd)
 
 % Stack all seven height products into one long vector with a group label so
 % that boxchart can dodge them by colour within each month (Kavin's approach).
+% heightNames = ["GOES18 CTH","KAZR CTH","PBLH THERMO","PBLH MPL", ...
+%                "BL DEPTH","SONDE LCL","CEIL CBH"];
 heightNames = ["GOES18 CTH","KAZR CTH","PBLH THERMO","PBLH MPL", ...
-               "BL DEPTH","SONDE LCL","CEIL CBH"];
+               "PBL SONDE","SONDE LCL","CEIL CBH"];
 hVals  = [larc.GOES18_CTH; larc.KAZR_CTH; larc.PBLH_THERMO; larc.PBLH_MPL; ...
           blDep.Depth;     sonde.LCL;     larc.CEIL_CBH];                 % [m]
 hMonth = [mLarc; mLarc; mLarc; mLarc; mBl; mSonde; mLarc];
