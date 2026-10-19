@@ -3,6 +3,10 @@ function [s_ext_pct, ccn_ext_cm3] = extend_ccn_spectrum(ccn6_cm3)
 %
 %   [s_ext_pct, ccn_ext_cm3] = extend_ccn_spectrum(ccn6_cm3)
 %
+%   CREDIT: method of Jeramy L. Dedrick (Dedrick et al. 2026, J. Atmos. Sci., Sec. 2d, pp. 1065-1066). His code
+%   for this step is not public; this is a reconstruction from the paper, checked against his posted
+%   retrievals (UC San Diego Library, doi:10.6075/J0WM1DSC). It may differ from his code in details.
+%
 %   The Pier CCN counter measured at 0.1-1.0 % only. To retrieve
 %   supersaturations outside that range, the paper extends the spectrum:
 %     * below 0.1 %: a straight line to 0 cm-3 at 0 % (no particle activates at 0 %);

@@ -3,6 +3,10 @@ function n_above_cm3 = number_above_dhm_cm3(N_cm3, Dg_um, sigma_g, d_hm_um)
 %
 %   n_above_cm3 = number_above_dhm_cm3(N_cm3, Dg_um, sigma_g, d_hm_um)
 %
+%   CREDIT: method of Jeramy L. Dedrick (Dedrick et al. 2026, J. Atmos. Sci., Sec. 2d, pp. 1065-1066). His code
+%   for this step is not public; this is a reconstruction from the paper, checked against his posted
+%   retrievals (UC San Diego Library, doi:10.6075/J0WM1DSC). It may differ from his code in details.
+%
 %   For a lognormal mode with number N, median diameter Dg and geometric
 %   standard deviation sigma_g, the number of particles larger than D is
 %

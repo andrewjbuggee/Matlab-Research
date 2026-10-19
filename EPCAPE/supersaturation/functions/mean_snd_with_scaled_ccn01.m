@@ -3,6 +3,10 @@ function mean_s_pct = mean_snd_with_scaled_ccn01(t, nd_cm3, factor, t_hour, ccn_
 %
 %   mean_s_pct = mean_snd_with_scaled_ccn01(t, nd_cm3, factor, t_hour, ccn_hour_cm3)
 %
+%   CREDIT: method of Jeramy L. Dedrick (Dedrick et al. 2026, J. Atmos. Sci., Sec. 2d, pp. 1065-1066). His code
+%   for this step is not public; this is a reconstruction from the paper, checked against his posted
+%   retrievals (UC San Diego Library, doi:10.6075/J0WM1DSC). It may differ from his code in details.
+%
 %   Re-retrieves s_Nd at each hour t(i) with the CCN count at the 0.1 % setpoint
 %   multiplied by `factor` (the other setpoints unchanged), and returns the mean.
 %   Used to show what a correction of the 0.1 % CCN value (Sourita Saha's) would

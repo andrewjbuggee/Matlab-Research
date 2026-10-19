@@ -55,6 +55,17 @@
 % are in the Bibliography at the end. "(my calculation)" marks a result worked out
 % here from cited equations; "(my inference)" marks an interpretation with no
 % direct source.
+%
+% *Credits.* This analysis is based on Jeramy L. Dedrick's work: the methods of
+% Dedrick et al. (2026), his posted data (doi:10.6075/J0WM1DSC), and his MATLAB code
+% on GitHub (user jdedrick95). The kappa-Kohler functions here are based on his
+% |kappakohler| repository (2024), and the parcel functions on his
+% |ParcelActivation_ARG2000| repository (2025). His code for the two CCN-based
+% retrievals is not public, so those steps are reconstructed from his paper (Sec. 2d,
+% pp. 1065-1066) and checked against his posted retrievals. His repositories have no
+% licence, so ask him before sharing code derived from them outside the group. The
+% details are in |README.md| and in each function's header, and the references are
+% in the Bibliography.
 
 %% Part 1. The physics, in plain terms
 % *Saturation and supersaturation.* Over a flat surface of pure water, air is
@@ -738,8 +749,16 @@ fig10_numbers = table(method, period, hours, posted_ms, round(med, 3), fig_label
 % coastal stratocumulus during EPCAPE. _J. Atmos. Sci._, 83, 1061-1082,
 % doi:10.1175/JAS-D-26-0004.1. Supplemental material: doi:10.1175/JAS-D-26-0004.s1
 % (cited as "supplement", with the page numbers of the supplement PDF).
-% * Dedrick, J. L.: |kappakohler| and |ParcelActivation_ARG2000|, MATLAB functions,
-% GitHub user jdedrick95 (https://github.com/jdedrick95, accessed 19 Oct 2026).
+% * Dedrick, J. L., 2024: |kappakohler|. MATLAB function, GitHub,
+% |https://github.com/jdedrick95/kappakohler| (accessed 19 Oct 2026). The basis of
+% this script's kappa-Kohler functions.
+% * Dedrick, J. L., 2025: |ParcelActivation_ARG2000|. MATLAB function, GitHub,
+% |https://github.com/jdedrick95/ParcelActivation_ARG2000| (accessed 19 Oct 2026).
+% The basis of this script's parcel functions.
+% * Dedrick, J. L., 2025: |EPCAPE_Pier_CCNclosure_and_correction.m| and
+% |EPCAPE_Pier_kappa4CCN.mat|. MATLAB script and data in the Library item
+% doi:10.6075/J0WM1DSC. They produced the 1.57 correction in the posted Pier CCN;
+% not used in this script yet.
 % * Hoppel, W., G. Frick, and R. Larson, 1986: Effect of nonprecipitating clouds on
 % the aerosol size distribution in the marine boundary layer.
 % _Geophys. Res. Lett._, 13, 125-128, doi:10.1029/GL013i002p00125.

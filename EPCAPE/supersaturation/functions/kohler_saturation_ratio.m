@@ -1,6 +1,11 @@
 function S = kohler_saturation_ratio(d_wet_m, d_dry_m, kappa)
 % KOHLER_SATURATION_RATIO  Equilibrium saturation ratio over a solution droplet (kappa-Kohler theory).
 %
+%   BASED ON JERAMY L. DEDRICK'S GITHUB CODE: the kappa-Kohler function that his kappakohler.m maximizes
+%   in its option 4 (https://github.com/jdedrick95/kappakohler, 2024).
+%   Please cite his code and Dedrick et al. (2026, J. Atmos. Sci., doi:10.1175/JAS-D-26-0004.1) if you use
+%   it. His repository has no licence: ask him before sharing this function outside the group.
+%
 %   S = kohler_saturation_ratio(d_wet_m, d_dry_m, kappa)
 %
 %   Petters & Kreidenweis (2007, Atmos. Chem. Phys. 7, 1961-1971, p. 1962, eq. 6):

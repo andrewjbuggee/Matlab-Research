@@ -3,6 +3,10 @@ function [t_hour, ccn_hour] = hourly_ccn_spectrum(t30, ccn30_cm3, max_fill_h)
 %
 %   [t_hour, ccn_hour] = hourly_ccn_spectrum(t30, ccn30_cm3, max_fill_h)
 %
+%   CREDIT: method of Jeramy L. Dedrick (Dedrick et al. 2026, J. Atmos. Sci., Sec. 2d, pp. 1065-1066). His code
+%   for this step is not public; this is a reconstruction from the paper, checked against his posted
+%   retrievals (UC San Diego Library, doi:10.6075/J0WM1DSC). It may differ from his code in details.
+%
 %   The Pier CCN-200 steps through its supersaturation setpoints (0.1, 0.2,
 %   0.4, 0.6, 0.8, 1.0 %), about 10 min each, so a 30-min average holds only
 %   1-3 of the 6 setpoints. An hourly spectrum therefore needs a rule for the

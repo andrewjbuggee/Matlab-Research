@@ -3,6 +3,10 @@ function s_pct = retrieve_supersaturation_pct(n_target_cm3, ccn6_cm3)
 %
 %   s_pct = retrieve_supersaturation_pct(n_target_cm3, ccn6_cm3)
 %
+%   CREDIT: method of Jeramy L. Dedrick (Dedrick et al. 2026, J. Atmos. Sci., Sec. 2d, pp. 1065-1066). His code
+%   for this step is not public; this is a reconstruction from the paper, checked against his posted
+%   retrievals (UC San Diego Library, doi:10.6075/J0WM1DSC). It may differ from his code in details.
+%
 %   The core of the CCN-based retrievals of Dedrick et al. (2026, pp. 1065-1066).
 %   Physical basis: in a rising parcel the supersaturation peaks (S_max) near
 %   cloud base, every nucleus whose critical supersaturation is below S_max

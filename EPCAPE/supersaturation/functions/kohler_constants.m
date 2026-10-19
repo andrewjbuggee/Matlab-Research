@@ -1,6 +1,11 @@
 function c = kohler_constants()
 % KOHLER_CONSTANTS  Constants for kappa-Kohler theory, as in Jeramy Dedrick's kappakohler.m.
 %
+%   BASED ON JERAMY L. DEDRICK'S GITHUB CODE: the constants of his kappakohler.m
+%   (https://github.com/jdedrick95/kappakohler, 2024).
+%   Please cite his code and Dedrick et al. (2026, J. Atmos. Sci., doi:10.1175/JAS-D-26-0004.1) if you use
+%   it. His repository has no licence: ask him before sharing this function outside the group.
+%
 %   c = kohler_constants()
 %
 %   Values from Seinfeld & Pandis (2016), as used in kappakohler.m

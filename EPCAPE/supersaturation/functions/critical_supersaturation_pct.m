@@ -1,6 +1,11 @@
 function s_c_pct = critical_supersaturation_pct(d_dry_m, kappa)
 % CRITICAL_SUPERSATURATION_PCT  Critical supersaturation (%) of a dry particle, kappa-Kohler approximation.
 %
+%   BASED ON JERAMY L. DEDRICK'S GITHUB CODE: option 1 of his kappakohler.m
+%   (https://github.com/jdedrick95/kappakohler, 2024).
+%   Please cite his code and Dedrick et al. (2026, J. Atmos. Sci., doi:10.1175/JAS-D-26-0004.1) if you use
+%   it. His repository has no licence: ask him before sharing this function outside the group.
+%
 %   s_c_pct = critical_supersaturation_pct(d_dry_m, kappa)
 %
 %   For kappa > 0.2 and s_c < 1 % the peak of the kappa-Kohler curve is, to a good

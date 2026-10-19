@@ -1,6 +1,12 @@
 function smax_pct = smax_arg2000_pct(modes, w_ms, T_K, p_Pa)
 % SMAX_ARG2000_PCT  Maximum parcel supersaturation (%) from the Abdul-Razzak & Ghan (2000) parameterization.
 %
+%   BASED ON JERAMY L. DEDRICK'S GITHUB CODE: the structure and constants of his ParcelActivation_ARG2000.m
+%   (https://github.com/jdedrick95/ParcelActivation_ARG2000, 2025),
+%   with the corrections described in smax_posted_arg2000_pct.m.
+%   Please cite his code and Dedrick et al. (2026, J. Atmos. Sci., doi:10.1175/JAS-D-26-0004.1) if you use
+%   it. His repository has no licence: ask him before sharing this function outside the group.
+%
 %   smax_pct = smax_arg2000_pct(modes, w_ms, T_K, p_Pa)
 %
 %   A rising parcel cools at a rate set by the updraft w, so its supersaturation

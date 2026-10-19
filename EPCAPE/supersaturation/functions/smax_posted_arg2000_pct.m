@@ -1,6 +1,11 @@
 function smax_pct = smax_posted_arg2000_pct(modes, w_ms, T_K, p_Pa)
 % SMAX_POSTED_ARG2000_PCT  Jeramy Dedrick's posted ParcelActivation_ARG2000.m, ported line by line.
 %
+%   THIS IS JERAMY L. DEDRICK'S GITHUB CODE, translated line by line: his ParcelActivation_ARG2000.m
+%   (https://github.com/jdedrick95/ParcelActivation_ARG2000, 2025).
+%   Please cite his code and Dedrick et al. (2026, J. Atmos. Sci., doi:10.1175/JAS-D-26-0004.1) if you use
+%   it. His repository has no licence: ask him before sharing this function outside the group.
+%
 %   smax_pct = smax_posted_arg2000_pct(modes, w_ms, T_K, p_Pa)
 %
 %   Same inputs as smax_arg2000_pct (modes = [N m-3, D_g m, sigma_g, kappa],
