@@ -51,19 +51,19 @@ A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MP
 A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Dec 23,60,NaN,741.9861,841.9168,1036.78185,NaN,NaN
 A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Jan 24,130,NaN,592.0899,761.9722,1011.79913,NaN,NaN
 A,"PBLH MPL",PBLH - Damao Zhang/EPCAPE_CTH_CBH_PBLH_SChellappan_LaRC.csv,PBLH_MPL,m,"box Q1-Q3 with median line, no whiskers",Feb 24,63,NaN,931.8545,1031.7853,1309.093175,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 23,28,NaN,375,532.5,757.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Mar 23,70,NaN,412.5,712.5,907.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Apr 23,121,NaN,483.75,652.5,941.25,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",May 23,122,NaN,697.5,847.5,1027.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jun 23,119,NaN,682.5,832.5,1012.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jul 23,126,NaN,442.5,600,772.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Aug 23,123,NaN,457.5,577.5,768.75,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Sep 23,119,NaN,566.25,802.5,1042.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Oct 23,62,NaN,352.5,457.5,697.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Nov 23,58,NaN,367.5,555,937.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Dec 23,62,NaN,397.5,622.5,847.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jan 24,61,NaN,412.5,607.5,802.5,NaN,NaN
-A,"BL DEPTH",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 24,27,NaN,442.5,607.5,933.75,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 23,28,NaN,375,532.5,757.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Mar 23,70,NaN,412.5,712.5,907.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Apr 23,121,NaN,483.75,652.5,941.25,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",May 23,122,NaN,697.5,847.5,1027.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jun 23,119,NaN,682.5,832.5,1012.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jul 23,126,NaN,442.5,600,772.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Aug 23,123,NaN,457.5,577.5,768.75,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Sep 23,119,NaN,566.25,802.5,1042.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Oct 23,62,NaN,352.5,457.5,697.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Nov 23,58,NaN,367.5,555,937.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Dec 23,62,NaN,397.5,622.5,847.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Jan 24,61,NaN,412.5,607.5,802.5,NaN,NaN
+A,"PBL SONDE",BL_Depth.csv,Depth,m,"box Q1-Q3 with median line, no whiskers",Feb 24,27,NaN,442.5,607.5,933.75,NaN,NaN
 A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Feb 23,1344,NaN,717.190314707703,940.083492831319,1326.54030492182,NaN,NaN
 A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Mar 23,2976,NaN,427.072882732699,634.218622814283,760.785321285894,NaN,NaN
 A,"SONDE LCL",EPCAPE_sonde_LCL.csv,LCL,m,"box Q1-Q3 with median line, no whiskers",Apr 23,2880,NaN,253.701550187754,410.40352798554,666.263342006631,NaN,NaN

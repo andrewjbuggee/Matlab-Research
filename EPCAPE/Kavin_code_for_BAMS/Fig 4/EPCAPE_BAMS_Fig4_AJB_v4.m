@@ -424,8 +424,12 @@ mSonde = monthIndex(naiveToZone(sonde.time, tz, naiveTimesAreUTC), tStart, tEnd)
 
 % Stack all seven height products into one long vector with a group label so
 % that boxchart can dodge them by colour within each month (Kavin's approach).
+% AJB edits (by Andrew, 2026-10-19 in v3; copied here 2026-10-20): legend
+% entry for BL_Depth.csv renamed 'BL DEPTH' -> 'PBL SONDE'.
+% heightNames = ["GOES18 CTH","KAZR CTH","PBLH THERMO","PBLH MPL", ...
+%                "BL DEPTH","SONDE LCL","CEIL CBH"];
 heightNames = ["GOES18 CTH","KAZR CTH","PBLH THERMO","PBLH MPL", ...
-               "BL DEPTH","SONDE LCL","CEIL CBH"];
+               "PBL SONDE","SONDE LCL","CEIL CBH"];
 hVals  = [larc.GOES18_CTH; larc.KAZR_CTH; larc.PBLH_THERMO; larc.PBLH_MPL; ...
           blDep.Depth;     sonde.LCL;     larc.CEIL_CBH];                 % [m]
 hMonth = [mLarc; mLarc; mLarc; mLarc; mBl; mSonde; mLarc];
@@ -733,6 +737,10 @@ hold(axD,'on')
 hT  = plot(axD, 1:nMonth, TPct20_pct, '--', 'Color',orange,'LineWidth',0.75);
 ylim(axD,[50 100]); set(axD,'YTick',[60 80 100]); ylabel(axD,'[%]')   % AJB edits (v2, round 2): unit in brackets (v1: '%')
 axD.YAxis(1).Color = 'k'; axD.YAxis(2).Color = 'k';
+% AJB edits (Andrew, 2026-10-20): the right-axis label '[%]' in the colour of
+% the two curves it belongs to (RH and % of 20 C). Set AFTER the axis colour,
+% because setting an axis colour also recolours its label.
+axD.YAxis(2).Label.Color = orange;
 xlim(axD,xl); set(axD,'XTick',1:nMonth,'XTickLabel',[],'Box','on')
 lgD = legend(axD,[hU hRH hT],{'UCVF','RH','% of 20^{\circ}C'},'Units','normalized');
 lgD.Position(1:2) = [legX2, axD.Position(2)+axD.Position(4)-lgD.Position(4)];
