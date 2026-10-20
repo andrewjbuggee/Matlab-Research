@@ -2,13 +2,13 @@
 % This live script explains, step by step, how *Dedrick et al. (2026)* estimate
 % the _effective cloud supersaturation_ at EPCAPE. It re-derives the retrievals
 % from the posted data where the inputs exist, and it *recreates their Fig. 10*.
-% It is the MATLAB version of the Python notebook
-% |EPCAPE/comparisons/supersaturation/dedrick2026_supersaturation_retrievals.ipynb|
-% and gives the same numbers.
+% It is based on the code available at Jeramy Dedrick's github
+% (https://github.com/jdedrick95) and the 2026 paper mentioned above where code
+% isn't available.
 %
 % *Sources*
 %
-% * *Paper:* Dedrick, J. L., and coauthors, 2026: Quantitative estimates of
+% * *Paper:* Dedrick, J. L. et al., 2026: Quantitative estimates of
 % upwind and on-site particle scavenging and retrieved cloud supersaturations
 % from urban coastal stratocumulus during EPCAPE. _J. Atmos. Sci._, 83,
 % 1061-1082, doi:10.1175/JAS-D-26-0004.1. Methods: Sec. 2b, 2d; results: Sec. 5;
@@ -17,12 +17,22 @@
 % Pier during EPCAPE 2023-24", UC San Diego Library, doi:10.6075/J0WM1DSC (part of
 % collection doi:10.6075/J0NG4QT4). A partial local copy is in
 % |data/processed/Aerosol Quantification Products/|.
-% * *Code (MATLAB):* GitHub user jdedrick95: |kappakohler| (kappa-Kohler theory),
-% |ParcelActivation_ARG2000| (parcel parameterization), |ParcelSupersaturation_MOD1|,
-% |create_PSD|. |Corrected_PierCCN_ARM_EPCAPE| is empty, and the code that turns
-% the CCN spectrum into a supersaturation is not posted. The CCN-correction code
-% is in the Library item as |EPCAPE_Pier_CCNclosure_and_correction.zip|, which
-% is not in the local copy.
+% * *Code (MATLAB) used here:* building off of code from Jeramy Dedrick's GitHub
+% (user jdedrick95). The kappa-Kohler functions are based on his |kappakohler|, and
+% the parcel functions on his |ParcelActivation_ARG2000|. His code that turns the
+% CCN spectrum into a supersaturation is not posted (|Corrected_PierCCN_ARM_EPCAPE|
+% is empty), so that step is rebuilt from the paper. His |ParcelSupersaturation_MOD1|
+% (a single-mode parcel model) and |create_PSD| (lognormal size distributions) were
+% read but are not used here.
+% * *CCN closure (downloaded, not used in the calculations):* his
+% |EPCAPE_Pier_CCNclosure_and_correction.m| and |EPCAPE_Pier_kappa4CCN.mat|, from the
+% Library item's |EPCAPE_Pier_CCNclosure_and_correction.zip|, are in
+% |../EPCAPE_Pier_CCNclosure_and_correction/|. They derive the 1.57 inlet-leak
+% correction of the Pier CCN (supplement Text S4, pp. 4-5). This script reads the
+% posted CCN file, which already includes that correction: the posted counts equal
+% the closure file's uncorrected counts times 1.569 at all 17,521 half-hours and all
+% six setpoints (my calculation, 19 Oct 2026). No part of this script runs the
+% closure code or loads its data.
 %
 % *What this script finds* (details in each part)
 %
@@ -722,8 +732,13 @@ fig10_numbers = table(method, period, hours, posted_ms, round(med, 3), fig_label
 % * |kcalc.nc|: hourly Pier $\kappa$, for $s_\kappa$ (Part 6) and $s_{ARG00}$;
 % * |EPCAPE_SubCloudVelocity.txt|: $w_*$, for $s_{ARG00}$ (Part 7);
 % * |SMPS_APS_merged.nc|: the measured merged size distributions (Part 5 check);
-% * |EPCAPE_Pier_CCNclosure_and_correction.zip|: Jeramy's MATLAB code for the 1.57 correction;
 % * ARM: the NDROP VAP ($N_d$ for the low-cloud periods) and INTERPSONDE (cloud-base $T$, $p$).
+%
+% Already downloaded but not used: the CCN-closure code and data
+% (|../EPCAPE_Pier_CCNclosure_and_correction/|). Its |.mat| file holds a 30-min Pier
+% $\kappa$ series (mean 0.37 +/- 0.14, my calculation) that could stand in for
+% |kcalc.nc| in Parts 6 and 7 (my inference: not yet checked that it is the series
+% the paper used).
 %
 % *Questions for Jeramy and Veronica*
 %
@@ -757,8 +772,9 @@ fig10_numbers = table(method, period, hours, posted_ms, round(med, 3), fig_label
 % The basis of this script's parcel functions.
 % * Dedrick, J. L., 2025: |EPCAPE_Pier_CCNclosure_and_correction.m| and
 % |EPCAPE_Pier_kappa4CCN.mat|. MATLAB script and data in the Library item
-% doi:10.6075/J0WM1DSC. They produced the 1.57 correction in the posted Pier CCN;
-% not used in this script yet.
+% doi:10.6075/J0WM1DSC; local copy in |../EPCAPE_Pier_CCNclosure_and_correction/|.
+% They produced the 1.57 correction in the posted Pier CCN. Not used in this
+% script's calculations.
 % * Hoppel, W., G. Frick, and R. Larson, 1986: Effect of nonprecipitating clouds on
 % the aerosol size distribution in the marine boundary layer.
 % _Geophys. Res. Lett._, 13, 125-128, doi:10.1029/GL013i002p00125.

@@ -26,8 +26,13 @@ cite his paper, his data and his code in anything that uses this folder:
     (Part 7).
   - `EPCAPE_Pier_CCNclosure_and_correction.m` and `EPCAPE_Pier_kappa4CCN.mat` (in the Library item; local copy in
     `../EPCAPE_Pier_CCNclosure_and_correction/`). This is his CCN closure, which produced the 1.57 correction
-    (1.569 exactly) in the posted CCN data. It is not used here yet. Its `.mat` file holds the uncorrected Pier
-    CCN, the 30-min Pier κ (mean 0.37 ± 0.14) and the measured SMPS size distributions.
+    (1.569 exactly) in the posted CCN data. **It is not used here:** neither the live script nor any function runs
+    it or loads its data. The script reads the posted CCN file, which already includes the 1.569 factor (posted =
+    uncorrected × 1.569 at all 17,521 half-hours and six setpoints, checked 19 Oct 2026). Its `.mat` file holds
+    the uncorrected Pier CCN, the 30-min Pier κ (mean 0.37 ± 0.14) and the measured SMPS size distributions.
+  - Read but not used: `ParcelSupersaturation_MOD1` (2024, a single-mode parcel model) and `create_PSD` (2024,
+    lognormal size distributions). `number_above_dhm_cm3.m` integrates the lognormal modes analytically (erfc)
+    instead of using `create_PSD`.
 - **Reconstructed here, not his code:** Jeramy has not posted the code for the two CCN-based retrievals
   (`Corrected_PierCCN_ARM_EPCAPE` on GitHub is empty). `hourly_ccn_spectrum.m`, `extend_ccn_spectrum.m`,
   `retrieve_supersaturation_pct.m` and `number_above_dhm_cm3.m` were written from the method description in his
