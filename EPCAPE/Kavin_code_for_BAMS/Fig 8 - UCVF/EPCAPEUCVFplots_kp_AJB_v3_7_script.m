@@ -1265,7 +1265,7 @@ yticklabels("")
 % AJB edits (v3-2): larger legend text (Kavin: FontSize=5)
 % AJB edits (v3-7): Aitken-mode number added as the first entry
 % v3-6: legend("HOA, "+ string1,"rBC, "+ string2,"NaCl2, "+ string14, FontSize=style.legendFontSize_pt)
-legend("Aitken mode, "+ string18, "HOA, "+ string1,"rBC, "+ string2,"NaCl2, "+ string14, FontSize=style.legendFontSize_pt)
+legend("Aitken mode, "+ string18, "HOA, "+ string1,"rBC, "+ string2,"NaCl^-_2, "+ string14, FontSize=style.legendFontSize_pt)
 % AJB edits: legend in the top-right corner, where it is in Kavin's figure
 axB = gca;
 axB.Legend.Location = 'northeast';
@@ -1380,7 +1380,7 @@ if fitToBinMeans
     % acid, 14 glyoxylic acid.
     legendOrder = [13 14 12 1 2 3 4 11 5 6 7 8 9 10];   % AJB edits (v3-6): acids from section 2c
     entry = ["Glycolic acid"; "Glyoxylic acid"; "Coating thickness"; "Sulfate"; "MO-OOA"; ...
-             "SR-OOA"; "f44"; "FThickly"; "HOA"; "rBC"; "NaCl2 (ultrafine salt)"; "OH"; ...
+             "SR-OOA"; "f44"; "FThickly"; "HOA"; "rBC"; "NaCl_2 (ultrafine salt)"; "OH"; ...
              "dD, Mt. Soledad"; "dD, Pier"];
     panel = ["A"; "A"; "A"; "A"; "A"; "A"; "A"; "A"; "B"; "B"; "B"; "C"; "C"; "C"];
     r = rBinMeans(legendOrder);
