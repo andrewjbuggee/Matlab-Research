@@ -29,6 +29,9 @@ function [S, F] = ice_column_step(S, forcing, P, dt_s)
 %
 %        eps_s*(LWD - sigma*T_sk^4) + F_extra + SH_down + LH_down + F_cond_top_up = 0
 %
+%    sigma*T_sk^4 is planck_emit: the full quartic or, with 'lw_emission' =
+%    'linearized', its tangent at the initial skin temperature (North et al.
+%    1981 sec. 2; IFS Cy50r1 eq. 3.84 does the same to solve implicitly).
 %    Every term is a flux INTO the skin.  F_cond_top_up is the conductive flux
 %    from the layer just below (snow if present, else the first ice layer) up
 %    into the skin; in winter the interior is warmer than the surface, so it is
@@ -86,11 +89,25 @@ frac   = ice.layer_fractions(:);               % N x 1, sums to 1
 dz_old = h_old * frac;                          % N x 1 layer thicknesses [m]
 has_snow = ice.h_snow_m > 0;
 if has_snow && ~isfield(S, 'T_snow_K'), S.T_snow_K = S.T_sk_K; end
+% air temperature at the reference height for the turbulent fluxes; older
+% callers pass it as T_la_K
+if ~isfield(forcing, 'T_air_K'), forcing.T_air_K = forcing.T_la_K; end
+if ~isfield(forcing, 'F_extra_down_W_m2'), forcing.F_extra_down_W_m2 = 0; end
+T_ref_sfc = ice.T_sk_init_K;                      % linearisation reference ('linearized' option)
 
 % ------------------------------------------------------------------------
 % Layer thermal properties (pure ice by default; brine corrections of [BL99])
 % ------------------------------------------------------------------------
 [k_l, rho_c_l, L_eff] = ice_properties(T_old, P);
+zero_layer = strcmpi(ice_model_of(P), 'zero_layer');
+if zero_layer
+    % Semtner (1976) "0-layer" ice, the ice of Thorndike (1992): a linear
+    % temperature profile at every instant, no heat capacity.  Implemented as
+    % one layer whose heat capacity is set to zero: the implicit solve then puts
+    % the layer centre at the midpoint of the profile and the top flux becomes
+    % k (T_f - T_sk)/h exactly.  Snow, if present, is a pure resistance too.
+    rho_c_l(:) = 0;
+end
 % Conductances [W m-2 K-1] between adjacent layer CENTRES (harmonic mean so a
 % poorly conducting layer controls the flux) and between the outer centres and
 % the boundary surfaces a half-layer away.
@@ -103,6 +120,7 @@ if has_snow
     K_top   = ks / (hs/2);                       % skin -> snow centre
     K_si    = 1 / ( (hs/2)/ks + (dz_old(1)/2)/k_l(1) );   % snow centre -> ice-1 centre
     cap_snow = ice.rho_c_snow_J_m3_K * hs / dt_s;
+    if zero_layer, cap_snow = 0; end
     T_snow_old = S.T_snow_K;
 else
     K_top = k_l(1) / (dz_old(1)/2);              % skin -> ice-1 centre
@@ -115,7 +133,7 @@ if isfinite(ice.T_sk_prescribed_K)
     % --- prescribed skin temperature: no surface balance (analytic tests) --
     T_sk = ice.T_sk_prescribed_K;
     [T_new, T_snow_new, F_top_up, F_bot_up] = conduction_solve(T_sk);
-    SF = seb_surface_fluxes(T_sk, forcing.T_la_K, P);
+    SF = seb_surface_fluxes(T_sk, forcing.T_air_K, P);
     n_iter = 0;  resid = NaN;  melt = 0;
 else
     % --- safeguarded Newton on the scalar residual R(T_sk) ----------------
@@ -123,7 +141,7 @@ else
     T_sk = min(max(S.T_sk_K, lo + 1), hi - 1);      % start from last step
     n_iter = 0;  resid = skin_residual(T_sk);
     dT_fd = 0.01;                                   % finite-difference step [K]
-    while abs(resid) > P.num.newton_tol_K * 10 && n_iter < P.num.newton_maxit
+    while abs(resid) > P.num.newton_tol_W_m2 && n_iter < P.num.newton_maxit
         % R is monotone decreasing in T_sk: a positive residual means the skin
         % is too cold, so the root lies above; shrink the bracket accordingly.
         if resid > 0, lo = T_sk; else, hi = T_sk; end
@@ -136,7 +154,7 @@ else
         resid = skin_residual(T_sk);
         n_iter = n_iter + 1;
     end
-    % --- melt regime [S25]: cap the skin at the melting point ---------------
+    if abs(resid) > P.num.newton_tol_W_m2, warning('ice_column_step:newton', 'skin solve: residual %.2g W/m2 after %d iterations', resid, n_iter); end   % then the melt regime [S25]: cap the skin at the melting point
     if T_sk > ice.T_melt_sfc_K
         T_sk  = ice.T_melt_sfc_K;
         resid = skin_residual(T_sk);        % > 0: surplus energy melts the surface
@@ -145,7 +163,7 @@ else
         melt  = 0;
     end
     [T_new, T_snow_new, F_top_up, F_bot_up] = conduction_solve(T_sk);
-    SF = seb_surface_fluxes(T_sk, forcing.T_la_K, P);
+    SF = seb_surface_fluxes(T_sk, forcing.T_air_K, P);
 end
 
 % ------------------------------------------------------------------------
@@ -153,6 +171,9 @@ end
 % ------------------------------------------------------------------------
 dhdt_bot = (F_bot_up - forcing.F_ocean_up_W_m2) / (ice.rho_kg_m3 * L_eff);  % m/s, >0 grows
 dhdt_top = -melt / (ice.rho_kg_m3 * L_eff);                                 % m/s, <=0
+if strcmpi(P.opt.ice_growth, 'fixed')          % constant thickness, as ERA5 [IFS 8.11 caveat (i)]
+    dhdt_bot = 0;  dhdt_top = 0;
+end
 dh_bot = dhdt_bot * dt_s;
 dh_top = dhdt_top * dt_s;
 if dh_bot < -dz_old(end) || dh_top < -dz_old(1)
@@ -201,7 +222,9 @@ for j = 1:N
             Cap = Cap + rc_cells(i) * overlap;
         end
     end
-    T_remap(j) = H / Cap;
+    if Cap > 0, T_remap(j) = H / Cap;
+    else,       T_remap(j) = 0.5*(T_sk + T_f);   % zero-layer: the profile midpoint, diagnostic only
+    end
 end
 
 % ------------------------------------------------------------------------
@@ -212,23 +235,26 @@ S.T_ice_K = T_remap;
 S.h_m     = h_new;
 if has_snow, S.T_snow_K = T_snow_new; end
 
-F.LWU_sfc_W_m2       = ice.emis_sfc*sig*T_sk^4 + (1 - ice.emis_sfc)*forcing.LWD_sfc_W_m2;
+[E_sk, dE_sk]        = planck_emit(T_sk, P, T_ref_sfc);
+F.LWU_sfc_W_m2       = ice.emis_sfc*E_sk + (1 - ice.emis_sfc)*forcing.LWD_sfc_W_m2;
 F.SH_down_W_m2       = SF.SH_down_W_m2;
 F.LH_down_W_m2       = SF.LH_down_W_m2;
 F.F_cond_top_up_W_m2 = F_top_up;
 F.F_cond_bot_up_W_m2 = F_bot_up;
 F.melt_W_m2          = melt;
 F.dhdt_bot_m_s       = dhdt_bot;
-F.dhdt_top_m_s       = dhdt_top;
+F.dhdt_top_m_s       = dhdt_top;   F.E_runoff_J_m2 = rho_c_l(1)*(T_new(1) - T_f)*max(-dh_top, 0) + rho_c_l(end)*(T_new(end) - T_f)*max(-dh_bot, 0);   % sensible heat (rel. T_f) leaving with melted ice, top and base; energy diagnostic (26 Oct 2026 review)
 F.lambda_SH_W_m2_K   = SF.lambda_SH;
 F.lambda_LH_W_m2_K   = SF.lambda_LH;
-F.lambda_LW_W_m2_K   = 4*ice.emis_sfc*sig*T_sk^3;   % the linearised Planck damping
+F.lambda_LW_W_m2_K   = ice.emis_sfc*dE_sk;          % the Planck damping (4 eps sigma T^3 for the full form)
+F.C_H = SF.C_H;  F.zeta = SF.zeta;  F.Ri_b = SF.Ri_b;
 F.L_eff_J_kg         = L_eff;
 F.newton_iter        = n_iter;
 F.skin_residual_W_m2 = resid - melt;      % 0 at convergence (melt removed)
 [~, rc_now] = ice_properties(T_remap, P);
+if zero_layer, rc_now(:) = 0; end
 F.E_ice_sens_J_m2    = sum(rc_now .* (T_remap - T_f) .* (h_new * frac));
-if has_snow
+if has_snow && ~zero_layer
     F.E_ice_sens_J_m2 = F.E_ice_sens_J_m2 + ice.rho_c_snow_J_m3_K*ice.h_snow_m*(T_snow_new - T_f);
 end
 
@@ -264,8 +290,14 @@ end
     function R = skin_residual(T_sk_)
         % Net flux into the zero-heat-capacity skin; zero at the solution.
         [~, ~, F_top_up_] = conduction_solve(T_sk_);
-        SF_ = seb_surface_fluxes(T_sk_, forcing.T_la_K, P);
-        R = ice.emis_sfc * (forcing.LWD_sfc_W_m2 - sig*T_sk_^4) + forcing.F_extra_down_W_m2 ...
+        SF_ = seb_surface_fluxes(T_sk_, forcing.T_air_K, P);
+        E_  = planck_emit(T_sk_, P, T_ref_sfc);       % sigma T^4, or its linearisation
+        R = ice.emis_sfc * (forcing.LWD_sfc_W_m2 - E_) + forcing.F_extra_down_W_m2 ...
             + SF_.SH_down_W_m2 + SF_.LH_down_W_m2 + F_top_up_;
     end
+end
+
+% ------------------------------------------------------------------------
+function m = ice_model_of(P)
+if isfield(P, 'opt') && isfield(P.opt, 'ice_model'), m = P.opt.ice_model; else, m = 'skin_profile'; end
 end

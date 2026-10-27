@@ -63,10 +63,11 @@ title(ax, '(a) droplet size moves the saturation LWP (3/k_{abs})'); legend(ax, '
 
 % (b) sub-cloud emissivity and cloud temperature
 ax = nexttile(tl); hold(ax, 'on');
+e0 = P.atm.emis_la;                                  % the default sub-cloud emissivity (0.40), not a hard-coded 0.45
 cases = {0.30, 250, 'dry sub-cloud air (\epsilon_{la} = 0.30), T_c = 250 K'; ...
-         0.45, 250, 'default (\epsilon_{la} = 0.45), T_c = 250 K'; ...
+         e0,   250, sprintf('default (\\epsilon_{la} = %.2f), T_c = 250 K', e0); ...
          0.65, 250, 'moist sub-cloud air (\epsilon_{la} = 0.65), T_c = 250 K'; ...
-         0.45, 258, 'default, warmer cloud T_c = 258 K'};
+         e0,   258, 'default, warmer cloud T_c = 258 K'};
 cols = lines(size(cases,1));
 [eps_c, k] = cloud_lw_emissivity(LWP, 'liquid', P);
 for i = 1:size(cases,1)

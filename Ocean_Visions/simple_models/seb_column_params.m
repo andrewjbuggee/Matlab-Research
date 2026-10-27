@@ -71,8 +71,8 @@ function P = seb_column_params(varargin)
 %           sea ice is always close to ice saturation.
 %   [CJ59]  Carslaw & Jaeger (1959), Conduction of Heat in Solids, 2nd ed.
 %           Ch. XI: the Stefan / Neumann moving-boundary solutions.
-%   [IFS]   ECMWF IFS Documentation Cy41r2 Part IV: eq. 8.22 (skin balance),
-%           eq. 8.149-8.150 (ice: k = 2.03, rho*c = 1.88e6, 1.5 m, 4 layers).
+%   [IFS]   ECMWF IFS Documentation Cy50r1 Part IV (2025): eqs. 3.76/8.25 skin balance, 3.84 LW linearisation,
+%           8.8-8.9 bulk H and E, Table 8.3 roughness (ice caps), sec. 8.11 sea ice: eq. 8.189, k = 2.03, rho*c = 1.88e6, 1.5 m, 4 layers.
 %   [P10]   Pierrehumbert (2010), Principles of Planetary Climate, sec. 4.3:
 %           grey-gas slab atmospheres.
 %   [LSM]   linearized_seb_model.ipynb (this project, Sep 2026): ERA5 Barrow
@@ -89,9 +89,56 @@ P.const.cp_air_J_kg_K    = 1004.7;          % specific heat of dry air at const.
 P.const.R_dry_J_kg_K     = 287.06;          % gas constant of dry air
 P.const.g_m_s2           = 9.80665;         % standard gravity
 P.const.L_sub_J_kg       = 2.834e6;         % latent heat of sublimation (ice -> vapour) [IFS]
+P.const.L_vap_J_kg       = 2.501e6;         % latent heat of vaporisation (moist lapse rate)
 P.const.L_fus_J_kg       = 3.34e5;          % latent heat of fusion, FRESH water [BL99 L0; Z23 uses 333.4 kJ/kg]
 P.const.eps_molar        = 0.622;           % M_water / M_dry_air
 P.const.T0_K             = 273.15;          % 0 degC
+
+% =========================================================================
+% MODEL OPTIONS: structure (complexity) and physics, all switchable
+% =========================================================================
+% The 26 Oct 2026 notes asked for two kinds of modularity: the NUMBER OF LAYERS
+% and the PHYSICS used between them.  Both live here; run_simple_model.m is the
+% one place to set them, model_config.m applies them.  Every option names its
+% physics in the module that implements it.
+%
+%   complexity   1  atmosphere slab + ice slab + ocean mixed layer (the simplest
+%                   cartoon: LW/SH/LH between air and ice, conduction ice-ocean)
+%                2  boundary-layer slab (with the cloud) + free troposphere;
+%                   skin + 2-layer ice; mixed layer + deep ocean
+%                3  sub-cloud slab + cloud layer + free troposphere; skin +
+%                   3-layer ice [0.1 0.8 0.1]; mixed layer + deep ocean (the
+%                   model of 22 Oct 2026)
+%                4  as 3, with a lapse-rate temperature profile inside each
+%                   boundary-layer slab (atm_profile = 'lapse')
+P.opt.complexity      = 3;
+P.opt.lw_emission     = 'planck';      % 'planck' sigma T^4 | 'linearized' tangent at T_ref   [planck_emit.m]
+P.opt.planck_T_ref_fallback_K = 250;   % reference when a caller supplies none
+P.opt.turb_scheme     = 'bulk_const';  % 'none' | 'linear' | 'bulk_const' | 'most' [seb_surface_fluxes.m]
+P.opt.latent_scheme   = 'bulk';        % 'bulk' | 'off'
+P.opt.lambda_SH_lin_W_m2_K = 3.3;      % coefficient for turb_scheme = 'linear'
+P.opt.lambda_LH_lin   = 'clausius';    % 'clausius' (from lambda_SH) or a number [W m-2 K-1]
+P.opt.z_ref_m         = 10;            % reference height for 'most' (IFS lowest level ~10 m)
+P.opt.z0m_m           = 1.3e-3;        % roughness for momentum, ice caps/glaciers [IFS Cy50r1 Table 8.3]
+P.opt.z0h_m           = 1.3e-4;        % roughness for heat                        [IFS Cy50r1 Table 8.3]
+P.opt.ice_model       = 'auto';        % 'auto' = the level's default (level 1: 'slab'; levels 2-4: 'skin_profile')
+                                       % | 'slab' (one temperature) | 'skin_profile' (zero-capacity skin + N layers)
+                                       % | 'zero_layer' (skin + linear profile with NO heat capacity: Semtner 1976
+                                       %   "0-layer", the ice of Thorndike 1992)
+P.opt.atm_forcing     = 'relaxation';  % how the advective heat source enters the atmosphere:
+                                       % 'relaxation' Newtonian relaxation of each layer toward T_bg on tau_adv
+                                       % 'heating'    a prescribed heat convergence D_adv_W_m2 shared among the
+                                       %              layers (Thorndike 1992, sec. 2: "northward heat transport D
+                                       %              distributed evenly throughout the polar atmosphere"); the
+                                       %              layer temperatures then follow from radiative balance and
+                                       %              no background temperatures are needed
+P.opt.ice_growth      = 'stefan';      % 'stefan' | 'fixed' (constant thickness, as ERA5 [IFS 8.11])
+P.opt.atm_profile     = 'auto';        % 'auto' = the level's default (level 4: 'lapse'; else 'isothermal')
+                                       % | 'isothermal' | 'lapse' (profile inside each BL slab) [slab_emission.m]
+P.opt.lapse_kind      = 'dry';         % 'dry' | 'moist' | a number in K m-1 (negative = inversion) [lapse_rate.m]; per layer: P.atm.layers(k).lapse ('auto' = this)
+P.opt.ocean_model     = 'auto';        % 'auto' = the level's default (level 1: 'ml_fixed_deep'; else 'ml_deep')
+                                       % | 'ml_deep' | 'ml_fixed_deep'
+P.opt.draw_diagram    = true;
 
 % =========================================================================
 % Numerics
@@ -101,22 +148,22 @@ P.num.dt_s          = 600;     % time step [s]. Ice conduction is implicit; the
                                % relaxation times of hours or longer, so 10 min
                                % is far inside the stability limit (see README).
 P.num.t_end_days    = 30;      % run length [days]
-P.num.newton_tol_K  = 1e-5;    % convergence of the skin-temperature Newton solve
+P.num.newton_tol_W_m2 = 1e-4;  % convergence of the skin Newton solve: |net flux into the skin| below this [W m-2]
 P.num.newton_maxit  = 60;
 P.num.T_sk_bounds_K = [150 300];  % bisection safeguard for the skin solve
 
 % =========================================================================
 % Sea ice
 % =========================================================================
-P.ice.N_layers        = 3;      % number of ice layers. 3 = the user's "ocean-ice
-                                % interface / intermediate / ice-atmosphere interface"
-                                % layers; the model accepts any N. [Sem76] used 2
-                                % ice layers + snow; [IFS] uses 4; [S25] Table 2
-                                % lists 7-12 in the forecast models.
-P.ice.layer_fractions = [0.10 0.80 0.10];  % thickness of each layer as a fraction of h,
-                                % TOP to BOTTOM (sum = 1). Thin INTERFACE layers and a
-                                % thick interior, as in the 22 Oct 2026 notes. Set to
-                                % [] for equal layers. WHY IT MATTERS: the skin feels
+P.ice.N_layers        = 'auto'; % number of ice layers, or 'auto' = the level's default:
+                                % 1 for ice_model 'slab'/'zero_layer', 2 at level 2,
+                                % else 3 = the user's "ocean-ice interface / intermediate /
+                                % ice-atmosphere interface" layers. Any N is accepted
+                                % ([Sem76] 2 + snow; [IFS] 4; [S25] Table 2: 7-12).
+P.ice.layer_fractions = 'auto'; % thickness of each layer as a fraction of h, TOP to
+                                % BOTTOM (sum = 1); 'auto' = [0.10 0.80 0.10] for 3 layers,
+                                % [0.5 0.5] for 2: thin INTERFACE layers and a thick interior
+                                % (22 Oct 2026 notes); [] = equal layers. WHY IT MATTERS: the skin feels
                                 % the ice through the top layer's half-thickness,
                                 % K_top = k/(dz_1/2). The response of a conductor to a
                                 % forcing of period P penetrates only sqrt(kappa P/pi)
@@ -182,7 +229,7 @@ P.ocean.F_ocean_fixed_W_m2 = NaN;   % if finite, use this constant ocean heat fl
                                     % analytic Stefan test). NaN = bulk formula.
 P.ocean.dT_ml_init_K     = 0.02;    % initial T_ml - T_f  [K]
 P.ocean.dT_deep_init_K   = 0.50;    % initial T_deep - T_f [K]
-P.ocean.deep_prognostic  = true;    % false: hold T_deep fixed (infinite reservoir)
+%  (deep reservoir prognostic or fixed: chosen by P.opt.ocean_model 'ml_deep' | 'ml_fixed_deep'; finalize derives P.ocean.deep_prognostic)
 
 % =========================================================================
 % Atmosphere: three slabs.  Heat capacity C = c_p * dp / g, after [PRISM].
@@ -236,6 +283,10 @@ P.atm.T_bg_ua_K       = 232.0;  % air mass) and a colder free troposphere. Chose
                                 % replace each day (~20 W m-2 over the BL at tau = 1 d).
                                 % A warmer/colder regime: shift all three together.
 P.atm.tau_adv_s       = 86400;  % 1 day. L/U ~ 500 km / 5 m/s.  FREE KNOB.
+P.atm.D_adv_W_m2      = 100;    % advective heat convergence for atm_forcing = 'heating' [W m-2].
+                                % Thorndike (1992) reads ~100 W m-2 for the polar cap from
+                                % Nakamura & Oort (1988, JGR 93, 9510-9524, Fig. 7a).
+P.atm.D_weights       = 'mass'; % how D is shared among layers: 'mass' (by dp), 'equal', or a vector
 P.atm.gamma_mix_W_m2_K = 10.0;  % cloud <-> sub-cloud turbulent coupling. Cloud-top
                                 % LW cooling drives mixing that couples the cloud to
                                 % the layer below (Morrison et al. 2012, Nat. Geosci.
@@ -286,13 +337,16 @@ P.cloud.rho_liq_kg_m3 = 1000;
 % Derived quantities (filled by finalize)
 % =========================================================================
 P = apply_overrides(P, varargin{:});
-P = finalize(P);
+P = seb_column_finalize(P);
 end
 
 % -------------------------------------------------------------------------
 function P = apply_overrides(P, varargin)
-% Set leaf fields by name, e.g. ('WP_g_m2', 50). The name is searched in every
-% sub-struct so the caller does not need to remember which group it lives in.
+% Set leaf fields by name, e.g. ('WP_g_m2', 50) or ('complexity', 1). The name is
+% searched in every sub-struct (const, num, ice, ocean, atm, cloud, opt) so the
+% caller does not need to remember which group it lives in.  Layer-by-layer
+% atmosphere settings are edited on P.atm.layers after construction, followed by
+% P = seb_column_finalize(P).
 if mod(numel(varargin), 2) ~= 0
     error('seb_column_params: overrides must be name/value pairs');
 end
@@ -310,59 +364,4 @@ for i = 1:2:numel(varargin)
         error('seb_column_params: unknown parameter "%s"', name);
     end
 end
-end
-
-% -------------------------------------------------------------------------
-function P = finalize(P)
-% Quantities derived from the primary parameters.
-
-% Freezing point of seawater at surface pressure [Mil78] (UNESCO 1978):
-%   T_f(degC) = -0.0575 S + 1.710523e-3 S^1.5 - 2.154996e-4 S^2
-% For S = 34 psu this gives -1.86 degC. [IFS] uses T0 - 1.7 for its ice base.
-S = P.ocean.S_psu;
-P.ocean.T_f_K = P.const.T0_K + (-0.0575*S + 1.710523e-3*S^1.5 - 2.154996e-4*S^2);
-
-% Slab heat capacities [J m-2 K-1], C = c_p dp / g (hydrostatic mass * c_p) [PRISM]
-cp = P.const.cp_air_J_kg_K;  g = P.const.g_m_s2;
-P.atm.C_la_J_m2_K = cp * P.atm.dp_la_hPa*100 / g;
-P.atm.C_cl_J_m2_K = cp * P.atm.dp_cl_hPa*100 / g;
-P.atm.C_ua_J_m2_K = cp * P.atm.dp_ua_hPa*100 / g;
-
-% Ocean slab heat capacities [J m-2 K-1]
-P.ocean.C_ml_J_m2_K   = P.ocean.rho_w_kg_m3 * P.ocean.c_w_J_kg_K * P.ocean.h_ml_m;
-P.ocean.C_deep_J_m2_K = P.ocean.rho_w_kg_m3 * P.ocean.c_w_J_kg_K * P.ocean.h_deep_m;
-% Ice-ocean bulk coefficient [W m-2 K-1], F_w = coeff * (T_ml - T_f) [McP92]
-P.ocean.coeff_iceocean_W_m2_K = P.ocean.rho_w_kg_m3 * P.ocean.c_w_J_kg_K ...
-                                * P.ocean.c_h_mcphee * P.ocean.ustar_m_s;
-
-% Initial ocean temperatures
-P.ocean.T_ml_init_K   = P.ocean.T_f_K + P.ocean.dT_ml_init_K;
-P.ocean.T_deep_init_K = P.ocean.T_f_K + P.ocean.dT_deep_init_K;
-
-% Layer fractions: default to equal layers if empty or inconsistent with N
-if isempty(P.ice.layer_fractions) || numel(P.ice.layer_fractions) ~= P.ice.N_layers
-    if ~isempty(P.ice.layer_fractions) && numel(P.ice.layer_fractions) ~= P.ice.N_layers
-        warning('seb_column_params:fractions', ...
-            'layer_fractions has %d entries but N_layers = %d; using equal layers', ...
-            numel(P.ice.layer_fractions), P.ice.N_layers);
-    end
-    P.ice.layer_fractions = ones(1, P.ice.N_layers) / P.ice.N_layers;
-end
-P.ice.layer_fractions = P.ice.layer_fractions(:)' / sum(P.ice.layer_fractions);
-P.ice.cum_fractions   = [0, cumsum(P.ice.layer_fractions)];      % layer edges, fraction of h
-P.ice.centre_fractions = P.ice.cum_fractions(1:end-1) + P.ice.layer_fractions/2;
-
-% Ice volumetric heat capacity and thermal diffusivity (pure-ice values; the
-% brine corrections, if enabled, are applied per layer inside ice_column_step)
-P.ice.rho_c_J_m3_K  = P.ice.rho_kg_m3 * P.ice.c_J_kg_K;        % 1.93e6 ([IFS]: 1.88e6)
-P.ice.rho_c_snow_J_m3_K = P.ice.rho_snow_kg_m3 * P.ice.c_snow_J_kg_K;   % 6.3e5
-% Sledd's effective depth [S25 eq. 10]: ice thickness that conducts like snow+ice
-P.ice.h_eff_init_m  = P.ice.h_init_m + P.ice.h_snow_m * P.ice.k_W_m_K / P.ice.k_snow_W_m_K;
-P.ice.kappa_m2_s    = P.ice.k_W_m_K / P.ice.rho_c_J_m3_K;      % ~1.05e-6 m2/s
-
-% Cloud emissivity for the initial cloud state, and the effective emissivity of
-% the cloud SLAB (cloud particles + the layer's own gases, independent absorbers)
-[P.cloud.emis, P.cloud.k_abs_m2_g] = cloud_lw_emissivity(P.cloud.WP_g_m2, ...
-    P.cloud.phase, P);
-P.cloud.emis_slab = 1 - (1 - P.atm.emis_gas_cl) * (1 - P.cloud.emis);
 end

@@ -140,7 +140,7 @@ for ic = 1:numel(checks)
     Pa.num.t_end_days = branch_days;
     Rc = seb_column_run(Pa, 'init_state', Ra.final_state, 'verbose', false);
     Pb = Pa;  Pb.cloud.phase = 'ice';  Pb.cloud.WP_g_m2 = f_remain_V22*LWP0_g_m2;
-    [Pb.cloud.emis, Pb.cloud.k_abs_m2_g] = cloud_lw_emissivity(Pb.cloud.WP_g_m2, 'ice', Pb);
+    Pb = seb_column_finalize(Pb);
     Rp = seb_column_run(Pb, 'init_state', Ra.final_state, 'verbose', false);
     Dx = response_budget(Rp, Rc, rho_i);
     alpha = (Rp.T_la_K(end) - Rc.T_la_K(end)) / (Rp.T_sk_K(end) - Rc.T_sk_K(end));
@@ -167,7 +167,7 @@ for js = 1:numel(snow_list)
         Pa.num.t_end_days = branch_days;
         Rc = seb_column_run(Pa, 'init_state', Ra.final_state, 'verbose', false);
         Pb = Pa;  Pb.cloud.phase = 'ice';  Pb.cloud.WP_g_m2 = f_remain_V22*LWP0_g_m2;
-        [Pb.cloud.emis, Pb.cloud.k_abs_m2_g] = cloud_lw_emissivity(Pb.cloud.WP_g_m2, 'ice', Pb);
+        Pb = seb_column_finalize(Pb);
         Rp = seb_column_run(Pb, 'init_state', Ra.final_state, 'verbose', false);
         Dx = response_budget(Rp, Rc, rho_i);
         dh30(js,jh) = 100*Dx.dh(end);  eff30(js,jh) = Dx.dh(end)/Dx.dh_zapalac(end);
@@ -326,7 +326,7 @@ for i = 1:2:numel(overrides)
     end
     if ~done, error('unknown parameter %s', nm); end
 end
-[P.cloud.emis, P.cloud.k_abs_m2_g] = cloud_lw_emissivity(P.cloud.WP_g_m2, P.cloud.phase, P);
+P = seb_column_finalize(P);                      % cloud and slab emissivities follow the edited phase / water path
 s = struct('name', name, 'P', P, 'R', [], 'style', '-');
 end
 

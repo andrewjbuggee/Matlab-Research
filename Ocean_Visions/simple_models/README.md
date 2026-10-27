@@ -1,6 +1,9 @@
 # A zero-dimensional ocean / sea-ice / atmosphere / cloud column for polar night
 
 MATLAB, R2024b. Andrew Buggee with Claude, Ocean Visions, October 2026.
+Rebuilt 26 Oct 2026 as a modular hierarchy: start from `run_simple_model.m`.
+The report "Modular ocean–ice–atmosphere column model: how the code works" (Claude Doc,
+26 Oct 2026) documents every equation with its source and file:line.
 
 The purpose is the one in the 22 Oct 2026 meeting notes: *all of the physics is well
 known, but the pieces have not been put together in the simplest model that can show
@@ -92,24 +95,49 @@ Figure 4 of the driver shows exactly this.
 
 | file | what it is |
 |---|---|
-| `seb_column_params.m` | every parameter, with units in the name and a source in the comment; override any by name |
-| `seb_column_run.m` | the time integrator; returns time series of every state and flux, and an energy-conservation diagnostic |
-| `ice_column_step.m` | one step of skin balance (Newton) + implicit conduction + Stefan growth + conservative regrid |
+| `run_simple_model.m` | **master script**: choose the complexity level and the physics in one block, draw the configuration, run the perturbation experiment, compare all levels |
+| `model_config.m` | builds the parameter/option struct for a level (`model_config(3, 'turb_scheme', 'most', ...)`) and prints a summary |
+| `seb_column_params.m` | every parameter and option, with units in the name and a source in the comment |
+| `seb_column_finalize.m` | derived quantities and the layer structure of each complexity level (edit `P.atm.layers` by hand, then re-run it) |
+| `seb_column_run.m` | the integrator: any number of air layers, either ice representation, either advective closure; energy diagnostic |
+| `draw_model_diagram.m` | renders the configured column (layers, fluxes, options) as a PNG |
+| `ice_column_step.m` | skin balance (Newton) + implicit conduction (+ snow) + Stefan growth + conservative regrid; also the zero-layer ice |
+| `ice_slab_step.m` | the single-temperature ice slab of level 1 |
 | `ice_properties.m` | k, ρc, L for pure ice, or the Bitz & Lipscomb (1999) brine corrections |
-| `lw_grey_slabs.m` | the grey-slab longwave solver (any number of slabs) |
-| `cloud_lw_emissivity.m` | Stephens (1978) + geometric-optics scaling; liquid and ice |
-| `seb_surface_fluxes.m` | bulk SH and LH, and the damping coefficients λ_SH, λ_LH |
+| `lw_grey_slabs.m` | the grey-slab longwave solver (any number of slabs; emission supplied per slab) |
+| `planck_emit.m` | σT⁴ or its linearisation (North et al. 1981; IFS eq. 3.84) |
+| `slab_emission.m` | up/down emission of a slab: isothermal, or with a lapse-rate profile inside it |
+| `lapse_rate.m` | dry, saturated-adiabatic, or prescribed lapse rate |
+| `cloud_lw_emissivity.m`, `cloud_slab_emissivity.m` | Stephens (1978) + geometric-optics scaling; cloud + gases combined per slab |
+| `seb_surface_fluxes.m`, `most_exchange_coefficient.m` | SH and LH: none / linear / bulk constant / IFS Monin–Obukhov |
 | `sat_vapor_ice.m` | Murphy & Koop (2005) over ice |
+| `response_partition.m`, `print_column_state.m` | the partition bookkeeping and a state printout |
 | `new_figure_clean.m` | invisible, factory-default figure (R2024b export-stall workaround; resets `startup.m`'s dark defaults) |
-| `test_column_model.m` | the validation suite (§5) |
-| `run_glaciation_experiment.m` | the experiment: spin-up, glaciate, partition the response, thickness dependence, profiles |
+| `test_column_model.m` | the validation suite, T1–T9 (§5) |
+| `run_glaciation_experiment.m` | the 22 Oct experiment at level 3: glaciation scenarios, thickness dependence, profiles |
 | `plot_dlr_vs_lwp.m` | side question from the notes: what moves the LWP at which DLR saturates |
+
+### The hierarchy (`complexity` 1–4) and the physics switches
+
+| level | atmosphere | ice | ocean |
+|---|---|---|---|
+| 1 | one slab (790 hPa) holding the cloud as an emissivity | single slab, one temperature | mixed layer over a fixed reservoir |
+| 2 | boundary layer with the cloud (90 hPa) + free troposphere | skin + 2 layers | mixed layer + reservoir |
+| 3 | sub-cloud air + cloud layer + free troposphere | skin + 3 layers [0.1 0.8 0.1] | mixed layer + reservoir |
+| 4 | as 3, with a lapse-rate profile inside each boundary-layer slab | as 3 | as 3 |
+
+Independently of the level: `lw_emission` (planck | linearized), `turb_scheme` (bulk_const | most | linear | none),
+`latent_scheme` (bulk | off), `atm_profile` (isothermal | lapse) with `lapse_kind` (dry | moist | K m⁻¹),
+`ice_model` (skin_profile | slab | zero_layer), `ice_growth` (stefan | fixed, ERA5-like), `atm_forcing`
+(relaxation | heating, Thorndike 1992's prescribed convergence D), `ocean_model`, `h_snow_m`, `use_brine`,
+`layer_fractions`. Anything set explicitly is honoured at every level; `'auto'` takes the level's default.
 
 Run from the directory (`addpath` is handled):
 
 ```matlab
-test_column_model            % ~1 min; prints PASS/FAIL and a comparison table
-run_glaciation_experiment    % ~1-2 min; writes figures/fig1..fig4
+run_simple_model             % ~3 min: diagram, experiment at the chosen level, all levels compared
+test_column_model            % ~2 min; prints PASS/FAIL for T1-T9
+run_glaciation_experiment    % ~1-2 min; writes figures/fig1..fig4 (level 3)
 plot_dlr_vs_lwp
 ```
 
@@ -169,6 +197,10 @@ Everything else is a physical constant or a published value.
 | T2 | ice growth vs the exact one-phase Neumann solution of the Stefan problem (`h = 2λ√(κt)`, `λe^{λ²}erf λ = St/√π`) and the quasi-steady law `h² = h₀² + 2kΔT t/(ρL)` | within 1 % of Neumann for every layering; the quasi-steady law overshoots by ~2 % because it neglects heat capacity (St = 0.13) |
 | T3 | coupled run conserves energy | residual ~10⁻⁷ W m⁻² |
 | T4 | the two winter states (clear / cloudy) | skin ~245 / 255 K, LWD ~165 / 230 W m⁻² for the ERA5-like column |
+| T6 | the options: lapse-rate emission reduces to isothermal at Γ = 0; Monin–Obukhov C_H equals κ²/(ln ln) when neutral and falls when stable; linearised vs full Planck; fixed thickness; linear vs bulk turbulence; the MOST scheme runs | all pass |
+| T7 | every level, clear and cloudy, energy closure | residual < 4×10⁻⁶ W m⁻² at all four levels |
+| T8 | zero-layer ice + linearised Planck + no turbulence under a fixed atmosphere vs its analytic growth ODE (Thorndike 1992, eqs. 13–15) | 0.00 % after 60 days |
+| T9 | `atm_forcing = 'heating'`: the Thorndike closure, D = 100/140/180 W m⁻² | energy closes; D ≈ 180 W m⁻² reproduces the winter states with these emissivities |
 | T5 | step response of the skin to +10 W m⁻² vs the frequency-dependent admittance `λ_G(P) = Re[k q coth(qh)]` at `P = 4t` (exact for a semi-infinite conductor) | 30 equal layers: 0.28 / 0.52 / 0.74 / 0.89 K at 1 h / 6 h / 1 d / 3 d against 0.27 / 0.49 / 0.69 / 0.83 from the admittance; **3 equal layers give 0.63 K at 1 h** (50-cm top layer) and converge after ~3 days; the default 0.1/0.8/0.1 split is within 30 % at 1 h, ~15 % high at 1–3 d, converged by 1 week |
 
 The T5 result is the practical limitation to carry: a 3-layer ice model is exact for
@@ -253,6 +285,43 @@ halves the response (Ian Eisenman's point).
   predicted; cloud-top cooling does not feed back on the cloud's own water.
 * The ice-side admittance is resolved only to the top layer's thickness (T5).
 * Ocean: a bulk mixed layer and a reservoir; no halocline structure.
+
+## 7b. Code review, 26 Oct 2026 (what changed)
+
+* `seb_column_finalize.m`: the deep-ocean switch `P.ocean.deep_prognostic` was evaluated
+  *before* the `'auto'` options were resolved, so a fresh configuration ran with a fixed
+  reservoir and a re-finalized copy (the perturbed run of every experiment) with a
+  prognostic one. Control and perturbed runs therefore used different ocean models
+  (≤ 0.01 cm of extra ice at levels 2 and 4; nothing at level 3 at the printed precision).
+  Now set after the resolution. `N_layers` / `layer_fractions` default to `'auto'` (the
+  level's layering) and an explicit value is honoured at every level — level 2 no longer
+  overrides it silently. A layer's `lapse` is `'auto'` = `P.opt.lapse_kind`, read at run
+  time, so editing `lapse_kind` after construction now propagates. Warning when snow is
+  set with `ice_model = 'slab'` (the slab has no skin and ignored it silently).
+* `slab_emission.m`: the 41-point trapezoid rule (0.09 % low at ε = 0.98, NaN at ε = 1)
+  is replaced by the exact exponential-kernel integration between nodes (linear-in-τ,
+  Clough et al. 1992); the isothermal limit is now exact to round-off and the black
+  limit finite.
+* `ice_slab_step.m`: the melt surplus lacked the slab heat-capacity term (dormant in
+  winter). The energy diagnostic now counts the sensible heat that leaves with melted
+  ice (`E_runoff`), so it closes in the melt regime as well (it was 2–3 W m⁻² off
+  under a forced melt).
+* `P.num.newton_tol_W_m2 = 1e-4` replaces `newton_tol_K` (it is a flux tolerance); the
+  skin solve warns if it does not converge.
+* Comments and labels: IFS citations updated to Cy50r1 (eqs. 3.76/8.25, 8.8–8.9,
+  Table 8.3, §8.11 eq. 8.189); `planck_emit` reference note; test header;
+  `plot_dlr_vs_lwp` labels follow `emis_la`; the dead parameter `deep_prognostic`
+  removed from `seb_column_params`; the run summary prints the live cloud emissivity.
+  The Monin–Obukhov sensible heat flux is *not* monotone in the inversion strength
+  (it saturates near 32 W m⁻² for 8–16 K inversions and falls by 0.2 W m⁻² K⁻¹ before
+  the ζ = 5 cap); the skin solve keeps a unique root because the Planck and conduction
+  slopes dominate — documented in `most_exchange_coefficient.m`.
+* Known and not fixed: with `use_brine` the ice heat capacity depends on T and the
+  energy diagnostic is a linearisation (residual ≈ 2 W m⁻² over 10 days); a proper
+  enthalpy formulation (Bitz & Lipscomb 1999) would be needed.
+
+All nine tests pass after the changes; the results of §6 are unchanged at the printed
+precision.
 
 ## 8. Sources
 
