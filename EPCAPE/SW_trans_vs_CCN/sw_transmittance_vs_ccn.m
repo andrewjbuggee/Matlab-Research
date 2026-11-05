@@ -33,8 +33,8 @@
 %      ("AJB"; EPCAPE/supersaturation, not yet independently verified).
 %      x and color are different supersaturations: ccnSetpoint_pct is the
 %      chamber setting of the CCN counter (a fixed probe of the aerosol: how
-%      many particles WOULD activate at that s), while the color is the s the
-%      cloud actually reached, set by updraft and the droplets' competition
+%      many particles WOULD activate at that s value), while the color is the
+%      s the cloud actually reached, set by updraft and the droplets' competition
 %      for vapor (Twomey 1959).
 %
 %   CASES AND FILTERS (set in Section 1)
@@ -119,32 +119,32 @@ cloudIntervalsOnly = false;          % dedrick24 only: keep just the 5-min inter
                                      % meet the cloud condition (vis < 1 km, LWC > 0.01 g m-3)
 
 % --- filters (true = apply) ---------------------------------------------------
-applyDaytime     = true;  
-szaMax_deg       = 80;      % sun higher than 10 deg
+applyDaytime     = true;    % apply a SZA filter on the data
+szaMax_deg       = 80;      % sun higher than 10 deg from the horizon
 
-applyLWP         = true;   
+applyLWP         = true;    % apply a LWP filter on the data
 lwpMin_gm2       = 20;      % LWP > 20 g m-2 ...
 lwpMax_gm2       = 300;     % ... and < 300 g m-2 (MWRRET v2 at the Pier) - value used by Dedrick et al. (2026)
 
-applyNoPrecip    = true;   
+applyNoPrecip    = true;    % filter the data for cases without precipitation
 rainWindow_min   = 15;      % no rain within +/- rainWindow_min minutes ...
 rainSites        = ["Pier" "Soledad"];   % ... at these disdrometers
    
-requireArscl     = false;   % true: a minute without ARSCL data fails
+requireArscl     = false;   % true: a minute without ARSCL data is ignored
 
 % cloud filters
-applySingleLayer       = true;
-applyLiquid            = true;   
-maxCloudTop_m          = 3000;    % liquid proxy: top and base below 3 km
-maxCloudBase_m         = 3000;
+applySingleLayer       = true;    % filter for cloud scenes with only 1 cloud layer
+applyLiquid            = true;    % filter for cloud scenes with liquid cloud only
+maxCloudTop_m          = 3000;    % liquid proxy: top below 3 km
+maxCloudBase_m         = 3000;    % base below 3 km
 
 % cloud persistance: tested minute by minute. A minute passes if, over the
 % persistence window [minute - persistHalfWindow_min, minute + persistHalfWindow_min],
-% cloud is detected at every site in persistenceSites for >= persistMinFraction
+% cloud is detected at all sites in persistenceSites for >= persistMinFraction
 % of the minutes that have cloud-detection data, AND those minutes with data
 % make up >= persistMinCoverage of the window (so a minute is not called
 % "persistent" on the strength of 2 minutes of data in a 21-min window)
-applyPersistence       = true;
+applyPersistence       = true;   % filter data for cloudy scenes with the persistence thresholds defined above
 persistenceSites       = ["Pier" "Soledad"];
 persistHalfWindow_min  = 10;     % persistence window = minute +/- persistHalfWindow_min
 persistMinFraction     = 0.9;    % cloud for >= 90 % of the window minutes with data ...

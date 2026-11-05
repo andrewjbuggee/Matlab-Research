@@ -1,10 +1,8 @@
 # EPCAPE cloud supersaturation: Jeramy Dedrick's retrievals in MATLAB
 
-This is the MATLAB version of the Python notebook
-`VS_CODE/Python-Research/EPCAPE/comparisons/supersaturation/dedrick2026_supersaturation_retrievals.ipynb`.
-It explains and re-derives the effective cloud supersaturations of Dedrick et al. (2026, *J. Atmos. Sci.* 83, 1061,
-doi:10.1175/JAS-D-26-0004.1) and recreates their Fig. 10. It gives the same numbers as the Python notebook.
-That was checked on 19 Oct 2026 in R2024b: every printed statistic and table is identical.
+This matlab live script explains and re-derives the effective cloud supersaturations of 
+Dedrick et al. (2026, *J. Atmos. Sci.* 83, 1061, doi:10.1175/JAS-D-26-0004.1) and recreates
+their Fig. 10. It was checked on 19 Oct 2026 in R2024b
 
 ## Credits: this work is based on Jeramy L. Dedrick's methods, data and code
 
