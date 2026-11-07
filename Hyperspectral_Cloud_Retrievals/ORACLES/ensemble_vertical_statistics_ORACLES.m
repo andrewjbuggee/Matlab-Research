@@ -223,6 +223,8 @@ set(gcf, 'Position', [0 0 1000 550])
 %   profile method  f_ad(z) = LWC(z) / [Gamma_ad (z - z_cb)]   (Wood Fig. 4c)
 %   path method     f_ad = LWP_obs / [(1/2) Gamma_ad h^2]      (Wood Table 3)
 % with Gamma_ad evaluated at the mean in-cloud temperature and pressure.
+% Cloud base is the z-intercept of a line fit to the bottom third of LWC(z), the
+% same rule as VOCALS-REx (see compute_adiabaticity_Wood2005.m).
 % The returned summary vectors can be used to segment the ensemble by
 % adiabaticity, the same way LWP and optical depth are used below.
 

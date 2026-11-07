@@ -713,15 +713,67 @@ end
 % synthetic-data pipeline (lasp-CU-paper-3/plot_per_cloud_rmse_kfold.py).
 % See compute_adiabaticity_Wood2005.m for the derivation and every field.
 %
-% Stored as vert_profs(nn).adiabaticity, a structure whose per-sample
-% fields (z_star, q_ad_g_m3, f_ad_z) are in SAMPLING order, aligned with
-% .altitude and .lwc (not with .tau, which is stored top-to-base).
+% CLOUD BASE. The thresholds above define the profile, and they are not changed
+% here: the profile fields (.altitude, .lwc, .re, .tau, ...) are exactly what the
+% thresholds selected. They do not mark the physical cloud base, though, and f_ad
+% depends on cloud thickness squared. The base used for f_ad is therefore
+% extrapolated: a straight line is fit to LWC(z) over the bottom third of the
+% profile and its z-intercept is taken as cloud base, but never above the lowest
+% sample, with a fallback of one adiabatic distance below the lowest sample when
+% the fitted slope is not physical. ORACLES uses the same rule. See
+% compute_adiabaticity_Wood2005.m.
+%
+% Three versions are stored:
+%
+%   .adiabaticity                extrapolated base (the one to use)
+%   .adiabaticity_measured_base  comparison: the profile is extended or trimmed,
+%                                using the full flight time series, to where the
+%                                droplet-mode LWC falls below 0.01 g/m^3
+%                                (find_insitu_cloud_base.m)
+%   .adiabaticity_lowest_sample  comparison: the lowest sample taken as the base
+%
+% Per-sample fields (z_star, q_ad_g_m3, f_ad_z) are in SAMPLING order. Those of
+% .adiabaticity and .adiabaticity_lowest_sample are element-aligned with
+% .altitude and .lwc. Those of .adiabaticity_measured_base span
+% base_search.idx_profile instead, so they are not.
+
+LWC_base_threshold = 0.01;      % g/m^3 - droplet-mode LWC that ends the measured-base search
 
 for nn = 1:length(vert_profs)
 
+    % ------ Default: extrapolated cloud base ------
     vert_profs(nn).adiabaticity = compute_adiabaticity_Wood2005(...
         vert_profs(nn).altitude, vert_profs(nn).lwc, ...
-        vert_profs(nn).temp, vert_profs(nn).pres);
+        vert_profs(nn).temp, vert_profs(nn).pres, ...
+        'base_method', 'extrapolate', ...
+        'lwc_threshold_g_m3', LWC_threshold, ...
+        'lwc_droplet_g_m3', vert_profs(nn).lwc_CDP);
+
+    % ------ Comparison: measured base, from the full flight time series ------
+    idx_start = find(vocalsRex.time == vert_profs(nn).time(1), 1);
+    idx_end   = find(vocalsRex.time == vert_profs(nn).time(end), 1);
+
+    base = find_insitu_cloud_base(vocalsRex.altitude, vocalsRex.lwc_CDP, idx_start, idx_end, ...
+        LWC_base_threshold);
+
+    idx_adiab = base.idx_profile;
+
+    vert_profs(nn).adiabaticity_measured_base = compute_adiabaticity_Wood2005(...
+        vocalsRex.altitude(idx_adiab), vocalsRex.lwc(idx_adiab), ...
+        vocalsRex.temp(idx_adiab), vocalsRex.pres(idx_adiab), ...
+        'base_method', 'lowest_sample', ...
+        'lwc_threshold_g_m3', LWC_threshold, ...
+        'lwc_droplet_g_m3', vocalsRex.lwc_CDP(idx_adiab));
+
+    vert_profs(nn).adiabaticity_measured_base.base_search = base;
+
+    % ------ Comparison: lowest sample taken as the base ------
+    vert_profs(nn).adiabaticity_lowest_sample = compute_adiabaticity_Wood2005(...
+        vert_profs(nn).altitude, vert_profs(nn).lwc, ...
+        vert_profs(nn).temp, vert_profs(nn).pres, ...
+        'base_method', 'lowest_sample', ...
+        'lwc_threshold_g_m3', LWC_threshold, ...
+        'lwc_droplet_g_m3', vert_profs(nn).lwc_CDP);
 
 end
 

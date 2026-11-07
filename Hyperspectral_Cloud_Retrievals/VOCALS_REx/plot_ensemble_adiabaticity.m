@@ -169,7 +169,8 @@ clr_profile = mySavedColors(2, 'fixed');      % sea foam green
 clr_lwp     = mySavedColors(5, 'fixed');      % salmon red
 clr_lines   = [0.75, 0.75, 0.75];
 
-figure;
+% Factory graphics defaults: the root defaults in startup.m make titles collide
+new_factory_figure;
 
 % ---- (a) f_ad(z) versus normalized height, Wood (2005) Fig. 4c ---------
 subplot(1, 3, 1)
@@ -224,7 +225,9 @@ title('Cloud-integrated $f_{ad}$', 'Interpreter', 'latex')
 subplot(1, 3, 3)
 hold on
 
-scatter(f_ad_profile, f_ad_lwp, 30, h_m, 'filled', 'MarkerFaceAlpha', 0.8)
+% h_m is passed as a column: with exactly 3 profiles, scatter reads a 3-element
+% row vector as a single RGB color instead of one colormap value per point
+scatter(f_ad_profile, f_ad_lwp, 30, h_m(:), 'filled', 'MarkerFaceAlpha', 0.8)
 cb = colorbar;
 cb.Label.String = 'cloud thickness h (m)';
 
@@ -241,6 +244,16 @@ title('Path vs profile method', 'Interpreter', 'latex')
 gamma_str = ['$\Gamma_{ad}$ = ', num2str(median(Gamma_ad, 'omitnan'), '%.2f'), ...
     ' [', num2str(min(Gamma_ad), '%.2f'), ', ', num2str(max(Gamma_ad), '%.2f'), ...
     '] $g\,m^{-3}\,km^{-1}$ at the mean in-cloud $(T, p)$'];
+
+% Which cloud base these numbers use, and how often the extrapolation fell back
+% on one adiabatic distance below the lowest sample
+if strcmp(profiles{1}.adiabaticity.base_method, 'extrapolate')
+    n_fallback = sum(cellfun(@(q) strcmp(q.adiabaticity.base_source, 'fallback'), profiles));
+    gamma_str = [gamma_str, '  |  cloud base: line-fit intercept (', num2str(n_fallback), ...
+        ' of ', num2str(n_prof), ' fallback)'];
+else
+    gamma_str = [gamma_str, '  |  cloud base: ', strrep(profiles{1}.adiabaticity.base_method, '_', ' ')];
+end
 
 if ~isempty(campaign_label)
     line1 = ['Wood (2005) adiabaticity -- ', campaign_label, ', ', num2str(n_prof), ' profiles', threshold_str];

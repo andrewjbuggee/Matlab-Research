@@ -41,7 +41,11 @@
 %                                    compute_adiabaticity_Wood2005: Gamma_ad at
 %                                    the mean in-cloud (T, p), q_ad(z), the
 %                                    per-level ratio f_ad_z, and the scalars
-%                                    f_ad_profile and f_ad_lwp = lwp / lwp_ad
+%                                    f_ad_profile and f_ad_lwp = lwp_obs / lwp_ad.
+%                                    Cloud base is the z-intercept of a line fit to
+%                                    the bottom third of LWC(z), as for VOCALS-REx.
+%                  .adiabaticity_lowest_sample - same, with the lowest sample
+%                                    taken as the cloud base
 %                  .horz_dist      - cumulative horizontal distance [m]
 %                  .cloud_depth    - geometric cloud depth [m]
 %                  .slant_path     - slant path through cloud [m]
@@ -438,6 +442,23 @@ else
     % (lasp-CU-paper-3/plot_per_cloud_rmse_kfold.py). See
     % compute_adiabaticity_Wood2005.m for the derivation and every field.
     %
+    % CLOUD BASE. The thresholds above define the profile and are not changed here.
+    % The base used for f_ad is extrapolated, with the same rule as VOCALS-REx: a
+    % straight line is fit to LWC(z) over the bottom third of the profile and its
+    % z-intercept is taken as cloud base, but never above the lowest sample, with a
+    % fallback of one adiabatic distance below the lowest sample when the fitted
+    % slope is not physical. See compute_adiabaticity_Wood2005.m.
+    %
+    % VOCALS-REx also stores a base measured by following the droplet-mode LWC out
+    % of the cloud (find_insitu_cloud_base.m). That comparison cannot be made here:
+    % the ORACLES combined microphysics files hold essentially no data outside the
+    % data set's cloud mask (bulk_lwc >= 0.05 g/m^3 and N >= 10 cm^-3). Over 99.8%
+    % of samples outside the mask are missing, which readORACLES stores as 0. Run
+    % on all 239 ORACLES profiles, that search never moved more than one sample.
+    %
+    %   .adiabaticity                extrapolated base (the one to use)
+    %   .adiabaticity_lowest_sample  comparison: the lowest sample taken as the base
+    %
     % Per-sample fields (z_star, q_ad_g_m3, f_ad_z) are in SAMPLING order,
     % aligned with .altitude and .lwc (not with .tau).
 
@@ -445,7 +466,17 @@ else
 
         vert_profs(nn).adiabaticity = compute_adiabaticity_Wood2005( ...
             vert_profs(nn).altitude, vert_profs(nn).lwc, ...
-            vert_profs(nn).temp, vert_profs(nn).pres);
+            vert_profs(nn).temp, vert_profs(nn).pres, ...
+            'base_method', 'extrapolate', ...
+            'lwc_threshold_g_m3', LWC_threshold, ...
+            'lwc_droplet_g_m3', vert_profs(nn).cwc);
+
+        vert_profs(nn).adiabaticity_lowest_sample = compute_adiabaticity_Wood2005( ...
+            vert_profs(nn).altitude, vert_profs(nn).lwc, ...
+            vert_profs(nn).temp, vert_profs(nn).pres, ...
+            'base_method', 'lowest_sample', ...
+            'lwc_threshold_g_m3', LWC_threshold, ...
+            'lwc_droplet_g_m3', vert_profs(nn).cwc);
 
     end
 

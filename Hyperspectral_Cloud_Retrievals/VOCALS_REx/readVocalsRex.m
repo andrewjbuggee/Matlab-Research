@@ -412,16 +412,23 @@ altitude = reshape(altitude, 1, length(altitude));
 % Gamma_ad by ~1.5%, far below the CDP/2DC LWC uncertainty, so ATX is kept.
 %
 % Data set: NCAR/EOL VOCALS-REx C-130 LRT (1 sps) data, doi:10.5065/D60863M8
-ambient_air_temp = reshape(ncread(filename, 'ATX'), 1, []);                                          % C - ambient (static) air temperature, RAF reference
-ambient_static_pressure = reshape(ncread(filename, 'PSXC'), 1, []);                                  % hPa - corrected ambient static pressure, RAF reference
+%
+% SAMPLING RATE. RF05, RF08 and RF13 store these variables as (Time, sps25),
+% that is 25 values per second, while every other flight stores them as
+% (Time). They must be brought to 1 Hz here: the profile finders slice every
+% field with 1-Hz time indices, so a flattened 25-Hz vector silently returns
+% values from the wrong part of the flight. See collapse_to_1Hz below.
+ambient_air_temp = collapse_to_1Hz(ncread(filename, 'ATX'), length(time));                           % C - ambient (static) air temperature, RAF reference
+ambient_static_pressure = collapse_to_1Hz(ncread(filename, 'PSXC'), length(time));                   % hPa - corrected ambient static pressure, RAF reference
 
 % -------------------------------------------------------------------------
 % --------------- Grab different water vapor measurements ---------------
 % -------------------------------------------------------------------------
-water_vapor_pressure = reshape(ncread(filename, 'EDPUV'), 1, []);                                % hPa - ambient water vapor pressure
-mixing_ratio = reshape(ncread(filename, 'MR'), 1, []);                                           % g of water vapor/kg of dry air - water vapor mixing ratio
-absolute_humidity = reshape(ncread(filename, 'RHODT'), 1, []);                                   % g of water vapor/m^3 of air - absolute humidity
-relative_humidity = reshape(ncread(filename, 'RHUM'), 1, []);                                    % % - indication of how close the air is to being saturated
+% These share the mixed sampling rate described above for temperature and pressure
+water_vapor_pressure = collapse_to_1Hz(ncread(filename, 'EDPUV'), length(time));                 % hPa - ambient water vapor pressure
+mixing_ratio = collapse_to_1Hz(ncread(filename, 'MR'), length(time));                            % g of water vapor/kg of dry air - water vapor mixing ratio
+absolute_humidity = collapse_to_1Hz(ncread(filename, 'RHODT'), length(time));                    % g of water vapor/m^3 of air - absolute humidity
+relative_humidity = collapse_to_1Hz(ncread(filename, 'RHUM'), length(time));                     % % - indication of how close the air is to being saturated
 
 
 
@@ -1071,3 +1078,41 @@ vocalsRex.pres = ambient_static_pressure;                    % hPa
 
 
 end
+
+
+
+%% Bring a variable stored at more than 1 Hz down to one value per second
+% INPUTS:
+%   x        - the variable exactly as ncread returns it. Either a vector with
+%              one value per second, or a matrix of size [n_per_second, n_time]
+%              (ncread reverses the (Time, sps25) dimension order in the file)
+%   n_time   - number of 1-Hz time steps in the flight
+%
+% OUTPUT:
+%   x_1Hz    - 1 x n_time row vector. High-rate data are averaged over each
+%              second, which is what the 1-Hz (LRT) variables already are.
+%              Missing high-rate samples are ignored; a second with no valid
+%              samples stays NaN.
+%
+% NOTE: this is an arithmetic mean, so do not use it on angles such as wind
+% direction, which wrap around at 360 degrees.
+
+function x_1Hz = collapse_to_1Hz(x, n_time)
+
+x = double(x);
+
+if numel(x) == n_time
+    % already one value per second
+    x_1Hz = reshape(x, 1, []);
+
+elseif size(x, 2) == n_time
+    % [n_per_second, n_time]: average across the samples within each second
+    x_1Hz = mean(x, 1, 'omitnan');
+
+else
+    error([newline, 'Expected ', num2str(n_time), ' time steps but this variable has size [', ...
+        num2str(size(x)), '].', newline])
+end
+
+end
+
