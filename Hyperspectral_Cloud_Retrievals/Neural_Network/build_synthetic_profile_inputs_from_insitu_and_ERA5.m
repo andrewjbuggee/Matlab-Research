@@ -3,7 +3,7 @@
 % DESCRIPTION:
 %   Reads the saved VOCALS-REx and ORACLES ensemble vertical profiles, extracts
 %   only the variables needed by
-%
+%t
 %     Python-Research/lasp-CU-paper-3/06_synthetic_profile_generator.py
 %
 %   pairs every profile with the spatiotemporally closest ERA5 temperature /
@@ -27,6 +27,11 @@
 %                                   stored in-situ tau profile [unitless]
 %   tau_c_computed                - total cloud optical thickness recomputed
 %                                   from r_e and LWC [unitless]
+%   f_ad_profile                  - adiabaticity of the measured profile
+%                                   from the full droplet size distribution
+%   f_ad_profile_CDP_only         - adiabaticity of the measured profile
+%                                   from the CDP instrument only (no
+%                                   drizzle)
 %   n_levels                      - number of in-cloud measurements per profile
 %   era5_T_K                      - ERA5 temperature profile [K], surface -> TOA
 %   era5_vapor_concentration_cm3  - ERA5 water vapor number density [molec/cm^3]
@@ -151,11 +156,11 @@ if ~isfolder(output_folder)
 end
 
 % --- Saved ensemble profile files ---
-vocals_filename = ['ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.03_',...
-    'Nc-threshold_25_04-Dec-2025.mat'];
+vocals_filename = ['ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.05_',...
+    'Nc-threshold_10_08-Nov-2026.mat'];
 
-oracles_filename = ['ensemble_profiles_with_precip_from_33_files_LWC-threshold_0.05_',...
-    'Nc-threshold_10_no_rEff_greaterThan50_microns_16-Mar-2026.mat'];
+oracles_filename = ['ensemble_profiles_from_33_files_LWC-threshold_0.05_',...
+    'Nc-threshold_10_08-Nov-2026.mat'];
 
 % --- Where the (slow) ORACLES gamma fits get cached ---
 oracles_alpha_cache = [folderpath_oracles, 'gammaFit_alpha_', ...
@@ -200,6 +205,11 @@ if process_vocals==true
         raw{nn}.alpha = double(p.gammaFit.alpha(:));     % unitless
 
         raw{nn}.lwp_insitu = double(p.lwp(1));           % g/m^2
+
+        % store the per-profile adiabaticity
+        % store the total and CDP-only values
+        raw{nn}.f_ad_total = double(p.adiabaticity.f_ad_profile);
+        raw{nn}.f_ad_total_CDP_only = double(p.adiabaticity.f_ad_profile_droplet);
 
         % mid-profile geolocation and time
         mid = round(length(p.latitude)/2);
@@ -256,6 +266,11 @@ if process_oracles==true
         raw{nn}.alpha = double(alpha_all{nn}(:));        % unitless
 
         raw{nn}.lwp_insitu = double(p.lwp(1));           % g/m^2
+
+        % store the per-profile adiabaticity
+        % store the total and CDP-only values
+        raw{nn}.f_ad_total = double(p.adiabaticity.f_ad_profile);
+        raw{nn}.f_ad_total_CDP_only = double(p.adiabaticity.f_ad_profile_droplet);
 
         % mid-profile geolocation and time
         mid = round(length(p.latitude)/2);
