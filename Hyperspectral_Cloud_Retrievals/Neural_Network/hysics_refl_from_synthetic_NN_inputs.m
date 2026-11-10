@@ -19,7 +19,7 @@ function hysics_refl_from_synthetic_NN_inputs(input_file, idx, folder_paths, out
 %   output_dir    Directory to write the per-cloud .mat output (with
 %                 trailing '/').
 %
-% By Andrew John Buggee (synthetic-input variant, drafted with Claude)
+% By Andrew John Buggee (synthetic-input variant)
 %%
 
 %% Tidy up old INP/OUT/wc/atmmod artefacts from a previous run

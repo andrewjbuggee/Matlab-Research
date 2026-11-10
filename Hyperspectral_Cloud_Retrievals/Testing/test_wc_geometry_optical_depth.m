@@ -1,9 +1,13 @@
 %% test_wc_geometry_optical_depth.m
-% Why does the synthetic-profile tau_c label need Q_ext = 2.32?
+%
+% How well does the synthetic-profile tau_c label match the optical depth
+% libRadtran simulates? The label is now the Mie Qbar trapezoid of
+% 06_synthetic_profile_generator.compute_tau_c (since 9 Nov 2026); the old
+% constant Q_ext = 2.32 label is kept for comparison.
 % Two libRadtran runs per cloud — the CURRENT wc_file geometry and a FIXED one —
 % with libRadtran's own optical depth read back from its verbose output.
 %
-% By Andrew John Buggee (drafted with Claude), 8 Nov 2026
+% By Andrew John Buggee, 8 Nov 2026
 %
 % =========================================================================
 % PHYSICS (every equation checked against Hansen & Travis 1974, Space Sci.
@@ -99,15 +103,21 @@ clear; close all;
 
 % Synthetic profiles from 06_synthetic_profile_generator.py (a numpy .npz).
 % Arrays are (N_clouds, 7) with levels ordered cloud top -> base.
-NPZ_FILE = ['/Users/andrewbuggee/Documents/VS_CODE/Python-Research/lasp-CU-paper-3/', ...
-    'synthetic_profiles/synthetic_profiles_jointMVN_N1000_L7_2026-11-08.npz'];
+% NPZ_FILE = ['/Users/andrewbuggee/Documents/VS_CODE/Python-Research/lasp-CU-paper-3/', ...
+%     'synthetic_profiles/synthetic_profiles_jointMVN_N1000_L7_2026-11-08.npz'];
+
+% New synthetic profiles using the custom mie tables to compute tau, rather
+% than use a fixed scattering efficiency
+NPZ_FILE = ['/Users/andrewbuggee/Documents/VS_CODE/Python-Research/lasp-CU-paper-3/',...
+    'synthetic_profiles/synthetic_profiles_jointMVN_N1000_L7_2026-11-09.npz'];
 
 N_CLOUDS  = 30;            % how many synthetic clouds to run (2 geometries each)
 RNG_SEED  = 20261108;      % seed for picking which clouds; printed and saved
 
 TAU_WAVELENGTH_NM   = 550;          % wavelength at which tau is defined [nm]
 REFL_WAVELENGTHS_NM = [550, 2130];  % wavelengths for the reflectance comparison [nm]
-QEXT_LABEL          = 2.32;         % constant in 06_synthetic_profile_generator.compute_tau_c
+QEXT_OLD_LABEL      = 2.32;         % OLD constant in compute_tau_c (before 9 Nov 2026);
+                                    % kept only to compare with the new Mie label
 
 % Viewing geometry and surface: generic, fixed for every cloud
 SZA_DEG        = 30;       % solar zenith angle [deg]
@@ -199,8 +209,9 @@ end
 %% ------------------- Analytic optical depths per cloud ------------------
 % Each from the UNROUNDED profile; see the header for the equations.
 tau_HT        = zeros(n_c, 1);   % Q = 2 (geometric optics limit), trapezoid
-tau_label     = zeros(n_c, 1);   % Q = 2.32, trapezoid  (= compute_tau_c)
-tau_mie_trapz = zeros(n_c, 1);   % Mie Qbar, trapezoid over z_base..z_top
+tau_label     = zeros(n_c, 1);   % LABEL: Mie Qbar(r_e, alpha), trapezoid over z_base..z_top
+                                 %   (= 06_synthetic_profile_generator.compute_tau_c)
+tau_label_old = zeros(n_c, 1);   % old label: constant Q = 2.32, trapezoid
 tau_mie_cur   = zeros(n_c, 1);   % Mie Qbar, CURRENT layer geometry
 tau_mie_fix   = zeros(n_c, 1);   % Mie Qbar, FIXED mixed-layer geometry
 endpoint_x    = zeros(n_c, 1);   % (beta_top + beta_base) / (2 betabar)
@@ -209,7 +220,9 @@ dz_spread     = zeros(n_c, 1);   % max/min level spacing, to check the grid is u
 
 for c = 1:n_c
     i   = cloud_idx(c);
-    re  = re_all_um(i, :)';   lwc = lwc_all_gm3(i, :)';   z = z_all_km(i, :)';
+    re  = re_all_um(i, :)';   
+    lwc = lwc_all_gm3(i, :)';   
+    z = z_all_km(i, :)';
     mie = mie_cache(alpha_table(c));
 
     % beta at every level, eq. (3) via the table: beta = ext(r_e) * LWC   [km^-1]
@@ -217,8 +230,10 @@ for c = 1:n_c
     qbar_levels(c, :) = (interp1(mie.reff_um, mie.ext, re, 'linear') .* re / 750)';
 
     tau_HT(c)        = 750 * 2          * abs(trapz(z, lwc ./ re));
-    tau_label(c)     = 750 * QEXT_LABEL * abs(trapz(z, lwc ./ re));
-    tau_mie_trapz(c) = abs(trapz(z, beta_km));
+    % Label, exactly as compute_tau_c: beta from the table nearest this
+    % cloud's alpha (linear in r_e), trapezoid over the 7 levels
+    tau_label(c)     = abs(trapz(z, beta_km));
+    tau_label_old(c) = 750 * QEXT_OLD_LABEL * abs(trapz(z, lwc ./ re));
 
     % CURRENT: line z_i fills [z_i, z_{i-1}], with z_0 = z_top + dz
     dz_km  = -mean(diff(z));                        % as in write_wc_file_from_in_situ.m
@@ -230,13 +245,20 @@ for c = 1:n_c
     beta_mix = interp1(mie.reff_um, mie.ext, re_mix, 'linear') .* lwc_mix;
     tau_mie_fix(c) = sum(beta_mix .* (-diff(z)));
 
-    betabar_km     = tau_mie_trapz(c) / (z(1) - z(end));
+    betabar_km     = tau_label(c) / (z(1) - z(end));
     endpoint_x(c)  = (beta_km(1) + beta_km(end)) / (2 * betabar_km);
     dz_spread(c)   = max(-diff(z)) / min(-diff(z));
 end
 
-fprintf('\nCheck: recomputed label vs tau_c stored in the .npz: max |rel diff| = %.2e\n', ...
-    max(abs(tau_label ./ tau_npz(cloud_idx) - 1)));
+% The recomputed label should equal the tau_c stored by 06 to float32
+% precision (~1e-7). A ~10% difference means the .npz was made with the OLD
+% constant-Q compute_tau_c.
+label_check = max(abs(tau_label ./ tau_npz(cloud_idx) - 1));
+fprintf('\nCheck: recomputed label vs tau_c stored in the .npz: max |rel diff| = %.2e\n', label_check);
+if label_check > 1e-4
+    warning(['tau_c in the .npz does not match the Mie label (max rel diff %.3f). ' ...
+        'Was this .npz made with the old Q = %.2f compute_tau_c?'], label_check, QEXT_OLD_LABEL);
+end
 fprintf('Level spacing max/min over all clouds: %.4f (1 = uniform grid)\n', max(dz_spread));
 fprintf('Mie Qbar at %d nm over all levels: median %.3f, range [%.3f, %.3f]\n', ...
     TAU_WAVELENGTH_NM, median(qbar_levels(:)), min(qbar_levels(:)), max(qbar_levels(:)));
@@ -304,10 +326,11 @@ fprintf('Our reading of libRadtran (wc file -> tau, should be 1):\n');
 fprintf('  libRadtran / predicted, current : %.4f [%.4f, %.4f]\n', pct(tau_rt(:,1) ./ tau_file(:,1)));
 fprintf('  libRadtran / predicted, fixed   : %.4f [%.4f, %.4f]\n', pct(tau_rt(:,2) ./ tau_file(:,2)));
 fprintf('Analytic formulas vs what libRadtran simulated:\n');
-fprintf('  label (Q=2.32, trapz) / RT current : %.4f [%.4f, %.4f]\n', pct(tau_label ./ tau_rt(:,1)));
-fprintf('  label (Q=2.32, trapz) / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_label ./ tau_rt(:,2)));
-fprintf('  Mie Qbar, layer sum   / RT current : %.4f [%.4f, %.4f]\n', pct(tau_mie_cur ./ tau_rt(:,1)));
-fprintf('  Mie Qbar, trapz       / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_mie_trapz ./ tau_rt(:,2)));
+fprintf('  label (Mie Qbar, trapz) / RT current : %.4f [%.4f, %.4f]\n', pct(tau_label ./ tau_rt(:,1)));
+fprintf('  label (Mie Qbar, trapz) / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_label ./ tau_rt(:,2)));
+fprintf('  old label (Q=2.32)      / RT current : %.4f [%.4f, %.4f]\n', pct(tau_label_old ./ tau_rt(:,1)));
+fprintf('  old label (Q=2.32)      / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_label_old ./ tau_rt(:,2)));
+fprintf('  Mie Qbar, layer sum     / RT current : %.4f [%.4f, %.4f]\n', pct(tau_mie_cur ./ tau_rt(:,1)));
 fprintf('Geometry effect alone:\n');
 fprintf('  RT current / RT fixed              : %.4f [%.4f, %.4f]\n', pct(tau_rt(:,1) ./ tau_rt(:,2)));
 fprintf('  end-point identity 1 + x/(N-1)     : %.4f [%.4f, %.4f]\n', pct(1 + endpoint_x/(n_lev-1)));
@@ -318,7 +341,7 @@ end
 
 results = struct('cloud_idx', cloud_idx, 'rng_seed', RNG_SEED, 'npz_file', NPZ_FILE, ...
     'alpha_table', alpha_table, 'tau_HT', tau_HT, 'tau_label', tau_label, ...
-    'tau_mie_trapz', tau_mie_trapz, 'tau_mie_cur', tau_mie_cur, 'tau_mie_fix', tau_mie_fix, ...
+    'tau_label_old', tau_label_old, 'tau_mie_cur', tau_mie_cur, 'tau_mie_fix', tau_mie_fix, ...
     'tau_rt', tau_rt, 'tau_file', tau_file, 'refl', refl, ...
     'refl_wavelengths_nm', REFL_WAVELENGTHS_NM, 'tau_wavelength_nm', TAU_WAVELENGTH_NM, ...
     'endpoint_x', endpoint_x, 'qbar_levels', qbar_levels, 'geom_names', {geom_names}, ...
@@ -370,9 +393,12 @@ for g = 1:2
     plot(ax, tau_edges, z_edges, '-', 'Color', col, 'LineWidth', 2.5, ...
         'DisplayName', sprintf('libRadtran, %s: \\tau_c = %.2f', geom_names{g}, tau_rt(cs, g)));
 end
-tau_lab_cum = 750 * QEXT_LABEL * cumtrapz(-z, lwc ./ re);   % from the top down
-plot(ax, tau_lab_cum, z, '--', 'Color', COL_ANA, 'LineWidth', 1.8, ...
-    'DisplayName', sprintf('label, Q = %.2f trapz: \\tau_c = %.2f', QEXT_LABEL, tau_label(cs)));
+tau_lab_cum = cumtrapz(-z, beta_km);                        % label, from the top down
+plot(ax, tau_lab_cum, z, '--', 'Color', 'k', 'LineWidth', 1.8, ...
+    'DisplayName', sprintf('label, Mie Q trapz: \\tau_c = %.2f', tau_label(cs)));
+tau_old_cum = 750 * QEXT_OLD_LABEL * cumtrapz(-z, lwc ./ re);
+plot(ax, tau_old_cum, z, ':', 'Color', COL_ANA, 'LineWidth', 1.8, ...
+    'DisplayName', sprintf('old label, Q = %.2f trapz: \\tau_c = %.2f', QEXT_OLD_LABEL, tau_label_old(cs)));
 mark_cloud_bounds(ax, z_top, z_base, dz_km);
 xlabel(ax, '\tau accumulated from cloud top'); title(ax, '(c) Optical depth vs altitude');
 legend(ax, 'Location', 'southwest', 'FontSize', 9); grid(ax, 'on');
@@ -412,8 +438,8 @@ end
 
 % (f) tau_c by method
 ax = nexttile(tl);
-vals = [tau_HT(cs), tau_label(cs), tau_mie_trapz(cs), tau_mie_cur(cs), tau_rt(cs,1), tau_rt(cs,2)];
-names = {'H&T Q=2, trapz', sprintf('label Q=%.2f, trapz', QEXT_LABEL), 'Mie Q, trapz', ...
+vals = [tau_HT(cs), tau_label_old(cs), tau_label(cs), tau_mie_cur(cs), tau_rt(cs,1), tau_rt(cs,2)];
+names = {'H&T Q=2, trapz', sprintf('old label Q=%.2f, trapz', QEXT_OLD_LABEL), 'label: Mie Q, trapz', ...
     'Mie Q, current layers', 'libRadtran current', 'libRadtran fixed'};
 cols = [COL_ANA; COL_ANA; COL_FIX*0.6+0.4; COL_CUR*0.6+0.4; COL_CUR; COL_FIX];
 bh = barh(ax, vals, 'FaceColor', 'flat'); bh.CData = cols;
@@ -434,28 +460,31 @@ title(tl, sprintf('%d synthetic clouds, \\tau at %d nm', n_c, TAU_WAVELENGTH_NM)
 
 % (a) training label vs libRadtran
 ax = nexttile(tl); hold(ax, 'on');
-lim = [0, 1.05*max([tau_label; tau_rt(:)])];
+lim = [0, 1.05*max([tau_label; tau_label_old; tau_rt(:)])];
 plot(ax, lim, lim, 'k-', 'LineWidth', 1, 'HandleVisibility', 'off');
 scatter(ax, tau_rt(:,1), tau_label, 40, COL_CUR, 'filled', 'MarkerFaceAlpha', 0.8, ...
     'DisplayName', 'vs libRadtran, current');
 scatter(ax, tau_rt(:,2), tau_label, 40, COL_FIX, 'filled', 'MarkerFaceAlpha', 0.8, ...
     'DisplayName', 'vs libRadtran, fixed');
-scatter(ax, tau_rt(:,2), tau_mie_trapz, 40, COL_FIX, 'LineWidth', 1.2, ...
-    'DisplayName', 'Mie Q trapz label vs fixed');
+scatter(ax, tau_rt(:,1), tau_label_old, 40, COL_CUR, 'LineWidth', 1.2, ...
+    'DisplayName', sprintf('old label (Q = %.2f) vs current', QEXT_OLD_LABEL));
 axis(ax, [lim lim]); axis(ax, 'square');
 xlabel(ax, '\tau_c computed by libRadtran'); ylabel(ax, '\tau_c label');
-title(ax, sprintf('(a) Label (Q = %.2f) vs libRadtran', QEXT_LABEL));
+title(ax, '(a) Label (Mie Q, trapz) vs libRadtran');
 legend(ax, 'Location', 'northwest', 'FontSize', 9); grid(ax, 'on');
 
 % (b) which formula reproduces which geometry
 ax = nexttile(tl); hold(ax, 'on');
-R = {tau_label ./ tau_rt(:,1), tau_label ./ tau_rt(:,2), tau_mie_cur ./ tau_rt(:,1), tau_mie_trapz ./ tau_rt(:,2)};
-labs = {'label / current', 'label / fixed', 'Mie layers / current', 'Mie trapz / fixed'};
-rc = [COL_CUR; COL_FIX; COL_CUR; COL_FIX];
+R = {tau_label ./ tau_rt(:,1), tau_label ./ tau_rt(:,2), tau_label_old ./ tau_rt(:,1), tau_mie_cur ./ tau_rt(:,1)};
+labs = {'label / current', 'label / fixed', 'old label / current', 'Mie layers / current'};
+rc = [COL_CUR; COL_FIX; COL_ANA; COL_CUR];
 yline(ax, 1, 'k-', 'LineWidth', 1);
+r_all  = [R{:}];
+y_text = max(r_all, [], 'all') + 0.02;          % median labels sit above the data
+ylim(ax, [min(r_all, [], 'all') - 0.02, y_text + 0.02]);   % ... but inside the axes
 for k = 1:4
     swarmchart(ax, k*ones(n_c,1), R{k}, 30, rc(k,:), 'filled', 'MarkerFaceAlpha', 0.7, 'XJitterWidth', 0.5);
-    text(ax, k, max([R{:}],[],'all') + 0.02, sprintf('%.3f', median(R{k})), ...
+    text(ax, k, y_text, sprintf('median %.3f', median(R{k})), ...
         'HorizontalAlignment', 'center', 'FontSize', 9, 'FontWeight', 'bold');
 end
 set(ax, 'XTick', 1:4, 'XTickLabel', labs, 'FontSize', 9); xlim(ax, [0.4 4.6]);
