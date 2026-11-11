@@ -6,6 +6,13 @@ consecutive `averageWindow_min` windows (e.g. 10 min or 1 h), coloured by the cl
 filters, is in Section 1 at the top of the script. Press Run. The first run reads every instrument (~1–2 min) and
 caches the 1-min inputs in `output/epcape_1min_inputs.mat`; later runs take seconds (`rebuildCache = true` re-reads).
 
+## Companion scripts
+- `sw_transmittance_vs_Nd.m`: same cases, filters and windows, with x = ARM NDROP droplet number N_d
+  (`epcndropmfrsrM1.c1`, read by `functions/read_ndrop_1min.m`, cached in `output/ndrop_1min_<qc>.mat`).
+  Windows without a posted s are drawn as grey rings. N_d comes from the MFRSR optical depth, so it is not
+  independent of T_SW. With the defaults (27 Oct settings): 119 ten-minute points from 11 of the 24 events.
+- `functions/plot_dedrick2026_event_timing*.m`: when the 24 events' pre-, in- and post-cloud windows occurred.
+
 ## Main settings
 - `caseSet`: `"dedrick24"` (the 24 Mt. Soledad cloud events), `"soledadInCloud"`, `"lowCloudPeriods"`, `"all"`
 - filters, each with an on/off switch: daytime (`szaMax_deg`), LWP (`lwpMin_gm2`, `lwpMax_gm2`), no rain

@@ -5,10 +5,12 @@
 %   concentration (x), averaged over consecutive averageWindow_min windows
 %   (e.g. 10 min or 1 h), with the points colored by the
 %   cloud's effective supersaturation, optionally in nSupersaturationBins
-%   groups. The question behind it: at a given aerosol loading, does the
+%   groups. 
+% THE QUESTION I'M TESTING: at a given aerosol concentration, does the
 %   cloud let less sunlight through when more of the aerosol activates
 %   (higher supersaturation -> more droplets -> brighter cloud, Twomey
-%   1977)?
+%   1977)? Twomey (1977) focused on cloud reflectivity, and not
+%   transmittance, though they are coupled.
 %
 %   WHAT IS PLOTTED, AND FROM WHERE
 %   y  T_SW = <SW down> / <clear-sky SW down> over the window, from ARM
@@ -23,23 +25,25 @@
 %      number by construction, N_d = CCN(s_Nd)).
 %      WHY THE PIER: s_kappa, s_CCN, s_Nd,FM and s_Nd,VAP all use Scripps Pier
 %      aerosol data (Dedrick et al. 2026, Sec. 2d; supplement Table S7). The
-%      Mt. Soledad CCN-200 samples behind the GCVI during cloud events, i.e.
-%      it measures droplet RESIDUALS (particles that already activated), was
-%      used only for the extra s_Dact method (Text S10), starts at 0.2 % and
-%      cycles in 2 h, and is not among the posted products on disk.
+%      Mt. Soledad CCN-200 sampled behind the GCVI during cloud events, i.e.
+%      it measured droplet RESIDUALS (particles that already activated), was
+%      used only for the extra s_Dact method (Text S10), starts at 0.2% 
+%      supersaturation, and cycles in 2 h, and is not among the posted products
+%      on disk.
 %   color  the effective cloud supersaturation s (%), either Dedrick's
 %      posted hourly retrievals ("posted"; method and period chosen below)
 %      or my own re-derivation of the cloud-scene method s_Nd,FM
 %      ("AJB"; EPCAPE/supersaturation, not yet independently verified).
-%      x and color are different supersaturations: ccnSetpoint_pct is the
-%      chamber setting of the CCN counter (a fixed probe of the aerosol: how
-%      many particles WOULD activate at that s value), while the color is the
-%      s the cloud actually reached, set by updraft and the droplets' competition
-%      for vapor (Twomey 1959).
+%      x-axis and marker-color are different supersaturations: 
+%      ccnSetpoint_pct is the chamber setting of the CCN counter (a 
+%      fixed probe of the aerosol: how many particles WOULD activate at 
+%      that s value), while the color is the supersaturation the cloud 
+%      actually reached, set by updraft and the droplets' competition for 
+%      vapor (Twomey 1959).
 %
 %   CASES AND FILTERS (set in Section 1)
-%   caseSet "dedrick24" keeps the in-cloud windows of the 24 Mt. Soledad
-%   cloud events of Dedrick et al. (2026, supplement Table S5). Then every
+%   caseSet "dedrick24" keeps the in-cloud events from the 24 Mt. Soledad
+%   cloud events outlined by Dedrick et al. (2026, supplement Table S5). Then every
 %   minute must pass the filters switched on below: daytime, LWP between
 %   the bounds, no rain, single layer, liquid only (height proxy), and a
 %   deck that persists at the Pier and at Mt. Soledad. What each filter
