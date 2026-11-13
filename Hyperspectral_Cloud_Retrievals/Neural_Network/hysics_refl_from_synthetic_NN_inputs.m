@@ -190,7 +190,7 @@ inputs.RT.wc_parameterization   = 'mie interpolate';
 
 %% Write the water-cloud .DAT file (per-cloud profile)
 
-% write_wc_file_from_in_situ expects column vectors; profiles already top→base.
+% write_wc_file_mixed_layers takes column vectors; profiles already top→base.
 date_of_flight = {char(datetime('today'))};
 time_of_flight = idx;        % numeric tag for filename uniqueness
 tau_c          = tau_c_scalar;
@@ -208,7 +208,13 @@ if any(re_um >= 50)
     error('Synthetic cloud %d has r_e >= 50 µm; outside the Mie table range.', idx);
 end
 
-wc_filename = write_wc_file_from_in_situ(re_um, lwc_g_per_m3, z_km, campaign_name, ...
+% Mixed-layer geometry (since 11 Nov 2026): libRadtran's cloud spans exactly
+% z_base ... z_top, the interval the tau_c and LWP labels in the .nc are
+% integrated over. The old writer, write_wc_file_from_in_situ, put the top
+% level in an extra layer above z_top, which made libRadtran's tau a median
+% 7.8% (up to ~24%) larger than the label. See write_wc_file_mixed_layers.m
+% and Testing/test_wc_geometry_optical_depth.m.
+wc_filename = write_wc_file_mixed_layers(re_um, lwc_g_per_m3, z_km, campaign_name, ...
     date_of_flight{1}, time_of_flight, ...
     inputs.compute_weighting_functions, which_computer, ...
     idx, wc_folder_path);

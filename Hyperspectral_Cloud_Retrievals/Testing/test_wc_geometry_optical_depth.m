@@ -61,16 +61,20 @@
 %        extra layer ABOVE the profile, so the cloud spans z_base ... z_top+dz:
 %            tau_cur = beta_1 dz + sum_{i=2..N} beta_i (z_{i-1} - z_i)
 %
-% FIXED    (this script, write_wc_file_mixed_layers below):
+% FIXED    (LibRadTran-wrapper/write_wc_file_mixed_layers.m, used by
+%           hysics_refl_from_synthetic_NN_inputs.m since 11 Nov 2026):
 %     lines at z_top (zeros), z_2 ... z_N (one value per interval), 0 km.
 %     -> N-1 cloudy layers, each filling [z_{k+1}, z_k] exactly, so the cloud
 %        spans z_base ... z_top, the same as the profile and the LWP label.
 %     Each layer holds the well-mixed contents of its two bounding levels:
 %            LWC_k  = (LWC_k + LWC_{k+1}) / 2                  (mass is additive)
 %            r_e,k  = LWC_k / [ (LWC_k/r_e,k + LWC_{k+1}/r_e,k+1) / 2 ]
-%     The r_e,k line follows from H&T (2.53): mixing two equal volumes adds
-%     their <r^3> (proportional to LWC) and their <r^2> (proportional to
-%     LWC/r_e). With Qbar treated as constant across a layer, this layer gives
+%     This mixing rule is MY OWN DERIVATION (Claude, Nov 2026), not a result
+%     stated in Hansen & Travis. Only the definition of r_e it uses is theirs
+%     (H&T eq. 2.53, r_e = <r^3>/<r^2>). The derivation: mixing two equal volumes
+%     adds their <r^3> (proportional to LWC) and their <r^2> (proportional to
+%     LWC/r_e). Full write-up: Claude Doc "Mixed-layer r_e for libRadtran wc
+%     files" (https://claude.ai/artifact/AHaW9FGo7NAnvouBLmvbxT). With Qbar treated as constant across a layer, this layer gives
 %     beta = (beta_k + beta_{k+1})/2, the trapezoid rule. LWP = trapz(LWC) and
 %     the Q = 2 tau = 1500 trapz(LWC/r_e) are reproduced exactly.
 %     (Why not 'interpret_as_level wc'? libRadtran 2.0.6 refuses it for 1D
@@ -90,11 +94,17 @@
 %   fig1_showcase_cloud.png    one cloud: profiles, per-layer extinction in
 %                              each geometry, cumulative tau, tau_c by method
 %   fig2_all_clouds.png        label vs libRadtran tau for every cloud, which
-%                              formula reproduces which geometry, and the
-%                              end-point identity explaining the 7/6
+%                              formula reproduces which geometry, the
+%                              end-point identity explaining the 7/6, and
+%                              label vs libRadtran LWP
 %   fig3_reflectance.png       how much the reflectance changes (550, 2130 nm)
 %
-% Runtime: about 4 uvspec calls per cloud (~1 s each).
+% Every uvspec run is verbose. From its .ERR file the script reads
+% libRadtran's own water-cloud optical depth (optical_properties() table)
+% and LWP ("total column wc"), and compares both with the labels.
+%
+% Runtime: 2 uvspec calls per cloud and geometry (one per wavelength), well
+% under a second each.
 %%
 
 clear; close all;
@@ -166,10 +176,13 @@ end
 
 tmp_npz = tempname;
 unzip(NPZ_FILE, tmp_npz);
-re_all_um    = double(read_npy(fullfile(tmp_npz, 're.npy')));      % (N, 7) um, top -> base
-lwc_all_gm3  = double(read_npy(fullfile(tmp_npz, 'lwc.npy')));     % (N, 7) g m^-3
-z_all_km     = double(read_npy(fullfile(tmp_npz, 'z.npy')));       % (N, 7) km
-tau_npz      = double(read_npy(fullfile(tmp_npz, 'tau_c.npy')));   % (N,) label stored by 06
+re_all_um    = double(read_npy(fullfile(tmp_npz, 're.npy')));               % (N, 7) um, top -> base
+lwp_all_gm2  = double(read_npy(fullfile(tmp_npz, 'LWP_g_per_m2.npy')));     % (N, 1) g m^-2
+lwc_all_gm3  = double(read_npy(fullfile(tmp_npz, 'lwc.npy')));              % (N, 7) g m^-3
+z_all_km     = double(read_npy(fullfile(tmp_npz, 'z.npy')));                % (N, 7) km
+zTop_km_all  = double(read_npy(fullfile(tmp_npz, 'z_top.npy')));            % (N, 1) km
+zBase_km_all  = double(read_npy(fullfile(tmp_npz, 'z_base.npy')));          % (N, 1) km
+tau_npz      = double(read_npy(fullfile(tmp_npz, 'tau_c.npy')));            % (N,) label stored by 06
 if isfile(fullfile(tmp_npz, 'mean_alpha.npy'))
     alpha_all = double(read_npy(fullfile(tmp_npz, 'mean_alpha.npy')));   % (N,) per-cloud alpha
 else
@@ -218,6 +231,10 @@ endpoint_x    = zeros(n_c, 1);   % (beta_top + beta_base) / (2 betabar)
 qbar_levels   = zeros(n_c, n_lev);
 dz_spread     = zeros(n_c, 1);   % max/min level spacing, to check the grid is uniform
 
+% Compute cloud thickness two ways
+cloud_depth_1 = zeros(n_c, 1);
+cloud_depth_2 = zeros(n_c, 1);
+
 for c = 1:n_c
     i   = cloud_idx(c);
     re  = re_all_um(i, :)';   
@@ -238,6 +255,12 @@ for c = 1:n_c
     % CURRENT: line z_i fills [z_i, z_{i-1}], with z_0 = z_top + dz
     dz_km  = -mean(diff(z));                        % as in write_wc_file_from_in_situ.m
     thick  = [dz_km; -diff(z)];                     % (N,) layer thicknesses [km]
+
+    % compute cloud thickness from the altitude profile
+    cloud_depth_1(c) = z_all_km(i,1) - z_all_km(i,end);   % km
+    % compute cloud thickness from zTop and zBase2
+    cloud_depth_2(c) = zTop_km_all(i) - zBase_km_all(i);   % km
+
     tau_mie_cur(c) = sum(beta_km .* thick);
 
     % FIXED: mixed layers, eqs. in the header
@@ -264,20 +287,47 @@ fprintf('Mie Qbar at %d nm over all levels: median %.3f, range [%.3f, %.3f]\n', 
     TAU_WAVELENGTH_NM, median(qbar_levels(:)), min(qbar_levels(:)), max(qbar_levels(:)));
 
 %% --------------------------- Radiative transfer -------------------------
-% For each cloud and geometry:
-%   * 550 nm with 'verbose' -> libRadtran's own per-layer water-cloud tau
-%   * 550 and 2130 nm reflectance (quiet)
+% For each cloud, geometry and wavelength in REFL_WAVELENGTHS_NM there is ONE
+% uvspec run, always with 'verbose'. 'verbose' writes diagnostics to stderr
+% (.ERR) only; the .OUT reflectance is identical to a 'quiet' run (checked
+% at 2130 nm on 11 Nov 2026). From each run:
+%   .OUT -> reflectance in the view direction
+%   .ERR -> libRadtran's own water-cloud optical depth (sum of the per-layer
+%           scattering + absorption dtau in the optical_properties() table)
+%           and its liquid water path ("total column wc = ... kg /m2")
+% With REPTRAN, uvspec may solve several representative wavelengths inside
+% one requested band (two near 2130 nm: 2125.47 and 2127.62 nm), each with
+% its own optical_properties() table. All are parsed; tau is stored per
+% table, and the run's tau is their mean (the representative wavelengths are
+% within a few nm, so their cloud tau differs by < 0.1%).
+
+assert(any(REFL_WAVELENGTHS_NM == TAU_WAVELENGTH_NM), ...
+    'TAU_WAVELENGTH_NM must be one of REFL_WAVELENGTHS_NM: its run supplies the tau compared with the label.');
+w_tau = find(REFL_WAVELENGTHS_NM == TAU_WAVELENGTH_NM, 1);
+n_wl  = numel(REFL_WAVELENGTHS_NM);
 
 geom_names = {'current', 'fixed'};
-tau_rt     = zeros(n_c, 2);            % libRadtran total water-cloud tau [cur, fix]
-tau_file   = zeros(n_c, 2);            % tau predicted from the wc file as written
-refl       = zeros(n_c, 2, numel(REFL_WAVELENGTHS_NM));   % (cloud, geometry, wavelength)
-layers     = cell(n_c, 2);             % per-layer verbose output for each run
+tau_rt_all = zeros(n_c, 2, n_wl);      % libRadtran water-cloud tau (cloud, geometry, wavelength)
+lwp_rt_gm2 = zeros(n_c, 2, n_wl);      % libRadtran LWP [g m^-2] (cloud, geometry, wavelength)
+tables_all = cell(n_c, 2, n_wl);       % every optical_properties() table of every run
+tau_file   = zeros(n_c, 2);            % tau predicted from the wc file as written (at TAU_WAVELENGTH_NM)
+refl       = zeros(n_c, 2, n_wl);      % reflectance (cloud, geometry, wavelength)
+layers     = cell(n_c, 2);             % per-layer verbose output at TAU_WAVELENGTH_NM (figures)
+
+% Label LWP: the generator's own value (compute_lwp in 06: trapezoid over the
+% 7 levels, 1000 * |int LWC dz|), checked against a recomputation here
+lwp_label_gm2 = lwp_all_gm2(cloud_idx);
+lwp_label_gm2 = lwp_label_gm2(:);
+lwp_recomputed_gm2 = arrayfun(@(i) 1000 * abs(trapz(z_all_km(i,:), lwc_all_gm3(i,:))), cloud_idx(:));
+fprintf('Check: recomputed LWP vs LWP_g_per_m2 stored in the .npz: max |rel diff| = %.2e\n', ...
+    max(abs(lwp_recomputed_gm2 ./ lwp_label_gm2 - 1)));
 
 t_start = tic;
 for c = 1:n_c
     i   = cloud_idx(c);
-    re  = re_all_um(i, :)';   lwc = lwc_all_gm3(i, :)';   z = z_all_km(i, :)';
+    re  = re_all_um(i, :)';   
+    lwc = lwc_all_gm3(i, :)';   
+    z = z_all_km(i, :)';
     mie_file = fullfile(MIE_DIR, mie_name(alpha_table(c)));
     mie = mie_cache(alpha_table(c));
 
@@ -287,9 +337,13 @@ for c = 1:n_c
     wc_cur = write_wc_file_from_in_situ(re, lwc, z, 'geomTestCurrent', '08-Nov-2026', 0, ...
         false, which_computer, i, [WC_DIR, filesep]);
     wc_cur = fullfile(WC_DIR, wc_cur);
-    % FIXED: same number format as production, so only the geometry differs
-    wc_fix = fullfile(WC_DIR, sprintf('WC_geomTestFixed_nn%d.DAT', i));
-    write_wc_file_mixed_layers(wc_fix, re, lwc, z);
+    % FIXED: the production mixed-layer writer, called exactly as in
+    % hysics_refl_from_synthetic_NN_inputs.m (since 11 Nov 2026). It writes z
+    % and LWC with more digits than the old writer, so rounding no longer
+    % scatters the comparison with the labels.
+    wc_fix = write_wc_file_mixed_layers(re, lwc, z, 'geomTestFixed', '08-Nov-2026', 0, ...
+        false, which_computer, i, [WC_DIR, filesep]);
+    wc_fix = fullfile(WC_DIR, wc_fix);
     wc_files = {wc_cur, wc_fix};
 
     for g = 1:2
@@ -297,27 +351,39 @@ for c = 1:n_c
         % convention and the same Mie table (checks our reading of libRadtran)
         tau_file(c, g) = tau_from_wc_file(wc_files{g}, mie);
 
-        % verbose run at the tau wavelength -> per-layer optical depth
-        base = fullfile(INP_DIR, sprintf('cloud%04d_%s_%dnm_verbose', i, geom_names{g}, TAU_WAVELENGTH_NM));
-        write_inp([base '.INP'], LRT_ROOT, wc_files{g}, mie_file, TAU_WAVELENGTH_NM, ...
-            SZA_DEG, VZA_DEG, SURFACE_ALBEDO, ATM_FILE, MOL_ABS_PARAM, NUM_STREAMS, true);
-        run_uvspec(UVSPEC_BIN, base);
-        layers{c, g}  = parse_verbose_wc_layers([base '.ERR']);
-        tau_rt(c, g)  = sum(layers{c, g}.dtau);
-
-        % reflectance at each wavelength
-        for w = 1:numel(REFL_WAVELENGTHS_NM)
+        % one verbose run per wavelength: reflectance + libRadtran's tau and LWP
+        for w = 1:n_wl
             base = fullfile(INP_DIR, sprintf('cloud%04d_%s_%dnm', i, geom_names{g}, REFL_WAVELENGTHS_NM(w)));
             write_inp([base '.INP'], LRT_ROOT, wc_files{g}, mie_file, REFL_WAVELENGTHS_NM(w), ...
-                SZA_DEG, VZA_DEG, SURFACE_ALBEDO, ATM_FILE, MOL_ABS_PARAM, NUM_STREAMS, false);
+                SZA_DEG, VZA_DEG, SURFACE_ALBEDO, ATM_FILE, MOL_ABS_PARAM, NUM_STREAMS, true);
             run_uvspec(UVSPEC_BIN, base);
+
             refl(c, g, w) = read_reflectance([base '.OUT']);
+
+            T = parse_verbose_wc_layers([base '.ERR']);       % struct array, one per table
+            tables_all{c, g, w} = T;
+            tau_rt_all(c, g, w) = mean(arrayfun(@(t) sum(t.dtau), T));
+            lwp_rt_gm2(c, g, w) = parse_verbose_lwp([base '.ERR']);
+
+            if w == w_tau
+                layers{c, g} = T(1);    % the per-layer profile used in Figure 1
+            end
         end
     end
-    fprintf('  cloud %4d (%2d/%d): tau_label %6.2f | libRadtran current %6.2f, fixed %6.2f\n', ...
-        i, c, n_c, tau_label(c), tau_rt(c, 1), tau_rt(c, 2));
+    fprintf(['  cloud %4d (%2d/%d): tau label %6.2f | libRadtran cur %6.2f, fix %6.2f || ' ...
+        'LWP label %6.1f | libRadtran cur %6.1f, fix %6.1f g/m2\n'], ...
+        i, c, n_c, tau_label(c), tau_rt_all(c, 1, w_tau), tau_rt_all(c, 2, w_tau), ...
+        lwp_label_gm2(c), lwp_rt_gm2(c, 1, w_tau), lwp_rt_gm2(c, 2, w_tau));
 end
 fprintf('RT finished in %.0f s.\n', toc(t_start));
+
+% tau at the label wavelength, (cloud, geometry): what the label is compared with
+tau_rt = tau_rt_all(:, :, w_tau);
+% LWP does not depend on wavelength; check that every run of a cloud and
+% geometry reports the same column, then keep the tau-wavelength run's value
+lwp_spread = max(lwp_rt_gm2, [], 3) ./ min(lwp_rt_gm2, [], 3) - 1;
+fprintf('Check: LWP spread across wavelengths of the same run: max %.2e (should be 0)\n', max(lwp_spread(:)));
+lwp_rt = lwp_rt_gm2(:, :, w_tau);
 
 %% ------------------------------ Summary ---------------------------------
 pct = @(x) prctile(x, [50 5 95]);
@@ -331,6 +397,18 @@ fprintf('  label (Mie Qbar, trapz) / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_
 fprintf('  old label (Q=2.32)      / RT current : %.4f [%.4f, %.4f]\n', pct(tau_label_old ./ tau_rt(:,1)));
 fprintf('  old label (Q=2.32)      / RT fixed   : %.4f [%.4f, %.4f]\n', pct(tau_label_old ./ tau_rt(:,2)));
 fprintf('  Mie Qbar, layer sum     / RT current : %.4f [%.4f, %.4f]\n', pct(tau_mie_cur ./ tau_rt(:,1)));
+fprintf('LWP: libRadtran ("total column wc") vs the label (compute_lwp, trapezoid):\n');
+fprintf('  RT current / label LWP             : %.4f [%.4f, %.4f]\n', pct(lwp_rt(:,1) ./ lwp_label_gm2));
+fprintf('  RT fixed   / label LWP             : %.4f [%.4f, %.4f]\n', pct(lwp_rt(:,2) ./ lwp_label_gm2));
+for w = 1:n_wl
+    if w == w_tau, continue; end
+    fprintf('libRadtran cloud tau at %d nm (for reference; the label is at %d nm):\n', ...
+        REFL_WAVELENGTHS_NM(w), TAU_WAVELENGTH_NM);
+    fprintf('  tau(%d) / tau(%d), current      : %.4f [%.4f, %.4f]\n', REFL_WAVELENGTHS_NM(w), ...
+        TAU_WAVELENGTH_NM, pct(tau_rt_all(:,1,w) ./ tau_rt_all(:,1,w_tau)));
+    fprintf('  tau(%d) / tau(%d), fixed        : %.4f [%.4f, %.4f]\n', REFL_WAVELENGTHS_NM(w), ...
+        TAU_WAVELENGTH_NM, pct(tau_rt_all(:,2,w) ./ tau_rt_all(:,2,w_tau)));
+end
 fprintf('Geometry effect alone:\n');
 fprintf('  RT current / RT fixed              : %.4f [%.4f, %.4f]\n', pct(tau_rt(:,1) ./ tau_rt(:,2)));
 fprintf('  end-point identity 1 + x/(N-1)     : %.4f [%.4f, %.4f]\n', pct(1 + endpoint_x/(n_lev-1)));
@@ -342,11 +420,13 @@ end
 results = struct('cloud_idx', cloud_idx, 'rng_seed', RNG_SEED, 'npz_file', NPZ_FILE, ...
     'alpha_table', alpha_table, 'tau_HT', tau_HT, 'tau_label', tau_label, ...
     'tau_label_old', tau_label_old, 'tau_mie_cur', tau_mie_cur, 'tau_mie_fix', tau_mie_fix, ...
-    'tau_rt', tau_rt, 'tau_file', tau_file, 'refl', refl, ...
+    'tau_rt', tau_rt, 'tau_rt_all', tau_rt_all, 'tau_file', tau_file, 'refl', refl, ...
+    'lwp_label_gm2', lwp_label_gm2, 'lwp_rt_gm2', lwp_rt, 'lwp_rt_all_gm2', lwp_rt_gm2, ...
     'refl_wavelengths_nm', REFL_WAVELENGTHS_NM, 'tau_wavelength_nm', TAU_WAVELENGTH_NM, ...
     'endpoint_x', endpoint_x, 'qbar_levels', qbar_levels, 'geom_names', {geom_names}, ...
     'sza_deg', SZA_DEG, 'vza_deg', VZA_DEG, 'albedo', SURFACE_ALBEDO);
-results.layers = layers;
+results.layers = layers;            % per-layer tau at TAU_WAVELENGTH_NM, (cloud, geometry)
+results.tables_all = tables_all;    % every optical_properties() table, (cloud, geometry, wavelength)
 save(fullfile(OUT_DIR, 'wc_geometry_test_results.mat'), 'results');
 
 %% ------------------------------- Figures --------------------------------
@@ -454,8 +534,8 @@ exportgraphics(fig, fullfile(FIG_DIR, 'fig1_showcase_cloud.png'), 'Resolution', 
 close(fig);
 
 % ---------------- Figure 2: every cloud ----------------
-fig = new_figure('Visible', 'off', 'Position', [50 50 1600 520]);
-tl  = tiledlayout(fig, 1, 3, 'TileSpacing', 'compact', 'Padding', 'compact');
+fig = new_figure('Visible', 'off', 'Position', [50 50 2100 520]);
+tl  = tiledlayout(fig, 1, 4, 'TileSpacing', 'compact', 'Padding', 'compact');
 title(tl, sprintf('%d synthetic clouds, \\tau at %d nm', n_c, TAU_WAVELENGTH_NM), 'FontWeight', 'bold');
 
 % (a) training label vs libRadtran
@@ -506,6 +586,20 @@ ylabel(ax, '\tau_{current} / \tau_{fixed}');
 title(ax, '(c) Geometry effect = trapezoid end-point term'); legend(ax, 'Location', 'northwest', 'FontSize', 9);
 grid(ax, 'on');
 
+% (d) LWP: the label (trapezoid over the 7 levels) vs the column libRadtran
+% integrated from each wc_file ("total column wc" in the verbose output)
+ax = nexttile(tl); hold(ax, 'on');
+lim = [0, 1.05*max([lwp_label_gm2; lwp_rt(:)])];
+plot(ax, lim, lim, 'k-', 'LineWidth', 1, 'HandleVisibility', 'off');
+scatter(ax, lwp_rt(:,1), lwp_label_gm2, 40, COL_CUR, 'filled', 'MarkerFaceAlpha', 0.8, ...
+    'DisplayName', sprintf('current: median ratio %.3f', median(lwp_rt(:,1) ./ lwp_label_gm2)));
+scatter(ax, lwp_rt(:,2), lwp_label_gm2, 40, COL_FIX, 'filled', 'MarkerFaceAlpha', 0.8, ...
+    'DisplayName', sprintf('fixed: median ratio %.3f', median(lwp_rt(:,2) ./ lwp_label_gm2)));
+axis(ax, [lim lim]); axis(ax, 'square');
+xlabel(ax, 'LWP from libRadtran (g m^{-2})'); ylabel(ax, 'LWP label (g m^{-2})');
+title(ax, '(d) LWP: label vs libRadtran');
+legend(ax, 'Location', 'northwest', 'FontSize', 9); grid(ax, 'on');
+
 exportgraphics(fig, fullfile(FIG_DIR, 'fig2_all_clouds.png'), 'Resolution', 200);
 close(fig);
 
@@ -535,31 +629,14 @@ fprintf('\nFigures and results written to\n  %s\n', OUT_DIR);
 
 function [lwc_mix, re_mix] = mix_adjacent_levels(lwc, re)
 % Well-mixed contents of each interval [z_{k+1}, z_k] (see header).
+% The mixing rule is my own derivation (Claude), not from Hansen & Travis;
+% only the r_e definition, H&T eq. (2.53), is theirs.
 %   LWC adds as mass, (4/3) pi rho_w <r^3>.
-%   LWC/r_e adds as cross section, (4/3) rho_w G, by H&T (2.53).
+%   LWC/r_e adds as cross section, (4/3) rho_w G (follows from H&T 2.53).
 % So r_e of the mixture = total LWC / total (LWC/r_e).
 lwc_mix = (lwc(1:end-1) + lwc(2:end)) / 2;                         % g m^-3
 area    = (lwc(1:end-1)./re(1:end-1) + lwc(2:end)./re(2:end)) / 2;  % g m^-3 um^-1
 re_mix  = lwc_mix ./ area;                                          % um
-end
-
-function write_wc_file_mixed_layers(file_path, re, lwc, z)
-% FIXED geometry: one layer per interval, so the cloud spans exactly
-% z_base ... z_top. Inputs ordered top -> base. libRadtran reads each line as
-% the layer from that altitude up to the next line, so the line at z_{k+1}
-% carries interval k, and a zero line at z_top closes the cloud.
-[lwc_mix, re_mix] = mix_adjacent_levels(lwc, re);
-z_lines   = [z(1); z(2:end)];           % z_top (closing zero line), then interval bottoms
-lwc_lines = [0; lwc_mix];
-re_lines  = [0; re_mix];
-if z(end) > 0                           % clear layer from the surface to cloud base
-    z_lines = [z_lines; 0]; lwc_lines = [lwc_lines; 0]; re_lines = [re_lines; 0];
-end
-fid = fopen(file_path, 'w');
-fprintf(fid, '%s %10s %7s %8s \n', '#', 'z', 'LWC', 'R_eff');
-fprintf(fid, '%s %10s %7s %8s \n', '#', '(km)', '(g/m^3)', '(micron)');
-fprintf(fid, '%12.3f %7.4f %8.3f \n', [z_lines'; lwc_lines'; re_lines']);   % same format as production
-fclose(fid);
 end
 
 function tau = tau_from_wc_file(file_path, mie)
@@ -624,33 +701,61 @@ v = sscanf(lines{3}, '%f');
 R = v(end);
 end
 
-function L = parse_verbose_wc_layers(err_path)
-% Read the water-cloud columns of uvspec's optical_properties() table.
-% Each row is one model layer; its z column is the layer BOTTOM and the row
-% above gives the layer top (checked against Rayleigh dtau, which scales with
-% layer thickness). Water cloud dtau = scattering + absorption columns.
-txt   = fileread(err_path);
-k0    = strfind(txt, '*** optical_properties()');
+function T = parse_verbose_wc_layers(err_path)
+% Read the water-cloud columns of EVERY optical_properties() table that a
+% verbose uvspec run prints to stderr. Returns a struct array, one element
+% per table (one per wavelength uvspec actually solved; REPTRAN can solve
+% several representative wavelengths inside one requested band):
+%   T(k).wl_nm    wavelength of that table [nm], from the
+%                 "*** wavelength: iv = k, <wl> nm" line printed before it
+%   T(k).z_bot_km, T(k).z_top_km   cloudy layer bounds [km]
+%   T(k).dtau     water-cloud optical depth of each cloudy layer [-]
+% Each row of a table is one model layer; its z column is the layer BOTTOM
+% and the row above gives the layer top (checked against Rayleigh dtau,
+% which scales with layer thickness). Water-cloud dtau = scattering +
+% absorption columns.
+txt = fileread(err_path);
+k0  = strfind(txt, '*** optical_properties()');
 if isempty(k0), error('No optical_properties table in %s', err_path); end
-lines = splitlines(txt(k0(1):end));
-z = []; dsca = []; dabs = [];
-for k = 1:numel(lines)
-    tok = regexp(lines{k}, '^\s*(\d+)\s*\|\s*([-\d.]+)\s*\|(.*)$', 'tokens', 'once');
-    if isempty(tok)
-        if ~isempty(z) && startsWith(strtrim(lines{k}), 'sum'), break; end
-        continue
+
+T = struct('wl_nm', {}, 'z_bot_km', {}, 'z_top_km', {}, 'dtau', {});
+for t = 1:numel(k0)
+    % wavelength: the last "*** wavelength: iv = ..., <wl> nm" line before this table
+    wl_tok = regexp(txt(1:k0(t)), '\*\*\* wavelength: iv = \d+, ([\d.]+) nm', 'tokens');
+    if isempty(wl_tok), wl_nm = NaN; else, wl_nm = str2double(wl_tok{end}{1}); end
+
+    if t < numel(k0), chunk = txt(k0(t):k0(t+1)-1); else, chunk = txt(k0(t):end); end
+    lines = splitlines(chunk);
+    z = []; dsca = []; dabs = [];
+    for k = 1:numel(lines)
+        tok = regexp(lines{k}, '^\s*(\d+)\s*\|\s*([-\d.]+)\s*\|(.*)$', 'tokens', 'once');
+        if isempty(tok)
+            if ~isempty(z) && startsWith(strtrim(lines{k}), 'sum'), break; end
+            continue
+        end
+        f  = strsplit(tok{3}, '|');           % {rayleigh, aerosol, water cloud, ice cloud, mol}
+        wc = sscanf(f{3}, '%f');              % [scatter, absorption, asymmetry]
+        z(end+1, 1)    = str2double(tok{2});  %#ok<AGROW>
+        dsca(end+1, 1) = wc(1);               %#ok<AGROW>
+        dabs(end+1, 1) = wc(2);               %#ok<AGROW>
     end
-    f  = strsplit(tok{3}, '|');           % {rayleigh, aerosol, water cloud, ice cloud, mol}
-    wc = sscanf(f{3}, '%f');              % [scatter, absorption, asymmetry]
-    z(end+1, 1)    = str2double(tok{2});  %#ok<AGROW>
-    dsca(end+1, 1) = wc(1);               %#ok<AGROW>
-    dabs(end+1, 1) = wc(2);               %#ok<AGROW>
+    z_top = [NaN; z(1:end-1)];                % layer top = previous row's z
+    keep  = (dsca + dabs) > 0;
+    T(t).wl_nm    = wl_nm;
+    T(t).z_bot_km = z(keep);
+    T(t).z_top_km = z_top(keep);
+    T(t).dtau     = dsca(keep) + dabs(keep);
 end
-z_top = [NaN; z(1:end-1)];                % layer top = previous row's z
-keep  = (dsca + dabs) > 0;
-L.z_bot_km = z(keep);
-L.z_top_km = z_top(keep);
-L.dtau     = dsca(keep) + dabs(keep);
+end
+
+function lwp_gm2 = parse_verbose_lwp(err_path)
+% Liquid water path libRadtran integrated from the wc_file, as printed by
+% verbose uvspec: "total column wc = 3.463920e-02 kg /m2". libRadtran sums
+% LWC x layer thickness over its cloudy layers, so this reflects the layer
+% geometry it was given. Returned in g m^-2 (x 1000).
+tok = regexp(fileread(err_path), 'total column wc = ([-\d.eE+]+) kg /m2', 'tokens', 'once');
+if isempty(tok), error('No "total column wc" line in %s', err_path); end
+lwp_gm2 = 1000 * str2double(tok{1});
 end
 
 function mark_cloud_bounds(ax, z_top, z_base, dz)
