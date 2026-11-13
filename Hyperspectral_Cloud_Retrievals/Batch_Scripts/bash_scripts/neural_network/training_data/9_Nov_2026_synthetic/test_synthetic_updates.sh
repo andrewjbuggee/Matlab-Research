@@ -32,14 +32,19 @@
 # Resources (1 h, 10 CPUs, 50 GB) match the earlier test scripts in
 # 29_April_2026_synthetic/. Those used --partition=atesting --qos=testing, but
 # by Nov 2026 Alpine's `sinfo -s` lists acpu (default CPU partition, 1-day
-# limit) and no atesting or amilan, so this test runs on acpu / qos normal.
+# limit) and no atesting or amilan, so this test runs on acpu. acpu only
+# accepts the QoS values cpu-normal, cpu-long and cpu-testing (sbatch error
+# message); testing jobs use cpu-testing. If sbatch rejects the 10-CPU / 50 GB /
+# 1 h request under cpu-testing, check its limits with
+#   sacctmgr show qos cpu-testing format=name,maxwall,maxtrespu%40
+# and shrink to fit, or switch to cpu-normal.
 # Submit from a login node after `module load slurm/alpine`.
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1
 #SBATCH --nodes=1
 #SBATCH --time=01:00:00
 #SBATCH --partition=acpu        # Alpine CPU partition (Nov 2026 sinfo lists no atesting or amilan)
-#SBATCH --qos=normal
+#SBATCH --qos=cpu-testing      # acpu accepts cpu-normal / cpu-long / cpu-testing (sbatch error, 12 Nov 2026)
 #SBATCH --mem=50G
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
