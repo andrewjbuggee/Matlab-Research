@@ -12,21 +12,25 @@
 # Cloud index range covered by task t (1-indexed):
 #   start = CLOUD_OFFSET + (t-1)*CHUNK_SIZE + 1
 #   end   = min(CLOUD_OFFSET + t*CHUNK_SIZE, N_TOTAL)
-# With CHUNK_SIZE = 600: ceil(100000/600) = 167 tasks, one array (CURC limit
-# 1,000 tasks), --array=1-167%40.
+# CHUNK_SIZE is the number of clouds each array task computes. With
+# CHUNK_SIZE = 1000: 100000/1000 = 100 tasks, one array (CURC limit 1,000
+# tasks), --array=1-100%40 (at most 40 tasks running at once).
 #
 # CHUNK SIZE vs WALL TIME: set CHUNK_SIZE from the test's median time per
 # cloud on Alpine (t_cloud, printed as "median N s per cloud", measured on
 # 12 workers in the test):  CHUNK_SIZE ~ 0.5 x CPUS x WALL_s / t_cloud  (factor 0.5 =
-# headroom). The default 600 assumes t_cloud ~ 700 s on 32 CPUs in 8 h:
-# 600 x 700 / 32 = 3.6 h expected. Re-derive the --array upper bound after
+# headroom). Measured on Alpine (test job 35700478, 14 Nov 2026): median
+# t_cloud = 323 s per cloud on one worker. With 31 workers (memory-based, see
+# below), 1000 x 323 / 31 = 10,400 s = 2.9 h per task, plus ~10 min of
+# staging and start-up, inside the 8 h limit. Re-derive the --array upper bound after
 # changing it: ceil(N_TOTAL / CHUNK_SIZE).
 #
 # Memory: the largest segment run (332-856 nm) peaked at 3.1 GB on the laptop
 # (a single full-range run: 5.0 GB), plus ~1 GB per MATLAB worker, so budget
-# ~4 GB per worker: 32 x 4 + ~3 GB client = ~131 GB -> --mem=135G. That is
-# above 32 x ~3.75 GB, so CURC bills ~36 cores (job-resources page: memory
-# beyond the per-core share is charged as cores).
+# ~4.2 GB per worker. --mem=135G gives (135 GB - 4 GB client) / 4.2 GB = 31
+# workers. Slurm raises the CPU allocation to ~36 to cover 135 GB (CURC bills
+# memory beyond the per-core share as cores), so ~5 CPUs sit idle; that is
+# cheaper than an out-of-memory kill.
 #
 # BEFORE SUBMITTING (on Alpine):
 #   1. module load slurm/alpine      (on login-ci4 this was needed for sinfo to
@@ -51,19 +55,19 @@
 #SBATCH --time=08:00:00
 #SBATCH --partition=acpu
 #SBATCH --qos=cpu-normal
-#SBATCH --mem=135G              # ~4 GB per worker (3.1 GB uvspec + MATLAB); billed as ~36 cores
+#SBATCH --mem=135G              # -> 31 workers (memory-based pool size, below); billed as ~36 cores
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=32
 #SBATCH --job-name=synthetic_spectra_ver2
-#SBATCH --chdir=/projects/anbu8374/slurm_logs/12_Nov_2026_synthetic_batch1
-#SBATCH --output=create_meas_synthetic_NN_trainingData_12Nov_%A_%a.out
-#SBATCH --error=create_meas_synthetic_NN_trainingData_12Nov_%A_%a.err
+#SBATCH --chdir=/projects/anbu8374/slurm_logs/14_Nov_2026_synthetic_batch1
+#SBATCH --output=create_meas_synthetic_NN_trainingData_14Nov_%A_%a.out
+#SBATCH --error=create_meas_synthetic_NN_trainingData_14Nov_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-167%40
+#SBATCH --array=1-100%40
 
 # --- Chunk parameters (edit or override between batches) -----------------
-CHUNK_SIZE=${CHUNK_SIZE_OVERRIDE:-600}        # clouds per array task
+CHUNK_SIZE=${CHUNK_SIZE_OVERRIDE:-1000}       # clouds per array task
 CLOUD_OFFSET=${CLOUD_OFFSET_OVERRIDE:-0}      # one array covers all clouds
 N_SEGMENTS=${N_SEGMENTS_OVERRIDE:-4}          # uvspec runs per cloud
 FILE_TAG=""
@@ -93,12 +97,12 @@ cd /projects/anbu8374/ || exit 1
 
 module load matlab/R2024b
 
-# Input file (the .nc produced by 07_build_training_inputs.py on 12 Nov 2026)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc"
+# Input file (the .nc produced by 07_build_training_inputs.py on 13 Nov 2026)
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-13.nc"
 
-# Output dir for the whole 12-Nov-2026 set (both batches write here).
+# Output dir for the whole 13-Nov-2026 set (both batches write here).
 # (Trailing slash required by the MATLAB driver.)
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_created_on_12_Nov_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_ver2_14_Nov_2026/"
 mkdir -p "$output_dir"
 
 # --- Pre-flight checks: fail in seconds, not after MATLAB starts -----------
@@ -117,7 +121,7 @@ if [ -z "$(find "$code_dir" -name run_synthetic_spectra_chunk.m -print -quit)" ]
     exit 1
 fi
 # Guard against the pre-azimuth-fix input file: the corrected
-# training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc (07, 12 Nov 2026,
+# training_inputs_jointMVN_N100000_L7_2026-11-13.nc (07, 13 Nov 2026,
 # 22:04) has this MD5; the old wrong-azimuth _ver2 was d8e67d5b5db5157e9ff565fc958d0f1e.
 EXPECTED_MD5=${EXPECTED_MD5_OVERRIDE:-f619a48cffea9631ea3899faa1166af4}
 actual_md5=$(md5sum "$input_file" | cut -d' ' -f1)
@@ -219,6 +223,29 @@ echo "Startup stagger: sleeping ${STARTUP_STAGGER_SECONDS}s before MATLAB launch
 sleep "$STARTUP_STAGGER_SECONDS"
 
 echo "Starting MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
+
+# --- Parallel-pool size from MEMORY, not from CPUs (added 14 Nov 2026) -----
+# Each worker needs ~4 GB: its uvspec run peaks at ~3.1 GB (largest segment,
+# laptop /usr/bin/time) plus ~1 GB for the MATLAB worker itself. Alpine gives
+# ~3.75 GB per CPU and RAISES the CPU count when --mem asks for more than that
+# (the 14-Nov test asked for 12 CPUs and 56G and got 15; MaxRSS reached
+# 99.997% of the 56 GiB limit). start_parallel_pool.m starts one worker per
+# SLURM_CPUS_PER_TASK, so a pool sized from CPUs gets only ~3.75 GB per worker.
+# Size it from the memory instead:
+#     workers = (job memory - MATLAB client) / memory per worker,
+# capped at the CPUs Slurm allocated. A few CPUs then sit idle, which is
+# cheaper than an out-of-memory kill. start_parallel_pool reads the worker
+# count from SLURM_CPUS_PER_TASK, so that variable is overwritten here.
+MEM_PER_WORKER_MB=${MEM_PER_WORKER_MB_OVERRIDE:-4300}   # ~4.2 GB per worker
+CLIENT_MEM_MB=${CLIENT_MEM_MB_OVERRIDE:-4096}           # MATLAB client + pool overhead
+job_mem_mb=${SLURM_MEM_PER_NODE:-0}                     # --mem, in MB
+cpus_alloc=${SLURM_CPUS_PER_TASK:-1}
+n_workers=$(( (job_mem_mb - CLIENT_MEM_MB) / MEM_PER_WORKER_MB ))
+if [ "$n_workers" -gt "$cpus_alloc" ]; then n_workers=$cpus_alloc; fi
+if [ "$n_workers" -lt 1 ]; then n_workers=1; fi
+echo "Parallel pool: ${n_workers} workers (${job_mem_mb} MB requested, ${cpus_alloc} CPUs allocated, ${MEM_PER_WORKER_MB} MB per worker)"
+export SLURM_CPUS_PER_TASK=$n_workers
+# -------------------------------------------------------------------------
 
 # MATLAB preferences in this task's scratch, to avoid collisions with /home
 # and with other concurrent array tasks.

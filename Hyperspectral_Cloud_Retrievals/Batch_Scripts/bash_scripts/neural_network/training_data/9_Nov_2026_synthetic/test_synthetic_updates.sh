@@ -34,7 +34,7 @@
 #SBATCH --time=01:00:00
 #SBATCH --partition=acpu        # Alpine CPU partition (Nov 2026 sinfo lists no atesting or amilan)
 #SBATCH --qos=cpu-testing      # 1 h, up to 16 cores
-#SBATCH --mem=56G               # 12 workers x ~4 GB + client; billed as ~15 cores (cpu-testing max 16)
+#SBATCH --mem=56G               # -> 12 workers (memory-based pool size, below); billed as ~15 cores (cpu-testing max 16)
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=12
 #SBATCH --job-name=synthetic_spectra_ver2_TEST
@@ -75,8 +75,8 @@ cd /projects/anbu8374/ || exit 1
 
 module load matlab/R2024b
 
-# Input file (the .nc produced by 07_build_training_inputs.py on 12 Nov 2026)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc"
+# Input file (the .nc produced by 07_build_training_inputs.py on 13 Nov 2026)
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-13.nc"
 
 # Test outputs go to their own folder so they never mix with a production set.
 # (Trailing slash required by the MATLAB driver.)
@@ -99,7 +99,7 @@ if [ -z "$(find "$code_dir" -name run_synthetic_spectra_chunk.m -print -quit)" ]
     exit 1
 fi
 # Guard against the pre-azimuth-fix input file: the corrected
-# training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc (07, 12 Nov 2026,
+# training_inputs_jointMVN_N100000_L7_2026-11-13.nc (07, 13 Nov 2026,
 # 22:04) has this MD5; the old wrong-azimuth _ver2 was d8e67d5b5db5157e9ff565fc958d0f1e.
 EXPECTED_MD5=${EXPECTED_MD5_OVERRIDE:-f619a48cffea9631ea3899faa1166af4}
 actual_md5=$(md5sum "$input_file" | cut -d' ' -f1)
@@ -189,6 +189,29 @@ fi
 # (No start-up stagger: a single test task has nothing to collide with.)
 
 echo "Starting MATLAB test job at $(date)"
+
+# --- Parallel-pool size from MEMORY, not from CPUs (added 14 Nov 2026) -----
+# Each worker needs ~4 GB: its uvspec run peaks at ~3.1 GB (largest segment,
+# laptop /usr/bin/time) plus ~1 GB for the MATLAB worker itself. Alpine gives
+# ~3.75 GB per CPU and RAISES the CPU count when --mem asks for more than that
+# (the 14-Nov test asked for 12 CPUs and 56G and got 15; MaxRSS reached
+# 99.997% of the 56 GiB limit). start_parallel_pool.m starts one worker per
+# SLURM_CPUS_PER_TASK, so a pool sized from CPUs gets only ~3.75 GB per worker.
+# Size it from the memory instead:
+#     workers = (job memory - MATLAB client) / memory per worker,
+# capped at the CPUs Slurm allocated. A few CPUs then sit idle, which is
+# cheaper than an out-of-memory kill. start_parallel_pool reads the worker
+# count from SLURM_CPUS_PER_TASK, so that variable is overwritten here.
+MEM_PER_WORKER_MB=${MEM_PER_WORKER_MB_OVERRIDE:-4300}   # ~4.2 GB per worker
+CLIENT_MEM_MB=${CLIENT_MEM_MB_OVERRIDE:-4096}           # MATLAB client + pool overhead
+job_mem_mb=${SLURM_MEM_PER_NODE:-0}                     # --mem, in MB
+cpus_alloc=${SLURM_CPUS_PER_TASK:-1}
+n_workers=$(( (job_mem_mb - CLIENT_MEM_MB) / MEM_PER_WORKER_MB ))
+if [ "$n_workers" -gt "$cpus_alloc" ]; then n_workers=$cpus_alloc; fi
+if [ "$n_workers" -lt 1 ]; then n_workers=1; fi
+echo "Parallel pool: ${n_workers} workers (${job_mem_mb} MB requested, ${cpus_alloc} CPUs allocated, ${MEM_PER_WORKER_MB} MB per worker)"
+export SLURM_CPUS_PER_TASK=$n_workers
+# -------------------------------------------------------------------------
 
 # MATLAB preferences in this task's scratch to avoid collisions with /home.
 export MATLAB_PREFDIR="$TMPDIR/matlab_prefs/R2024b"
