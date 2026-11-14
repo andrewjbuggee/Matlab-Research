@@ -29,7 +29,7 @@
 #        mkdir -p /projects/anbu8374/slurm_logs/12_Nov_2026_synthetic_batch_test
 #   4. Submit from a login node:  sbatch test_synthetic_updates.sh
 #
-# Resources (1 h, 10 CPUs, 50 GB) match the earlier test scripts in
+# Resources (1 h, 10 CPUs) match the earlier test scripts in
 # 29_April_2026_synthetic/. Those used --partition=atesting --qos=testing, but
 # by Nov 2026 Alpine's `sinfo -s` lists acpu (default CPU partition, 1-day
 # limit) and no atesting or amilan, so this test runs on acpu. acpu only
@@ -45,7 +45,7 @@
 #SBATCH --time=01:00:00
 #SBATCH --partition=acpu        # Alpine CPU partition (Nov 2026 sinfo lists no atesting or amilan)
 #SBATCH --qos=cpu-testing      # acpu accepts cpu-normal / cpu-long / cpu-testing (sbatch error, 12 Nov 2026)
-#SBATCH --mem=50G
+#SBATCH --mem=38G               # = 10 cores x 3.8 GB/core; acpu charges extra cores for more (CURC job-resources page)
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --job-name=create_meas_synthetic_NN_trainingData_TEST_12Nov
@@ -85,7 +85,7 @@ cd /projects/anbu8374/ || exit 1
 module load matlab/R2024b
 
 # Input file (the .nc produced by 07_build_training_inputs.py on 12 Nov 2026)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12.nc"
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc"
 
 # Test outputs go to their own folder so they never mix with a production set.
 # (Trailing slash required by the MATLAB driver.)
@@ -119,10 +119,14 @@ echo "Output: $output_dir"
 # Per-task scratch on node-local /tmp instead of Lustre (keeps parpool's
 # JobStorageLocation off the shared filesystem). Falls back to Lustre if /tmp
 # is unwritable.
-TMPDIR_LOCAL="/tmp/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
+# CURC recommends $SLURM_SCRATCH: the job's own directory on the node's local
+# SSD (~300 GB/node), deleted automatically when the job ends
+# (curc.readthedocs.io, compute/filesystems.html, read 13 Nov 2026).
+# Falls back to /tmp if it is not set.
+TMPDIR_LOCAL="${SLURM_SCRATCH:-/tmp}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 if mkdir -p "$TMPDIR_LOCAL" 2>/dev/null && [ -w "$TMPDIR_LOCAL" ]; then
     export TMPDIR="$TMPDIR_LOCAL"
-    echo "TMPDIR (node-local): $TMPDIR"
+    echo "TMPDIR (node-local, SLURM_SCRATCH=${SLURM_SCRATCH:-unset}): $TMPDIR"
 else
     export TMPDIR="/scratch/alpine/${USER}/matlab_tmp_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
     mkdir -p "$TMPDIR"
