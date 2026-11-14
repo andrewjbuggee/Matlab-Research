@@ -120,10 +120,16 @@ if [ -z "$(find "$code_dir" -name run_synthetic_spectra_chunk.m -print -quit)" ]
     echo "ERROR: run_synthetic_spectra_chunk.m not found under $code_dir. git pull first." >&2
     exit 1
 fi
-# Guard against the pre-azimuth-fix input file: the corrected
-# training_inputs_jointMVN_N100000_L7_2026-11-13.nc (07, 13 Nov 2026,
-# 22:04) has this MD5; the old wrong-azimuth _ver2 was d8e67d5b5db5157e9ff565fc958d0f1e.
-EXPECTED_MD5=${EXPECTED_MD5_OVERRIDE:-f619a48cffea9631ea3899faa1166af4}
+# Guard: the input must be exactly the file below. Update this MD5 whenever
+# input_file changes (run `md5 -q <file>` on the laptop or `md5sum <file>`
+# on Alpine), or export EXPECTED_MD5_OVERRIDE=<md5> at sbatch time.
+#   training_inputs_jointMVN_N100000_L7_2026-11-13.nc (07, date_created
+#   2026-11-14T01:51:46Z; azimuth-corrected AND per-level LWC ceiling):
+#       38150be87880fbfd1881472b0d717ab2
+#   earlier azimuth-corrected _2026-11-12_ver2.nc (no LWC ceiling; used by the
+#   14-Nov Alpine test): f619a48cffea9631ea3899faa1166af4
+#   wrong-azimuth superseded _ver2: d8e67d5b5db5157e9ff565fc958d0f1e
+EXPECTED_MD5=${EXPECTED_MD5_OVERRIDE:-38150be87880fbfd1881472b0d717ab2}
 actual_md5=$(md5sum "$input_file" | cut -d' ' -f1)
 if [ "$actual_md5" != "$EXPECTED_MD5" ]; then
     echo "ERROR: $input_file has MD5 $actual_md5, expected $EXPECTED_MD5 (azimuth-corrected file)." >&2
