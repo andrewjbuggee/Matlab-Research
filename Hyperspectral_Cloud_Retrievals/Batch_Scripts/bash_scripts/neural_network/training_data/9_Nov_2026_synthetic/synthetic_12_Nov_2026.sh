@@ -1,48 +1,41 @@
 #!/bin/bash
 #
-# PRODUCTION per-chunk Slurm job array for the 12-Nov-2026 synthetic-cloud RT
-# training set (100,000 clouds; K_re = 3, K_lwc = 5; libRadtran phi0 azimuth
-# convention; mixed-layer water-cloud files). Tested with
-# test_synthetic_updates.sh on acpu / cpu-testing.
-#
-# Each task processes CHUNK_SIZE consecutive clouds (rows of the .nc input)
-# inside a SINGLE MATLAB session, reusing the parpool across all clouds in
-# the chunk (requires the start_parallel_pool.m that keeps a healthy pool).
+# PRODUCTION Slurm job array for the 12-Nov-2026 synthetic-cloud RT training
+# set (100,000 clouds), ver2 pipeline (14 Nov 2026):
+#   run_synthetic_spectra_chunk.m -> hysics_refl_from_synthetic_NN_inputs_ver2.m
+# Each cloud: 4 uvspec runs over contiguous groups of bands instead of 636
+# per-band runs (identical reflectances, ~11x less CPU); parfor over clouds;
+# one output .mat per task, rewritten after every block of clouds so a task
+# that times out keeps what it finished, and resubmitting the same task
+# resumes from that file.
 #
 # Cloud index range covered by task t (1-indexed):
 #   start = CLOUD_OFFSET + (t-1)*CHUNK_SIZE + 1
 #   end   = min(CLOUD_OFFSET + t*CHUNK_SIZE, N_TOTAL)
+# With CHUNK_SIZE = 600: ceil(100000/600) = 167 tasks, one array (CURC limit
+# 1,000 tasks), --array=1-167%40.
 #
-# Limits and throttling are those of the 20-July-2026 run
-# (29_April_2026_synthetic/synthetic_20_July_2026.sh): 40 CPUs, 82 GB, 24 h,
-# 57 clouds per task, 900 tasks per batch, at most 40 tasks running at once.
-# With CHUNK_SIZE = 57, 100,000 clouds need ceil(100000/57) = 1755 tasks,
-# i.e. two batches:
+# CHUNK SIZE vs WALL TIME: set CHUNK_SIZE from the test's median time per
+# cloud on Alpine (t_cloud, printed as "median N s per cloud", measured on
+# 12 workers in the test):  CHUNK_SIZE ~ 0.5 x CPUS x WALL_s / t_cloud  (factor 0.5 =
+# headroom). The default 600 assumes t_cloud ~ 700 s on 32 CPUs in 8 h:
+# 600 x 700 / 32 = 3.6 h expected. Re-derive the --array upper bound after
+# changing it: ceil(N_TOTAL / CHUNK_SIZE).
 #
-#   batch 1:  CLOUD_OFFSET=0       --array=1-900%40   clouds      1 .. 51300
-#   batch 2:  CLOUD_OFFSET=51300   --array=1-855%40   clouds  51301 .. 100000
-#             (task 855 is clamped at N_TOTAL and runs 22 clouds)
-#
-# Submit batch 2 without editing the file:
-#   CLOUD_OFFSET_OVERRIDE=51300 sbatch --array=1-855%40 synthetic_12_Nov_2026.sh
-# (command-line --array overrides the #SBATCH line below).
-#
-# CHUNK SIZE vs. WALL TIME: 57 clouds per 24 h was tuned on amilan nodes.
-# Alpine's CPU partition is now acpu (Nov 2026), on different hardware. Before
-# batch 1, take the per-cloud time from the test log ("=== FINISHED cloud N in
-# X s ===", on 10 CPUs) and check that 57 clouds fit in ~20 h on 40 CPUs; if
-# not, lower CHUNK_SIZE and redo the batch arithmetic above. A task that hits
-# the 24-h limit loses its unfinished clouds (each finished cloud is saved).
+# Memory: the largest segment run (332-856 nm) peaked at 3.1 GB on the laptop
+# (a single full-range run: 5.0 GB), plus ~1 GB per MATLAB worker, so budget
+# ~4 GB per worker: 32 x 4 + ~3 GB client = ~131 GB -> --mem=135G. That is
+# above 32 x ~3.75 GB, so CURC bills ~36 cores (job-resources page: memory
+# beyond the per-core share is charged as cores).
 #
 # BEFORE SUBMITTING (on Alpine):
 #   1. module load slurm/alpine      (on login-ci4 this was needed for sinfo to
 #                                     list acpu; the CURC batch-jobs page does not
 #                                     mention it, so it may be harmless if absent)
-#   2. git pull in /projects/anbu8374/Matlab-Research   (needs commit 6a30579)
+#   2. git pull in /projects/anbu8374/Matlab-Research   (needs run_synthetic_spectra_chunk.m)
 #   3. The input .nc is on /scratch (the test job already used it)
 #   4. mkdir -p /projects/anbu8374/slurm_logs/12_Nov_2026_synthetic_batch1
-#      (Slurm cannot create the --chdir directory; use ..._batch2 for batch 2
-#       and pass --chdir on the sbatch command line)
+#      (Slurm cannot create the --chdir directory)
 #
 # OUTPUT RETENTION: /scratch/alpine files are "automatically removed 90 days
 # after their initial creation" (CURC filesystems page, read 13 Nov 2026).
@@ -55,23 +48,25 @@
 # ----------------------------------------------------------
 #SBATCH --account=ucb762_asc1
 #SBATCH --nodes=1
-#SBATCH --time=24:00:00
+#SBATCH --time=08:00:00
 #SBATCH --partition=acpu
 #SBATCH --qos=cpu-normal
-#SBATCH --mem=82G               # below 40 cores x 3.8 GB/core = 152 GB, so no extra cores are charged
+#SBATCH --mem=135G              # ~4 GB per worker (3.1 GB uvspec + MATLAB); billed as ~36 cores
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=40
-#SBATCH --job-name=create_meas_synthetic_NN_trainingData_12Nov
+#SBATCH --cpus-per-task=32
+#SBATCH --job-name=synthetic_spectra_ver2
 #SBATCH --chdir=/projects/anbu8374/slurm_logs/12_Nov_2026_synthetic_batch1
 #SBATCH --output=create_meas_synthetic_NN_trainingData_12Nov_%A_%a.out
 #SBATCH --error=create_meas_synthetic_NN_trainingData_12Nov_%A_%a.err
 #SBATCH --mail-user=anbu8374@colorado.edu
 #SBATCH --mail-type=ALL
-#SBATCH --array=1-900%40
+#SBATCH --array=1-167%40
 
 # --- Chunk parameters (edit or override between batches) -----------------
-CHUNK_SIZE=${CHUNK_SIZE_OVERRIDE:-57}         # clouds per array task
-CLOUD_OFFSET=${CLOUD_OFFSET_OVERRIDE:-0}      # batch 1: 0; batch 2: 51300
+CHUNK_SIZE=${CHUNK_SIZE_OVERRIDE:-600}        # clouds per array task
+CLOUD_OFFSET=${CLOUD_OFFSET_OVERRIDE:-0}      # one array covers all clouds
+N_SEGMENTS=${N_SEGMENTS_OVERRIDE:-4}          # uvspec runs per cloud
+FILE_TAG=""
 N_TOTAL=${N_TOTAL_OVERRIDE:-100000}           # length of the 'cloud' dimension in the input .nc
 # -------------------------------------------------------------------------
 
@@ -99,7 +94,7 @@ cd /projects/anbu8374/ || exit 1
 module load matlab/R2024b
 
 # Input file (the .nc produced by 07_build_training_inputs.py on 12 Nov 2026)
-input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12.nc"
+input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc"
 
 # Output dir for the whole 12-Nov-2026 set (both batches write here).
 # (Trailing slash required by the MATLAB driver.)
@@ -117,6 +112,20 @@ if [ ! -f "$input_file" ]; then
     echo "ERROR: input file not found: $input_file" >&2
     exit 1
 fi
+if [ -z "$(find "$code_dir" -name run_synthetic_spectra_chunk.m -print -quit)" ]; then
+    echo "ERROR: run_synthetic_spectra_chunk.m not found under $code_dir. git pull first." >&2
+    exit 1
+fi
+# Guard against the pre-azimuth-fix input file: the corrected
+# training_inputs_jointMVN_N100000_L7_2026-11-12_ver2.nc (07, 12 Nov 2026,
+# 22:04) has this MD5; the old wrong-azimuth _ver2 was d8e67d5b5db5157e9ff565fc958d0f1e.
+EXPECTED_MD5=${EXPECTED_MD5_OVERRIDE:-f619a48cffea9631ea3899faa1166af4}
+actual_md5=$(md5sum "$input_file" | cut -d' ' -f1)
+if [ "$actual_md5" != "$EXPECTED_MD5" ]; then
+    echo "ERROR: $input_file has MD5 $actual_md5, expected $EXPECTED_MD5 (azimuth-corrected file)." >&2
+    exit 1
+fi
+echo "Input MD5 OK: $actual_md5"
 # -------------------------------------------------------------------------
 
 # Compute this task's cloud-index range, with clamping at N_TOTAL.
@@ -154,31 +163,38 @@ fi
 echo "TMPDIR headroom:"
 df -h "$TMPDIR"
 
-# Mie parent stays on /scratch so tables can be reused across runs.
-mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
-
 # --- Stage the custom Mie tables on node-local disk (added 13 Nov 2026) ----
-# Every HySICS band run (636 per cloud) makes libRadtran open the cloud's
-# custom Mie table (~130 MB each, 1-50 um family). The 13-Nov test read 579 GB
-# from disk in one hour, and CURC asks that /projects not carry intensive job
-# I/O. Copy the 48 tables once per task to $SLURM_SCRATCH (local SSD, deleted
+# Every uvspec run opens the cloud's custom Mie table (~130 MB each, 1-50 um
+# family): 4 runs per cloud with the ver2 driver, 636 with ver1. CURC asks
+# that /projects not carry intensive job I/O. Copy the 48 tables once per task to $SLURM_SCRATCH (local SSD, deleted
 # at job end) and point MATLAB at them via CUSTOM_MIE_TABLES_DIR, which
 # find_custom_mieTable_closest_to_alpha_profile.m honours. Source: a /scratch
 # copy if one exists (Lustre is built for job I/O), otherwise /projects.
 # If the copy is incomplete, fall back to the original tables with a warning.
 MIE_PATTERN="wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_*.cdf"
 MIE_N_EXPECTED=48
+MIE_SCRATCH_SRC="/scratch/alpine/${USER}/custom_mieTables"
+MIE_PROJECTS_SRC="/projects/${USER}/software/libRadtran-2.0.5/data/wc/custom_mieTables"
 MIE_SRC=""
-for cand in "/scratch/alpine/${USER}/custom_mieTables" \
-            "/projects/${USER}/software/libRadtran-2.0.5/data/wc/custom_mieTables"; do
+for cand in "$MIE_SCRATCH_SRC" "$MIE_PROJECTS_SRC"; do
     if [ "$(find "$cand" -maxdepth 1 -name "$MIE_PATTERN" 2>/dev/null | wc -l)" -ge "$MIE_N_EXPECTED" ]; then
         MIE_SRC="$cand"
         break
     fi
 done
+# Say loudly when the /scratch copy is gone (e.g. removed by the 90-day
+# /scratch purge) so it can be re-copied; the job still runs from /projects.
+if [ "$MIE_SRC" != "$MIE_SCRATCH_SRC" ]; then
+    n_scratch=$(find "$MIE_SCRATCH_SRC" -maxdepth 1 -name "$MIE_PATTERN" 2>/dev/null | wc -l | tr -d ' ')
+    msg="NOTICE: /scratch Mie-table copy is missing or incomplete (${n_scratch} of ${MIE_N_EXPECTED} files in ${MIE_SCRATCH_SRC}); staging from ${MIE_SRC:-nowhere} instead. Re-copy on a login node with:
+    mkdir -p ${MIE_SCRATCH_SRC} && cp ${MIE_PROJECTS_SRC}/${MIE_PATTERN} ${MIE_SCRATCH_SRC}/"
+    echo "$msg"          # .out log
+    echo "$msg" >&2      # .err log, where it stands out
+fi
 MIE_LOCAL="${SLURM_SCRATCH:-$TMPDIR}/custom_mieTables"
 if [ -n "$MIE_SRC" ] && mkdir -p "$MIE_LOCAL"; then
     t_copy=$(date +%s)
+    echo "Mie tables: copying ${MIE_N_EXPECTED} files from $MIE_SRC to $MIE_LOCAL (started $(date '+%H:%M:%S')) ..."
     cp "$MIE_SRC"/$MIE_PATTERN "$MIE_LOCAL"/ 2>/dev/null
     n_copied=$(find "$MIE_LOCAL" -maxdepth 1 -name "$MIE_PATTERN" | wc -l)
     if [ "$n_copied" -ge "$MIE_N_EXPECTED" ]; then
@@ -217,7 +233,7 @@ echo "MATLAB_PREFDIR: $MATLAB_PREFDIR"
 # Start-up steps are timestamped ([time] elapsed-s step): the 13-Nov test spent
 # ~53 min between MATLAB launch and the first cloud, so each step is timed.
 matlab_status=0
-time matlab -nodesktop -nodisplay -r "try, t_su = tic; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'MATLAB up'); addpath(genpath('/projects/anbu8374/Matlab-Research')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath Matlab-Research'); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath scratch INP_OUT'); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath scratch Mie_Calculations'); fprintf('MATLAB path entries: %d\n', numel(strsplit(path, pathsep))); addLibRadTran_paths; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'addLibRadTran_paths'); folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'define_folderPaths_for_HySICS'); for pool_attempt = 1:2, try, fprintf('\n=== PARPOOL START ATTEMPT %d of 2 ===\n', pool_attempt); start_parallel_pool(folder_paths.which_computer); break; catch ME_pool, fprintf(2, '\n[PARPOOL START FAILED attempt %d] %s: %s\n', pool_attempt, ME_pool.identifier, ME_pool.message); old_pool = gcp('nocreate'); if ~isempty(old_pool), delete(old_pool); end; if pool_attempt < 2, slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK')); if ~isnan(slurm_cpus) && slurm_cpus > 8, retry_workers = slurm_cpus - 8; setenv('SLURM_CPUS_PER_TASK', num2str(retry_workers)); fprintf(2, 'Retrying parpool with %d workers after a short pause.\n', retry_workers); end; pause(300 + randi(120)); else, rethrow(ME_pool); end; end; end; fprintf('\nWorkers in pool: %d\n', gcp('nocreate').NumWorkers); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'parpool ready'); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d at %s ===\n', cloud_id, char(datetime('now'))); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED after %.1f s] %s: %s\n', cloud_id, toc(t0), ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); if n_fail > 0, exit(2); else, exit(0); end; catch ME, fprintf(2, '\n[FATAL MATLAB ERROR] %s: %s\n', ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; exit(1); end"
+time matlab -nodesktop -nodisplay -r "try, t_su = tic; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'MATLAB up'); p = strsplit(genpath('/projects/anbu8374/Matlab-Research'), pathsep); p = p(~contains(p, '/.') & ~cellfun(@isempty, p)); addpath(strjoin(p, pathsep)); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'path: Matlab-Research (no hidden folders)'); fprintf('MATLAB path entries: %d\n', numel(strsplit(path, pathsep))); addLibRadTran_paths; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'addLibRadTran_paths'); folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'define_folderPaths_for_HySICS'); for pool_attempt = 1:2, try, fprintf('\n=== PARPOOL START ATTEMPT %d of 2 ===\n', pool_attempt); start_parallel_pool(folder_paths.which_computer); break; catch ME_pool, fprintf(2, '\n[PARPOOL START FAILED attempt %d] %s: %s\n', pool_attempt, ME_pool.identifier, ME_pool.message); old_pool = gcp('nocreate'); if ~isempty(old_pool), delete(old_pool); end; if pool_attempt < 2, slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK')); if ~isnan(slurm_cpus) && slurm_cpus > 8, retry_workers = slurm_cpus - 8; setenv('SLURM_CPUS_PER_TASK', num2str(retry_workers)); fprintf(2, 'Retrying parpool with %d workers after a short pause.\n', retry_workers); end; pause(300 + randi(120)); else, rethrow(ME_pool); end; end; end; fprintf('\nWorkers in pool: %d\n', gcp('nocreate').NumWorkers); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'parpool ready'); chunk_settings = struct('n_segments', ${N_SEGMENTS}, 'file_tag', '${FILE_TAG}'); summ = run_synthetic_spectra_chunk('${input_file}', ${start_id}:${end_id}, folder_paths, '${output_dir}', chunk_settings); if summ.n_failed > 0, exit(2); else, exit(0); end; catch ME, fprintf(2, '\n[FATAL MATLAB ERROR] %s: %s\n', ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; exit(1); end"
 matlab_status=$?
 
 echo "Finished MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"
