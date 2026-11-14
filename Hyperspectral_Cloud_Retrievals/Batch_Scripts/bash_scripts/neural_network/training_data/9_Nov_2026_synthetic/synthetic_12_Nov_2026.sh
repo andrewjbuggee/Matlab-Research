@@ -157,6 +157,42 @@ df -h "$TMPDIR"
 # Mie parent stays on /scratch so tables can be reused across runs.
 mkdir -p "/scratch/alpine/${USER}/Mie_Calculations/"
 
+# --- Stage the custom Mie tables on node-local disk (added 13 Nov 2026) ----
+# Every HySICS band run (636 per cloud) makes libRadtran open the cloud's
+# custom Mie table (~130 MB each, 1-50 um family). The 13-Nov test read 579 GB
+# from disk in one hour, and CURC asks that /projects not carry intensive job
+# I/O. Copy the 48 tables once per task to $SLURM_SCRATCH (local SSD, deleted
+# at job end) and point MATLAB at them via CUSTOM_MIE_TABLES_DIR, which
+# find_custom_mieTable_closest_to_alpha_profile.m honours. Source: a /scratch
+# copy if one exists (Lustre is built for job I/O), otherwise /projects.
+# If the copy is incomplete, fall back to the original tables with a warning.
+MIE_PATTERN="wc_mieTable_gamma_rEff_1-50microns_gammaDist_alpha_*.cdf"
+MIE_N_EXPECTED=48
+MIE_SRC=""
+for cand in "/scratch/alpine/${USER}/custom_mieTables" \
+            "/projects/${USER}/software/libRadtran-2.0.5/data/wc/custom_mieTables"; do
+    if [ "$(find "$cand" -maxdepth 1 -name "$MIE_PATTERN" 2>/dev/null | wc -l)" -ge "$MIE_N_EXPECTED" ]; then
+        MIE_SRC="$cand"
+        break
+    fi
+done
+MIE_LOCAL="${SLURM_SCRATCH:-$TMPDIR}/custom_mieTables"
+if [ -n "$MIE_SRC" ] && mkdir -p "$MIE_LOCAL"; then
+    t_copy=$(date +%s)
+    cp "$MIE_SRC"/$MIE_PATTERN "$MIE_LOCAL"/ 2>/dev/null
+    n_copied=$(find "$MIE_LOCAL" -maxdepth 1 -name "$MIE_PATTERN" | wc -l)
+    if [ "$n_copied" -ge "$MIE_N_EXPECTED" ]; then
+        export CUSTOM_MIE_TABLES_DIR="$MIE_LOCAL/"
+        echo "Mie tables: staged $n_copied files ($(du -sh "$MIE_LOCAL" | cut -f1)) from $MIE_SRC to $MIE_LOCAL in $(( $(date +%s) - t_copy )) s"
+    else
+        echo "WARNING: only $n_copied of $MIE_N_EXPECTED Mie tables copied; libRadtran will read them from /projects" >&2
+        rm -rf "$MIE_LOCAL"
+    fi
+else
+    echo "WARNING: no complete Mie-table source found; libRadtran will read the default /projects tables" >&2
+fi
+# -------------------------------------------------------------------------
+
 # Stagger MATLAB starts across concurrent array tasks so that up to 40
 # 40-worker parpools do not all hit MATLAB start-up, preferences and process
 # launch at the same instant (task 1 waits 0 s, task 40 waits 780 s).
@@ -178,8 +214,10 @@ echo "MATLAB_PREFDIR: $MATLAB_PREFDIR"
 # (the second with 8 fewer workers after a 300-420 s pause), then one cloud at
 # a time with per-cloud try/catch so a single bad cloud does not end the task.
 # Per-cloud start times are logged for wall-time tuning.
+# Start-up steps are timestamped ([time] elapsed-s step): the 13-Nov test spent
+# ~53 min between MATLAB launch and the first cloud, so each step is timed.
 matlab_status=0
-time matlab -nodesktop -nodisplay -r "try, addpath(genpath('/projects/anbu8374/Matlab-Research')); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); addLibRadTran_paths; folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); for pool_attempt = 1:2, try, fprintf('\n=== PARPOOL START ATTEMPT %d of 2 ===\n', pool_attempt); start_parallel_pool(folder_paths.which_computer); break; catch ME_pool, fprintf(2, '\n[PARPOOL START FAILED attempt %d] %s: %s\n', pool_attempt, ME_pool.identifier, ME_pool.message); old_pool = gcp('nocreate'); if ~isempty(old_pool), delete(old_pool); end; if pool_attempt < 2, slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK')); if ~isnan(slurm_cpus) && slurm_cpus > 8, retry_workers = slurm_cpus - 8; setenv('SLURM_CPUS_PER_TASK', num2str(retry_workers)); fprintf(2, 'Retrying parpool with %d workers after a short pause.\n', retry_workers); end; pause(300 + randi(120)); else, rethrow(ME_pool); end; end; end; fprintf('\nWorkers in pool: %d\n', gcp('nocreate').NumWorkers); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d at %s ===\n', cloud_id, char(datetime('now'))); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED after %.1f s] %s: %s\n', cloud_id, toc(t0), ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); if n_fail > 0, exit(2); else, exit(0); end; catch ME, fprintf(2, '\n[FATAL MATLAB ERROR] %s: %s\n', ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; exit(1); end"
+time matlab -nodesktop -nodisplay -r "try, t_su = tic; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'MATLAB up'); addpath(genpath('/projects/anbu8374/Matlab-Research')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath Matlab-Research'); addpath(genpath('/scratch/alpine/anbu8374/HySICS/INP_OUT/')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath scratch INP_OUT'); addpath(genpath('/scratch/alpine/anbu8374/Mie_Calculations/')); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'genpath scratch Mie_Calculations'); fprintf('MATLAB path entries: %d\n', numel(strsplit(path, pathsep))); addLibRadTran_paths; fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'addLibRadTran_paths'); folder_paths = define_folderPaths_for_HySICS(${SLURM_ARRAY_TASK_ID}); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'define_folderPaths_for_HySICS'); for pool_attempt = 1:2, try, fprintf('\n=== PARPOOL START ATTEMPT %d of 2 ===\n', pool_attempt); start_parallel_pool(folder_paths.which_computer); break; catch ME_pool, fprintf(2, '\n[PARPOOL START FAILED attempt %d] %s: %s\n', pool_attempt, ME_pool.identifier, ME_pool.message); old_pool = gcp('nocreate'); if ~isempty(old_pool), delete(old_pool); end; if pool_attempt < 2, slurm_cpus = str2double(getenv('SLURM_CPUS_PER_TASK')); if ~isnan(slurm_cpus) && slurm_cpus > 8, retry_workers = slurm_cpus - 8; setenv('SLURM_CPUS_PER_TASK', num2str(retry_workers)); fprintf(2, 'Retrying parpool with %d workers after a short pause.\n', retry_workers); end; pause(300 + randi(120)); else, rethrow(ME_pool); end; end; end; fprintf('\nWorkers in pool: %d\n', gcp('nocreate').NumWorkers); fprintf('[%s] %7.1f s  %s\n', char(datetime('now')), toc(t_su), 'parpool ready'); input_file = '${input_file}'; output_dir = '${output_dir}'; n_ok = 0; n_fail = 0; for cloud_id = ${start_id}:${end_id}, fprintf('\n=== STARTING cloud %d at %s ===\n', cloud_id, char(datetime('now'))); t0 = tic; try, hysics_refl_from_synthetic_NN_inputs(input_file, cloud_id, folder_paths, output_dir); fprintf('=== FINISHED cloud %d in %.1f s ===\n', cloud_id, toc(t0)); n_ok = n_ok + 1; catch ME, fprintf('\n[CLOUD %d FAILED after %.1f s] %s: %s\n', cloud_id, toc(t0), ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf('  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; n_fail = n_fail + 1; end; end; fprintf('\n=== TASK SUMMARY: %d ok, %d failed ===\n', n_ok, n_fail); if n_fail > 0, exit(2); else, exit(0); end; catch ME, fprintf(2, '\n[FATAL MATLAB ERROR] %s: %s\n', ME.identifier, ME.message); for k = 1:numel(ME.stack), fprintf(2, '  at %s (line %d)\n', ME.stack(k).name, ME.stack(k).line); end; exit(1); end"
 matlab_status=$?
 
 echo "Finished MATLAB job for synthetic clouds ${start_id}..${end_id} at $(date)"

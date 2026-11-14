@@ -32,6 +32,22 @@ elseif strcmp(which_computer, 'curc')==true
 end
 
 
+% --- Optional override: a node-local copy of the tables (added 13 Nov 2026) ---
+% The Alpine batch scripts copy the 1-50 micron tables to $SLURM_SCRATCH (the
+% job's local SSD) and export CUSTOM_MIE_TABLES_DIR. Each of the 636 HySICS
+% band runs makes libRadtran open the table named in its INP file, so reading
+% it from local disk instead of /projects avoids repeated network-filesystem
+% reads (CURC asks that /projects not carry intensive job I/O). When the
+% variable is unset (e.g. on the laptop) nothing changes.
+env_mie_dir = getenv('CUSTOM_MIE_TABLES_DIR');
+if ~isempty(env_mie_dir)
+    if env_mie_dir(end) ~= '/'
+        env_mie_dir = [env_mie_dir, '/'];
+    end
+    custom_mie_tables_dir = env_mie_dir;
+end
+
+
 
 % first, read all the filenames in the custom mie tables dir
 % mie_table_filenames = dir(fullfile(custom_mie_tables_dir, '*.cdf'));
