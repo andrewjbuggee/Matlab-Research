@@ -80,7 +80,7 @@ input_file="/scratch/alpine/anbu8374/neural_network_training_data/training_input
 
 # Test outputs go to their own folder so they never mix with a production set.
 # (Trailing slash required by the MATLAB driver.)
-output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_TEST_12_Nov_2026/"
+output_dir="/scratch/alpine/anbu8374/neural_network_training_data/synthetic_dataSet_TEST_14_Nov_2026/"
 mkdir -p "$output_dir"
 
 # --- Pre-flight checks: fail in seconds, not after MATLAB starts -----------
