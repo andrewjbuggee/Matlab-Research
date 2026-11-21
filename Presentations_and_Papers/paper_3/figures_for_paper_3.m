@@ -4765,8 +4765,13 @@ end
 %  Load ensemble profiles mat file
 %  -------------------------------------------------------------------------
 
+% Version from May 2026
+% load([foldername_data,...
+%     'ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_04-Dec-2025.mat'])
+
+% Version from November 2026 with optical depth correction
 load([foldername_data,...
-    'ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.03_Nc-threshold_25_04-Dec-2025.mat'])
+    'ensemble_profiles_with_precip_from_14_files_LWC-threshold_0.05_Nc-threshold_10_08-Nov-2026.mat'])
 
 N_profiles = length(ensemble_profiles);
 disp(['Loaded ', num2str(N_profiles), ' vertical profiles.'])
@@ -4882,8 +4887,14 @@ elseif strcmp(which_computer, 'andrewbuggee')
 
 end
 
+% % Version from May 2026
+% load([foldername_data,...
+%     'ensemble_profiles_with_precip_from_33_files_LWC-threshold_0.05_Nc-threshold_10_no_rEff_greaterThan50_microns_16-Mar-2026.mat'])
+
+% Version from November 2026 with optical depth correction 
 load([foldername_data,...
-    'ensemble_profiles_with_precip_from_33_files_LWC-threshold_0.05_Nc-threshold_10_no_rEff_greaterThan50_microns_16-Mar-2026.mat'])
+    'ensemble_profiles_from_33_files_LWC-threshold_0.05_Nc-threshold_10_08-Nov-2026.mat'])
+
 
 % step through all ORACLES data
 N_profiles = length(ensemble_profiles);
