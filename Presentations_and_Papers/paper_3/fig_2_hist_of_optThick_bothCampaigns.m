@@ -267,7 +267,7 @@ grid on; grid minor
 
 xlabel('Cloud Optical Thickness', 'Interpreter', 'latex', 'FontSize', ax_fnt)
 ylabel('Counts','Interpreter', 'latex', 'FontSize', ax_fnt)
-title(['ORACLES - N = ', num2str(num_kept), ' - $\tau_{c} \geq$ ', num2str(tauC_min)],...
+title(['ORACLES - N = ', num2str(num_kept)],...
     'Interpreter', 'latex','FontSize', ttl_fnt)
 % update x-axis tick labels
 xticks([0, 10, 20, 30, 40, 50, 60, 70])
