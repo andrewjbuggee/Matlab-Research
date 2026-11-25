@@ -28,9 +28,15 @@ function s_c_pct = critical_supersaturation_pct(d_dry_m, kappa)
 %
 %   Inputs
 %     d_dry_m  dry diameter, m (array)
-%     kappa    hygroscopicity (scalar or same size as d_dry_m)
+%     kappa    hygroscopicity (scalar or same size as d_dry_m). A scalar applies one
+%              kappa to every diameter (e.g. the constant KAPPA_PIER = 0.37); an array
+%              gives each diameter its own kappa (e.g. the hourly Pier kappa from
+%              hourly_kappa_at). In the live script the setting KAPPA_SOURCE picks
+%              which one Part 7 passes in.
 %   Output
 %     s_c_pct  critical supersaturation, % (same size as d_dry_m)
+
+
 
 c = kohler_constants();
 s_c_pct = 100 .* log(1 + sqrt(4 .* c.A_m .^ 3 ./ (27 .* kappa .* d_dry_m .^ 3)));

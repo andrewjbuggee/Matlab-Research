@@ -18,7 +18,7 @@ function T = read_posted_product(file_path)
 %      straight from ARM and NOT multiplied by Jeramy's 1.57 leak factor
 %      (Sourita Saha, email of 20 Oct 2026). The file does not state its time
 %      zone. It is UTC like the ARM data it comes from (my inference, supported
-%      by the check in Part 9 of the live script: read as UTC, every posted
+%      by the check in Part 11 of the live script: read as UTC, every posted
 %      0.1 % row of the UTC CCN file contains one of its 10-min stages, and
 %      1.57 x the stage mean correlates with the posted value at r = 0.996).
 %

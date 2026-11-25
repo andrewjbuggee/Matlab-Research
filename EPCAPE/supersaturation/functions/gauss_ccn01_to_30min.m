@@ -16,7 +16,7 @@ function out = gauss_ccn01_to_30min(t_s, meas_cm3, gauss_cm3, r2, r2_min, t30)
 %   Why a ratio. The posted 0.1 % values come from ARM's stage-averaged product
 %   (epcccn2colaavgM1), whose averaging window is not the full 600 s that the 1-s
 %   file holds, so 1.57 x the stage mean of the 1-s "measured" CCN does not equal
-%   the posted value exactly (Part 9 of the live script shows the spread). The
+%   the posted value exactly (Part 11 of the live script shows the spread). The
 %   stage ratio gauss / measured isolates Sourita's correction from that
 %   averaging difference; the live script multiplies the posted 0.1 % value by it.
 %   The 1.57 leak factor cancels in the ratio (Sourita: both the measured and the

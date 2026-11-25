@@ -34,6 +34,8 @@ function s_pct = retrieve_supersaturation_pct(n_target_cm3, ccn6_cm3)
 %   Output
 %     s_pct         supersaturation, % (NaN if not retrievable)
 
+
+
 s_pct = NaN;
 if ~isfinite(n_target_cm3) || any(~isfinite(ccn6_cm3))
     return

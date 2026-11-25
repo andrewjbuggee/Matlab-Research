@@ -1,13 +1,18 @@
-function fig = plot_ccn01_correction_effect(D, fig_path)
+function fig = plot_ccn01_correction_effect(D, fig_path, method_text)
 % PLOT_CCN01_CORRECTION_EFFECT  Box plots of how the CCN-based retrievals change with Sourita's 0.1 % correction.
 %
-%   fig = plot_ccn01_correction_effect(D, fig_path)
+%   fig = plot_ccn01_correction_effect(D, fig_path, method_text)
+%
+%   method_text  how s_new was made, printed on the second title line, e.g.
+%                '0.1 % setpoint scaled by gauss / measured'. Called once per
+%                version of the correction (Part 11 draws two).
 %
 %   Left: absolute difference |s_new - s_old| per hour, in units of supersaturation
 %   (%), for the four CCN-based retrievals. Right: the relative change
 %   100 (s_new - s_old) / s_old, in % of s_old. s_old uses the posted Pier CCN;
-%   s_new uses the posted CCN with the 0.1 % setpoint scaled by Sourita Saha's
-%   Gaussian correction (Part 9 of the live script). s_kappa and s_ARG00 are not
+%   s_new uses the posted CCN with the 0.1 % setpoint replaced by Sourita Saha's
+%   Gaussian-corrected value, in one of two ways (Part 11 of the live script;
+%   method_text says which). s_kappa and s_ARG00 are not
 %   shown: they do not use the CCN counter, so their difference is zero by
 %   construction.
 %
@@ -74,7 +79,7 @@ h2 = patch(ax1, NaN, NaN, dark, 'EdgeColor', 'none', 'DisplayName', 'Mt. Soledad
 legend(ax1, [h1 h2], 'Location', 'northeast');
 
 title(tl, {'Effect of the Gaussian-corrected CCN at the 0.1 % setpoint on the CCN-based supersaturation retrievals', ...
-           's_{old}: posted Pier CCN;  s_{new}: 0.1 % setpoint scaled by gauss / measured (Sourita Saha, Oct 2026)'}, ...
+           ['s_{old}: posted Pier CCN;  s_{new}: ' method_text]}, ...
       'FontSize', 11);
 
 if ~isempty(fig_path)

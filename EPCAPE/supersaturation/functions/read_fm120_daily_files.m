@@ -24,6 +24,8 @@ function fm = read_fm120_daily_files(folder)
 %     fm.lwc_gm3  liquid water content (g m-3)                    ["LWC (g/m^3)"]
 %     fm.ed_um    "ED" = equivalent (effective) diameter (um)      ["ED (um)"]
 
+
+
 files = dir(fullfile(folder, '*.csv'));
 files = sort({files.name});
 files = files(~cellfun(@isempty, regexp(files, '^\d{4}-\d{2}-\d{2}\.csv$')));   % keep YYYY-MM-DD.csv only

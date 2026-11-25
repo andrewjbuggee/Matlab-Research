@@ -36,6 +36,8 @@ function [t_hour, ccn_hour] = hourly_ccn_spectrum(t30, ccn30_cm3, max_fill_h)
 %     t_hour      start of each hour with a complete spectrum (datetime column)
 %     ccn_hour    the hourly spectra, cm-3 (M x 6)
 
+
+
 % 1. hourly mean of each setpoint (retime puts the samples in [t, t + 1 h) into hour t)
 TT = array2timetable(ccn30_cm3, 'RowTimes', t30);
 TH = retime(TT, 'hourly', @(x) mean(x, 'omitnan'));   % mean([]) = NaN for an hour without data
